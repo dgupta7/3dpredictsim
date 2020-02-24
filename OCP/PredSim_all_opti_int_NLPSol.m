@@ -24,8 +24,8 @@ close all;
 % Note that you should re-run the simulations to write out the .mot files
 % and visualize the results in the OpenSim GUI.
 
-% num_set = [1,0,0,1,0,1,0]; % This configuration solves the problem
-num_set = [0,1,1,0,0,1,1]; % This configuration analyzes the results
+num_set = [1,0,0,1,0,1,0]; % This configuration solves the problem
+% num_set = [0,1,1,0,0,1,1]; % This configuration analyzes the results
 
 % The variable settings in the following section will set some parameters 
 % of the optimal control problems. Through the variable idx_ww, the user  
@@ -660,12 +660,58 @@ musi_pol = [musi,47,48,49];
 NMuscle_pol = NMuscle/2+3;
 CasADiFunctions_all
 
+% qinT = [0.814483478343008, 1.05503342897057, 0.162384573599574, ...
+%         0.0633034484654646, 0.433004984392647, 0.716775413397760, ...
+%         -0.0299471169706956, 0.200356847296188, 0.716775413397760];
+%     
+% qdotinT = [1.814483478343008, 2.05503342897057, 1.162384573599574, ...
+%     1.0633034484654646, 1.433004984392647, 1.716775413397760, ...
+%     -1.0299471169706956, 1.200356847296188, 1.716775413397760];
+%     
+% [lMT,vMT,dM] = f_lMT_vMT_dM(qinT,qdotinT);
+% lMT1 = full(lMT);
+% dM1 = full(dM);
+% vMT1 = full(vMT);
+% 
+% excitation = 0.8*ones(NMuscle, 1);
+% activation = 0.7*ones(NMuscle, 1);
+% normFiberLength = 0.7*ones(NMuscle, 1);
+% fiberVelocity = 1.7*ones(NMuscle, 1);
+% activeFiberForce = 5*ones(NMuscle, 1);
+% passiveFiberForce = 0.8*ones(NMuscle, 1);
+% normActiveFiberLengthForce = 0.5*ones(NMuscle, 1);
+% 
+% 
+% muscleVolume = MTparameters_m(1,:).*MTparameters_m(2,:);
+% muscleMass = (muscleVolume.*1059.7)./(tensions'.*1e6);
+% 
+% [e_totj,~,~,~,~,~] = fgetMetabolicEnergySmooth2004all(...
+%                         excitation,activation,normFiberLength,...
+%                         fiberVelocity,activeFiberForce,passiveFiberForce,...
+%                         muscleMass,pctsts,normActiveFiberLengthForce,...
+%                         MTparameters_m(1,:)',body_mass,10);
+% e_totf = full(e_totj);
+
 %% Passive joint torques
 % We extract the parameters for the passive torques of the lower limbs and
 % the trunk
 pathPassiveMoments = [pathRepo,'/PassiveMoments'];
 addpath(genpath(pathPassiveMoments));
 PassiveMomentsData
+
+% Qin = 5;
+% Qdotin = 7;
+% 
+% passHF = full(f_PassiveMoments(k_pass.hip.flex,theta.pass.hip.flex,Qin,Qdotin))
+% passHA = full(f_PassiveMoments(k_pass.hip.add,theta.pass.hip.add,Qin,Qdotin))
+% passHR = full(f_PassiveMoments(k_pass.hip.rot,theta.pass.hip.rot,Qin,Qdotin))
+% passKA = full(f_PassiveMoments(k_pass.knee,theta.pass.knee,Qin,Qdotin))
+% passAA = full(f_PassiveMoments(k_pass.ankle,theta.pass.ankle,Qin,Qdotin))
+% passSA = full(f_PassiveMoments(k_pass.subt,theta.pass.subt,Qin,Qdotin))
+% passLE = full(f_PassiveMoments(k_pass.trunk.ext,theta.pass.trunk.ext,Qin,Qdotin))
+% passLB = full(f_PassiveMoments(k_pass.trunk.ben,theta.pass.trunk.ben,Qin,Qdotin))
+% passLR = full(f_PassiveMoments(k_pass.trunk.rot,theta.pass.trunk.rot,Qin,Qdotin))
+
 
 %% Experimental data
 % We extract experimental data to set bounds and initial guesses if needed
@@ -725,7 +771,7 @@ end
 pathIG = [pathRepo,'/IG'];
 addpath(genpath(pathIG));
 if IGsel == 1 % Quasi-random initial guess  
-    guess = getGuess_QR_opti(N,nq,NMuscle,scaling,v_tgt,jointi,d);
+    guess = getGuess_QR_opti_int(N,nq,NMuscle,scaling,v_tgt,jointi,d);
 elseif IGsel == 2 % Data-informed initial guess
     if IGm == 1 % Data from average walking motion
         time_IC = [Qs_walk.time(1),Qs_walk.time(end)];
@@ -1102,7 +1148,7 @@ if solveProblem
                 W.passMom*B(j+1)*(f_J15(Tau_passj_all))*h + ...
                 W.u*B(j+1)      *(f_J92(vAk))*h + ...
                 W.u*B(j+1)      *(f_J92(dFTtildej(:,j)))*h + ...                
-                W.u*B(j+1)      *(f_J8(Aj(armsi,j)))*h);                                      
+                W.u*B(j+1)      *(f_J8(Aj(armsi,j)))*h);
             end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Call external function (run inverse dynamics)
@@ -1272,6 +1318,7 @@ if solveProblem
     options.ipopt.mu_strategy      = 'adaptive';
     options.ipopt.max_iter = 10000;
     options.ipopt.tol = 1*10^(-tol_ipopt);
+%     opti.solver('ipopt', options);  
     % Create and save diary
     p = mfilename('fullpath');
     [~,namescript,~] = fileparts(p);
@@ -1382,6 +1429,7 @@ if solveProblem
     % Solve problem
     % Opti does not use bounds on variables but constraints. This function
     % adjusts for that.
+%     sol = opti.solve();
     [w_opt,stats] = solve_NLPSOL(opti,options);    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
     diary off

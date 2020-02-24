@@ -194,8 +194,6 @@ guess.Qdotdots_all.data(:,jointi.elb.r) = Qdotdots_spline.data(:,strcmp(Qs.colhe
 guess.Qdotdots = interp1(round(Qs_time,4),guess.Qdotdots_all.data,...
     round(interval,4));
 
-%% Add last mest point
-
 %% Muscle variables
 guess.a = 0.1*ones(N,NMuscle);
 guess.vA = 0.01*ones(N,NMuscle);
