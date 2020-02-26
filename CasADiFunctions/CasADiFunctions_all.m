@@ -193,7 +193,6 @@ f_FiberVelocity_TendonForce_tendon = Function(...
     'f_FiberVelocity_Ftilde_tendon',{FTtilde,dFTtilde,lMT,vMT,...
     atendon_SX,shift_SX},{vM,vMtilde});
 
-
 %% Passive joint torques
 K_pass      = SX.sym('K_pass',4);
 theta_pass  = SX.sym('theta_pass',2);
