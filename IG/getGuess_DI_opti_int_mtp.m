@@ -7,8 +7,7 @@
 % Author: Antoine Falisse
 % Date: 12/19/2018
 % 
-function guess = getGuess_DI_opti_int_mtp(Qs,nq,N,time_IC,NMuscle,jointi,scaling,...
-    v_tgt,d)
+function guess = getGuess_DI_opti_int_mtp(Qs,nq,N,time_IC,NMuscle,jointi,scaling,v_tgt,d)
 
 %% Spline approximation of Qs to get Qdots and Qdotdots
 Qs_spline.data = zeros(size(Qs.allfilt));

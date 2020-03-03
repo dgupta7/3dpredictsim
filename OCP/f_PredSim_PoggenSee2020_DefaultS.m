@@ -16,6 +16,20 @@ function [R] = f_PredSim_PoggenSee2020_DefaultS(S)
 % 3) the exoskeleton assistance
 % 4) the external function
 
+%% Default settings
+
+if ~isfield(S,'savename_ig')
+    S.savename_ig= [];
+end
+
+if ~isfield(S,'ResultsF_ig')
+    S.ResultsF_ig = [];
+end
+
+if  ~isfield(S,'NThreads') || isempty(S.NThreads)
+    S.NThreads = 4;
+end
+
 
 %% User inputs (typical settings structure)
 % load default CasadiFunctions
@@ -53,7 +67,7 @@ linear_solver   = S.linear_solver;
 import casadi.*
 subject = 'subject1';
 parallelMode = 'thread';
-NThreads = 4;
+NThreads = S.NThreads;
 
 %% Select settings
 savename = S.savename;
@@ -287,8 +301,8 @@ if IGm == 2
     Qs_run              = getIK(pathIK_run,joints);
 elseif IGm == 3
     % Extract joint positions from existing motion (previous results)
-    OutFolder   = fullfile(pathRepo,'Results',S.ResultsFolder);
-    pathIK      = fullfile(OutFolder,[savename_ig '.mot']);
+    GuessFolder = fullfile(pathRepo,'Results',S.ResultsF_ig);
+    pathIK      = fullfile(GuessFolder,[savename_ig '.mot']);
     Qs_ig       = getIK(pathIK,joints);
     % When saving the results, we save a full gait cycle (2*N) so here we
     % only select 1:N to have half a gait cycle
@@ -327,7 +341,7 @@ elseif IGsel == 2 % Data-informed initial guess
             scaling,v_tgt,d);
     elseif IGm == 3 % Data from selected motion
         time_IC = [Qs_ig_sel.time(1),Qs_ig_sel.time(end)];
-        guess = getGuess_DI_t(Qs_ig_sel,nq,N,time_IC,NMuscle,jointi,scaling);
+        guess = getGuess_DI_opti_int_mtp(Qs_ig_sel,nq,N,time_IC,NMuscle,jointi,scaling,v_tgt,d);
     end
 end
 % If co-contraction, the initial guess of muscles activations is increased
@@ -1357,8 +1371,16 @@ if analyseResults
     if exist('HS1','var')
         clear HS1
     end
-    % Check if heel strike is on the right side
+        
+    % increase threshold untill you have at least on frame above the threshold
+    nFramesBelow= sum(GRFk_opt(:,2)<threshold);
+    while nFramesBelow == 0
+        threshold = threshold + 1;
+        nFramesBelow= sum(GRFk_opt(:,2)<threshold);
+    end
     phase_tran_tgridi = find(GRFk_opt(:,2)<threshold,1,'last');
+
+    
     if ~isempty(phase_tran_tgridi)
         if phase_tran_tgridi == N
             temp_idx = find(GRFk_opt(:,2)>threshold,1,'first');
