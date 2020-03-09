@@ -21,6 +21,11 @@ nq.leg          = 10; % #joints needed for polynomials
 % S.ExternalFunc  = 'PredSim_mtp_cm1.dll';
 % S.ExternalFunc2 = 'PredSim_mtp_pp_cm1.dll';
 
+stiffnessArm = 0;
+dampingArm = 0.1;
+stiffnessMtp = 17;
+dampingMtp = 0.5;
+
 % define general settings for default objective functions
 S.N             = 50;
 S.N             = 50;       % number of mesh intervals
@@ -44,8 +49,6 @@ W.A         = S.W.A;        % weight muscle activations
 exp_E       = S.W.exp_E;    % power metabolic energy
 W.Mtp       = S.W.Mtp;      % weight mtp excitations
 W.u         = S.W.u;        % weight on exctiations arm actuators
-
-
 
 % By default, the tendon stiffness is 35 and the shift is 0.
 NMuscle = 92;
@@ -173,8 +176,6 @@ tl = load([pathpolynomial,'/muscle_spanning_joint_INFO_',subject,'_mtp.mat']);
 [~,mai] = MomentArmIndices(muscleNames(1:end-3),...
     tl.muscle_spanning_joint_INFO(1:end-3,:));
 
-
-
 % Parameters for activation dynamics
 tact = 0.015; % Activation time constant
 tdeact = 0.06; % Deactivation time constant
@@ -202,7 +203,6 @@ load([pathpolynomial,'/MuscleInfo_',subject,'_mtp.mat']);
 % all muscles from the back (indices 47:49).
 musi_pol = [musi,47,48,49];
 NMuscle_pol = NMuscle/2+3;
-
 
 %% Polynomial approximation
 muscle_spanning_info_m = muscle_spanning_joint_INFO(musi_pol,:);
@@ -539,11 +539,6 @@ k_pass.trunk.ben = [-0.25 20.36 0.25 -20.36]';
 theta.pass.trunk.ben = [-0.3490658503988659 0.3490658503988659]';
 k_pass.trunk.rot = [-0.25 20.36 0.25 -20.36]';
 theta.pass.trunk.rot = [-0.3490658503988659 0.3490658503988659]';
-
-stiffnessArm = 0;
-dampingArm = 0.1;
-stiffnessMtp = 17;
-dampingMtp = 0.5;
 
 
 %% Create function to compue passive moments
