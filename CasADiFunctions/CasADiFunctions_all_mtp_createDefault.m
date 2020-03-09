@@ -8,11 +8,18 @@
 clear all; close all; clc;
 import casadi.*
 
+S.CasadiFunc_Folders = 'Casadi_s1_Poggensee_k17mtp';
+subject              = 's1_Poggensee';
+if isfolder(S.CasadiFunc_Folders)
+    error('Never changes the casadi functions in an existing folder, these functions are important to analyse optimization results (from the optimal states and controls');
+end
+
+
 pathRepo        = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim';
-subject         = 'subject1';
+
 nq.leg          = 10; % #joints needed for polynomials
-S.ExternalFunc  = 'PredSim_mtp_cm1.dll';
-S.ExternalFunc2 = 'PredSim_mtp_pp_cm1.dll';
+% S.ExternalFunc  = 'PredSim_mtp_cm1.dll';
+% S.ExternalFunc2 = 'PredSim_mtp_pp_cm1.dll';
 
 % define general settings for default objective functions
 S.N             = 50;
@@ -38,7 +45,6 @@ exp_E       = S.W.exp_E;    % power metabolic energy
 W.Mtp       = S.W.Mtp;      % weight mtp excitations
 W.u         = S.W.u;        % weight on exctiations arm actuators
 
-S.CasadiFunc_Folders = 'Casadi_Default';
 
 
 % By default, the tendon stiffness is 35 and the shift is 0.
@@ -149,7 +155,7 @@ muscleNames = {'glut_med1_r','glut_med2_r','glut_med3_r',...
     'ext_hal_r','ercspn_r','intobl_r','extobl_r','ercspn_l',...
     'intobl_l','extobl_l'};
 % Muscle indices for later use
-pathmusclemodel = [pathRepo,'/MuscleModel'];
+pathmusclemodel = fullfile(pathRepo,'MuscleModel',subject);
 addpath(genpath(pathmusclemodel));
 % (1:end-3), since we do not want to count twice the back muscles
 musi = MuscleIndices(muscleNames(1:end-3));
@@ -161,7 +167,7 @@ NMuscle = length(muscleNames(1:end-3))*2;
 load([pathmusclemodel,'/MTparameters_',subject,'_mtp.mat']);
 MTparameters_m = [MTparameters(:,musi),MTparameters(:,musi)];
 % Indices of the muscles actuating the different joints for later use
-pathpolynomial = [pathRepo,'/Polynomials'];
+pathpolynomial = fullfile(pathRepo,'Polynomials',subject);
 addpath(genpath(pathpolynomial));
 tl = load([pathpolynomial,'/muscle_spanning_joint_INFO_',subject,'_mtp.mat']);
 [~,mai] = MomentArmIndices(muscleNames(1:end-3),...
@@ -199,8 +205,6 @@ NMuscle_pol = NMuscle/2+3;
 
 
 %% Polynomial approximation
-pathpolynomial = [pathRepo,'/Polynomials'];
-addpath(genpath(pathpolynomial));
 muscle_spanning_info_m = muscle_spanning_joint_INFO(musi_pol,:);
 MuscleInfo_m.muscle    = MuscleInfo.muscle(musi_pol);
 qin     = SX.sym('qin',1,nq.leg);
@@ -347,8 +351,6 @@ f_MtpActivationDynamics = ...
     {'e','a'},{'dadt'});
 
 %% Muscle contraction dynamics
-pathmusclemodel = [pathRepo,'/MuscleModel'];
-addpath(genpath(pathmusclemodel));
 % Function for Hill-equilibrium
 FTtilde     = SX.sym('FTtilde',NMuscle); % Normalized tendon forces
 a           = SX.sym('a',NMuscle); % Muscle activations
@@ -445,11 +447,11 @@ b_SX            = SX.sym('b_SX',1); % Parameter determining tanh smoothness
 [energy_total_sm_SX,Adot_sm_SX,Mdot_sm_SX,Sdot_sm_SX,Wdot_sm_SX,...
     energy_model_sm_SX] = getMetabolicEnergySmooth2004all(exc_SX,act_SX,...
     lMtilde_SX,vM_SX,Fce_SX,Fpass_SX,musclemass_SX,pctst_SX,Fiso_SX,...
-    Fmax_SX,modelmass_SX,b_SX);
+    MTparameters_m(1,:)',modelmass_SX,b_SX);
 fgetMetabolicEnergySmooth2004all = ...
     Function('fgetMetabolicEnergySmooth2004all',...
     {exc_SX,act_SX,lMtilde_SX,vM_SX,Fce_SX,Fpass_SX,musclemass_SX,...
-    pctst_SX,Fiso_SX,Fmax_SX,modelmass_SX,b_SX},{energy_total_sm_SX,...
+    pctst_SX,Fiso_SX,modelmass_SX,b_SX},{energy_total_sm_SX,...
     Adot_sm_SX,Mdot_sm_SX,Sdot_sm_SX,Wdot_sm_SX,energy_model_sm_SX});
 
 %% get scaling (based on experimental data)
@@ -491,14 +493,14 @@ method = 'radau'; % collocation method
 
 
 %% Load external functions
-pathmain = pwd;
-pathExternalFunctions = [pathRepo,'/ExternalFunctions'];
-% Loading external functions.
-cd(pathExternalFunctions);
-setup.derivatives =  'AD'; % Algorithmic differentiation
-F  = external('F',S.ExternalFunc);
-F1 = external('F',S.ExternalFunc2);
-cd(pathmain);
+% pathmain = pwd;
+% pathExternalFunctions = [pathRepo,'/ExternalFunctions'];
+% % Loading external functions.
+% cd(pathExternalFunctions);
+% setup.derivatives =  'AD'; % Algorithmic differentiation
+% % F  = external('F',S.ExternalFunc);
+% % F1 = external('F',S.ExternalFunc2);
+% cd(pathmain);
 
 
 %% Index helpers
@@ -540,7 +542,7 @@ theta.pass.trunk.rot = [-0.3490658503988659 0.3490658503988659]';
 
 stiffnessArm = 0;
 dampingArm = 0.1;
-stiffnessMtp = 1.5/(pi/180)/5;
+stiffnessMtp = 17;
 dampingMtp = 0.5;
 
 
@@ -552,75 +554,75 @@ Qdot_SX = SX.sym('Q_SX',nq.all,1); % Muscle activations
 
 % Get passive joint torques
 Tau_passj.hip.flex.l    = f_PassiveMoments(k_pass.hip.flex,...
-    theta.pass.hip.flex,Q_SX(jointi.hip_flex.l,j+1),...
-    Qdot_SX(jointi.hip_flex.l,j+1));
+    theta.pass.hip.flex,Q_SX(jointi.hip_flex.l),...
+    Qdot_SX(jointi.hip_flex.l));
 Tau_passj.hip.flex.r    = f_PassiveMoments(k_pass.hip.flex,...
-    theta.pass.hip.flex,Q_SX(jointi.hip_flex.r,j+1),...
-    Qdot_SX(jointi.hip_flex.r,j+1));
+    theta.pass.hip.flex,Q_SX(jointi.hip_flex.r),...
+    Qdot_SX(jointi.hip_flex.r));
 Tau_passj.hip.add.l     = f_PassiveMoments(k_pass.hip.add,...
-    theta.pass.hip.add,Q_SX(jointi.hip_add.l,j+1),...
-    Qdot_SX(jointi.hip_add.l,j+1));
+    theta.pass.hip.add,Q_SX(jointi.hip_add.l),...
+    Qdot_SX(jointi.hip_add.l));
 Tau_passj.hip.add.r     = f_PassiveMoments(k_pass.hip.add,...
-    theta.pass.hip.add,Q_SX(jointi.hip_add.r,j+1),...
-    Qdot_SX(jointi.hip_add.r,j+1));
+    theta.pass.hip.add,Q_SX(jointi.hip_add.r),...
+    Qdot_SX(jointi.hip_add.r));
 Tau_passj.hip.rot.l     = f_PassiveMoments(k_pass.hip.rot,...
-    theta.pass.hip.rot,Q_SX(jointi.hip_rot.l,j+1),...
-    Qdot_SX(jointi.hip_rot.l,j+1));
+    theta.pass.hip.rot,Q_SX(jointi.hip_rot.l),...
+    Qdot_SX(jointi.hip_rot.l));
 Tau_passj.hip.rot.r     = f_PassiveMoments(k_pass.hip.rot,...
-    theta.pass.hip.rot,Q_SX(jointi.hip_rot.r,j+1),...
-    Qdot_SX(jointi.hip_rot.r,j+1));
+    theta.pass.hip.rot,Q_SX(jointi.hip_rot.r),...
+    Qdot_SX(jointi.hip_rot.r));
 Tau_passj.knee.l        = f_PassiveMoments(k_pass.knee,...
-    theta.pass.knee,Q_SX(jointi.knee.l,j+1),...
-    Qdot_SX(jointi.knee.l,j+1));
+    theta.pass.knee,Q_SX(jointi.knee.l),...
+    Qdot_SX(jointi.knee.l));
 Tau_passj.knee.r        = f_PassiveMoments(k_pass.knee,...
-    theta.pass.knee,Q_SX(jointi.knee.r,j+1),...
-    Qdot_SX(jointi.knee.r,j+1));
+    theta.pass.knee,Q_SX(jointi.knee.r),...
+    Qdot_SX(jointi.knee.r));
 Tau_passj.ankle.l       = f_PassiveMoments(k_pass.ankle,...
-    theta.pass.ankle,Q_SX(jointi.ankle.l,j+1),...
-    Qdot_SX(jointi.ankle.l,j+1));
+    theta.pass.ankle,Q_SX(jointi.ankle.l),...
+    Qdot_SX(jointi.ankle.l));
 Tau_passj.ankle.r       = f_PassiveMoments(k_pass.ankle,...
-    theta.pass.ankle,Q_SX(jointi.ankle.r,j+1),...
-    Qdot_SX(jointi.ankle.r,j+1));
+    theta.pass.ankle,Q_SX(jointi.ankle.r),...
+    Qdot_SX(jointi.ankle.r));
 Tau_passj.subt.l       = f_PassiveMoments(k_pass.subt,...
-    theta.pass.subt,Q_SX(jointi.subt.l,j+1),...
-    Qdot_SX(jointi.subt.l,j+1));
+    theta.pass.subt,Q_SX(jointi.subt.l),...
+    Qdot_SX(jointi.subt.l));
 Tau_passj.subt.r       = f_PassiveMoments(k_pass.subt,...
-    theta.pass.subt,Q_SX(jointi.subt.r,j+1),...
-    Qdot_SX(jointi.subt.r,j+1));
+    theta.pass.subt,Q_SX(jointi.subt.r),...
+    Qdot_SX(jointi.subt.r));
 Tau_passj.trunk.ext     = f_PassiveMoments(k_pass.trunk.ext,...
-    theta.pass.trunk.ext,Q_SX(jointi.trunk.ext,j+1),...
-    Qdot_SX(jointi.trunk.ext,j+1));
+    theta.pass.trunk.ext,Q_SX(jointi.trunk.ext),...
+    Qdot_SX(jointi.trunk.ext));
 Tau_passj.trunk.ben     = f_PassiveMoments(k_pass.trunk.ben,...
-    theta.pass.trunk.ben,Q_SX(jointi.trunk.ben,j+1),...
-    Qdot_SX(jointi.trunk.ben,j+1));
+    theta.pass.trunk.ben,Q_SX(jointi.trunk.ben),...
+    Qdot_SX(jointi.trunk.ben));
 Tau_passj.trunk.rot     = f_PassiveMoments(k_pass.trunk.rot,...
-    theta.pass.trunk.rot,Q_SX(jointi.trunk.rot,j+1),...
-    Qdot_SX(jointi.trunk.rot,j+1));
+    theta.pass.trunk.rot,Q_SX(jointi.trunk.rot),...
+    Qdot_SX(jointi.trunk.rot));
 
 Tau_passj.sh_flex.l = f_passiveTATorques(stiffnessArm, dampingArm, ...
-    Q_SX(jointi.sh_flex.l,j+1), Qdot_SX(jointi.sh_flex.l,j+1));
+    Q_SX(jointi.sh_flex.l), Qdot_SX(jointi.sh_flex.l));
 Tau_passj.sh_add.l = f_passiveTATorques(stiffnessArm, dampingArm, ...
-    Q_SX(jointi.sh_add.l,j+1), Qdot_SX(jointi.sh_add.l,j+1));
+    Q_SX(jointi.sh_add.l), Qdot_SX(jointi.sh_add.l));
 Tau_passj.sh_rot.l = f_passiveTATorques(stiffnessArm, dampingArm, ...
-    Q_SX(jointi.sh_rot.l,j+1), Qdot_SX(jointi.sh_rot.l,j+1));
+    Q_SX(jointi.sh_rot.l), Qdot_SX(jointi.sh_rot.l));
 Tau_passj.sh_flex.r = f_passiveTATorques(stiffnessArm, dampingArm, ...
-    Q_SX(jointi.sh_flex.r,j+1), Qdot_SX(jointi.sh_flex.r,j+1));
+    Q_SX(jointi.sh_flex.r), Qdot_SX(jointi.sh_flex.r));
 Tau_passj.sh_add.r = f_passiveTATorques(stiffnessArm, dampingArm, ...
-    Q_SX(jointi.sh_add.r,j+1), Qdot_SX(jointi.sh_add.r,j+1));
+    Q_SX(jointi.sh_add.r), Qdot_SX(jointi.sh_add.r));
 Tau_passj.sh_rot.r = f_passiveTATorques(stiffnessArm, dampingArm, ...
-    Q_SX(jointi.sh_rot.r,j+1), Qdot_SX(jointi.sh_rot.r,j+1));
+    Q_SX(jointi.sh_rot.r), Qdot_SX(jointi.sh_rot.r));
 Tau_passj.elb.l = f_passiveTATorques(stiffnessArm, dampingArm, ...
-    Q_SX(jointi.elb.l,j+1), Qdot_SX(jointi.elb.l,j+1));
+    Q_SX(jointi.elb.l), Qdot_SX(jointi.elb.l));
 Tau_passj.elb.r = f_passiveTATorques(stiffnessArm, dampingArm, ...
-    Q_SX(jointi.elb.r,j+1), Qdot_SX(jointi.elb.r,j+1));
+    Q_SX(jointi.elb.r), Qdot_SX(jointi.elb.r));
 Tau_passj.arm = [Tau_passj.sh_flex.l, Tau_passj.sh_add.l, ...
     Tau_passj.sh_rot.l, Tau_passj.sh_flex.r, Tau_passj.sh_add.r, ...
     Tau_passj.sh_rot.r, Tau_passj.elb.l, Tau_passj.elb.r];
 
 Tau_passj.mtp.l = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
-    Q_SX(jointi.mtp.l,j+1), Qdot_SX(jointi.mtp.l,j+1));
+    Q_SX(jointi.mtp.l), Qdot_SX(jointi.mtp.l));
 Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
-    Q_SX(jointi.mtp.r,j+1), Qdot_SX(jointi.mtp.r,j+1));
+    Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r));
 Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
 
 Tau_passj_all = [Tau_passj.hip.flex.l,Tau_passj.hip.flex.r,...
@@ -634,8 +636,6 @@ Tau_passj_all = [Tau_passj.hip.flex.l,Tau_passj.hip.flex.r,...
 f_AllPassiveTorques = Function('f_AllPassiveTorques',{Q_SX,Qdot_SX}, ...
     {Tau_passj_all},{'Q_SX','Qdot_SX'},{'Tau_passj_all'});
 
-
-%% Parallel formulation collocation scheme
 
 %% save all the casadifunctions
 
@@ -672,370 +672,3 @@ fgetMetabolicEnergySmooth2004all.save(fullfile(OutPath,'fgetMetabolicEnergySmoot
 % save default setup structure to verify this in the main function part
 SDefault = S;
 save('SDefault.mat','SDefault');
-
-% 
-% % Define CasADi variables for static parameters
-% tfk = MX.sym('tfk');
-% % Define CasADi variables for states
-% ak          = MX.sym('ak',NMuscle);
-% aj          = MX.sym('akmesh',NMuscle,d);
-% akj         = [ak aj];
-% FTtildek    = MX.sym('FTtildek',NMuscle);
-% FTtildej    = MX.sym('FTtildej',NMuscle,d);
-% FTtildekj   = [FTtildek FTtildej];
-% Qsk         = MX.sym('Qsk',nq.all);
-% Qsj         = MX.sym('Qsj',nq.all,d);
-% Qskj        = [Qsk Qsj];
-% Qdotsk      = MX.sym('Qdotsk',nq.all);
-% Qdotsj      = MX.sym('Qdotsj',nq.all,d);
-% Qdotskj     = [Qdotsk Qdotsj];
-% a_ak        = MX.sym('a_ak',nq.arms);
-% a_aj        = MX.sym('a_akmesh',nq.arms,d);
-% a_akj       = [a_ak a_aj];
-% a_mtpk      = MX.sym('a_mtpk',nq.mtp);
-% a_mtpj      = MX.sym('a_mtpkmesh',nq.mtp,d);
-% a_mtpkj     = [a_mtpk a_mtpj];
-% 
-% % Define CasADi variables for controls
-% vAk     = MX.sym('vAk',NMuscle);
-% e_ak    = MX.sym('e_ak',nq.arms);
-% e_mtpk  = MX.sym('e_mtpk',nq.mtp);
-% 
-% % define the exoskeleton assistive torque
-% Texok   = MX.sym('Texo',2); % joint moments for the exoskeleton
-% 
-% % Define CasADi variables for "slack" controls
-% dFTtildej   = MX.sym('dFTtildej',NMuscle,d);
-% Aj          = MX.sym('Aj',nq.all,d);
-% J           = 0; % Initialize cost function
-% eq_constr   = {}; % Initialize equality constraint vector
-% ineq_constr1 = {}; % Initialize inequality constraint vector 1
-% ineq_constr2 = {}; % Initialize inequality constraint vector 2
-% ineq_constr3 = {}; % Initialize inequality constraint vector 3
-% ineq_constr4 = {}; % Initialize inequality constraint vector 4
-% ineq_constr5 = {}; % Initialize inequality constraint vector 5
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% % Time step
-% h = tfk/N;
-% % Loop over collocation points
-% for j=1:d
-%     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     % Unscale variables
-%     Qskj_nsc = Qskj.*(scaling.QsQdots(1:2:end)'*ones(1,size(Qskj,2)/2));
-%     Qdotskj_nsc = Qdotskj.*(scaling.QsQdots(2:2:end)'* ...
-%         ones(1,size(Qdotskj,2)/2));
-%     FTtildekj_nsc = FTtildekj.*(scaling.FTtilde'*ones(1,size(FTtildekj,2)));
-%     dFTtildej_nsc = dFTtildej.*scaling.dFTtilde;
-%     Aj_nsc = Aj.*(scaling.Qdotdots'*ones(1,size(Aj,2)));
-%     vAk_nsc = vAk.*scaling.vA;
-%     
-%     QsQdotskj_nsc = MX(nq.all*2, d+1);
-%     QsQdotskj_nsc(1:2:end,:) = Qskj_nsc;
-%     QsQdotskj_nsc(2:2:end,:) = Qdotskj_nsc;
-%     
-%     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     % Get muscle-tendon lengths, velocities, and moment arms
-%     % Left leg
-%     qinj_l          = Qskj_nsc(IndexLeft, j+1);
-%     qdotinj_l       = Qdotskj_nsc(IndexLeft, j+1);
-%     [lMTj_l,vMTj_l,MAj_l] =  f_lMT_vMT_dM(qinj_l,qdotinj_l);
-%     MAj.hip_flex.l   =  MAj_l(mai(1).mus.l',1);
-%     MAj.hip_add.l    =  MAj_l(mai(2).mus.l',2);
-%     MAj.hip_rot.l    =  MAj_l(mai(3).mus.l',3);
-%     MAj.knee.l       =  MAj_l(mai(4).mus.l',4);
-%     MAj.ankle.l      =  MAj_l(mai(5).mus.l',5);
-%     MAj.subt.l       =  MAj_l(mai(6).mus.l',6);
-%     % For the back muscles, we want left and right together: left
-%     % first, right second. In MuscleInfo, we first have the right
-%     % muscles (44:46) and then the left muscles (47:49). Since the back
-%     % muscles only depend on back dofs, we do not care if we extract
-%     % them "from the left or right leg" so here we just picked left.
-%     MAj.trunk_ext    =  MAj_l([47:49,mai(8).mus.l]',8);
-%     MAj.trunk_ben    =  MAj_l([47:49,mai(9).mus.l]',9);
-%     MAj.trunk_rot    =  MAj_l([47:49,mai(10).mus.l]',10);
-%     % Right leg
-%     qinj_r      = Qskj_nsc(IndexRight,j+1);
-%     qdotinj_r   = Qdotskj_nsc(IndexRight,j+1);
-%     [lMTj_r,vMTj_r,MAj_r] = f_lMT_vMT_dM(qinj_r,qdotinj_r);
-%     % Here we take the indices from left since the vector is 1:49
-%     MAj.hip_flex.r   =  MAj_r(mai(1).mus.l',1);
-%     MAj.hip_add.r    =  MAj_r(mai(2).mus.l',2);
-%     MAj.hip_rot.r    =  MAj_r(mai(3).mus.l',3);
-%     MAj.knee.r       =  MAj_r(mai(4).mus.l',4);
-%     MAj.ankle.r      =  MAj_r(mai(5).mus.l',5);
-%     MAj.subt.r       =  MAj_r(mai(6).mus.l',6);
-%     % Both legs
-%     % In MuscleInfo, we first have the right back muscles (44:46) and
-%     % then the left back muscles (47:49). Here we re-organize so that
-%     % we have first the left muscles and then the right muscles.
-%     lMTj_lr = [lMTj_l([1:43,47:49],1);lMTj_r(1:46,1)];
-%     vMTj_lr = [vMTj_l([1:43,47:49],1);vMTj_r(1:46,1)];
-%     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     % Get muscle-tendon forces and derive Hill-equilibrium
-%     [Hilldiffj,FTj,Fcej,Fpassj,Fisoj,vMmaxj,massMj] = ...
-%         f_forceEquilibrium_FtildeState_all_tendon(akj(:,j+1),...
-%         FTtildekj_nsc(:,j+1),dFTtildej_nsc(:,j),...
-%         lMTj_lr,vMTj_lr,tensions);
-%     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     % Get metabolic energy rate if in the cost function
-%     % Get muscle fiber lengths
-%     [~,lMtildej] = f_FiberLength_TendonForce_tendon(...
-%         FTtildekj_nsc(:,j+1),lMTj_lr);
-%     % Get muscle fiber velocities
-%     [vMj,~] = f_FiberVelocity_TendonForce_tendon(...
-%         FTtildekj_nsc(:,j+1),dFTtildej_nsc(:,j),...
-%         lMTj_lr,vMTj_lr);
-%     % Get metabolic energy rate Bhargava et al. (2004)
-%     [e_totj,~,~,~,~,~] = fgetMetabolicEnergySmooth2004all(...
-%         akj(:,j+1),akj(:,j+1),lMtildej,...
-%         vMj,Fcej,Fpassj,massMj,pctsts,Fisoj,...
-%         MTparameters_m(1,:)',body_mass,10);
-%     
-%     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     % Get passive joint torques
-%     Tau_passj.hip.flex.l    = f_PassiveMoments(k_pass.hip.flex,...
-%         theta.pass.hip.flex,Qskj_nsc(jointi.hip_flex.l,j+1),...
-%         Qdotskj_nsc(jointi.hip_flex.l,j+1));
-%     Tau_passj.hip.flex.r    = f_PassiveMoments(k_pass.hip.flex,...
-%         theta.pass.hip.flex,Qskj_nsc(jointi.hip_flex.r,j+1),...
-%         Qdotskj_nsc(jointi.hip_flex.r,j+1));
-%     Tau_passj.hip.add.l     = f_PassiveMoments(k_pass.hip.add,...
-%         theta.pass.hip.add,Qskj_nsc(jointi.hip_add.l,j+1),...
-%         Qdotskj_nsc(jointi.hip_add.l,j+1));
-%     Tau_passj.hip.add.r     = f_PassiveMoments(k_pass.hip.add,...
-%         theta.pass.hip.add,Qskj_nsc(jointi.hip_add.r,j+1),...
-%         Qdotskj_nsc(jointi.hip_add.r,j+1));
-%     Tau_passj.hip.rot.l     = f_PassiveMoments(k_pass.hip.rot,...
-%         theta.pass.hip.rot,Qskj_nsc(jointi.hip_rot.l,j+1),...
-%         Qdotskj_nsc(jointi.hip_rot.l,j+1));
-%     Tau_passj.hip.rot.r     = f_PassiveMoments(k_pass.hip.rot,...
-%         theta.pass.hip.rot,Qskj_nsc(jointi.hip_rot.r,j+1),...
-%         Qdotskj_nsc(jointi.hip_rot.r,j+1));
-%     Tau_passj.knee.l        = f_PassiveMoments(k_pass.knee,...
-%         theta.pass.knee,Qskj_nsc(jointi.knee.l,j+1),...
-%         Qdotskj_nsc(jointi.knee.l,j+1));
-%     Tau_passj.knee.r        = f_PassiveMoments(k_pass.knee,...
-%         theta.pass.knee,Qskj_nsc(jointi.knee.r,j+1),...
-%         Qdotskj_nsc(jointi.knee.r,j+1));
-%     Tau_passj.ankle.l       = f_PassiveMoments(k_pass.ankle,...
-%         theta.pass.ankle,Qskj_nsc(jointi.ankle.l,j+1),...
-%         Qdotskj_nsc(jointi.ankle.l,j+1));
-%     Tau_passj.ankle.r       = f_PassiveMoments(k_pass.ankle,...
-%         theta.pass.ankle,Qskj_nsc(jointi.ankle.r,j+1),...
-%         Qdotskj_nsc(jointi.ankle.r,j+1));
-%     Tau_passj.subt.l       = f_PassiveMoments(k_pass.subt,...
-%         theta.pass.subt,Qskj_nsc(jointi.subt.l,j+1),...
-%         Qdotskj_nsc(jointi.subt.l,j+1));
-%     Tau_passj.subt.r       = f_PassiveMoments(k_pass.subt,...
-%         theta.pass.subt,Qskj_nsc(jointi.subt.r,j+1),...
-%         Qdotskj_nsc(jointi.subt.r,j+1));
-%     Tau_passj.trunk.ext     = f_PassiveMoments(k_pass.trunk.ext,...
-%         theta.pass.trunk.ext,Qskj_nsc(jointi.trunk.ext,j+1),...
-%         Qdotskj_nsc(jointi.trunk.ext,j+1));
-%     Tau_passj.trunk.ben     = f_PassiveMoments(k_pass.trunk.ben,...
-%         theta.pass.trunk.ben,Qskj_nsc(jointi.trunk.ben,j+1),...
-%         Qdotskj_nsc(jointi.trunk.ben,j+1));
-%     Tau_passj.trunk.rot     = f_PassiveMoments(k_pass.trunk.rot,...
-%         theta.pass.trunk.rot,Qskj_nsc(jointi.trunk.rot,j+1),...
-%         Qdotskj_nsc(jointi.trunk.rot,j+1));
-%     
-%     Tau_passj.sh_flex.l = f_passiveTATorques(stiffnessArm, dampingArm, ...
-%         Qskj_nsc(jointi.sh_flex.l,j+1), Qdotskj_nsc(jointi.sh_flex.l,j+1));
-%     Tau_passj.sh_add.l = f_passiveTATorques(stiffnessArm, dampingArm, ...
-%         Qskj_nsc(jointi.sh_add.l,j+1), Qdotskj_nsc(jointi.sh_add.l,j+1));
-%     Tau_passj.sh_rot.l = f_passiveTATorques(stiffnessArm, dampingArm, ...
-%         Qskj_nsc(jointi.sh_rot.l,j+1), Qdotskj_nsc(jointi.sh_rot.l,j+1));
-%     Tau_passj.sh_flex.r = f_passiveTATorques(stiffnessArm, dampingArm, ...
-%         Qskj_nsc(jointi.sh_flex.r,j+1), Qdotskj_nsc(jointi.sh_flex.r,j+1));
-%     Tau_passj.sh_add.r = f_passiveTATorques(stiffnessArm, dampingArm, ...
-%         Qskj_nsc(jointi.sh_add.r,j+1), Qdotskj_nsc(jointi.sh_add.r,j+1));
-%     Tau_passj.sh_rot.r = f_passiveTATorques(stiffnessArm, dampingArm, ...
-%         Qskj_nsc(jointi.sh_rot.r,j+1), Qdotskj_nsc(jointi.sh_rot.r,j+1));
-%     Tau_passj.elb.l = f_passiveTATorques(stiffnessArm, dampingArm, ...
-%         Qskj_nsc(jointi.elb.l,j+1), Qdotskj_nsc(jointi.elb.l,j+1));
-%     Tau_passj.elb.r = f_passiveTATorques(stiffnessArm, dampingArm, ...
-%         Qskj_nsc(jointi.elb.r,j+1), Qdotskj_nsc(jointi.elb.r,j+1));
-%     Tau_passj.arm = [Tau_passj.sh_flex.l, Tau_passj.sh_add.l, ...
-%         Tau_passj.sh_rot.l, Tau_passj.sh_flex.r, Tau_passj.sh_add.r, ...
-%         Tau_passj.sh_rot.r, Tau_passj.elb.l, Tau_passj.elb.r];
-%     
-%     Tau_passj.mtp.l = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
-%         Qskj_nsc(jointi.mtp.l,j+1), Qdotskj_nsc(jointi.mtp.l,j+1));
-%     Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
-%         Qskj_nsc(jointi.mtp.r,j+1), Qdotskj_nsc(jointi.mtp.r,j+1));
-%     Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
-%     
-%     Tau_passj_all = [Tau_passj.hip.flex.l,Tau_passj.hip.flex.r,...
-%         Tau_passj.hip.add.l,Tau_passj.hip.add.r,...
-%         Tau_passj.hip.rot.l,Tau_passj.hip.rot.r,...
-%         Tau_passj.knee.l,Tau_passj.knee.r,Tau_passj.ankle.l,...
-%         Tau_passj.ankle.r,Tau_passj.subt.l,Tau_passj.subt.r,...
-%         Tau_passj.mtp.all,Tau_passj.trunk.ext,Tau_passj.trunk.ben,...
-%         Tau_passj.trunk.rot,Tau_passj.arm]';
-%     
-%     % Expression for the state derivatives at the collocation points
-%     Qsp_nsc      = Qskj_nsc*C(:,j+1);
-%     Qdotsp_nsc   = Qdotskj_nsc*C(:,j+1);
-%     FTtildep_nsc = FTtildekj_nsc*C(:,j+1);
-%     ap           = akj*C(:,j+1);
-%     a_ap         = a_akj*C(:,j+1);
-%     a_mtpp       = a_mtpkj*C(:,j+1);
-%     % Append collocation equations
-%     % Dynamic constraints are scaled using the same scale
-%     % factors as the ones used to scale the states
-%     % Activation dynamics (implicit formulation)
-%     eq_constr{end+1} = (h*vAk_nsc - ap)./scaling.a;
-%     % Contraction dynamics (implicit formulation)
-%     eq_constr{end+1} = (h*dFTtildej_nsc(:,j) - FTtildep_nsc)./...
-%         scaling.FTtilde';
-%     % Skeleton dynamics (implicit formulation)
-%     qdotj_nsc = Qdotskj_nsc(:,j+1); % velocity
-%     eq_constr{end+1} = (h*qdotj_nsc - Qsp_nsc)./scaling.QsQdots(1:2:end)';
-%     eq_constr{end+1} = (h*Aj_nsc(:,j) - Qdotsp_nsc)./...
-%         scaling.QsQdots(2:2:end)';
-%     % Arm activation dynamics (explicit formulation)
-%     da_adtj = f_ArmActivationDynamics(e_ak,a_akj(:,j+1)');
-%     eq_constr{end+1} = (h*da_adtj - a_ap)./scaling.a_a;
-%     % Mtp activation dynamics (explicit formulation)
-%     da_mtpdtj = f_MtpActivationDynamics(e_mtpk,a_mtpkj(:,j+1)');
-%     eq_constr{end+1} = (h*da_mtpdtj - a_mtpp);
-%     % Add contribution to the quadrature function
-%     J = J + 1*(...
-%         W.E*B(j+1)      *(f_J92exp(e_totj,exp_E))/body_mass*h + ...
-%         W.A*B(j+1)      *(f_J92(akj(:,j+1)'))*h + ...
-%         W.ArmE*B(j+1)   *(f_J8(e_ak))*h +...
-%         W.Mtp*B(j+1)    *(f_J2(e_mtpk))*h +...
-%         W.Ak*B(j+1)     *(f_J23(Aj(residuals_noarmsi,j)))*h + ...
-%         W.passMom*B(j+1)*(f_J25(Tau_passj_all))*h + ...
-%         W.u*B(j+1)      *(f_J92(vAk))*h + ...
-%         W.u*B(j+1)      *(f_J92(dFTtildej(:,j)))*h + ...
-%         W.u*B(j+1)      *(f_J8(Aj(armsi,j)))*h);
-%     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     % Call external function (run inverse dynamics)
-%     [Tj] = F([QsQdotskj_nsc(:,j+1);Aj_nsc(:,j)]);
-%     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     % Add path constraints
-%     % Null pelvis residuals
-%     eq_constr{end+1} = Tj(ground_pelvisi,1);
-%     % Muscle-driven joint torques for the lower limbs and the trunk
-%     % Hip flexion, left
-%     Ft_hip_flex_l   = FTj(mai(1).mus.l',1);
-%     T_hip_flex_l    = f_T27(MAj.hip_flex.l,Ft_hip_flex_l);
-%     eq_constr{end+1} = Tj(jointi.hip_flex.l,1)-(T_hip_flex_l + ...
-%         Tau_passj.hip.flex.l);
-%     % Hip flexion, right
-%     Ft_hip_flex_r   = FTj(mai(1).mus.r',1);
-%     T_hip_flex_r    = f_T27(MAj.hip_flex.r,Ft_hip_flex_r);
-%     eq_constr{end+1} = Tj(jointi.hip_flex.r,1)-(T_hip_flex_r + ...
-%         Tau_passj.hip.flex.r);
-%     % Hip adduction, left
-%     Ft_hip_add_l    = FTj(mai(2).mus.l',1);
-%     T_hip_add_l     = f_T27(MAj.hip_add.l,Ft_hip_add_l);
-%     eq_constr{end+1} = Tj(jointi.hip_add.l,1)-(T_hip_add_l + ...
-%         Tau_passj.hip.add.l);
-%     % Hip adduction, right
-%     Ft_hip_add_r    = FTj(mai(2).mus.r',1);
-%     T_hip_add_r     = f_T27(MAj.hip_add.r,Ft_hip_add_r);
-%     eq_constr{end+1} = Tj(jointi.hip_add.r,1)-(T_hip_add_r + ...
-%         Tau_passj.hip.add.r);
-%     % Hip rotation, left
-%     Ft_hip_rot_l    = FTj(mai(3).mus.l',1);
-%     T_hip_rot_l     = f_T27(MAj.hip_rot.l,Ft_hip_rot_l);
-%     eq_constr{end+1} = Tj(jointi.hip_rot.l,1)-(T_hip_rot_l + ...
-%         Tau_passj.hip.rot.l);
-%     % Hip rotation, right
-%     Ft_hip_rot_r    = FTj(mai(3).mus.r',1);
-%     T_hip_rot_r     = f_T27(MAj.hip_rot.r,Ft_hip_rot_r);
-%     eq_constr{end+1} = Tj(jointi.hip_rot.r,1)-(T_hip_rot_r + ...
-%         Tau_passj.hip.rot.r);
-%     % Knee, left
-%     Ft_knee_l       = FTj(mai(4).mus.l',1);
-%     T_knee_l        = f_T13(MAj.knee.l,Ft_knee_l);
-%     eq_constr{end+1} = Tj(jointi.knee.l,1)-(T_knee_l + ...
-%         Tau_passj.knee.l);
-%     % Knee, right
-%     Ft_knee_r       = FTj(mai(4).mus.r',1);
-%     T_knee_r        = f_T13(MAj.knee.r,Ft_knee_r);
-%     eq_constr{end+1} = Tj(jointi.knee.r,1)-(T_knee_r + ...
-%         Tau_passj.knee.r);
-%     % Ankle, left
-%     Ft_ankle_l      = FTj(mai(5).mus.l',1);
-%     T_ankle_l       = f_T12(MAj.ankle.l,Ft_ankle_l);
-%     eq_constr{end+1} = Tj(jointi.ankle.l,1)-(T_ankle_l + ...
-%         Tau_passj.ankle.l );
-%     % Ankle, right
-%     Ft_ankle_r      = FTj(mai(5).mus.r',1);
-%     T_ankle_r       = f_T12(MAj.ankle.r,Ft_ankle_r);
-%     eq_constr{end+1} = Tj(jointi.ankle.r,1)-(T_ankle_r + ...
-%         Tau_passj.ankle.r);
-%     % Subtalar, left
-%     Ft_subt_l       = FTj(mai(6).mus.l',1);
-%     T_subt_l        = f_T12(MAj.subt.l,Ft_subt_l);
-%     eq_constr{end+1} = Tj(jointi.subt.l,1)-(T_subt_l + ...
-%         Tau_passj.subt.l + Texok(1));
-%     % Subtalar, right
-%     Ft_subt_r       = FTj(mai(6).mus.r',1);
-%     T_subt_r        = f_T12(MAj.subt.r,Ft_subt_r);
-%     eq_constr{end+1} = Tj(jointi.subt.r,1)-(T_subt_r + ...
-%         Tau_passj.subt.r + Texok(2));
-%     % Lumbar extension
-%     Ft_trunk_ext    = FTj([mai(8).mus.l,mai(8).mus.r]',1);
-%     T_trunk_ext     = f_T6(MAj.trunk_ext,Ft_trunk_ext);
-%     eq_constr{end+1} = Tj(jointi.trunk.ext,1)-(T_trunk_ext + ...
-%         Tau_passj.trunk.ext);
-%     % Lumbar bending
-%     Ft_trunk_ben    = FTj([mai(9).mus.l,mai(9).mus.r]',1);
-%     T_trunk_ben     = f_T6(MAj.trunk_ben,Ft_trunk_ben);
-%     eq_constr{end+1} = Tj(jointi.trunk.ben,1)-(T_trunk_ben + ...
-%         Tau_passj.trunk.ben);
-%     % Lumbar rotation
-%     Ft_trunk_rot    = FTj([mai(10).mus.l,mai(10).mus.r]',1);
-%     T_trunk_rot     = f_T6(MAj.trunk_rot,Ft_trunk_rot);
-%     eq_constr{end+1} = Tj(jointi.trunk.rot,1)-(T_trunk_rot + ...
-%         Tau_passj.trunk.rot);
-%     % Torque-driven joint torques for the arms
-%     % Arms
-%     eq_constr{end+1} = Tj(armsi,1)/scaling.ArmTau - (a_akj(:,j+1) + ...
-%         (Tau_passj.arm)'/scaling.ArmTau);
-%     % Mtp
-%     eq_constr{end+1} = Tj(mtpi,1)/scaling.MtpTau - (a_mtpkj(:,j+1) + ...
-%         (Tau_passj.mtp.all)'/scaling.MtpTau);
-%     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     % Activation dynamics (implicit formulation)
-%     act1 = vAk_nsc + akj(:,j+1)./(ones(size(akj(:,j+1),1),1)*tdeact);
-%     act2 = vAk_nsc + akj(:,j+1)./(ones(size(akj(:,j+1),1),1)*tact);
-%     ineq_constr1{end+1} = act1;
-%     ineq_constr2{end+1} = act2;
-%     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     % Contraction dynamics (implicit formulation)
-%     eq_constr{end+1} = Hilldiffj;
-%     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     % Constraints to prevent parts of the skeleton to penetrate each
-%     % other.
-%     % Origins calcaneus (transv plane) at minimum 9 cm from each other.
-%     ineq_constr3{end+1} = f_Jnn2(Tj(calcOr.r,1) - Tj(calcOr.l,1));
-%     % Constraint to prevent the arms to penetrate the skeleton
-%     % Origins femurs and ipsilateral hands (transv plane) at minimum
-%     % 18 cm from each other.
-%     ineq_constr4{end+1} = f_Jnn2(Tj(femurOr.r,1) - Tj(handOr.r,1));
-%     ineq_constr4{end+1} = f_Jnn2(Tj(femurOr.l,1) - Tj(handOr.l,1));
-%     % Origins tibia (transv plane) at minimum 11 cm from each other.
-%     ineq_constr5{end+1} = f_Jnn2(Tj(tibiaOr.r,1) - Tj(tibiaOr.l,1));
-% end % End loop over collocation points
-% eq_constr = vertcat(eq_constr{:});
-% ineq_constr1 = vertcat(ineq_constr1{:});
-% ineq_constr2 = vertcat(ineq_constr2{:});
-% ineq_constr3 = vertcat(ineq_constr3{:});
-% ineq_constr4 = vertcat(ineq_constr4{:});
-% ineq_constr5 = vertcat(ineq_constr5{:});
-% f_coll = Function('f_coll',{tfk,ak,aj,FTtildek,FTtildej,Qsk,Qsj,Qdotsk,...
-%     Qdotsj,a_ak,a_aj,a_mtpk,a_mtpj,vAk,e_ak,e_mtpk,dFTtildej,Aj,Texok},...
-%     {eq_constr,ineq_constr1,ineq_constr2,ineq_constr3,ineq_constr4,...
-%     ineq_constr5,J});
-
-
-
-
-
-
-

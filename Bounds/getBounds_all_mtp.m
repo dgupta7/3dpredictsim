@@ -126,8 +126,8 @@ bounds.Qs.upper = bounds.Qs.upper + 2*Qs_range;
 bounds.Qs.upper(jointi.pelvis.tx) = 2;  
 bounds.Qs.lower(jointi.pelvis.tx) = 0;
 % Pelvis_ty
-bounds.Qs.upper(jointi.pelvis.ty) = 1.1;  
-bounds.Qs.lower(jointi.pelvis.ty) = 0.75;
+bounds.Qs.upper(jointi.pelvis.ty) = 1.3;  
+bounds.Qs.lower(jointi.pelvis.ty) = 0.6;
 % Pelvis_tz
 bounds.Qs.upper(jointi.pelvis.tz) = 0.1;
 bounds.Qs.lower(jointi.pelvis.tz) = -0.1;
