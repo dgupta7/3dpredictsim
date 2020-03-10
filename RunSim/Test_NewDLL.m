@@ -7,9 +7,9 @@ clear all;
 
 % add casadi to the matlab path (needed on simulation computer because
 % default version is 3.4.5
-rmpath(genpath('G:\PhD\Matlabcodes\Casadi\casadi'));
-addpath(genpath('D:\MaartenAfschrift\softInstall\casadi'));
-addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
+% rmpath(genpath('G:\PhD\Matlabcodes\Casadi\casadi'));
+% addpath(genpath('D:\MaartenAfschrift\softInstall\casadi'));
+% addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
 
 
 %% Default settings
@@ -42,36 +42,35 @@ S.Max_s     = 0;        % maximal contraction velocity identifier
 S.pf_weak   = 0;        % weakness ankle plantaflexors
 S.mE        = 0;        % metabolic energy model identifier
 S.coCont    = 0;        % co-contraction identifier
-S.NThreads  = 8;        % number of threads for parallel computing
+S.NThreads  = 4;        % number of threads for parallel computing
 
 % ipopt options
 S.linear_solver = 'mumps';
 S.tol_ipopt     = 4;
 
 % quasi random initial guess, pelvis y position
-S.IG_PelvisY = 0.903;
+% S.IG_PelvisY = 0.903;   % subject 1 poggensee
+S.IG_PelvisY = 0.9385;
 
 % external function 
-S.ExternalFunc = 'SimExo_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp 
-S.ExternalFunc2 = 'SimExo_3D_Pog_s1_mtp_pp.dll';    % this one is with the pinjoint mtp 
+S.ExternalFunc = 'PredSim_mtpPin_cm2.dll';        % this one is with the pinjoint mtp 
+S.ExternalFunc2 = 'PredSim_mtpPin_pp_cm2.dll';    % this one is with the pinjoint mtp 
 
 % Folder with default functions
-% S.CasadiFunc_Folders = 'Casadi_Default';
-% S.CasadiFunc_Folders  = 'Casadi_Stiffmtp';
-S.CasadiFunc_Folders = 'Casadi_s1_Poggensee_k17mtp';
-S.subject            = 's1_Poggensee';
+S.CasadiFunc_Folders = 'Casadi_subject1_k17mtp';
+S.subject            = 'subject1';
 
 %% Specific settings to runs simulation
 
 %Simulation without exoskeleton assistance
-S.savename      = 'Passive_HingeMTP_QR_3';
-S.loadname      = 'Passive_HingeMTP_QR_3';
-S.ResultsFolder = 'TestHinge';
-S.ExoBool       = 1;
-S.ExoScale      = 0.001;
+S.savename      = 'NoExo';
+S.loadname      = 'NoExo';
+S.ResultsFolder = 'TestHinge_vAntoine';
+S.ExoBool       = 0;
+S.ExoScale      = 0;
 S.DataSet       = 'PoggenSee2020_AFO';
 S.IGmodeID      = 1;        % initial guess mode identifier
-% f_PredSim_PoggenSee2020_DefaultS(S);
+f_PredSim_PoggenSee2020_DefaultS(S);
 R = f_LoadSim_PoggenSee2020_DefaultS(S.ResultsFolder,S.loadname);
 
 

@@ -8,12 +8,11 @@
 clear all; close all; clc;
 import casadi.*
 
-S.CasadiFunc_Folders = 'Casadi_s1_Poggensee_k17mtp';
-subject              = 's1_Poggensee';
+S.CasadiFunc_Folders = 'Casadi_subject1_k17mtp';
+subject              = 'subject1';
 if isfolder(S.CasadiFunc_Folders)
     error('Never changes the casadi functions in an existing folder, these functions are important to analyse optimization results (from the optimal states and controls');
 end
-
 
 pathRepo        = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim';
 
