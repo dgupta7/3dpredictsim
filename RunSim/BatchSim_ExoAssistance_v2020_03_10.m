@@ -15,7 +15,7 @@ addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
 %% Default settings
 
 % flow control
-S.Flow.solveProblem     = 1;   % set to 1 to solve problem
+S.Flow.solveProblem     = 0;   % set to 1 to solve problem
 S.Flow.analyseResults   = 1;   % set to 1 to analyze results
 S.Flow.loadResults      = 0;   % set to 1 to load results
 S.Flow.saveResults      = 1;   % set to 1 to save sens. results
@@ -60,49 +60,54 @@ S.subject            = 's1_Poggensee';
 S.ResultsFolder = 'BatchSim_2020_03_10';
 
 %% open cluster
-
-myCluster = parcluster('Maarten_8Cores');
+if S.Flow.solveProblem
+    myCluster = parcluster('Maarten_8Cores');
+end
 
 %% Simulate withou exoskeleton
 
-% external function 
-S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp 
-S.ExternalFunc2 = 'PredSim_3D_Pog_s1_mtp_pp.dll';    % this one is with the pinjoint mtp 
+% external function
+S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp
+S.ExternalFunc2 = 'PredSim_3D_Pog_s1_mtp_pp.dll';    % this one is with the pinjoint mtp
 S.savename      = 'NoExo';
 S.loadname      = 'NoExo';
 S.ExoBool       = 0;
 S.ExoScale      = 0;
 S.DataSet       = 'PoggenSee2020_AFO';
 S.IGmodeID      = 1;        % initial guess mode identifier
-jobs(1) = batch(myCluster,'f_PredSim_PoggenSee2020_DefaultS',0,{S});
-    
+if S.Flow.solveProblem
+    jobs(1) = batch(myCluster,'f_PredSim_PoggenSee2020_DefaultS',0,{S});
+end
+
 %% Passive exoskeleton
 
-% external function 
-S.ExternalFunc  = 'SimExo_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp 
-S.ExternalFunc2 = 'SimExo_3D_Pog_s1_mtp_pp.dll';    % this one is with the pinjoint mtp 
+% external function
+S.ExternalFunc  = 'SimExo_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp
+S.ExternalFunc2 = 'SimExo_3D_Pog_s1_mtp_pp.dll';    % this one is with the pinjoint mtp
 S.savename      = 'Passive';
 S.loadname      = 'Passive';
 S.ExoBool       = 1;
 S.ExoScale      = 0;
 S.DataSet       = 'PoggenSee2020_AFO';
 S.IGmodeID      = 1;        % initial guess mode identifier
-jobs(2) = batch(myCluster,'f_PredSim_PoggenSee2020_DefaultS',0,{S});
-
+if S.Flow.solveProblem
+    jobs(2) = batch(myCluster,'f_PredSim_PoggenSee2020_DefaultS',0,{S});
+end
 
 %% 100% assistance exoskeleton
 
-% external function 
-S.ExternalFunc  = 'SimExo_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp 
-S.ExternalFunc2 = 'SimExo_3D_Pog_s1_mtp_pp.dll';    % this one is with the pinjoint mtp 
+% external function
+S.ExternalFunc  = 'SimExo_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp
+S.ExternalFunc2 = 'SimExo_3D_Pog_s1_mtp_pp.dll';    % this one is with the pinjoint mtp
 S.savename      = 'Active';
 S.loadname      = 'Active';
 S.ExoBool       = 1;
 S.ExoScale      = 1;
 S.DataSet       = 'PoggenSee2020_AFO';
 S.IGmodeID      = 1;        % initial guess mode identifier
-jobs(3) = batch(myCluster,'f_PredSim_PoggenSee2020_DefaultS',0,{S});
-
+if S.Flow.solveProblem
+    jobs(3) = batch(myCluster,'f_PredSim_PoggenSee2020_DefaultS',0,{S});
+end
 %% Loop over level of assistance
 % external function
 S.ExternalFunc  = 'SimExo_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp
@@ -115,5 +120,49 @@ for j = 1:length(AVect)
     S.ExoScale      = AVect(j)./100;
     S.DataSet       = 'PoggenSee2020_AFO';
     S.IGmodeID      = 1;        % initial guess mode identifier
-    jobs(3+j) = batch(myCluster,'f_PredSim_PoggenSee2020_DefaultS',0,{S});
+    if S.Flow.solveProblem
+        jobs(3+j) = batch(myCluster,'f_PredSim_PoggenSee2020_DefaultS',0,{S});
+    end
+end
+
+%% Vector with names
+RFolder = 'BatchSim_2020_03_10';
+dPath = fullfile('C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Results',RFolder);
+
+% Create Vector with Names
+Names = {'NoExo','Passive','Active'};
+for j = 1:length(AVect)
+   Names{j+3} =  ['Active_' num2str(AVect(j))];
+end
+
+%% Post processing
+
+% for i = 1:length(Names)
+%     if exist(fullfile(dPath,[Names{i} '.mat']),'file')
+%         f_LoadSim_PoggenSee2020_DefaultS(RFolder,Names{i});
+%     end
+% end
+
+
+%% Plot Results
+
+
+% No Exo in black
+Cs = [0 0 0];
+PlotResults_3DSim(fullfile(dPath,[Names{1} '_pp.mat']),Cs);
+h = gcf;
+
+% passive in red
+Cs = [1 0 0];
+PlotResults_3DSim(fullfile(dPath,[Names{2} '_pp.mat']),Cs,h);
+
+% active in blue
+Cs = [0 0 1];
+PlotResults_3DSim(fullfile(dPath,[Names{3} '_pp.mat']),Cs,h);
+
+% percentage of assistanc ein copper
+CsVect = copper(length(AVect));
+for i=1:length(AVect)
+    Cs = CsVect(i,:);
+    PlotResults_3DSim(fullfile(dPath,[Names{i+3} '_pp.mat']),Cs,h);
 end
