@@ -2,9 +2,9 @@ function [] = f_PredSim_PoggenSee2020_DefaultS(S)
 
 
 %% Notes
-% rmpath(genpath('G:\PhD\Matlabcodes\Casadi\casadi'));
-% addpath(genpath('D:\MaartenAfschrift\softInstall\casadi'));
-% addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
+rmpath(genpath('G:\PhD\Matlabcodes\Casadi\casadi'));
+addpath(genpath('D:\MaartenAfschrift\softInstall\casadi'));
+addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
 
 % to simplify batch processing, the casadi functions were already created
 % using the script CasadiFunctions_all_mtp_createDefault.m
