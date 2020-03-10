@@ -29,7 +29,7 @@ num_set = [1,1,1,1,0,1]; % This configuration solves the problem
 % The variable settings in the following section will set some parameters 
 % of the optimal control problems. Through the variable idx_ww, the user  
 % can select which row of parameters will be used.
-idx_ww = [4]; % Index row in matrix settings (1:198)
+idx_ww = [6]; % Index row in matrix settings (1:198)
 
 %% Settings
 import casadi.*
@@ -78,18 +78,7 @@ writeIKmotion   = num_set(6); % set to 1 to write .mot file
 % settings(18): co-contraction identifier: 0 lower bound activation = 0.05,
 % 1 lower bound activation = 0.1, 2 lower bound activation = 0.15,
 % 3 lower bound activation = 0.2
-settings = [    
-    % A. Varying prescribed gait speed
-    % Quasi-random initial guess
-    1.33, 4, 50, 500, 50000, 1000000, 1000, 2000, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0;    % 1  
-    % Data-informed (walking) initial guess
-    1.33, 4, 50, 500, 50000, 1000000, 1000, 2000, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0;    % 2
-    % C. Subject-specific contact model
-    % Quasi-random initial guess
-    1.33, 4, 50, 500, 50000, 1000000, 1000, 2000, 2, 1, 2, 0, 0, 0, 0, 0, 0, 0;    % 3
-    % Data-informed (walking) initial guess
-    1.33, 4, 50, 500, 50000, 1000000, 1000, 2000, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0;    % 4   
-];
+predSim_settings_all_mtp
 
 %% Select settings
 for www = 1:length(idx_ww)
@@ -117,7 +106,7 @@ mE          = settings(ww,17);   % metabolic energy model identifier
 coCont      = settings(ww,18);   % co-contraction identifier
 % Fixed parameter
 W.u = 0.001;
-W.Mtp = 1000;
+W.Mtp = 1000000;
 % The filename used to save the results depends on the settings 
 v_tgt_id = round(v_tgt,2);
 savename = ['_c',num2str(ww),'_v',num2str(v_tgt_id*100),...
@@ -186,6 +175,11 @@ if ispc
                 F = external('F','PredSim_mtp_cm1.dll');   
                 if analyseResults
                     F1 = external('F','PredSim_mtp_pp_cm1.dll');
+                end
+            elseif cm == 3
+                F = external('F','PredSim_mtpPin_cm2.dll');   
+                if analyseResults
+                    F1 = external('F','PredSim_mtpPin_pp_cm2.dll');
                 end
             end
     end
@@ -893,7 +887,7 @@ if solveProblem
             Tau_passj.hip.rot.l,Tau_passj.hip.rot.r,...
             Tau_passj.knee.l,Tau_passj.knee.r,Tau_passj.ankle.l,...
             Tau_passj.ankle.r,Tau_passj.subt.l,Tau_passj.subt.r,...
-            Tau_passj.mtp.all,Tau_passj.trunk.ext,Tau_passj.trunk.ben,...
+            Tau_passj.trunk.ext,Tau_passj.trunk.ben,...
             Tau_passj.trunk.rot,Tau_passj.arm]';
 
         % Expression for the state derivatives at the collocation points
@@ -957,7 +951,7 @@ if solveProblem
             W.ArmE*B(j+1)   *(f_J8(e_ak))*h +... 
             W.Mtp*B(j+1)    *(f_J2(e_mtpk))*h +... 
             W.Ak*B(j+1)     *(f_J23(Aj(residuals_noarmsi,j)))*h + ... 
-            W.passMom*B(j+1)*(f_J25(Tau_passj_all))*h + ...
+            W.passMom*B(j+1)*(f_J23(Tau_passj_all))*h + ...
             W.u*B(j+1)      *(f_J92(vAk))*h + ...
             W.u*B(j+1)      *(f_J92(dFTtildej(:,j)))*h + ...                
             W.u*B(j+1)      *(f_J8(Aj(armsi,j)))*h);
@@ -1517,7 +1511,7 @@ if analyseResults
     Xj_Qs_Qdots_opt(:,2:2:end)  = qdot_col_opt_unsc.rad;
     Xj_Qdotdots_opt             = qdotdot_col_opt_unsc.rad;
     Foutj_opt = zeros(d*N,nq.all+NGRF+NcalcOrall);
-    Tau_passj_opt_all = zeros(d*N,nq.all-nq.abs);
+    Tau_passj_opt_all = zeros(d*N,nq.all-nq.abs-nq.mtp);
     for i = 1:d*N
         [res] = F1([Xj_Qs_Qdots_opt(i,:)';Xj_Qdotdots_opt(i,:)']);
         Foutj_opt(i,:) = full(res); 
@@ -1600,7 +1594,7 @@ if analyseResults
                Tau_passj_opt.hip.rot.r,Tau_passj_opt.knee.l,...
                Tau_passj_opt.knee.r,Tau_passj_opt.ankle.l,...
                Tau_passj_opt.ankle.r,Tau_passj_opt.subt.l,...
-               Tau_passj_opt.subt.r,Tau_passj_opt.mtp.all(i,:),...
+               Tau_passj_opt.subt.r,...
                Tau_passj_opt.trunk.ext,Tau_passj_opt.trunk.ben,...
                Tau_passj_opt.trunk.rot,Tau_passj_opt.arm(i,:)];
         
@@ -1803,7 +1797,7 @@ if analyseResults
                 W.ArmE*B(j+1) * (f_J8(e_a_opt(k,:)))*h_opt +...    
                 W.Mtp*B(j+1) * (f_J2(e_mtp_opt(k,:)))*h_opt +...  
                 W.Ak*B(j+1) * (f_J23(qdotdot_col_opt(count,residuals_noarmsi)))*h_opt +...                     
-                W.passMom*B(j+1)* (f_J25(Tau_passj_opt_all(count,:)))*h_opt + ...                    
+                W.passMom*B(j+1)* (f_J23(Tau_passj_opt_all(count,:)))*h_opt + ...                    
                 W.u*B(j+1) * (f_J92(vA_opt(k,:)))*h_opt + ...        
                 W.u*B(j+1) * (f_J92(dFTtilde_col_opt(count,:)))*h_opt + ...                           
                 W.u*B(j+1) * (f_J8(qdotdot_col_opt(count,armsi)))*h_opt);    
@@ -1819,7 +1813,7 @@ if analyseResults
                 Qdotdot_cost = Qdotdot_cost + W.Ak*B(j+1)*...
                     (f_J23(qdotdot_col_opt(count,residuals_noarmsi)))*h_opt;
                 Pass_cost = Pass_cost + W.passMom*B(j+1)*...
-                    (f_J25(Tau_passj_opt_all(count,:)))*h_opt;
+                    (f_J23(Tau_passj_opt_all(count,:)))*h_opt;
                 vA_cost = vA_cost + W.u*B(j+1)*...
                     (f_J92(vA_opt(k,:)))*h_opt;
                 dFTtilde_cost = dFTtilde_cost + W.u*B(j+1)*...
@@ -2203,6 +2197,16 @@ if analyseResults
                 '/IK',savename,'.mot'];
         write_motionFile(JointAngleMuscleAct, filenameJointAngles)
     end
+    
+    %% MTP torque components
+    figure()
+    plot(Ts_opt(:,jointi.mtp.r)*body_mass, 'k', 'linewidth', 3)
+    hold on
+    plot(a_mtp_GC(:,2)*scaling.MtpTau, 'r', 'linewidth', 3)
+    plot(Tau_pass_opt_GC(:,jointi.mtp.r-nq.abs), 'b', 'linewidth', 3)
+    plot(Tau_pass_opt_GC(:,jointi.mtp.r-nq.abs) + a_mtp_GC(:,2)*scaling.MtpTau, 'm:', 'linewidth', 3)
+    l = legend('ID','Active','Passive','Sum (Active + Passive)');
+    set(l,'Fontsize',16)    
         
     %% Metabolic cost of transport for a gait cycle
     Qs_opt_rad = Qs_GC;
