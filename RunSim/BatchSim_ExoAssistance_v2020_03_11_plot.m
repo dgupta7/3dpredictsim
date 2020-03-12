@@ -7,9 +7,9 @@ clear all;
 
 % add casadi to the matlab path (needed on simulation computer because
 % default version is 3.4.5
-% rmpath(genpath('G:\PhD\Matlabcodes\Casadi\casadi'));
-% addpath(genpath('D:\MaartenAfschrift\softInstall\casadi'));
-% addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
+rmpath(genpath('G:\PhD\Matlabcodes\Casadi\casadi'));
+addpath(genpath('D:\MaartenAfschrift\softInstall\casadi'));
+addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
 
 
 %% Default settings
@@ -23,7 +23,7 @@ S.Flow.checkBoundsIG    = 0;   % set to 1 to visualize guess-bounds
 S.Flow.writeIKmotion    = 1;   % set to 1 to write .mot file
 
 % settings for optimization
-S.v_tgt     = 1.33;     % average speed
+S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
 S.W.E       = 500;      % weight metabolic energy rate
 S.W.Ak      = 50000;    % weight joint accelerations
@@ -48,8 +48,8 @@ S.linear_solver = 'mumps';
 S.tol_ipopt     = 4;
 
 % quasi random initial guess, pelvis y position
-% S.IG_PelvisY = 0.903;   % subject 1 poggensee
-% S.IG_PelvisY = 0.9385;
+%S.IG_PelvisY = 0.903;   % subject 1 poggensee
+%S.IG_PelvisY = 0.9385;
 
 % external function 
 S.ExternalFunc = 'PredSim_mtpPin_cm3.dll';        % this one is with the pinjoint mtp 
@@ -59,16 +59,42 @@ S.ExternalFunc2 = 'PredSim_mtpPin_pp_cm3.dll';    % this one is with the pinjoin
 S.CasadiFunc_Folders = 'Casadi_subject1_mtp2';
 S.subject            = 'subject1';
 
-%% Specific settings to runs simulation
+% output folder
+S.ResultsFolder = 'BatchSim_2020_03_11_DefaultSubj';
 
-%Simulation without exoskeleton assistance
-S.savename      = 'Assistance_vAnkle';
-S.loadname      = 'Assistance_vAnkle';
-S.ResultsFolder = 'TestHinge_vAntoine';
+%% Passive exoskeleton
+
+dPath ='C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Results';
+% external function
+S.savename      = 'Passive';
+S.loadname      = 'Passive';
+S.ExoBool       = 1;
+S.ExoScale      = 0;
+S.DataSet       = 'PoggenSee2020_AFO';
+f_LoadSim_PoggenSee2020_DefaultS(S.ResultsFolder,S.loadname);
+% PlotResults_3DSim(fullfile(dPath,S.ResultsFolder,[S.loadname '_pp.mat']),[1 0 0]);
+
+%% 100% assistance exoskeleton
+
+% external function
+S.savename      = 'Active';
+S.loadname      = 'Active';
 S.ExoBool       = 1;
 S.ExoScale      = 1;
 S.DataSet       = 'PoggenSee2020_AFO';
-f_PredSim_PoggenSee2020_ToeConstraint(S);
-R = f_LoadSim_PoggenSee2020_DefaultS(S.ResultsFolder,S.loadname);
+f_LoadSim_PoggenSee2020_DefaultS(S.ResultsFolder,S.loadname);
+% PlotResults_3DSim(fullfile(dPath,S.ResultsFolder,[S.loadname '_pp.mat']),[0 0 1],gcf);
 
-
+%% Loop over level of assistance
+% external function
+AVect = 0:20:200;
+ColVect = copper(length(AVect));
+for j = 1:length(AVect)
+    S.savename      = ['Active_' num2str(AVect(j))];
+    S.loadname      = ['Active_' num2str(AVect(j))];
+    S.ExoBool       = 1;
+    S.ExoScale      = AVect(j)./100;
+    S.DataSet       = 'PoggenSee2020_AFO';
+    f_LoadSim_PoggenSee2020_DefaultS(S.ResultsFolder,S.loadname);
+%     PlotResults_3DSim(fullfile(dPath,S.ResultsFolder,[S.loadname '_pp.mat']),ColVect(j,:),gcf);
+end

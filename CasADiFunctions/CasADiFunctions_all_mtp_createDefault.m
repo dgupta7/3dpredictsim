@@ -8,52 +8,31 @@
 clear all; close all; clc;
 import casadi.*
 
-S.CasadiFunc_Folders = 'Casadi_subject1_k17mtp';
+ExtPoly = '_mtp';
+
+S.CasadiFunc_Folders = 'Casadi_subject1_mtp2';
 subject              = 'subject1';
-if isfolder(S.CasadiFunc_Folders)
-    error('Never changes the casadi functions in an existing folder, these functions are important to analyse optimization results (from the optimal states and controls');
-end
+% if isfolder(S.CasadiFunc_Folders)
+%     error('Never changes the casadi functions in an existing folder, these functions are important to analyse optimization results (from the optimal states and controls');
+% end
 
 pathRepo        = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim';
 
 nq.leg          = 10; % #joints needed for polynomials
-% S.ExternalFunc  = 'PredSim_mtp_cm1.dll';
-% S.ExternalFunc2 = 'PredSim_mtp_pp_cm1.dll';
 
 stiffnessArm = 0;
 dampingArm = 0.1;
-stiffnessMtp = 17;
+stiffnessMtp = 1.5/(pi/180)/5;
 dampingMtp = 0.5;
 
 % define general settings for default objective functions
 S.N             = 50;
-S.N             = 50;       % number of mesh intervals
-S.W.E           = 500;      % weight metabolic energy rate
-S.W.Ak          = 50000;    % weight joint accelerations
-S.W.ArmE        = 1000000;  % weight arm excitations
-S.W.passMom     = 1000;     % weight passive torques
-S.W.A           = 2000;     % weight muscle activations
-S.W.exp_E       = 2;        % power metabolic energy
-S.W.Mtp         = 1000;     % weight mtp excitations
-S.W.u           = 0.001;    % weight on excitations arms actuators
-
-
-% extract settings
-N           = S.N;          % number of mesh intervals
-W.E         = S.W.E;        % weight metabolic energy rate
-W.Ak        = S.W.Ak;       % weight joint accelerations
-W.ArmE      = S.W.ArmE;     % weight arm excitations
-W.passMom   = S.W.passMom;  % weight passive torques
-W.A         = S.W.A;        % weight muscle activations
-exp_E       = S.W.exp_E;    % power metabolic energy
-W.Mtp       = S.W.Mtp;      % weight mtp excitations
-W.u         = S.W.u;        % weight on exctiations arm actuators
 
 % By default, the tendon stiffness is 35 and the shift is 0.
 NMuscle = 92;
 aTendon = 35*ones(NMuscle,1);
-IndexCalf = [32 33 34 78 79 80];    % adjust stiffness of the calf muscles
-aTendon(IndexCalf) = 20;
+% IndexCalf = [32 33 34 78 79 80];    % adjust stiffness of the calf muscles
+% aTendon(IndexCalf) = 35;
 shift = getShift(aTendon);
 %% Indices external function
 % Indices of the elements in the external functions
@@ -166,12 +145,12 @@ NMuscle = length(muscleNames(1:end-3))*2;
 % Muscle-tendon parameters. Row 1: maximal isometric forces; Row 2: optimal
 % fiber lengths; Row 3: tendon slack lengths; Row 4: optimal pennation
 % angles; Row 5: maximal contraction velocities
-load([pathmusclemodel,'/MTparameters_',subject,'_mtp.mat']);
+load([pathmusclemodel,'/MTparameters_',subject, ExtPoly, '.mat']);
 MTparameters_m = [MTparameters(:,musi),MTparameters(:,musi)];
 % Indices of the muscles actuating the different joints for later use
 pathpolynomial = fullfile(pathRepo,'Polynomials',subject);
 addpath(genpath(pathpolynomial));
-tl = load([pathpolynomial,'/muscle_spanning_joint_INFO_',subject,'_mtp.mat']);
+tl = load([pathpolynomial,'/muscle_spanning_joint_INFO_',subject,ExtPoly, '.mat']);
 [~,mai] = MomentArmIndices(muscleNames(1:end-3),...
     tl.muscle_spanning_joint_INFO(1:end-3,:));
 
@@ -195,8 +174,8 @@ pctsts = [pctst;pctst];
 pathCasADiFunctions = [pathRepo,'/CasADiFunctions'];
 addpath(genpath(pathCasADiFunctions));
 % We load some variables for the polynomial approximations
-load([pathpolynomial,'/muscle_spanning_joint_INFO_',subject,'_mtp.mat']);
-load([pathpolynomial,'/MuscleInfo_',subject,'_mtp.mat']);
+load([pathpolynomial,'/muscle_spanning_joint_INFO_',subject,ExtPoly, '.mat']);
+load([pathpolynomial,'/MuscleInfo_',subject,ExtPoly,'.mat']);
 % For the polynomials, we want all independent muscles. So we do not need
 % the muscles from both legs, since we assume bilateral symmetry, but want
 % all muscles from the back (indices 47:49).
@@ -475,9 +454,9 @@ pathIK_walk         = [pathData,'/IK/',nametrial_walk.IK,'.mat'];
 Qs_walk             = getIK(pathIK_walk,joints);
 
 
-pathBounds = [pathRepo,'/Bounds'];
-addpath(genpath(pathBounds));
-[~,scaling] = getBounds_all_mtp(Qs_walk,NMuscle,nq,jointi,1.25);
+% pathBounds = [pathRepo,'/Bounds'];
+% addpath(genpath(pathBounds));
+% [~,scaling] = getBounds_all_mtp(Qs_walk,NMuscle,nq,jointi,1.25);
 
 %% Collocation scheme
 % We use a pseudospectral direct collocation method, i.e. we use Lagrange

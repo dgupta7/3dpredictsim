@@ -5,48 +5,147 @@ function [] = PlotResults_3DSim(ResultsFile,Cs,varargin)
 if exist(ResultsFile,'file')
     load(ResultsFile);
     
+    if length(varargin)<2
+        xParam = R.Sopt.ExoScale;
+        xParamLab = 'Level assistance';
+    else
+        xParam = varargin{2};
+        xParamLab = varargin{3};
+    end
+    
+    boolFirst = 1;
     % create figure handles
-    if ~isempty(varargin)
+    if ~isempty(varargin) && ~isempty(varargin{1})
         h = varargin{1};
         figure(h);
-        tab1 = h.Parent.Children(1).Children(1).Children(1);
-        tab2 = h.Parent.Children(1).Children(1).Children(2);
-        tab3 = h.Parent.Children(1).Children(1).Children(3);
-        tab4 = h.Parent.Children(1).Children(1).Children(4);
-        tab5 = h.Parent.Children(1).Children(1).Children(5);
-        tab6 = h.Parent.Children(1).Children(1).Children(6);
-        tab7 = h.Parent.Children(1).Children(1).Children(7);
-        tab8 = h.Parent.Children(1).Children(1).Children(8);
+        tab0 = h.Parent.Children(1).Children(1).Children(1);
+        tab1 = h.Parent.Children(1).Children(1).Children(2);
+        tab2 = h.Parent.Children(1).Children(1).Children(3);
+        tab3 = h.Parent.Children(1).Children(1).Children(4);
+        tab4 = h.Parent.Children(1).Children(1).Children(5);
+        tab5 = h.Parent.Children(1).Children(1).Children(6);
+        tab6 = h.Parent.Children(1).Children(1).Children(7);
+        tab7 = h.Parent.Children(1).Children(1).Children(8);
+        tab8 = h.Parent.Children(1).Children(1).Children(9);
+        tab9 = h.Parent.Children(1).Children(1).Children(10);
+        tab10 = h.Parent.Children(1).Children(1).Children(11);
+        boolFirst = 0;
     else
         h = figure();
-        set(h,'Position',get(0,'ScreenSize'));
+%         set(h,'Position',get(0,'ScreenSize'));
         hTabGroup = uitabgroup;
-        tab1 = uitab(hTabGroup, 'Title', 'MainInfo');
-        tab2 = uitab(hTabGroup, 'Title', 'ExoT');
+        tab0 = uitab(hTabGroup, 'Title', 'Kinematics');
+        tab1 = uitab(hTabGroup, 'Title', 'COT');
+        tab2 = uitab(hTabGroup, 'Title', 'ExoInfo');
         tab3 = uitab(hTabGroup, 'Title', 'CalfM');
         tab4 = uitab(hTabGroup, 'Title', 'Kinematics - Sag');
         tab5 = uitab(hTabGroup, 'Title', 'Kinetics - Sag');
         tab6 = uitab(hTabGroup, 'Title', 'Kinematics - Front');
         tab7 = uitab(hTabGroup, 'Title', 'Kinetics - Front');
         tab8 = uitab(hTabGroup, 'Title', 'Ground reaction force');
+        tab9 = uitab(hTabGroup, 'Title', 'Objective Function');
+        tab10 = uitab(hTabGroup, 'Title', 'Ankle detailed');
     end
     
+    %% Helper names
+    joints_ref = {'pelvis_tilt','pelvis_list','pelvis_rotation',...
+        'hip_flexion','hip_adduction','hip_rotation',...
+        'knee_angle','ankle_angle','subtalar_angle','mtp_angle',...
+        'lumbar_extension','lumbar_bending','lumbar_rotation',...
+        'arm_flex','arm_add','arm_rot','elbow_flex'};
+    joints_tit = {'Pelvis tilt','Pelvis list','Pelvis rotation','Pelvis tx',...
+        'Pelvis ty','Pelvis tz','Hip flexion L','Hip adduction L',...
+        'Hip rotation L','Hip flexion R','Hip adduction R','Hip rotation R',...
+        'Knee L','Knee R','Ankle L','Ankle R',...
+        'Subtalar L','Subtalar R','MTP L','MTP R',...
+        'Lumbar extension','Lumbar bending','Lumbar rotation',...
+        'Arm flexion L','Arm adduction L','Arm rotation L',...
+        'Arm flexion R','Arm adduction R','Arm rotation R',...
+        'Elbow flexion L','Elbow flexion R'};
+    muscleNames = {'Glut med 1','Glut med 2','Glut med 3',...
+        'Glut min 1','Glut min 2','Glut min 3','Semimem',...
+        'Semiten','bifemlh','Bic fem sh','Sar','Add long',...
+        'Add brev','Add mag 1','Add mag 2','Add mag 3','TFL',...
+        'Pect','Grac','Glut max 1','Glut max 2','Glut max 3',......
+        'Iliacus','Psoas','Quad fem','Gem','Peri',...
+        'Rect fem','Vas med','Vas int','Vas lat','Med gas',...
+        'Lat gas','Soleus','Tib post','Flex dig','Flex hal',...
+        'Tib ant','Per brev','Per long','Per tert','Ext dig',...
+        'Ext hal','Ercspn','Intobl','Extobl'};
+    GRF_str = {'Fore-aft','Vertical','Lateral'};
+
     
+    %% Plot default figure kinematics (Antoine his code)
+    axes('parent', tab0); 
     
+    if boolFirst
+        pathF = which('PlotResults_3DSim.m');
+        pathrepo = pathF(1:end-26);
+        pathReferenceData = [pathrepo,'/ExperimentalData'];
+        load([pathReferenceData,'/ExperimentalData.mat'],'ExperimentalData');
+        Qref = ExperimentalData.Q;
+    end
+    idx_Qs = [1,2,3,10,11,12,14,16,18,20,21,22,23,27,28,29,31];
+    NumTicks = 2;
+    ww = 10;
+    
+    label_fontsize  = 12;
+    line_linewidth  = 2;
+    for i = 1:length(idx_Qs)
+        subplot(3,6,i)
+        p = gobjects(1,length(ww));
+        % Simulation results
+        for k = 1:length(ww)
+            x = 1:(100-1)/(size(R.Qs,1)-1):100;
+            p(k) = plot(x,R.Qs(:,idx_Qs(i)),'color',Cs,'linewidth',line_linewidth);
+            hold on;
+        end
+        % Experimental data
+        if ~(strcmp(joints_ref{i},'mtp_angle')) && boolFirst == 1
+            subject = 'subject1';
+            idx_jref = strcmp(Qref.(subject).Qs.colheaders,joints_ref{i});
+            meanPlusSTD = Qref.(subject).Qs.mean(:,idx_jref) + 2*Qref.(subject).Qs.std(:,idx_jref);
+            meanMinusSTD = Qref.(subject).Qs.mean(:,idx_jref) - 2*Qref.(subject).Qs.std(:,idx_jref);
+            stepQ = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
+            intervalQ = 1:stepQ:size(R.Qs,1);
+            sampleQ = 1:size(R.Qs,1);
+            meanPlusSTD = interp1(intervalQ,meanPlusSTD,sampleQ);
+            meanMinusSTD = interp1(intervalQ,meanMinusSTD,sampleQ);
+            hold on
+            fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k');
+            alpha(.25);
+        end
+        % Plot settings
+        set(gca,'Fontsize',label_fontsize);
+        title(joints_tit{idx_Qs(i)},'Fontsize',label_fontsize);
+        % Y-axis
+        if i == 1 || i == 5 || i == 9 ||i == 13
+            ylabel('Angle (°)','Fontsize',label_fontsize);
+        end
+        % X-axis
+        L = get(gca,'XLim');
+        if i > 12
+            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
+            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        else
+            set(gca,'XTick',[]);
+        end
+    end
+
     %% Plot general information
     axes('parent', tab1);
     
     % Plot COT as a function of exo assitance
     subplot(2,2,1); hold on;
-    plot(R.Sopt.ExoScale,R.COT,'o','Color',Cs,'MarkerFaceColor',Cs);
-    ylabel('COT');  xlabel('Level assistance');
+    plot(xParam,R.COT,'o','Color',Cs,'MarkerFaceColor',Cs);
+    ylabel('COT');  xlabel(xParamLab);
     title('Cost of Transport');
     
     % Plot stride frequency
     subplot(2,2,2); hold on;
     dt = R.t(end);
-    plot(R.Sopt.ExoScale,1./dt,'o','Color',Cs,'MarkerFaceColor',Cs);
-    ylabel('Stride Frequency'); xlabel('Level assistance');
+    plot(xParam,1./dt,'o','Color',Cs,'MarkerFaceColor',Cs);
+    ylabel('Stride Frequency'); xlabel(xParamLab);
     title('Stride Frequency');
     
     %
@@ -55,8 +154,8 @@ if exist(ResultsFile,'file')
 %     ylabel('Exo Moment [Nm]');  xlabel('% stride');
 %     title('Left');
      subplot(2,2,3);  hold on;
-     plot(R.Sopt.ExoScale,R.dt_exoShift,'o','Color',Cs,'MarkerFaceColor',Cs);
-     ylabel('Time shift exo torque[s]');  xlabel('Level assistance');
+     plot(xParam,R.dt_exoShift,'o','Color',Cs,'MarkerFaceColor',Cs);
+     ylabel('Time shift exo torque[s]');  xlabel(xParamLab);
     % text(20,-10,['Time shift: ' num2str(round(R.dt_exoShift,3)) ' s']);
     
     
@@ -334,6 +433,90 @@ if exist(ResultsFile,'file')
         title(R.colheaders.GRF{i});
         xlabel('% stride');
     end
+    
+    %% Objective function
+    axes('parent', tab9);
+    if isfield(R,'Obj')
+        Fields = fieldnames(R.Obj);
+        nf = length(Fields);
+        for i= 1:nf
+            subplot(3,4,i)
+            plot(xParam,R.Obj.(Fields{i}),'o','Color',Cs,'MarkerFaceColor',Cs); hold on;
+            xlabel(xParamLab);
+            title(Fields{i});
+        end        
+    end    
+
+
+    %% detailed ankle energetics
+    %% Plot ankle muscle energetics
+    axes('parent', tab10);
+    iSol = find(strcmp(R.colheaders.muscles,'soleus_r'));
+    iGas = find(strcmp(R.colheaders.muscles,'lat_gas_r'));
+    iGas2 = find(strcmp(R.colheaders.muscles,'med_gas_r'));
+    iTib = find(strcmp(R.colheaders.muscles,'tib_ant_r'));
+
+    mVect = {'Soleus','Gas-lat','Gas-med','Tib-ant'};
+
+    iM = [iSol iGas iGas2 iTib];
+
+    for i=1:4
+        subplot(5,4,i)
+        plot(R.a(:,iM(i)),'-','Color',Cs); hold on; title(mVect{i});
+        xlabel('% stride'); ylabel('activity');
+
+        subplot(5,4,i+4)
+        plot(R.MetabB.Etot(:,iM(i)),'-','Color',Cs); hold on;
+        xlabel('% stride'); ylabel('Muscle metab power');
+
+        subplot(5,4,i+8)
+        plot(R.lMtilde(:,iM(i)),'-','Color',Cs); hold on;
+        xlabel('% stride'); ylabel('Norm fiber length');
+
+        subplot(5,4,i+12)
+        plot(R.FT(:,iM(i)),'-','Color',Cs); hold on;
+        xlabel('% stride'); ylabel('Norm muscle force');
+
+    end
+    % plot (biological) joint moments
+    subplot(5,4,17)
+    plot(R.Tid(:,strcmp(R.colheaders.joints,'ankle_angle_r')),'-','Color',Cs); hold on;
+    ylabel('Ankle moment [Nm]'); xlabel('% stride');
+    
+    subplot(5,4,18)
+    plot(R.Tid(:,strcmp(R.colheaders.joints,'ankle_angle_r'))-R.T_exo(:,2),'-','Color',Cs); hold on;
+    ylabel('Muscle ankle [Nm]'); xlabel('% stride');
+
+    subplot(5,4,19)
+    plot(R.Tid(:,strcmp(R.colheaders.joints,'subtalar_angle_r')),'-','Color',Cs); hold on;
+    ylabel('subtalar moment [Nm]'); xlabel('% stride');
+
+    subplot(5,4,20)
+    plot(R.Tid(:,strcmp(R.colheaders.joints,'mtp_angle_r')),'-','Color',Cs); hold on;
+    ylabel('mtp moment [Nm]'); xlabel('% stride');
+   
+   
+   
+    
+    ax =[];
+    ax2 = [];
+    ax3 =[];
+    ax4 = [];
+
+    for i=1:5
+        ax(i) = subplot(5,4,i*4-3);
+        ax2(i) = subplot(5,4,i*4-2);
+        ax3(i) = subplot(5,4,i*4-1);
+        ax4(i) = subplot(5,4,i*4);
+    end
+    linkaxes(ax,'x');
+    linkaxes(ax2,'x');
+    linkaxes(ax3,'x');
+    linkaxes(ax4,'x');
+
+
+
+
 else
     warning(['File not found: ' ResultsFile]);
 end

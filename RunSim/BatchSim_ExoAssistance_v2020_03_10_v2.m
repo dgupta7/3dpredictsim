@@ -15,7 +15,7 @@ addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
 %% Default settings
 
 % flow control
-S.Flow.solveProblem     = 1;   % set to 1 to solve problem
+S.Flow.solveProblem     = 0;   % set to 1 to solve problem
 S.Flow.analyseResults   = 1;   % set to 1 to analyze results
 S.Flow.loadResults      = 0;   % set to 1 to load results
 S.Flow.saveResults      = 1;   % set to 1 to save sens. results
@@ -111,45 +111,43 @@ for j = 1:length(AVect)
         jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_DefaultS',0,{S});ct =ct +1;
     end
 end
-% 
-% %% Vector with names
-% RFolder = S.ResultsFolder;
-% dPath = fullfile('C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Results',RFolder);
-% 
-% % Create Vector with Names
-% Names = {'NoExo','Passive','Active'};
-% for j = 1:length(AVect)
-%    Names{j+3} =  ['Active_' num2str(AVect(j))];
-% end
-% 
-% %% Post processing
-% 
-% for i = 1:length(Names)
-%     if exist(fullfile(dPath,[Names{i} '.mat']),'file')
-%         f_LoadSim_PoggenSee2020_DefaultS(RFolder,Names{i});
-%     end
-% end
-% 
-% 
-% %% Plot Results
-% 
-% 
+
+%% Vector with names
+RFolder = S.ResultsFolder;
+dPath = fullfile('C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Results',RFolder);
+
+% Create Vector with Names
+Names = {'Passive','Active'};
+for j = 1:length(AVect)
+   Names{j+2} =  ['Active_' num2str(AVect(j))];
+end
+
+%% Post processing
+
+for i = 1:length(Names)
+    if exist(fullfile(dPath,[Names{i} '.mat']),'file')
+        f_LoadSim_PoggenSee2020_DefaultS(RFolder,Names{i});
+    end
+end
+
+%% Plot Results
+
 % % No Exo in black
 % Cs = [0 0 0];
 % PlotResults_3DSim(fullfile(dPath,[Names{1} '_pp.mat']),Cs);
 % h = gcf;
-% 
-% % passive in red
-% Cs = [1 0 0];
-% PlotResults_3DSim(fullfile(dPath,[Names{2} '_pp.mat']),Cs,h);
-% 
-% % active in blue
-% Cs = [0 0 1];
-% PlotResults_3DSim(fullfile(dPath,[Names{3} '_pp.mat']),Cs,h);
-% 
-% % percentage of assistanc ein copper
-% CsVect = copper(length(AVect));
-% for i=1:length(AVect)
-%     Cs = CsVect(i,:);
-%     PlotResults_3DSim(fullfile(dPath,[Names{i+3} '_pp.mat']),Cs,h);
-% end
+
+% passive in red
+Cs = [1 0 0];
+PlotResults_3DSim(fullfile(dPath,[Names{1} '_pp.mat']),Cs,h);
+
+% active in blue
+Cs = [0 0 1];
+PlotResults_3DSim(fullfile(dPath,[Names{2} '_pp.mat']),Cs,h);
+
+% percentage of assistanc ein copper
+CsVect = copper(length(AVect));
+for i=1:length(AVect)
+    Cs = CsVect(i,:);
+    PlotResults_3DSim(fullfile(dPath,[Names{i+2} '_pp.mat']),Cs,h);
+end

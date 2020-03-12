@@ -537,6 +537,7 @@ for i = 1:d*N
     Tau_passj_opt_all(i,:) = full(f_AllPassiveTorques(q_col_opt_unsc.rad(i,:),qdot_col_opt_unsc.rad(i,:)));
 end
 
+Tau_passj_J = Tau_passj_opt_all(:,[1:12 15:end]);
 %% Stride length and width
 % For the stride length we also need the values at the end of the
 % interval so N+1 where states but not controls are defined
@@ -636,7 +637,7 @@ for k=1:N
             W.ArmE*B(j+1) * (f_J8(e_a_opt(k,:)))*h_opt +...
             W.Mtp*B(j+1) * (f_J2(e_mtp_opt(k,:)))*h_opt +...
             W.Ak*B(j+1) * (f_J23(qdotdot_col_opt(count,residuals_noarmsi)))*h_opt +...
-            W.passMom*B(j+1)* (f_J25(Tau_passj_opt_all(count,:)))*h_opt + ...
+            W.passMom*B(j+1)* (f_J23(Tau_passj_J(count,:)))*h_opt + ...
             W.u*B(j+1) * (f_J92(vA_opt(k,:)))*h_opt + ...
             W.u*B(j+1) * (f_J92(dFTtilde_col_opt(count,:)))*h_opt + ...
             W.u*B(j+1) * (f_J8(qdotdot_col_opt(count,armsi)))*h_opt);
@@ -652,7 +653,7 @@ for k=1:N
         Qdotdot_cost = Qdotdot_cost + W.Ak*B(j+1)*...
             (f_J23(qdotdot_col_opt(count,residuals_noarmsi)))*h_opt;
         Pass_cost = Pass_cost + W.passMom*B(j+1)*...
-            (f_J25(Tau_passj_opt_all(count,:)))*h_opt;
+            (f_J23(Tau_passj_J(count,:)))*h_opt;
         vA_cost = vA_cost + W.u*B(j+1)*...
             (f_J92(vA_opt(k,:)))*h_opt;
         dFTtilde_cost = dFTtilde_cost + W.u*B(j+1)*...
@@ -662,16 +663,16 @@ for k=1:N
         count = count + 1;
     end
 end
-J_optf = full(J_opt);
-E_costf = full(E_cost);
-A_costf = full(A_cost);
-Arm_costf = full(Arm_cost);
-Mtp_costf = full(Mtp_cost);
-Qdotdot_costf = full(Qdotdot_cost);
-Pass_costf = full(Pass_cost);
-vA_costf = full(vA_cost);
-dFTtilde_costf = full(dFTtilde_cost);
-QdotdotArm_costf = full(QdotdotArm_cost);
+J_optf = full(J_opt);           Obj.J = J_optf;
+E_costf = full(E_cost);         Obj.E = E_costf;
+A_costf = full(A_cost);         Obj.A = A_costf;
+Arm_costf = full(Arm_cost);     Obj.Arm = Arm_costf;
+Mtp_costf = full(Mtp_cost);     Obj.Mtp = Mtp_costf;
+Qdotdot_costf = full(Qdotdot_cost); Obj.qdd = Qdotdot_costf;
+Pass_costf = full(Pass_cost);   Obj.Pass = Pass_costf;
+vA_costf = full(vA_cost);       Obj.vA = vA_costf;
+dFTtilde_costf = full(dFTtilde_cost); Obj.dFTtilde = dFTtilde_costf;
+QdotdotArm_costf = full(QdotdotArm_cost); Obj.qdd_arm = QdotdotArm_costf;
 % assertCost should be 0
 assertCost = abs(J_optf - 1/(dist_trav_opt)*(E_costf+A_costf+Arm_costf+...
     Mtp_costf+Qdotdot_costf+Pass_costf+vA_costf+dFTtilde_costf+...
@@ -683,6 +684,7 @@ end
 if assertCost2 > 1*10^(-tol_ipopt)
     disp('Issue when reconstructing optimal cost wrt stats')
 end
+
 
 %% Reconstruct full gait cycle
 % We reconstruct the full gait cycle from the simulated half gait cycle
@@ -1022,19 +1024,23 @@ metab_Mdot = zeros(2*N, NMuscle);
 metab_Sdot = zeros(2*N, NMuscle);
 metab_Wdot = zeros(2*N, NMuscle);
 FT_opt     = zeros(2*N, NMuscle);
+lMT_Vect = zeros(2*N,92);
+vMT_Vect = zeros(2*N,92);
+dM_Vect = zeros(2*N,92,10);
 for nn = 1:2*N
     % Get muscle-tendon lengths, velocities, moment arms
     % Left leg
     qin_l_opt = Qs_opt_rad(nn,IndexLeft);
     qdotin_l_opt = qdot_opt_GC_rad(nn,IndexLeft);
-    [lMTk_l_opt,vMTk_l_opt,~] = f_lMT_vMT_dM(qin_l_opt,qdotin_l_opt);
+    [lMTk_l_opt,vMTk_l_opt,dM_l] = f_lMT_vMT_dM(qin_l_opt,qdotin_l_opt);
     % Right leg
     qin_r_opt = Qs_opt_rad(nn,IndexRight);
     qdotin_r_opt = qdot_opt_GC_rad(nn,IndexRight);
-    [lMTk_r_opt,vMTk_r_opt,~] = f_lMT_vMT_dM(qin_r_opt,qdotin_r_opt);
+    [lMTk_r_opt,vMTk_r_opt,dM_r] = f_lMT_vMT_dM(qin_r_opt,qdotin_r_opt);
     % Both legs
     lMTk_lr_opt     = [lMTk_l_opt([1:43,47:49],1);lMTk_r_opt(1:46,1)];
     vMTk_lr_opt     = [vMTk_l_opt([1:43,47:49],1);vMTk_r_opt(1:46,1)];
+    dM_lr_opt       = [dM_l([1:43,47:49],:); dM_r(1:46,:)]; 
     % force equilibrium
     [~,FT_optt,Fce_optt,Fpass_optt,Fiso_optt,...
         ~,massM_optt] = f_forceEquilibrium_FtildeState_all_tendon(...
@@ -1061,6 +1067,11 @@ for nn = 1:2*N
     metab_Sdot(nn,:) = full(Sdot)';
     metab_Wdot(nn,:) = full(Wdot)';
     FT_opt(nn,:)     = full(FT_optt)';
+    
+    lMT_Vect(nn,:) = full(lMTk_lr_opt);
+    vMT_Vect(nn,:) = full(vMTk_lr_opt);
+    dM_Vect(nn,:,:) = full(dM_lr_opt);
+        
 end
 % Get COT
 dist_trav_opt_GC = Qs_opt_rad(end,jointi.pelvis.tx) - ...
@@ -1107,6 +1118,10 @@ R.TPass       = Tau_pass_opt_GC;
 R.dt          = nanmean(diff(R.t));
 R.T_exo       = T_exo_GC;
 R.dt_exoShift = IC1i_c.*R.dt;
+R.Obj         = Obj;
+R.lMT         = lMT_Vect;
+R.vMT         = vMT_Vect;
+R.dM          = dM_Vect;
 
 % header information
 R.colheaders.joints = joints;
@@ -1118,6 +1133,7 @@ for i = 1:NMuscle/2
     R.colheaders.muscles{i+NMuscle/2} = ...
         [muscleNames{i}(1:end-2),'_r'];
 end
+R.colheaders.dM = {'hip flex','hip add','hip rot','knee angle','ankle angle','subtalar angle','mtp angle', 'trunk ext ','trunk bend','trunk rot'};
 % script information
 R.info.script = 'f_LoadSim_PoggenSee2020.m';
 % Save data

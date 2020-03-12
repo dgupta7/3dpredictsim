@@ -5,13 +5,6 @@
 % Note currently without inertia of the exoskeleton
 clear all;
 
-% add casadi to the matlab path (needed on simulation computer because
-% default version is 3.4.5
-% rmpath(genpath('G:\PhD\Matlabcodes\Casadi\casadi'));
-% addpath(genpath('D:\MaartenAfschrift\softInstall\casadi'));
-% addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
-
-
 %% Default settings
 
 % flow control
@@ -23,7 +16,6 @@ S.Flow.checkBoundsIG    = 0;   % set to 1 to visualize guess-bounds
 S.Flow.writeIKmotion    = 1;   % set to 1 to write .mot file
 
 % settings for optimization
-S.v_tgt     = 1.33;     % average speed
 S.N         = 50;       % number of mesh intervals
 S.W.E       = 500;      % weight metabolic energy rate
 S.W.Ak      = 50000;    % weight joint accelerations
@@ -61,14 +53,32 @@ S.subject            = 'subject1';
 
 %% Specific settings to runs simulation
 
-%Simulation without exoskeleton assistance
-S.savename      = 'Assistance_vAnkle';
-S.loadname      = 'Assistance_vAnkle';
-S.ResultsFolder = 'TestHinge_vAntoine';
-S.ExoBool       = 1;
-S.ExoScale      = 1;
-S.DataSet       = 'PoggenSee2020_AFO';
-f_PredSim_PoggenSee2020_ToeConstraint(S);
-R = f_LoadSim_PoggenSee2020_DefaultS(S.ResultsFolder,S.loadname);
+
+walkspeed = 80:20:140;
+for i=1:length(walkspeed)
+    S.v_tgt     = walkspeed(i)./100;     % average speed
+    S.savename      = ['Walk_' num2str(walkspeed(i))];
+    S.loadname      = ['Walk_' num2str(walkspeed(i))];
+    S.ResultsFolder = 'TestHinge_Speed';
+    S.ExoBool       = 0;
+    S.ExoScale      = 0;
+    S.DataSet       = 'PoggenSee2020_AFO';
+%     f_PredSim_PoggenSee2020_ToeConstraint(S);
+%     f_LoadSim_PoggenSee2020_DefaultS(S.ResultsFolder,S.loadname);
+end
+
+%%
+ColV = copper(length(walkspeed));
+dPath = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Results\TestHinge_Speed';
+for i = 1:length(walkspeed)
+    speed = walkspeed(i);
+    xLabs = 'walking speed';
+    if i ==1        
+        PlotResults_3DSim(fullfile(dPath,['Walk_' num2str(walkspeed(i)) '_pp.mat']),ColV(i,:),[],speed,xLabs);
+    else
+        PlotResults_3DSim(fullfile(dPath,['Walk_' num2str(walkspeed(i)) '_pp.mat']),ColV(i,:),gcf,speed,xLabs);
+    end
+end
+
 
 
