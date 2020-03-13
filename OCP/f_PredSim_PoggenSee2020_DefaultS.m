@@ -815,19 +815,19 @@ if solveProblem
         % Ankle, left
         Ft_ankle_l      = FTj(mai(5).mus.l',1);
         T_ankle_l       = f_T12(MAj.ankle.l,Ft_ankle_l);
-        eq_constr{end+1} = Tj(jointi.ankle.l,1)-(T_ankle_l + Tau_passj.ankle.l );
+        eq_constr{end+1} = Tj(jointi.ankle.l,1)-(T_ankle_l + Tau_passj.ankle.l  + Texok(1));
         % Ankle, right
         Ft_ankle_r      = FTj(mai(5).mus.r',1);
         T_ankle_r       = f_T12(MAj.ankle.r,Ft_ankle_r);
-        eq_constr{end+1} = Tj(jointi.ankle.r,1)-(T_ankle_r + Tau_passj.ankle.r);
+        eq_constr{end+1} = Tj(jointi.ankle.r,1)-(T_ankle_r + Tau_passj.ankle.r + Texok(2));
         % Subtalar, left
         Ft_subt_l       = FTj(mai(6).mus.l',1);
         T_subt_l        = f_T12(MAj.subt.l,Ft_subt_l);
-        eq_constr{end+1} = Tj(jointi.subt.l,1)-(T_subt_l +  Tau_passj.subt.l + Texok(1));
+        eq_constr{end+1} = Tj(jointi.subt.l,1)-(T_subt_l +  Tau_passj.subt.l);
         % Subtalar, right
         Ft_subt_r       = FTj(mai(6).mus.r',1);
         T_subt_r        = f_T12(MAj.subt.r,Ft_subt_r);
-        eq_constr{end+1} = Tj(jointi.subt.r,1)-(T_subt_r + Tau_passj.subt.r + Texok(2));
+        eq_constr{end+1} = Tj(jointi.subt.r,1)-(T_subt_r + Tau_passj.subt.r );
         % Lumbar extension
         Ft_trunk_ext    = FTj([mai(8).mus.l,mai(8).mus.r]',1);
         T_trunk_ext     = f_T6(MAj.trunk_ext,Ft_trunk_ext);

@@ -7,32 +7,25 @@
 
 clear all; close all; clc;
 import casadi.*
-
 ExtPoly = '_mtp';
-
-S.CasadiFunc_Folders = 'Casadi_subject1_mtp2';
-subject              = 'subject1';
-% if isfolder(S.CasadiFunc_Folders)
-%     error('Never changes the casadi functions in an existing folder, these functions are important to analyse optimization results (from the optimal states and controls');
-% end
-
+S.CasadiFunc_Folders = 'Casadi_s1Pog_mtp';
+subject              = 's1_Poggensee';
+if isfolder(S.CasadiFunc_Folders)
+    error('Never changes the casadi functions in an existing folder, these functions are important to analyse optimization results (from the optimal states and controls');
+end
 pathRepo        = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim';
-
 nq.leg          = 10; % #joints needed for polynomials
-
 stiffnessArm = 0;
 dampingArm = 0.1;
 stiffnessMtp = 1.5/(pi/180)/5;
 dampingMtp = 0.5;
-
 % define general settings for default objective functions
 S.N             = 50;
-
 % By default, the tendon stiffness is 35 and the shift is 0.
 NMuscle = 92;
 aTendon = 35*ones(NMuscle,1);
-% IndexCalf = [32 33 34 78 79 80];    % adjust stiffness of the calf muscles
-% aTendon(IndexCalf) = 35;
+IndexCalf = [32 33 34 78 79 80];    % adjust stiffness of the calf muscles
+aTendon(IndexCalf) = 20;
 shift = getShift(aTendon);
 %% Indices external function
 % Indices of the elements in the external functions
