@@ -48,7 +48,7 @@ S.linear_solver = 'mumps';
 S.tol_ipopt     = 4;
 
 % quasi random initial guess, pelvis y position
-S.IG_PelvisY = 0.903;   % subject 1 poggensee
+S.IG_PelvisY = 0.896;   % subject 1 poggensee
 %S.IG_PelvisY = 0.9385;
 
 % Folder with default functions
@@ -56,46 +56,33 @@ S.CasadiFunc_Folders = 'Casadi_s1Pog_mtp';
 S.subject            = 's1_Poggensee';
 
 % output folder
-S.ResultsFolder = 'BatchSim_2020_03_13_UpdIG';
-
-%% open cluster
-if S.Flow.solveProblem
-    myCluster = parcluster('Maarten_8Cores');
-end
-
-
-%% No Exoskeleton
-
-% external function 
-S.ExternalFunc = 'PredSim_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp 
-S.ExternalFunc2 = 'PredSim_3D_Pog_s1_mtp_pp.dll';    % this one is with the pinjoint mtp 
-S.savename      = 'NoExo';
-S.loadname      = 'NoExo';
-S.ExoBool       = 1;
-S.ExoScale      = 0;
-S.DataSet       = 'PoggenSee2020_AFO';
-f_PredSim_PoggenSee2020_ToeConstraint(S);
-f_LoadSim_PoggenSee2020_DefaultS(S.ResultsFolder,S.loadname);
+S.ResultsFolder = 'Batch_TendonStiff';
 
 
 %% Passive exoskeleton
 
-% initial guess based on previous solution
-S.IGsel     = 2;        % initial guess identifier (1: quasi random, 2: data-based)
-S.IGmodeID  = ;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution)
-
+%initial guess based on previous solution
+S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
+S.IGmodeID      = 3;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution)
+S.ResultsF_ig   = S.ResultsFolder;
+S.savename_ig   = 'NoExo';
 
 % external function 
-S.ExternalFunc = 'SimExo_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp 
+S.ExternalFunc  = 'SimExo_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp 
 S.ExternalFunc2 = 'SimExo_3D_Pog_s1_mtp_pp.dll';    % this one is with the pinjoint mtp 
 S.savename      = 'Passive';
 S.loadname      = 'Passive';
 S.ExoBool       = 1;
 S.ExoScale      = 0;
 S.DataSet       = 'PoggenSee2020_AFO';
-jobs(2) = batch(myCluster,'f_PredSim_PoggenSee2020_ToeConstraint',0,{S});
+jobs(1) = batch(myCluster,'f_PredSim_PoggenSee2020_ToeConstraint',0,{S});
 
-%% 100% assistance exoskeleton
+
+% initial guess based on previous solution
+S.IGsel     = 2;        % initial guess identifier (1: quasi random, 2: data-based)
+S.IGmodeID  = 3;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution)
+S.ResultsF_ig = S.ResultsFolder;
+S.savename_ig = 'NoExo';
 
 % external function 
 S.ExternalFunc = 'SimExo_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp 
@@ -105,18 +92,6 @@ S.loadname      = 'Active';
 S.ExoBool       = 1;
 S.ExoScale      = 1;
 S.DataSet       = 'PoggenSee2020_AFO';
-jobs(3) = batch(myCluster,'f_PredSim_PoggenSee2020_ToeConstraint',0,{S});
+% f_PredSim_PoggenSee2020_ToeConstraint(S);
+jobs(1) = batch(myCluster,'f_PredSim_PoggenSee2020_ToeConstraint',0,{S});
 
-%% Loop over level of assistance
-% external function 
-S.ExternalFunc = 'SimExo_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp 
-S.ExternalFunc2 = 'SimExo_3D_Pog_s1_mtp_pp.dll';    % this one is with the pinjoint mtp 
-AVect = 100:20:300;
-for j = 1:length(AVect)
-    S.savename      = ['Active_' num2str(AVect(j))];
-    S.loadname      = ['Active_' num2str(AVect(j))];
-    S.ExoBool       = 1;
-    S.ExoScale      = AVect(j)./100;
-    S.DataSet       = 'PoggenSee2020_AFO';
-    jobs(3+j) = batch(myCluster,'f_PredSim_PoggenSee2020_ToeConstraint',0,{S});
-end

@@ -2,6 +2,8 @@ function [] = PlotResults_3DSim(ResultsFile,Cs,LegName,varargin)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
+set(0,'defaultTextInterpreter','none');
+
 if ~exist('LegName','var')
     [~,filename,~]= fileparts(ResultsFile);
     LegName = filename;
@@ -20,20 +22,33 @@ if exist(ResultsFile,'file')
     boolFirst = 1;
     % create figure handles
     if ~isempty(varargin) && ~isempty(varargin{1})
-        h = varargin{1};
-        figure(h);
-        tab1 = h.Parent.Children(1).Children(1).Children(1);
-        tab2 = h.Parent.Children(1).Children(1).Children(2);
-        tab3 = h.Parent.Children(1).Children(1).Children(3);
-        tab4 = h.Parent.Children(1).Children(1).Children(4);
-        tab5 = h.Parent.Children(1).Children(1).Children(5);
-        tab6 = h.Parent.Children(1).Children(1).Children(6);
-        tab7 = h.Parent.Children(1).Children(1).Children(7);
-        tab8 = h.Parent.Children(1).Children(1).Children(8);
-        boolFirst = 0;
+        if ~isempty(varargin{1}.Name)
+            h = varargin{1};
+            tab1 = h.Parent.Children(1).Children(1).Children(1);
+            tab2 = h.Parent.Children(1).Children(1).Children(2);
+            tab3 = h.Parent.Children(1).Children(1).Children(3);
+            tab4 = h.Parent.Children(1).Children(1).Children(4);
+            tab5 = h.Parent.Children(1).Children(1).Children(5);
+            tab6 = h.Parent.Children(1).Children(1).Children(6);
+            tab7 = h.Parent.Children(1).Children(1).Children(7);
+            tab8 = h.Parent.Children(1).Children(1).Children(8);
+            boolFirst = 0;
+        else
+            h = varargin{1};
+            hTabGroup = uitabgroup;
+            tab1 = uitab(hTabGroup, 'Title', 'Kinematics');
+            tab2 = uitab(hTabGroup, 'Title', 'Kinetics');
+            tab3 = uitab(hTabGroup, 'Title', 'COT');
+            tab4 = uitab(hTabGroup, 'Title', 'ExoInfo');
+            tab5 = uitab(hTabGroup, 'Title', 'CalfM');
+            tab6 = uitab(hTabGroup, 'Title', 'Ground reaction force');
+            tab7 = uitab(hTabGroup, 'Title', 'Objective Function');
+            tab8 = uitab(hTabGroup, 'Title', 'Ankle detailed');
+            h.Name = 'Sim3D_Results';
+        end
     else
         h = figure();
-%         set(h,'Position',get(0,'ScreenSize'));
+        h.Name = 'Sim3D_Results';
         hTabGroup = uitabgroup;
         tab1 = uitab(hTabGroup, 'Title', 'Kinematics');
         tab2 = uitab(hTabGroup, 'Title', 'Kinetics');
@@ -59,10 +74,10 @@ if exist(ResultsFile,'file')
         'Lumbar extension','Lumbar bending','Lumbar rotation',...
         'Arm flexion L','Arm adduction L','Arm rotation L',...
         'Arm flexion R','Arm adduction R','Arm rotation R',...
-        'Elbow flexion L','Elbow flexion R'};  
-
+        'Elbow flexion L','Elbow flexion R'};
+    
     %% Plot default figure kinematics (Antoine his code)
-    axes('parent', tab1); 
+    axes('parent', tab1);
     
     if boolFirst
         pathF = which('PlotResults_3DSim.m');
@@ -78,7 +93,7 @@ if exist(ResultsFile,'file')
     label_fontsize  = 12;
     line_linewidth  = 2;
     for i = 1:length(idx_Qs)
-        subplot(3,6,i)        
+        subplot(3,6,i)
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         % Experimental data
         if ~(strcmp(joints_ref{i},'mtp_angle')) && boolFirst == 1
@@ -102,51 +117,53 @@ if exist(ResultsFile,'file')
         if i == length(idx_Qs)
             plot(x,R.Qs(:,idx_Qs(i)),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
         else
-           plot(x,R.Qs(:,idx_Qs(i)),'color',Cs,'linewidth',line_linewidth);
+            plot(x,R.Qs(:,idx_Qs(i)),'color',Cs,'linewidth',line_linewidth);
         end
         
         % Plot settings
-        set(gca,'Fontsize',label_fontsize);
-        title(joints_tit{idx_Qs(i)},'Fontsize',label_fontsize);
-        % Y-axis
-        if i == 1 || i == 5 || i == 9 ||i == 13
-            ylabel('Angle (°)','Fontsize',label_fontsize);
-        end
-        % X-axis
-        L = get(gca,'XLim');
-        if i > 12
-            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
-            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        else
-            set(gca,'XTick',[]);
+        if boolFirst
+            set(gca,'Fontsize',label_fontsize);
+            title(joints_tit{idx_Qs(i)},'Fontsize',label_fontsize);
+            % Y-axis
+            if i == 1 || i == 5 || i == 9 ||i == 13
+                ylabel('Angle (°)','Fontsize',label_fontsize);
+            end
+            % X-axis
+            L = get(gca,'XLim');
+            if i > 12
+                set(gca,'XTick',linspace(L(1),L(2),NumTicks))
+                xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+            else
+                set(gca,'XTick',[]);
+            end
         end
     end
-%     subplot(3,6,18)
+    %     subplot(3,6,18)
     if boolFirst
         lh=legend('-DynamicLegend','location','east');
         lhPos = lh.Position;
         lhPos(1) = lhPos(1)+0.2;
         set(lh,'position',lhPos);
     end
-
+    
     %% Plot joint kinetics
-    axes('parent', tab2);     
+    axes('parent', tab2);
     label_fontsize  = 12;
     line_linewidth  = 2;
     for i = 1:length(idx_Qs)
-        subplot(3,6,i)        
+        subplot(3,6,i)
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         % Experimental data
         if ~(strcmp(joints_ref{i},'mtp_angle')) && boolFirst == 1
             IDref = ExperimentalData.Torques;
             idx_jref = strcmp(IDref.(subject).colheaders,joints_ref{i});
             meanPlusSTD = IDref.(subject).mean(:,idx_jref) + 2*IDref.(subject).std(:,idx_jref);
-            meanMinusSTD = IDref.(subject).mean(:,idx_jref) - 2*IDref.(subject).std(:,idx_jref);  
+            meanMinusSTD = IDref.(subject).mean(:,idx_jref) - 2*IDref.(subject).std(:,idx_jref);
             stepID = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
             intervalID = 1:stepID:size(R.Qs,1);
             sampleID = 1:size(R.Qs,1);
             meanPlusSTD = interp1(intervalID,meanPlusSTD,sampleID);
-            meanMinusSTD = interp1(intervalID,meanMinusSTD,sampleID); 
+            meanMinusSTD = interp1(intervalID,meanMinusSTD,sampleID);
             hold on
             fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k');
             alpha(.25);
@@ -158,35 +175,38 @@ if exist(ResultsFile,'file')
         if i == length(idx_Qs)
             plot(x,R.Tid(:,idx_Qs(i)),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
         else
-           plot(x,R.Tid(:,idx_Qs(i)),'color',Cs,'linewidth',line_linewidth);
+            plot(x,R.Tid(:,idx_Qs(i)),'color',Cs,'linewidth',line_linewidth);
         end
         
         % Plot settings
-        set(gca,'Fontsize',label_fontsize);
-        title(joints_tit{idx_Qs(i)},'Fontsize',label_fontsize);
-         % Y-axis
-        if i == 1 || i == 5 || i == 9 ||i == 13
-            ylabel('Torque (Nm)','Fontsize',label_fontsize);
-        end
-        % X-axis    
-        L = get(gca,'XLim');
-        NumTicks = 2;
-        if i > 9 
-            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
-            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        else
-            set(gca,'XTick',[]);
+        if boolFirst
+            % Plot settings
+            set(gca,'Fontsize',label_fontsize);
+            title(joints_tit{idx_Qs(i)},'Fontsize',label_fontsize);
+            % Y-axis
+            if i == 1 || i == 5 || i == 9 ||i == 13
+                ylabel('Torque (Nm)','Fontsize',label_fontsize);
+            end
+            % X-axis
+            L = get(gca,'XLim');
+            NumTicks = 2;
+            if i > 9
+                set(gca,'XTick',linspace(L(1),L(2),NumTicks))
+                xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+            else
+                set(gca,'XTick',[]);
+            end
         end
     end
-
+    
     if boolFirst
         lh=legend('-DynamicLegend','location','east');
         lhPos = lh.Position;
         lhPos(1) = lhPos(1)+0.2;
         set(lh,'position',lhPos);
     end
-   
-
+    
+    
     %% Plot general information
     axes('parent', tab3);
     
@@ -203,9 +223,9 @@ if exist(ResultsFile,'file')
     ylabel('Stride Frequency'); xlabel(xParamLab);
     title('Stride Frequency');
     
-     subplot(2,2,3);  hold on;
-     plot(xParam,R.dt_exoShift,'o','Color',Cs,'MarkerFaceColor',Cs);
-     ylabel('Time shift exo torque[s]');  xlabel(xParamLab);
+    subplot(2,2,3);  hold on;
+    plot(xParam,R.dt_exoShift,'o','Color',Cs,'MarkerFaceColor',Cs);
+    ylabel('Time shift exo torque[s]');  xlabel(xParamLab);
     
     
     subplot(2,2,4); hold on;
@@ -253,8 +273,8 @@ if exist(ResultsFile,'file')
         ax(i) = subplot(3,2,i*2-1);
         ax2(i) = subplot(3,2,i*2);
     end
-    linkaxes(ax,'x');
-    linkaxes(ax2,'x');
+    %     linkaxes(ax,'x');
+    %     linkaxes(ax2,'x');
     
     %% Plot ankle muscle energetics
     axes('parent', tab5);
@@ -307,12 +327,12 @@ if exist(ResultsFile,'file')
         ax(i) = subplot(5,2,i*2-1);
         ax2(i) = subplot(5,2,i*2);
     end
-    linkaxes(ax,'x');
-    linkaxes(ax2,'x');
-       
+    %     linkaxes(ax,'x');
+    %     linkaxes(ax2,'x');
+    %
     
-    %% Ground reaction force  
-     axes('parent', tab6);
+    %% Ground reaction force
+    axes('parent', tab6);
     for i=1:6
         subplot(2,3,i);
         plot(R.GRFs(:,i),'-','Color',Cs); hold on;
@@ -330,10 +350,10 @@ if exist(ResultsFile,'file')
             plot(xParam,R.Obj.(Fields{i}),'o','Color',Cs,'MarkerFaceColor',Cs); hold on;
             xlabel(xParamLab);
             title(Fields{i});
-        end        
-    end    
-
-
+        end
+    end
+    
+    
     %% detailed ankle energetics
     %% Plot ankle muscle energetics
     axes('parent', tab8);
@@ -341,28 +361,28 @@ if exist(ResultsFile,'file')
     iGas = find(strcmp(R.colheaders.muscles,'lat_gas_r'));
     iGas2 = find(strcmp(R.colheaders.muscles,'med_gas_r'));
     iTib = find(strcmp(R.colheaders.muscles,'tib_ant_r'));
-
+    
     mVect = {'Soleus','Gas-lat','Gas-med','Tib-ant'};
-
+    
     iM = [iSol iGas iGas2 iTib];
-
+    
     for i=1:4
         subplot(5,4,i)
         plot(R.a(:,iM(i)),'-','Color',Cs); hold on; title(mVect{i});
         xlabel('% stride'); ylabel('activity');
-
+        
         subplot(5,4,i+4)
         plot(R.MetabB.Etot(:,iM(i)),'-','Color',Cs); hold on;
         xlabel('% stride'); ylabel('Muscle metab power');
-
+        
         subplot(5,4,i+8)
         plot(R.lMtilde(:,iM(i)),'-','Color',Cs); hold on;
         xlabel('% stride'); ylabel('Norm fiber length');
-
+        
         subplot(5,4,i+12)
         plot(R.FT(:,iM(i)),'-','Color',Cs); hold on;
         xlabel('% stride'); ylabel('Norm muscle force');
-
+        
     end
     % plot (biological) joint moments
     subplot(5,4,17)
@@ -372,37 +392,37 @@ if exist(ResultsFile,'file')
     subplot(5,4,18)
     plot(R.Tid(:,strcmp(R.colheaders.joints,'ankle_angle_r'))-R.T_exo(:,2),'-','Color',Cs); hold on;
     ylabel('Muscle ankle [Nm]'); xlabel('% stride');
-
+    
     subplot(5,4,19)
     plot(R.Tid(:,strcmp(R.colheaders.joints,'subtalar_angle_r')),'-','Color',Cs); hold on;
     ylabel('subtalar moment [Nm]'); xlabel('% stride');
-
+    
     subplot(5,4,20)
     plot(R.Tid(:,strcmp(R.colheaders.joints,'mtp_angle_r')),'-','Color',Cs); hold on;
     ylabel('mtp moment [Nm]'); xlabel('% stride');
-   
-   
-   
+    
+    
+    
     
     ax =[];
     ax2 = [];
     ax3 =[];
     ax4 = [];
-
-    for i=1:5
-        ax(i) = subplot(5,4,i*4-3);
-        ax2(i) = subplot(5,4,i*4-2);
-        ax3(i) = subplot(5,4,i*4-1);
-        ax4(i) = subplot(5,4,i*4);
-    end
-    linkaxes(ax,'x');
-    linkaxes(ax2,'x');
-    linkaxes(ax3,'x');
-    linkaxes(ax4,'x');
-
-
-
-
+    
+%     for i=1:5
+%         ax(i) = subplot(5,4,i*4-3);
+%         ax2(i) = subplot(5,4,i*4-2);
+%         ax3(i) = subplot(5,4,i*4-1);
+%         ax4(i) = subplot(5,4,i*4);
+%     end
+    %     linkaxes(ax,'x');
+    %     linkaxes(ax2,'x');
+    %     linkaxes(ax3,'x');
+    %     linkaxes(ax4,'x');
+    
+    
+    
+    
 else
     warning(['File not found: ' ResultsFile]);
 end

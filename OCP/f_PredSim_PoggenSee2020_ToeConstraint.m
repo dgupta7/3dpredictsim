@@ -5,7 +5,10 @@ function [] = f_PredSim_PoggenSee2020_ToeConstraint(S)
 rmpath(genpath('G:\PhD\Matlabcodes\Casadi\casadi'));
 addpath(genpath('D:\MaartenAfschrift\softInstall\casadi'));
 addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
+addpath(genpath('C:\Users\u0088756\Documents\Software\Casadi351'));
+addpath(genpath('C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim'));
 
+%disp(S);
 % to simplify batch processing, the casadi functions were already created
 % using the script CasadiFunctions_all_mtp_createDefault.m
 % This assumes invariant:

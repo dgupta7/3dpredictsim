@@ -15,6 +15,11 @@ function [R] = f_LoadSim_PoggenSee2020_DefaultS(ResultsFolder,loadname)
 % 2) the weights in the objective function
 % 3) the exoskeleton assistance
 % 4) the external function
+
+if strcmp(loadname(end-3:end),'.mat')
+    loadname = loadname(1:end-4);
+end
+
 pathmain = pwd;
 [pathRepo,~,~] = fileparts(pathmain);
 OutFolder = fullfile(pathRepo,'Results',ResultsFolder);
@@ -700,7 +705,20 @@ while nFramesBelow == 0
     threshold = threshold + 1;
     nFramesBelow= sum(GRFk_opt(:,2)<threshold);
 end
-phase_tran_tgridi = find(GRFk_opt(:,2)<threshold,1,'last');
+if threshold <100
+    phase_tran_tgridi = find(GRFk_opt(:,2)<threshold,1,'last');
+else
+    % heelstrike is in between left and right leg simulation
+    if threshold >100 && GRFk_opt(end,5)<20
+        phase_tran_tgridi = find(GRFk_opt(:,2)<threshold,1,'last');
+    else
+        % heelstrike is on the left leg
+        phase_tran_tgridi =[];
+        threshold = 20;
+    end
+end
+
+
 
 
 if ~isempty(phase_tran_tgridi)
@@ -749,8 +767,10 @@ end
 
 % GRFk_opt is at mesh points starting from k=2, we thus add 1 to IC1i
 % for the states
-IC1i_c = IC1i;
-IC1i_s = IC1i + 1;
+if phase_tran_tgridi ~= N
+    IC1i_c = IC1i;
+    IC1i_s = IC1i + 1;
+end
 
 % Qs
 Qs_GC = zeros(N*2,size(q_opt_unsc.deg,2));
@@ -935,6 +955,11 @@ T_exo_GC = zeros(N*2,2);
 T_exo_GC(1:N-IC1i_c+1,:) = ExoVect([1 2],IC1i_c:end)';
 T_exo_GC(N-IC1i_c+2:N-IC1i_c+1+N,:) = ExoVect([2 1],1:end)';
 T_exo_GC(N-IC1i_c+2+N:2*N,:) = ExoVect([1 2],1:IC1i_c-1)';
+dt_exoShift = IC1i_c.*nanmean(diff(tgrid));
+if strcmp(HS1,'l')
+    T_exo_GC = T_exo_GC(:,[2 1]);
+    dt_exoShift = dt_exoShift - tgrid(end);
+end
 
 % Passive joint torques
 Tau_pass_opt_inv = [jointi.hip_flex.r:jointi.hip_rot.r,...
@@ -1018,15 +1043,18 @@ e_mo_opt = zeros(2*N,1);
 e_mo_optb = zeros(2*N,1);
 vMtilde_opt_all = zeros(2*N, NMuscle);
 lMtilde_opt_all = zeros(2*N, NMuscle);
-metab_Etot = zeros(2*N, NMuscle);
-metab_Adot = zeros(2*N, NMuscle);
-metab_Mdot = zeros(2*N, NMuscle);
-metab_Sdot = zeros(2*N, NMuscle);
-metab_Wdot = zeros(2*N, NMuscle);
-FT_opt     = zeros(2*N, NMuscle);
-lMT_Vect = zeros(2*N,92);
-vMT_Vect = zeros(2*N,92);
-dM_Vect = zeros(2*N,92,10);
+metab_Etot  = zeros(2*N, NMuscle);
+metab_Adot  = zeros(2*N, NMuscle);
+metab_Mdot  = zeros(2*N, NMuscle);
+metab_Sdot  = zeros(2*N, NMuscle);
+metab_Wdot  = zeros(2*N, NMuscle);
+FT_opt      = zeros(2*N, NMuscle);
+lMT_Vect    = zeros(2*N,92);
+vMT_Vect    = zeros(2*N,92);
+dM_Vect     = zeros(2*N,92,10);
+Fce_opt     = zeros(2*N, NMuscle);
+vM_Vect     = zeros(2*N, NMuscle);
+Fpass_opt   = zeros(2*N, NMuscle);
 for nn = 1:2*N
     % Get muscle-tendon lengths, velocities, moment arms
     % Left leg
@@ -1040,7 +1068,7 @@ for nn = 1:2*N
     % Both legs
     lMTk_lr_opt     = [lMTk_l_opt([1:43,47:49],1);lMTk_r_opt(1:46,1)];
     vMTk_lr_opt     = [vMTk_l_opt([1:43,47:49],1);vMTk_r_opt(1:46,1)];
-    dM_lr_opt       = [dM_l([1:43,47:49],:); dM_r(1:46,:)]; 
+    dM_lr_opt       = [dM_l([1:43,47:49],:); dM_r(1:46,:)];
     % force equilibrium
     [~,FT_optt,Fce_optt,Fpass_optt,Fiso_optt,...
         ~,massM_optt] = f_forceEquilibrium_FtildeState_all_tendon(...
@@ -1067,11 +1095,14 @@ for nn = 1:2*N
     metab_Sdot(nn,:) = full(Sdot)';
     metab_Wdot(nn,:) = full(Wdot)';
     FT_opt(nn,:)     = full(FT_optt)';
+    Fce_opt(nn,:)    = full(Fce_optt)';
     
-    lMT_Vect(nn,:) = full(lMTk_lr_opt);
-    vMT_Vect(nn,:) = full(vMTk_lr_opt);
+    lMT_Vect(nn,:)  = full(lMTk_lr_opt);
+    vMT_Vect(nn,:)  = full(vMTk_lr_opt);
     dM_Vect(nn,:,:) = full(dM_lr_opt);
-        
+    vM_Vect(nn,:)   = full(vM_opt)';
+    Fpass_opt(nn,:) = full(Fpass_optt)';
+    
 end
 % Get COT
 dist_trav_opt_GC = Qs_opt_rad(end,jointi.pelvis.tx) - ...
@@ -1117,11 +1148,15 @@ R.FT          = FT_opt;
 R.TPass       = Tau_pass_opt_GC;
 R.dt          = nanmean(diff(R.t));
 R.T_exo       = T_exo_GC;
-R.dt_exoShift = IC1i_c.*R.dt;
+R.dt_exoShift = dt_exoShift;
 R.Obj         = Obj;
 R.lMT         = lMT_Vect;
 R.vMT         = vMT_Vect;
 R.dM          = dM_Vect;
+R.Muscle.Fce  = Fce_opt;
+R.Muscle.vM   = vM_Vect;
+R.Muscle.Fpas = Fpass_opt;
+R.Muscle.FT   = FT_opt;
 
 % header information
 R.colheaders.joints = joints;

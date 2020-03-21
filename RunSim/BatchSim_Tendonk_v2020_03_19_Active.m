@@ -7,9 +7,9 @@ clear all;
 
 % add casadi to the matlab path (needed on simulation computer because
 % default version is 3.4.5
-% rmpath(genpath('G:\PhD\Matlabcodes\Casadi\casadi'));
-% addpath(genpath('D:\MaartenAfschrift\softInstall\casadi'));
-% addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
+rmpath(genpath('G:\PhD\Matlabcodes\Casadi\casadi'));
+addpath(genpath('D:\MaartenAfschrift\softInstall\casadi'));
+addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
 
 
 %% Default settings
@@ -23,7 +23,7 @@ S.Flow.checkBoundsIG    = 0;   % set to 1 to visualize guess-bounds
 S.Flow.writeIKmotion    = 1;   % set to 1 to write .mot file
 
 % settings for optimization
-S.v_tgt     = 1.33;     % average speed
+S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
 S.W.E       = 500;      % weight metabolic energy rate
 S.W.Ak      = 50000;    % weight joint accelerations
@@ -49,36 +49,37 @@ S.tol_ipopt     = 4;
 
 % quasi random initial guess, pelvis y position
 S.IG_PelvisY = 0.896;   % subject 1 poggensee
-
-% external function 
-S.ExternalFunc = 'SimExo_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp 
-S.ExternalFunc2 = 'SimExo_3D_Pog_s1_mtp_pp.dll';    % this one is with the pinjoint mtp 
+%S.IG_PelvisY = 0.9385;
 
 % Folder with default functions
-S.CasadiFunc_Folders = 'Casadi_s1Pog_mtp';
 S.subject            = 's1_Poggensee';
 
-% Results folder
-S.ResultsFolder = 'DebugR';
-
-% informed initial guess
-S.ResultsF_ig = S.ResultsFolder;
-S.IGsel     = 2;        % initial guess identifier (1: quasi random, 2: data-based)
-S.IGmodeID  = 3;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution)
-S.ResultsF_ig = S.ResultsFolder;
-S.savename_ig = 'NoExo';
-
-% Run simulation
-S.savename      = 'NoExo_IG';
-S.loadname      = 'NoExo_IG';
-S.ExoBool       = 1;
-S.ExoScale      = 0;
-S.DataSet       = 'PoggenSee2020_AFO';
-f_PredSim_PoggenSee2020_ToeConstraint(S);
-f_LoadSim_PoggenSee2020_DefaultS(S.ResultsFolder,S.loadname);
+% output folder
+S.ResultsFolder = 'Batch_TendonStiff';
 
 
+%% Active exoskeleton
 
 
-
+for k = [15 20 25 30 35]  
+    
+    % folder with the pre-configured casadi functions
+    S.CasadiFunc_Folders = ['Casadi_s1Pog_mtp_k' num2str(k)];
+    
+    % initial guess based on previous solution
+    S.IGsel     = 2;        % initial guess identifier (1: quasi random, 2: data-based)
+    S.IGmodeID  = 3;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution)
+    S.ResultsF_ig = S.ResultsFolder;
+    S.savename_ig = 'NoExo';
+    
+    % external function
+    S.ExternalFunc  = 'SimExo_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp
+    S.ExternalFunc2 = 'SimExo_3D_Pog_s1_mtp_pp.dll';    % this one is with the pinjoint mtp
+     S.savename     = ['Active_' num2str(k)];
+    S.savename      = ['Active_' num2str(k)];
+    S.ExoBool       = 1;
+    S.ExoScale      = 1;
+    S.DataSet       = 'PoggenSee2020_AFO';
+    f_PredSim_PoggenSee2020_ToeConstraint(S);
+end
 

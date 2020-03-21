@@ -8,7 +8,7 @@
 clear all; close all; clc;
 import casadi.*
 ExtPoly = '_mtp';
-S.CasadiFunc_Folders = 'Casadi_s1Pog_mtp';
+S.CasadiFunc_Folders = 'Casadi_s1Pog_mtp_k35';
 subject              = 's1_Poggensee';
 if isfolder(S.CasadiFunc_Folders)
     error('Never changes the casadi functions in an existing folder, these functions are important to analyse optimization results (from the optimal states and controls');
@@ -25,7 +25,7 @@ S.N             = 50;
 NMuscle = 92;
 aTendon = 35*ones(NMuscle,1);
 IndexCalf = [32 33 34 78 79 80];    % adjust stiffness of the calf muscles
-aTendon(IndexCalf) = 20;
+aTendon(IndexCalf) = 35;
 shift = getShift(aTendon);
 %% Indices external function
 % Indices of the elements in the external functions

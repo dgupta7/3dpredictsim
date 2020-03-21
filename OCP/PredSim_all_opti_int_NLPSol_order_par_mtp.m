@@ -23,7 +23,7 @@ close all;
 % Note that you should re-run the simulations to write out the .mot files
 % and visualize the results in the OpenSim GUI.
 
-num_set = [1,1,1,1,0,1]; % This configuration solves the problem
+num_set = [0,1,1,1,0,1]; % This configuration solves the problem
 % num_set = [0,1,1,1,0,1]; % This configuration analyzes the results
 
 % The variable settings in the following section will set some parameters 
@@ -2233,6 +2233,7 @@ if analyseResults
     e_mo_optb = zeros(2*N,1);    
     vMtilde_opt_all = zeros(2*N, NMuscle);
     lMtilde_opt_all = zeros(2*N, NMuscle);
+    EnergyTendon = zeros(2*N,NMuscle);
     for nn = 1:2*N
         % Get muscle-tendon lengths, velocities, moment arms
         % Left leg
@@ -2298,6 +2299,17 @@ if analyseResults
             dFTtilde_GC(nn,:)',full(lMTk_lr_opt),full(vMTk_lr_opt),...
             aTendon,shift);        
         vMtilde_opt_all(nn,:) = full(vMtilde_opt)';    
+        
+        
+        % get the energy in the tendon
+        fse = FTtilde_GC(nn,:)';
+        lTtilde = log(5*(fse + 0.25 - shift))./aTendon + 0.995;
+        lTs = MTparameters_m(3,:)';
+        FMo = MTparameters_m(1,:)';
+        lT = lTtilde.*lTs;
+        lTr = lT - lTs;
+        EnergyTendon(nn,:) = energy_tendon(aTendon,FMo,lTr,lTs,shift);
+        
         if mE == 0 % Bhargava et al. (2004)
         [~,~,~,~,~,e_mot] = ...
             fgetMetabolicEnergySmooth2004all(Acts_GC(nn,:)',...
@@ -2541,6 +2553,20 @@ if analyseResults
         Results_all.colheaders.joints = joints;
         Results_all.colheaders.GRF = {'fore_aft_r','vertical_r',...
         'lateral_r','fore_aft_l','vertical_l','lateral_l'};
+    
+    
+        % compute the moment arms in anatomical position (a
+        q0 = zeros(nq.leg,1);
+        qd0 = zeros(nq.leg,1);
+        [lMT_l,vMT_l,MA_l] =  f_lMT_vMT_dM(q0,qd0);   
+        LMT_lr = full([lMT_l([1:43,47:49],1);lMT_l(1:46,1)]);
+        vMT_lr = full([lMT_l([1:43,47:49],1);lMT_l(1:46,1)]);
+        MA_l = full([lMT_l([1:43,47:49],1);lMT_l(1:46,1)]);
+        Results_all.AnatomPos.LMT_lr = LMT_lr;
+        Results_all.AnatomPos.LMT_lr = vMT_lr;
+        Results_all.AnatomPos.MA_l = MA_l;
+    
+    
         for i = 1:NMuscle/2
             Results_all.colheaders.muscles{i} = ...
                 [muscleNames{i}(1:end-2),'_l'];
