@@ -7,7 +7,7 @@ Datapath = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredicts
 DataFolders = {'Batch_TendonStiff'};
 
 S.LoadRes = 1;
-S.Plot    = 1;
+S.Plot    = 0;
 
 %% Post process the simulations
 

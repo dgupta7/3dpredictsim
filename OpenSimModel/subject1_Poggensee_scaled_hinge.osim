@@ -12185,7 +12185,7 @@
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
 					<socket_frame>/bodyset/calcn_r</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.0019011578840796601 -0.021859 -0.00382630379623308</location>
+					<location>-0.00042152 -0.01 -0.0049972</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->
@@ -12201,13 +12201,13 @@
 						</SurfaceProperties>
 					</Appearance>
 					<!--Radius of the sphere (default: 0).-->
-					<radius>0.032000000000000001</radius>
+					<radius>0.03232</radius>
 				</ContactSphere>
 				<ContactSphere name="s2_r">
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
 					<socket_frame>/bodyset/calcn_r</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.14838639994206301 -0.021859 -0.028713422052654002</location>
+					<location>0.06 -0.01 0.020001</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->
@@ -12223,13 +12223,13 @@
 						</SurfaceProperties>
 					</Appearance>
 					<!--Radius of the sphere (default: 0).-->
-					<radius>0.032000000000000001</radius>
+					<radius>0.03232</radius>
 				</ContactSphere>
 				<ContactSphere name="s3_r">
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
 					<socket_frame>/bodyset/calcn_r</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.13300117060705099 -0.021859 0.051636247344956601</location>
+					<location>0.165 -0.01 0.021183</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->
@@ -12245,13 +12245,13 @@
 						</SurfaceProperties>
 					</Appearance>
 					<!--Radius of the sphere (default: 0).-->
-					<radius>0.032000000000000001</radius>
+					<radius>0.023374</radius>
 				</ContactSphere>
 				<ContactSphere name="s4_r">
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
-					<socket_frame>/bodyset/toes_r</socket_frame>
+					<socket_frame>/bodyset/calcn_r</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.059999999999999998 -0.021447600000000001 -0.018760308461917698</location>
+					<location>0.165 -0.01 -0.01</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->
@@ -12267,13 +12267,13 @@
 						</SurfaceProperties>
 					</Appearance>
 					<!--Radius of the sphere (default: 0).-->
-					<radius>0.032000000000000001</radius>
+					<radius>0.020508</radius>
 				</ContactSphere>
 				<ContactSphere name="s5_r">
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
-					<socket_frame>/bodyset/calcn_r</socket_frame>
+					<socket_frame>/bodyset/toes_r</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.066234666199163503 -0.021859 0.026364160674169801</location>
+					<location>0.053154 -0.01 -0.0034173</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->
@@ -12289,13 +12289,13 @@
 						</SurfaceProperties>
 					</Appearance>
 					<!--Radius of the sphere (default: 0).-->
-					<radius>0.032000000000000001</radius>
+					<radius>0.016244</radius>
 				</ContactSphere>
 				<ContactSphere name="s6_r">
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
 					<socket_frame>/bodyset/toes_r</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.044999999999999998 -0.021447600000000001 0.061856956754965199</location>
+					<location>0 -0.01 0.022294</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->
@@ -12311,13 +12311,13 @@
 						</SurfaceProperties>
 					</Appearance>
 					<!--Radius of the sphere (default: 0).-->
-					<radius>0.032000000000000001</radius>
+					<radius>0.018414</radius>
 				</ContactSphere>
 				<ContactSphere name="s1_l">
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
 					<socket_frame>/bodyset/calcn_l</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.0019011578840796601 -0.021859 0.00382630379623308</location>
+					<location>-0.00042152 -0.01 -0.0049972</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->
@@ -12333,13 +12333,13 @@
 						</SurfaceProperties>
 					</Appearance>
 					<!--Radius of the sphere (default: 0).-->
-					<radius>0.032000000000000001</radius>
+					<radius>0.03232</radius>
 				</ContactSphere>
 				<ContactSphere name="s2_l">
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
 					<socket_frame>/bodyset/calcn_l</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.14838639994206301 -0.021859 0.028713422052654002</location>
+					<location>0.06 -0.01 0.020001</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->
@@ -12355,13 +12355,13 @@
 						</SurfaceProperties>
 					</Appearance>
 					<!--Radius of the sphere (default: 0).-->
-					<radius>0.032000000000000001</radius>
+					<radius>0.03232</radius>
 				</ContactSphere>
 				<ContactSphere name="s3_l">
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
 					<socket_frame>/bodyset/calcn_l</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.13300117060705099 -0.021859 -0.051636247344956601</location>
+					<location>0.165 -0.01 0.021183</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->
@@ -12377,13 +12377,13 @@
 						</SurfaceProperties>
 					</Appearance>
 					<!--Radius of the sphere (default: 0).-->
-					<radius>0.032000000000000001</radius>
+					<radius>0.023374</radius>
 				</ContactSphere>
 				<ContactSphere name="s4_l">
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
-					<socket_frame>/bodyset/toes_l</socket_frame>
+					<socket_frame>/bodyset/calcn_l</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.059999999999999998 -0.021447600000000001 0.018760308461917698</location>
+					<location>0.165 -0.01 -0.01</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->
@@ -12399,13 +12399,13 @@
 						</SurfaceProperties>
 					</Appearance>
 					<!--Radius of the sphere (default: 0).-->
-					<radius>0.032000000000000001</radius>
+					<radius>0.020508</radius>
 				</ContactSphere>
 				<ContactSphere name="s5_l">
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
-					<socket_frame>/bodyset/calcn_l</socket_frame>
+					<socket_frame>/bodyset/toes_l</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.066234666199163503 -0.021859 -0.026364160674169801</location>
+					<location>0.053154 -0.01 -0.0034173</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->
@@ -12421,13 +12421,13 @@
 						</SurfaceProperties>
 					</Appearance>
 					<!--Radius of the sphere (default: 0).-->
-					<radius>0.032000000000000001</radius>
+					<radius>0.016244</radius>
 				</ContactSphere>
 				<ContactSphere name="s6_l">
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
 					<socket_frame>/bodyset/toes_l</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.044999999999999998 -0.021447600000000001 -0.061856956754965199</location>
+					<location>0 -0.01 0.022294</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->
@@ -12443,7 +12443,7 @@
 						</SurfaceProperties>
 					</Appearance>
 					<!--Radius of the sphere (default: 0).-->
-					<radius>0.032000000000000001</radius>
+					<radius>0.018414</radius>
 				</ContactSphere>
 			</objects>
 			<groups />

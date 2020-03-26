@@ -193,12 +193,13 @@ muscleNames = {'glut_med1_r','glut_med2_r','glut_med3_r',...
     'ext_hal_r','ercspn_r','intobl_r','extobl_r','ercspn_l',...
     'intobl_l','extobl_l'};
 % Muscle indices for later use
-pathmusclemodel = [pathRepo,'/MuscleModel'];
-addpath(genpath(pathmusclemodel));
-% (1:end-3), since we do not want to count twice the back muscles
+pathmusclemodel = fullfile(pathRepo,'MuscleModel',subject);
 musi = MuscleIndices(muscleNames(1:end-3));
-% Total number of muscles
 NMuscle = length(muscleNames(1:end-3))*2;
+ExtPoly = '_mtp';
+load([pathmusclemodel,'/MTparameters_',subject, ExtPoly, '.mat']);
+MTparameters_m = [MTparameters(:,musi),MTparameters(:,musi)];
+
 % Muscle-tendon parameters. Row 1: maximal isometric forces; Row 2: optimal
 % fiber lengths; Row 3: tendon slack lengths; Row 4: optimal pennation
 % angles; Row 5: maximal contraction velocities
@@ -243,6 +244,18 @@ f_lMT_vMT_dM = Function.load('f_lMT_vMT_dM');
 f_AllPassiveTorques = Function.load('f_AllPassiveTorques');
 fgetMetabolicEnergySmooth2004all = Function.load('fgetMetabolicEnergySmooth2004all');
 cd(pathmain);
+
+%% load the metalbolic energy equations
+PathDefaultFunc = fullfile(pathCasADiFunctions,'EnergyModels');
+cd(PathDefaultFunc);
+fgetMetabolicEnergySmooth2003all    = Function.load('fgetMetabolicEnergySmooth2003all');
+fgetMetabolicEnergySmooth2010all    = Function.load('fgetMetabolicEnergySmooth2010all');
+fgetMetabolicEnergySmooth2016all    = Function.load('fgetMetabolicEnergySmooth2016all');
+fgetMetabolicEnergySmooth2010all_hl = Function.load('fgetMetabolicEnergySmooth2010all_hl');
+fgetMetabolicEnergySmooth2010all_neg= Function.load('fgetMetabolicEnergySmooth2010all_neg');
+fgetMetabolicEnergy_MargariaSmooth  = Function.load('fgetMetabolicEnergy_MargariaSmooth');
+cd(pathmain);
+
 
 %% Experimental data
 % We extract experimental data to set bounds and initial guesses if needed
@@ -633,7 +646,7 @@ for k=1:N
             full(lMtilde_opt_all),...
             full(vM_opt_all),full(Fce_opt_all)',full(Fpass_opt_all)',...
             full(massM_opt_all)',pctsts,full(Fiso_opt_all)',body_mass,10);
-        e_tot_opt_all = full(e_tot_all)';
+        e_tot_opt_all = full(e_tot_all)';        
         
         % objective function
         J_opt = J_opt + 1/(dist_trav_opt)*(...
@@ -1055,6 +1068,14 @@ dM_Vect     = zeros(2*N,92,10);
 Fce_opt     = zeros(2*N, NMuscle);
 vM_Vect     = zeros(2*N, NMuscle);
 Fpass_opt   = zeros(2*N, NMuscle);
+
+metab_Umb2003  = zeros(2*N);
+metab_Umb2010  = zeros(2*N);
+metab_Uchida2016 = zeros(2*N);
+metab_Umb2010_h1 = zeros(2*N);
+metab_Umb2010_neg = zeros(2*N);
+metab_Marg1968 = zeros(2*N, NMuscle);
+
 for nn = 1:2*N
     % Get muscle-tendon lengths, velocities, moment arms
     % Left leg
@@ -1070,8 +1091,8 @@ for nn = 1:2*N
     vMTk_lr_opt     = [vMTk_l_opt([1:43,47:49],1);vMTk_r_opt(1:46,1)];
     dM_lr_opt       = [dM_l([1:43,47:49],:); dM_r(1:46,:)];
     % force equilibrium
-    [~,FT_optt,Fce_optt,Fpass_optt,Fiso_optt,...
-        ~,massM_optt] = f_forceEquilibrium_FtildeState_all_tendon(...
+    [~,FT_optt,Fce_optt,Fpass_optt,Fiso_optt,vMmax_optt,massM_optt] =...
+        f_forceEquilibrium_FtildeState_all_tendon(...
         Acts_GC(nn,:)',FTtilde_GC(nn,:)',dFTtilde_GC(nn,:)',full(lMTk_lr_opt),...
         full(vMTk_lr_opt),tensions);
     % fiber kinematics
@@ -1082,13 +1103,58 @@ for nn = 1:2*N
         dFTtilde_GC(nn,:)',full(lMTk_lr_opt),full(vMTk_lr_opt));
     vMtilde_opt_all(nn,:) = full(vMtilde_opt)';
     % Bhargava et al. (2004)
-    [energy_total,Adot,Mdot,Sdot,Wdot,e_mot] = ...
+    [energy_total,Adot,Mdot,Sdot,Wdot,eBargh] = ...
         fgetMetabolicEnergySmooth2004all(Acts_GC(nn,:)',...
         Acts_GC(nn,:)',full(lMtilde_opt),full(vM_opt),...
         full(Fce_optt),full(Fpass_optt),full(massM_optt),pctsts,...
         full(Fiso_optt)',body_mass,10);
-    e_mo_opt(nn,:) = full(e_mot)';
-    e_mo_optb(nn,:) = full(e_mot)';
+    
+    % Umberger 2003
+    vMtildeUmbk_opt = full(vM_opt)./(MTparameters_m(2,:)');
+    [~,~,~,~,eUmb2003] = fgetMetabolicEnergySmooth2003all(...
+        Acts_GC(nn,:)',Acts_GC(nn,:)',full(lMtilde_opt),...
+        vMtildeUmbk_opt,full(vM_opt),full(Fce_optt)',...
+        full(massM_optt)',pctsts,full(vMmax_optt)',...
+        full(Fiso_optt)',body_mass,10);
+    
+    % Umberger 2010
+    [~,~,~,~,eUmb2010] = fgetMetabolicEnergySmooth2010all(...
+        Acts_GC(nn,:)',Acts_GC(nn,:)',full(lMtilde_opt),...
+        vMtildeUmbk_opt,full(vM_opt),full(Fce_optt)',...
+        full(massM_optt)',pctsts,full(vMmax_optt)',...
+        full(Fiso_optt)',body_mass,10);
+    
+    % Uchida et al. (2016)
+    [~,~,~,~,eUchida2016] = fgetMetabolicEnergySmooth2016all(...
+        Acts_GC(nn,:)',Acts_GC(nn,:)',full(lMtilde_opt),...
+        vMtildeUmbk_opt,full(vM_opt),full(Fce_optt)',...
+        full(massM_optt)',pctsts,full(vMmax_optt)',...
+        full(Fiso_optt)',body_mass,10);
+    
+    % Umberger (2010) treating muscle lengthening
+    % heat rate as Umberger et al. (2003)
+    % vMtilde defined for this model as vM/lMopt
+    [~,~,~,~,eUmb2010_h1] = fgetMetabolicEnergySmooth2010all_hl(...
+        Acts_GC(nn,:)',Acts_GC(nn,:)',full(lMtilde_opt),...
+        vMtildeUmbk_opt,full(vM_opt),full(Fce_optt)',...
+        full(massM_optt)',pctsts,full(vMmax_optt)',...
+        full(Fiso_optt)',body_mass,10);
+    
+    % Umberger (2010) treating negative mechanical
+    % work as Umberger et al. (2003)
+    % vMtilde defined for this model as vM/lMopt
+    [~,~,~,~,eUmb2010_neg] = fgetMetabolicEnergySmooth2010all_neg(...
+        Acts_GC(nn,:)',Acts_GC(nn,:)',full(lMtilde_opt),...
+        vMtildeUmbk_opt,full(vM_opt),full(Fce_optt)',...
+        full(massM_optt)',pctsts,full(vMmax_optt)',...
+        full(Fiso_optt)',body_mass,10);
+    
+    % Margaria 1968
+    eMarg1968 = fgetMetabolicEnergy_MargariaSmooth(full(Fce_optt)',full(vM_opt)');    
+    
+    % store results
+    e_mo_opt(nn) = full(eBargh)';
+    e_mo_optb(nn) = full(eBargh)';
     metab_Etot(nn,:) = full(energy_total)';
     metab_Adot(nn,:) = full(Adot)';
     metab_Mdot(nn,:) = full(Mdot)';
@@ -1103,6 +1169,13 @@ for nn = 1:2*N
     vM_Vect(nn,:)   = full(vM_opt)';
     Fpass_opt(nn,:) = full(Fpass_optt)';
     
+    metab_Umb2003(nn)     = full(eUmb2003);
+    metab_Umb2010(nn)     = full(eUmb2010);
+    metab_Uchida2016(nn)  = full(eUchida2016);
+    metab_Umb2010_h1(nn)  = full(eUmb2010_h1);
+    metab_Umb2010_neg(nn) = full(eUmb2010_neg);
+    metab_Marg1968(nn,:)    = full(eMarg1968);
+    
 end
 % Get COT
 dist_trav_opt_GC = Qs_opt_rad(end,jointi.pelvis.tx) - ...
@@ -1113,6 +1186,21 @@ e_mo_opt_trb = trapz(time_GC,e_mo_optb);
 % Energy model from Bhargava et al. (2004)
 COT_GC = e_mo_opt_trb/body_mass/dist_trav_opt_GC;
 
+% COT for all models
+COTv.Umb2003 = trapz(time_GC,metab_Umb2003)/body_mass/dist_trav_opt_GC;
+COTv.Umb2010 = trapz(time_GC,metab_Umb2010)/body_mass/dist_trav_opt_GC;
+COTv.Uchida2016 = trapz(time_GC,metab_Uchida2016)/body_mass/dist_trav_opt_GC;
+COTv.Umb2010_h1 = trapz(time_GC,metab_Umb2010_h1)/body_mass/dist_trav_opt_GC;
+COTv.Umb2010_neg = trapz(time_GC,metab_Umb2010_neg)/body_mass/dist_trav_opt_GC;
+COTv.Marg1968 = sum(trapz(time_GC,metab_Marg1968))/body_mass/dist_trav_opt_GC;
+
+% Store Energy
+EnergyV.Umb2003         = metab_Umb2003;
+EnergyV.Umb2010         = metab_Umb2010;
+EnergyV.Uchida2016      = metab_Uchida2016;
+EnergyV.Umb2010_h1      = metab_Umb2010_h1;
+EnergyV.Umb2010_neg     = metab_Umb2010_neg;
+EnergyV.Marg1968        = metab_Marg1968;
 %% Save results
 % Structure Results_all
 R.t_step    = tgrid;
@@ -1157,6 +1245,8 @@ R.Muscle.Fce  = Fce_opt;
 R.Muscle.vM   = vM_Vect;
 R.Muscle.Fpas = Fpass_opt;
 R.Muscle.FT   = FT_opt;
+R.COTv        = COTv;
+R.Energy      = EnergyV;
 
 % header information
 R.colheaders.joints = joints;

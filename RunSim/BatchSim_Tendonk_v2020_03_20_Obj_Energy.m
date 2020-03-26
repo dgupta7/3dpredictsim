@@ -70,7 +70,7 @@ S.savename_ig   = 'NoExo';
 %% Passive exoskeleton
 
 W_EnergyVect = [10 50 500 1000 5000]; 
-nSim = length(W_Energyect);
+nSim = length(W_EnergyVect);
 
 for i=1:nSim
     S.W.E       = W_EnergyVect(i);      % weight metabolic energy rate    
