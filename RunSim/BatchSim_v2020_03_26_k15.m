@@ -7,7 +7,9 @@ clear all; close all; clc;
 
 % add casadi to the matlab path (needed on simulation computer because
 % default version is 3.4.5
-rmpath(genpath('G:\PhD\Matlabcodes\Casadi\casadi'));
+rmpath(genpath('G:\PhD\Matlabcodes'));
+rmpath(genpath('C:\casadi-windows-matlabR2016a-v3.4.5'));
+rmpath(genpath('C:\Program Files\MATLAB\GPOPS-II'));
 addpath(genpath('D:\MaartenAfschrift\softInstall\casadi'));
 addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
 

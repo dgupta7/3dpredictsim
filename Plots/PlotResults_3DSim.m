@@ -45,6 +45,7 @@ if exist(ResultsFile,'file')
             tab7 = uitab(hTabGroup, 'Title', 'Objective Function');
             tab8 = uitab(hTabGroup, 'Title', 'Ankle detailed');
             h.Name = 'Sim3D_Results';
+            set(h,'Color','w');
         end
     else
         h = figure();
@@ -58,6 +59,7 @@ if exist(ResultsFile,'file')
         tab6 = uitab(hTabGroup, 'Title', 'Ground reaction force');
         tab7 = uitab(hTabGroup, 'Title', 'Objective Function');
         tab8 = uitab(hTabGroup, 'Title', 'Ankle detailed');
+        set(h,'Color','w');
     end
     
     %% Helper names
@@ -115,7 +117,7 @@ if exist(ResultsFile,'file')
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         hold on;
         if i == length(idx_Qs)
-            plot(x,R.Qs(:,idx_Qs(i)),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+             plot(x,R.Qs(:,idx_Qs(i)),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
         else
             plot(x,R.Qs(:,idx_Qs(i)),'color',Cs,'linewidth',line_linewidth);
         end
@@ -129,18 +131,19 @@ if exist(ResultsFile,'file')
                 ylabel('Angle (°)','Fontsize',label_fontsize);
             end
             % X-axis
-            L = get(gca,'XLim');
+%             L = get(gca,'XLim');
             if i > 12
-                set(gca,'XTick',linspace(L(1),L(2),NumTicks))
+%                 set(gca,'XTick',linspace(L(1),L(2),NumTicks))
                 xlabel('Gait cycle (%)','Fontsize',label_fontsize);
             else
                 set(gca,'XTick',[]);
             end
         end
     end
-    %     subplot(3,6,18)
+%     subplot(3,6,18)
     if boolFirst
         lh=legend('-DynamicLegend','location','east');
+        lh.Interpreter = 'none';
         lhPos = lh.Position;
         lhPos(1) = lhPos(1)+0.2;
         set(lh,'position',lhPos);
@@ -165,7 +168,7 @@ if exist(ResultsFile,'file')
             meanPlusSTD = interp1(intervalID,meanPlusSTD,sampleID);
             meanMinusSTD = interp1(intervalID,meanMinusSTD,sampleID);
             hold on
-            fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k');
+            fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName','MoCap');
             alpha(.25);
         end
         
@@ -201,6 +204,7 @@ if exist(ResultsFile,'file')
     
     if boolFirst
         lh=legend('-DynamicLegend','location','east');
+        lh.Interpreter = 'none';
         lhPos = lh.Position;
         lhPos(1) = lhPos(1)+0.2;
         set(lh,'position',lhPos);
@@ -404,10 +408,10 @@ if exist(ResultsFile,'file')
     
     
     
-    ax =[];
-    ax2 = [];
-    ax3 =[];
-    ax4 = [];
+%     ax =[];
+%     ax2 = [];
+%     ax3 =[];
+%     ax4 = [];
     
 %     for i=1:5
 %         ax(i) = subplot(5,4,i*4-3);
