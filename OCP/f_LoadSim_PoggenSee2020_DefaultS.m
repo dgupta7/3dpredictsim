@@ -20,12 +20,28 @@ if strcmp(loadname(end-3:end),'.mat')
     loadname = loadname(1:end-4);
 end
 
-pathmain = pwd;
-[pathRepo,~,~] = fileparts(pathmain);
+pathmain = mfilename('fullpath');
+[filepath,~,~] =  fileparts(pathmain);
+[pathRepo,~,~] = fileparts(filepath);
 OutFolder = fullfile(pathRepo,'Results',ResultsFolder);
 Outname = fullfile(OutFolder,[loadname '.mat']);
-load(Outname,'w_opt','stats','Sopt','ExoControl');
+load(Outname,'w_opt','stats','Sopt');
 S = Sopt;
+
+%% Test the type of simulation
+
+IndexSettings = 1;
+ExtF = S.ExternalFunc;
+if strcmp(ExtF,'PredSim_3D_GRF.dll') && isfield(S,'AFO_stiffness')
+    % AFO modelled as in Nuckols 2019: Ultrasound imaging links soleus
+    % muscle neuromechanics and energetics during human walking with
+    % elastic ankle exoskeletons
+    disp('Post processing of passive AFO as in Nuckols - ultrasound paper');
+    IndexSettings = 2;
+else
+    disp('Default processing with active FWO (Poggensee paper)')
+end
+
 
 %% User inputs (typical settings structure)
 % load default CasadiFunctions
@@ -73,7 +89,6 @@ subject = S.subject;
 pathmain = pwd;
 % We use different external functions, since we also want to access some
 % parameters of the model in a post-processing phase.
-[pathRepo,~,~] = fileparts(pathmain);
 pathExternalFunctions = [pathRepo,'/ExternalFunctions'];
 % Loading external functions.
 cd(pathExternalFunctions);
@@ -164,6 +179,15 @@ calcOrall.r     = 38:40;
 calcOrall.l     = 41:43;
 calcOrall.all   = [calcOrall.r,calcOrall.l];
 NcalcOrall      = length(calcOrall.all);
+
+% adapt indexes GRF in Nuckols simulations
+if IndexSettings == 2
+    GRFi.r      = GRFi.r + 20;
+    GRFi.l      = GRFi.l + 20;
+    GRFi.all    = [GRFi.r,GRFi.l];
+end
+
+
 
 %% Model info
 body_weight = S.mass*9.81;
@@ -529,7 +553,7 @@ Xk_Qs_Qdots_opt             = zeros(N,2*nq.all);
 Xk_Qs_Qdots_opt(:,1:2:end)  = q_opt_unsc_all.rad(2:end,:);
 Xk_Qs_Qdots_opt(:,2:2:end)  = qdot_opt_unsc_all.rad(2:end,:);
 Xk_Qdotdots_opt             = qdotdot_col_opt_unsc.rad(d:d:end,:);
-Foutk_opt = zeros(N,nq.all+NGRF+NcalcOrall);
+Foutk_opt                   = zeros(N,F1.nnz_out);
 Tau_passk_opt_all = zeros(N,nq.all-nq.abs);
 for i = 1:N
     % ID moments
@@ -545,7 +569,7 @@ Xj_Qs_Qdots_opt             = zeros(d*N,2*nq.all);
 Xj_Qs_Qdots_opt(:,1:2:end)  = q_col_opt_unsc.rad;
 Xj_Qs_Qdots_opt(:,2:2:end)  = qdot_col_opt_unsc.rad;
 Xj_Qdotdots_opt             = qdotdot_col_opt_unsc.rad;
-Foutj_opt = zeros(d*N,nq.all+NGRF+NcalcOrall);
+Foutj_opt = zeros(d*N,F1.nnz_out);
 Tau_passj_opt_all = zeros(d*N,nq.all-nq.abs);
 for i = 1:d*N
     % inverse dynamics
@@ -565,7 +589,7 @@ Xk_Qs_Qdots_opt_all(:,2:2:end)  = qdot_opt_unsc_all.rad;
 % We just want to extract the positions of the calcaneus origins so we
 % do not really care about Qdotdot that we set to 0
 Xk_Qdotdots_opt_all = zeros(N+1,size(q_opt_unsc_all.rad,2));
-out_res_opt_all = zeros(N+1,nq.all+NGRF+NcalcOrall);
+out_res_opt_all = zeros(N+1,F1.nnz_out);
 for i = 1:N+1
     [res] = F1([Xk_Qs_Qdots_opt_all(i,:)';Xk_Qdotdots_opt_all(i,:)']);
     out_res_opt_all(i,:) = full(res);
@@ -1201,6 +1225,30 @@ EnergyV.Uchida2016      = metab_Uchida2016;
 EnergyV.Umb2010_h1      = metab_Umb2010_h1;
 EnergyV.Umb2010_neg     = metab_Umb2010_neg;
 EnergyV.Marg1968        = metab_Marg1968;
+
+%% Analyse passive exoskeleton support
+% Nuckols 2019
+if IndexSettings == 2
+    % compute torque of AFO
+    GRFrY = GRFs_opt(:,2).*body_weight/100;
+    GRFlY = GRFs_opt(:,5).*body_weight/100;
+    
+    % detect stance phase
+    StanceR = tanh(0.1*(GRFrY-30))*0.5+0.5;
+    StanceL = tanh(0.1*(GRFlY-30))*0.5+0.5;
+    
+    % detect angles above threshold
+    ql = Qs_GC(:,jointi.ankle.l)*pi/180;
+    qr = Qs_GC(:,jointi.ankle.r)*pi/180;
+    BoolqL = tanh(200*(ql-S.AFO_q0*pi/180))*0.5+0.5;
+    BoolqR = tanh(200*(qr-S.AFO_q0*pi/180))*0.5+0.5;
+    TAFO_l = -S.AFO_stiffness.*StanceL.*BoolqL.*(ql-S.AFO_q0.*pi/180);
+    TAFO_r = -S.AFO_stiffness.*StanceR.*BoolqR.*(qr-S.AFO_q0.*pi/180);
+    
+end
+
+
+
 %% Save results
 % Structure Results_all
 R.t_step    = tgrid;
@@ -1248,6 +1296,14 @@ R.Muscle.FT   = FT_opt;
 R.COTv        = COTv;
 R.Energy      = EnergyV;
 
+% nuckols 2019 results
+if IndexSettings == 2
+    R.T_exo       = [TAFO_l TAFO_r];
+    R.Nuckols.q0  = S.AFO_q0;
+    R.Nuckols.k   = S.AFO_stiffness;
+else
+    R.Nuckols = [];
+end
 % header information
 R.colheaders.joints = joints;
 R.colheaders.GRF = {'fore_aft_r','vertical_r',...

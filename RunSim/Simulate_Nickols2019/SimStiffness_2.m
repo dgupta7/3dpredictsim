@@ -56,7 +56,7 @@ S.IG_PelvisY = 0.896;   % subject 1 poggensee
 S.subject            = 's1_Poggensee';
 
 % output folder
-S.ResultsFolder = 'TestNuckols2019';
+S.ResultsFolder = 'TestNuckols2019c';
 
 % select tendon stiffness of 20
 S.CasadiFunc_Folders = 'Casadi_s1Pog_mtp_k20';
@@ -72,16 +72,17 @@ S.savename_ig   = 'NoExo';
 % NoExo
 S.ExternalFunc  = 'PredSim_3D_GRF.dll';        % this one is with the pinjoint mtp
 S.ExternalFunc2 = 'PredSim_3D_GRF.dll';    % this one is with the pinjoint mtp
-S.savename      = 'Stiffness50_q5';
 S.ExoBool       = 0;
 S.ExoScale      = 0;
 S.DataSet       = 'PoggenSee2020_AFO';
+StiffVect       = [100 150];
+for i = 1:length(StiffVect)
+    S.AFO_stiffness = StiffVect(i);   % 50Nm/rad
+    S.AFO_q0        = -5;   % -5 deg (not that direction PF is opposite in Nuckols 2019)
+    S.savename      = ['Stiffness' num2str(S.AFO_stiffness) '_q5'];
+    f_PredSim_StiffnessAFO(S);
+end
 
-S.AFO_stiffness = 50;   % 50Nm/rad
-S.AFO_q0        = -5;   % 5 deg
-
-f_PredSim_StiffnessAFO(S);
-    
 
 
 

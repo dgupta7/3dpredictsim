@@ -56,7 +56,7 @@ end
 
 % reference angle of AFO
 if ~isfield(S,'AFO_q0') || isempty(S.AFO_q0)
-    S.AFO_q0 = 5;   % 5 deg
+    S.AFO_q0 = -5;   % 5 deg
 end
 
 
@@ -743,16 +743,12 @@ if solveProblem
         StanceL = tanh(0.1*(GRFlY-30))*0.5+0.5;
         
         % detect angles above threshold
-        jointi.ankle.l      = 15;
-        jointi.ankle.r      = 16;
         ql = QsQdotskj_nsc(jointi.ankle.l*2-1,j+1);
         qr = QsQdotskj_nsc(jointi.ankle.r*2-1,j+1);
-        BoolqL = tanh(-100*(ql-S.AFO_q0*pi/180))*0.5+0.5;
-        BoolqR = tanh(-100*(qr-S.AFO_q0*pi/180))*0.5+0.5;
-        TAFO_l = S.AFO_stiffness*StanceL*BoolqL*(ql-S.AFO_q0*pi/180);
-        TAFO_r = S.AFO_stiffness*StanceR*BoolqR*(qr-S.AFO_q0*pi/180);
-        
-        
+        BoolqL = tanh(200*(ql-S.AFO_q0*pi/180))*0.5+0.5;
+        BoolqR = tanh(200*(qr-S.AFO_q0*pi/180))*0.5+0.5;
+        TAFO_l = -S.AFO_stiffness.*StanceL.*BoolqL.*(ql-S.AFO_q0.*pi/180);
+        TAFO_r = -S.AFO_stiffness.*StanceR.*BoolqR.*(qr-S.AFO_q0.*pi/180);
         
         % Add path constraints
         % Null pelvis residuals

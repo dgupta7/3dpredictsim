@@ -78,7 +78,7 @@ S.DataSet       = 'PoggenSee2020_AFO';
 StiffVect       = [0 50 100 150 200 250];
 for i = 1:length(StiffVect)
     S.AFO_stiffness = StiffVect(i);   % 50Nm/rad
-    S.AFO_q0        = 5;   % 5 deg
+    S.AFO_q0        = -5;   % -5 deg (not that direction PF is opposite in Nuckols 2019)
     S.savename      = ['Stiffness' num2str(StiffVect) '_q5'];
     f_PredSim_StiffnessAFO(S);
 end
