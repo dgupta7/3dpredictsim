@@ -13,7 +13,7 @@ Datapath = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredicts
 %     'Batch_TendonStiff','Batch_SensObjective'};
 % DataFolders = {'BatchSim_2020_03_17_UpdIG'};
 DataFolders = {'Batch_TendonScale_k15','Batch_TendonScale_k20','Batch_TendonScale_k25',...
-    'Batch_TendonScale_k30','Batch_TendonScale_k35','Batch_TendonScale_k40'};
+    'Batch_TendonScale_k30','Batch_TendonScale_k35','Batch_TendonScale_k40','BatchSim_2020_03_17_UpdIG','Batch_TendonStiff','Batch_SensObjective'};
 
 S.OverWrite = 1;
 
@@ -36,7 +36,7 @@ for f = 1:nF
             ct= ct+1;
             if (~exist(OutName,'file') || S.OverWrite == 1)
                 f_LoadSim_PoggenSee2020_DefaultS(DataFolders{f},filename);
-                disp(ct);
+%                 disp(ct);
             end
         end
     end

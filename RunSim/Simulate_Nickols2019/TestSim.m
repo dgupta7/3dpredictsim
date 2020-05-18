@@ -43,7 +43,7 @@ S.Max_s     = 0;        % maximal contraction velocity identifier
 S.pf_weak   = 0;        % weakness ankle plantaflexors
 S.mE        = 0;        % metabolic energy model identifier
 S.coCont    = 0;        % co-contraction identifier
-S.NThreads  = 4;        % number of threads for parallel computing
+S.NThreads  = 8;        % number of threads for parallel computing
 
 % ipopt options
 S.linear_solver = 'mumps';
@@ -72,12 +72,12 @@ S.savename_ig   = 'NoExo';
 % NoExo
 S.ExternalFunc  = 'PredSim_3D_GRF.dll';        % this one is with the pinjoint mtp
 S.ExternalFunc2 = 'PredSim_3D_GRF.dll';    % this one is with the pinjoint mtp
-S.savename      = 'Stiffness50_q5';
+S.savename      = 'Test150';
 S.ExoBool       = 0;
 S.ExoScale      = 0;
 S.DataSet       = 'PoggenSee2020_AFO';
 
-S.AFO_stiffness = 50;   % 50Nm/rad
+S.AFO_stiffness = 150;   % 50Nm/rad
 S.AFO_q0        = -5;   % 5 deg
 
 f_PredSim_StiffnessAFO(S);

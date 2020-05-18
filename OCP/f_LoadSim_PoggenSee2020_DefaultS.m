@@ -39,7 +39,7 @@ if strcmp(ExtF,'PredSim_3D_GRF.dll') && isfield(S,'AFO_stiffness')
     disp('Post processing of passive AFO as in Nuckols - ultrasound paper');
     IndexSettings = 2;
 else
-    disp('Default processing with active FWO (Poggensee paper)')
+    disp('Default processing with active exoskeleton (Poggensee paper)')
 end
 
 
@@ -1093,11 +1093,12 @@ Fce_opt     = zeros(2*N, NMuscle);
 vM_Vect     = zeros(2*N, NMuscle);
 Fpass_opt   = zeros(2*N, NMuscle);
 
-metab_Umb2003  = zeros(2*N);
-metab_Umb2010  = zeros(2*N);
-metab_Uchida2016 = zeros(2*N);
-metab_Umb2010_h1 = zeros(2*N);
-metab_Umb2010_neg = zeros(2*N);
+metab_Bargh2004  = zeros(2*N,1);  metab_Bargh2004B  = zeros(2*N,1);
+metab_Umb2003  = zeros(2*N,1);    metab_Umb2003B  = zeros(2*N,1);
+metab_Umb2010  = zeros(2*N,1);    metab_Umb2010B  = zeros(2*N,1);
+metab_Uchida2016 = zeros(2*N,1);  metab_Uchida2016B  = zeros(2*N,1);
+metab_Umb2010_h1 = zeros(2*N,1);  metab_Umb2010_h1B = zeros(2*N,1);
+metab_Umb2010_neg = zeros(2*N,1); metab_Umb2010_negB = zeros(2*N,1);
 metab_Marg1968 = zeros(2*N, NMuscle);
 
 for nn = 1:2*N
@@ -1135,21 +1136,21 @@ for nn = 1:2*N
     
     % Umberger 2003
     vMtildeUmbk_opt = full(vM_opt)./(MTparameters_m(2,:)');
-    [~,~,~,~,eUmb2003] = fgetMetabolicEnergySmooth2003all(...
+    [eUmb2003,~,~,~,eUmb2003B] = fgetMetabolicEnergySmooth2003all(...
         Acts_GC(nn,:)',Acts_GC(nn,:)',full(lMtilde_opt),...
         vMtildeUmbk_opt,full(vM_opt),full(Fce_optt)',...
         full(massM_optt)',pctsts,full(vMmax_optt)',...
         full(Fiso_optt)',body_mass,10);
     
     % Umberger 2010
-    [~,~,~,~,eUmb2010] = fgetMetabolicEnergySmooth2010all(...
+    [eUmb2010,~,~,~,eUmb2010B] = fgetMetabolicEnergySmooth2010all(...
         Acts_GC(nn,:)',Acts_GC(nn,:)',full(lMtilde_opt),...
         vMtildeUmbk_opt,full(vM_opt),full(Fce_optt)',...
         full(massM_optt)',pctsts,full(vMmax_optt)',...
         full(Fiso_optt)',body_mass,10);
     
     % Uchida et al. (2016)
-    [~,~,~,~,eUchida2016] = fgetMetabolicEnergySmooth2016all(...
+    [eUchida2016,~,~,~,eUchida2016B] = fgetMetabolicEnergySmooth2016all(...
         Acts_GC(nn,:)',Acts_GC(nn,:)',full(lMtilde_opt),...
         vMtildeUmbk_opt,full(vM_opt),full(Fce_optt)',...
         full(massM_optt)',pctsts,full(vMmax_optt)',...
@@ -1158,7 +1159,7 @@ for nn = 1:2*N
     % Umberger (2010) treating muscle lengthening
     % heat rate as Umberger et al. (2003)
     % vMtilde defined for this model as vM/lMopt
-    [~,~,~,~,eUmb2010_h1] = fgetMetabolicEnergySmooth2010all_hl(...
+    [eUmb2010_h1,~,~,~,eUmb2010_h1B] = fgetMetabolicEnergySmooth2010all_hl(...
         Acts_GC(nn,:)',Acts_GC(nn,:)',full(lMtilde_opt),...
         vMtildeUmbk_opt,full(vM_opt),full(Fce_optt)',...
         full(massM_optt)',pctsts,full(vMmax_optt)',...
@@ -1167,7 +1168,7 @@ for nn = 1:2*N
     % Umberger (2010) treating negative mechanical
     % work as Umberger et al. (2003)
     % vMtilde defined for this model as vM/lMopt
-    [~,~,~,~,eUmb2010_neg] = fgetMetabolicEnergySmooth2010all_neg(...
+    [eUmb2010_neg,~,~,~,eUmb2010_negB] = fgetMetabolicEnergySmooth2010all_neg(...
         Acts_GC(nn,:)',Acts_GC(nn,:)',full(lMtilde_opt),...
         vMtildeUmbk_opt,full(vM_opt),full(Fce_optt)',...
         full(massM_optt)',pctsts,full(vMmax_optt)',...
@@ -1193,11 +1194,18 @@ for nn = 1:2*N
     vM_Vect(nn,:)   = full(vM_opt)';
     Fpass_opt(nn,:) = full(Fpass_optt)';
     
-    metab_Umb2003(nn)     = full(eUmb2003);
-    metab_Umb2010(nn)     = full(eUmb2010);
-    metab_Uchida2016(nn)  = full(eUchida2016);
-    metab_Umb2010_h1(nn)  = full(eUmb2010_h1);
-    metab_Umb2010_neg(nn) = full(eUmb2010_neg);
+    metab_Bargh2004(nn)   = full(sum(energy_total));
+    metab_Umb2003(nn)     = full(sum(eUmb2003));
+    metab_Umb2010(nn)     = full(sum(eUmb2010));
+    metab_Uchida2016(nn)  = full(sum(eUchida2016));
+    metab_Umb2010_h1(nn)  = full(sum(eUmb2010_h1));
+    metab_Umb2010_neg(nn) = full(sum(eUmb2010_neg));
+    metab_Bargh2004B(nn)   = full(eBargh);
+    metab_Umb2003B(nn)     = full(eUmb2003B);
+    metab_Umb2010B(nn)     = full(eUmb2010B);
+    metab_Uchida2016B(nn)  = full(eUchida2016B);
+    metab_Umb2010_h1B(nn)  = full(eUmb2010_h1B);
+    metab_Umb2010_negB(nn) = full(eUmb2010_negB);
     metab_Marg1968(nn,:)    = full(eMarg1968);
     
 end
@@ -1211,6 +1219,7 @@ e_mo_opt_trb = trapz(time_GC,e_mo_optb);
 COT_GC = e_mo_opt_trb/body_mass/dist_trav_opt_GC;
 
 % COT for all models
+COTv.Bargh2004 = trapz(time_GC,metab_Bargh2004)/body_mass/dist_trav_opt_GC;
 COTv.Umb2003 = trapz(time_GC,metab_Umb2003)/body_mass/dist_trav_opt_GC;
 COTv.Umb2010 = trapz(time_GC,metab_Umb2010)/body_mass/dist_trav_opt_GC;
 COTv.Uchida2016 = trapz(time_GC,metab_Uchida2016)/body_mass/dist_trav_opt_GC;
@@ -1218,7 +1227,17 @@ COTv.Umb2010_h1 = trapz(time_GC,metab_Umb2010_h1)/body_mass/dist_trav_opt_GC;
 COTv.Umb2010_neg = trapz(time_GC,metab_Umb2010_neg)/body_mass/dist_trav_opt_GC;
 COTv.Marg1968 = sum(trapz(time_GC,metab_Marg1968))/body_mass/dist_trav_opt_GC;
 
+% COT for all models (with basal Rate
+COTvB.Bargh2004 = trapz(time_GC,metab_Bargh2004B)/body_mass/dist_trav_opt_GC;
+COTvB.Umb2003 = trapz(time_GC,metab_Umb2003B)/body_mass/dist_trav_opt_GC;
+COTvB.Umb2010 = trapz(time_GC,metab_Umb2010B)/body_mass/dist_trav_opt_GC;
+COTvB.Uchida2016 = trapz(time_GC,metab_Uchida2016B)/body_mass/dist_trav_opt_GC;
+COTvB.Umb2010_h1 = trapz(time_GC,metab_Umb2010_h1B)/body_mass/dist_trav_opt_GC;
+COTvB.Umb2010_neg = trapz(time_GC,metab_Umb2010_negB)/body_mass/dist_trav_opt_GC;
+COTvB.Marg1968 = sum(trapz(time_GC,metab_Marg1968))/body_mass/dist_trav_opt_GC;
+
 % Store Energy
+EnergyV.Bargh2004       = metab_Bargh2004;
 EnergyV.Umb2003         = metab_Umb2003;
 EnergyV.Umb2010         = metab_Umb2010;
 EnergyV.Uchida2016      = metab_Uchida2016;
@@ -1226,6 +1245,38 @@ EnergyV.Umb2010_h1      = metab_Umb2010_h1;
 EnergyV.Umb2010_neg     = metab_Umb2010_neg;
 EnergyV.Marg1968        = metab_Marg1968;
 
+% Store Energy (with basal rate)
+EnergyVB.Bargh2004       = metab_Bargh2004B;
+EnergyVB.Umb2003         = metab_Umb2003B;
+EnergyVB.Umb2010         = metab_Umb2010B;
+EnergyVB.Uchida2016      = metab_Uchida2016B;
+EnergyVB.Umb2010_h1      = metab_Umb2010_h1B;
+EnergyVB.Umb2010_neg     = metab_Umb2010_negB;
+EnergyVB.Marg1968        = metab_Marg1968;
+
+%% subtract energy cost of standing in the computations of COT
+% Note: this is de default method in pulmonary gas exchange papers.
+
+MetabStandingFile =  fullfile(pathRepo,'StaticStanding','MetabRate_Standing_s1_Poggensee.mat');
+if exist(MetabStandingFile,'file')
+    Rstanding           = load(MetabStandingFile);
+    COTrel.Bargh2004	= trapz(time_GC,(metab_Bargh2004 - Rstanding.Edot.Bargh2004))/body_mass/dist_trav_opt_GC;
+    COTrel.Umb2003      = trapz(time_GC,(metab_Umb2003 - Rstanding.Edot.eUmb2003))/body_mass/dist_trav_opt_GC;
+    COTrel.Umb2010      = trapz(time_GC,(metab_Umb2010 - Rstanding.Edot.eUmb2010))/body_mass/dist_trav_opt_GC;
+    COTrel.Uchida2016   = trapz(time_GC,(metab_Uchida2016 - Rstanding.Edot.eUchida2016))/body_mass/dist_trav_opt_GC;
+    COTrel.Umb2010_h1   = trapz(time_GC,(metab_Umb2010_h1 - Rstanding.Edot.eUmb2010_h1))/body_mass/dist_trav_opt_GC;
+    COTrel.Umb2010_neg  = trapz(time_GC,(metab_Umb2010_neg - Rstanding.Edot.eUmb2010_neg))/body_mass/dist_trav_opt_GC;
+    COTrel.Marg1968     = sum(trapz(time_GC,metab_Marg1968 - Rstanding.Edot.eMarg1968))/body_mass/dist_trav_opt_GC;
+else
+    COTrel.Bargh2004	= [];
+    COTrel.Umb2003      = [];
+    COTrel.Umb2010      = [];
+    COTrel.Uchida2016   = [];
+    COTrel.Umb2010_h1   = [];
+    COTrel.Umb2010_neg  = [];
+    COTrel.Marg1968     = [];
+end
+    
 %% Analyse passive exoskeleton support
 % Nuckols 2019
 if IndexSettings == 2
@@ -1295,6 +1346,9 @@ R.Muscle.Fpas = Fpass_opt;
 R.Muscle.FT   = FT_opt;
 R.COTv        = COTv;
 R.Energy      = EnergyV;
+R.COTv_basal        = COTvB;
+R.Energy_basal      = EnergyVB;
+R.COTrel      = COTrel;
 
 % nuckols 2019 results
 if IndexSettings == 2
