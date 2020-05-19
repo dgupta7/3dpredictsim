@@ -3,27 +3,12 @@
 
 % Default simulations antoine with exoskeleton assistance.
 % Note currently without inertia of the exoskeleton
-clear all;
-
-% add casadi to the matlab path (needed on simulation computer because
-% default version is 3.4.5
-% rmpath(genpath('G:\PhD\Matlabcodes\Casadi\casadi'));
-% addpath(genpath('D:\MaartenAfschrift\softInstall\casadi'));
-% addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
-
+clear all; close all; clc;
 
 %% Default settings
 
-% flow control
-S.Flow.solveProblem     = 1;   % set to 1 to solve problem
-S.Flow.analyseResults   = 1;   % set to 1 to analyze results
-S.Flow.loadResults      = 0;   % set to 1 to load results
-S.Flow.saveResults      = 1;   % set to 1 to save sens. results
-S.Flow.checkBoundsIG    = 0;   % set to 1 to visualize guess-bounds
-S.Flow.writeIKmotion    = 1;   % set to 1 to write .mot file
-
 % settings for optimization
-S.v_tgt     = 1.33;     % average speed
+S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
 S.W.E       = 500;      % weight metabolic energy rate
 S.W.Ak      = 50000;    % weight joint accelerations
@@ -50,35 +35,76 @@ S.tol_ipopt     = 4;
 % quasi random initial guess, pelvis y position
 S.IG_PelvisY = 0.896;   % subject 1 poggensee
 
-% external function 
-S.ExternalFunc = 'SimExo_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp 
-S.ExternalFunc2 = 'SimExo_3D_Pog_s1_mtp_pp.dll';    % this one is with the pinjoint mtp 
-
 % Folder with default functions
-S.CasadiFunc_Folders = 'Casadi_s1Pog_mtp';
 S.subject            = 's1_Poggensee';
 
-% Results folder
-S.ResultsFolder = 'DebugR';
+% output folder
+S.ResultsFolder     = 'Debug';
 
-% informed initial guess
-S.ResultsF_ig = S.ResultsFolder;
-S.IGsel     = 2;        % initial guess identifier (1: quasi random, 2: data-based)
-S.IGmodeID  = 3;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution)
-S.ResultsF_ig = S.ResultsFolder;
-S.savename_ig = 'NoExo';
+% select tendon stiffness of 20
+S.CasadiFunc_Folders = 'Casadi_s1Pog_ScaleParam_k20';
 
-% Run simulation
-S.savename      = 'NoExo_IG';
-S.loadname      = 'NoExo_IG';
+% initial guess based on simulations without exoskeletons
+S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
+S.IGmodeID      = 3;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution)
+S.ResultsF_ig   = 'BatchSim_2020_03_17_UpdIG';  % copied from 17_03_UpdIG
+S.savename_ig   = 'NoExo';
+
+%% Passive exoskeleton
+
+% % Passive exoskeletmon
+% S.ExternalFunc  = 'SimExo_3D_talus.dll';        % this one is with the pinjoint mtp
+% S.savename      = 'Passive_talus';
+% S.ExoBool       = 1;
+% S.ExoScale      = 0;
+% S.DataSet       = 'PoggenSee2020_AFO';
+% f_PredSim_PoggenSee2020_CalcnT(S);
+% 
+% % active exoskeletmon
+% S.ExternalFunc  = 'SimExo_3D_talus.dll';        % this one is with the pinjoint mtp
+% S.savename      = 'Active_talus';
+% S.ExoBool       = 1;
+% S.ExoScale      = 1;
+% S.DataSet       = 'PoggenSee2020_AFO';
+% f_PredSim_PoggenSee2020_CalcnT(S);
+
+%% Passive exoskeleton
+
+% Passive exoskeletmon (with limited implemenation)
+% I verified this, and the passive implemenation gives exactly the same
+% solution as in the report 1 simulations
+% S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjoint mtp
+% S.savename      = 'Passive_talus';
+% S.ExoBool       = 1;
+% S.ExoScale      = 0;
+% S.DataSet       = 'PoggenSee2020_AFO';
+% f_PredSim_PoggenSee2020_CalcnT_Debug(S);
+
+% Passive exoskeletmon (with limited implemenation)
+S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjoint mtp
+S.savename      = 'Active_talus';
 S.ExoBool       = 1;
-S.ExoScale      = 0;
+S.ExoScale      = 1;
 S.DataSet       = 'PoggenSee2020_AFO';
-f_PredSim_PoggenSee2020_ToeConstraint(S);
-f_LoadSim_PoggenSee2020_DefaultS(S.ResultsFolder,S.loadname);
+f_PredSim_PoggenSee2020_CalcnT_Debug(S);
+
+%% Test old implemenation
+% Passive exoskeletmon
+% S.Flow.solveProblem = 1;
+% S.ExternalFunc  = 'SimExo_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp
+% S.ExternalFunc2 = 'SimExo_3D_Pog_s1_mtp_pp.dll';    % this one is with the pinjoint mtp
+% S.savename      = 'TestOld';
+% S.ExoBool       = 1;
+% S.ExoScale      = 0;
+% S.DataSet       = 'PoggenSee2020_AFO';
+% f_PredSim_PoggenSee2020_ToeConstraint(S);
 
 
+%% Compare results New implemenation and old implemenation
 
 
+NewRes = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Results\Debug\Active_talus_pp.mat';
+OldRes = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Results\Batch_SensObjective\Active_ObjA_2000_pp.mat';
 
-
+PlotResults_3DSim(NewRes,[1 0 0],'ankle + subtalar'); 
+PlotResults_3DSim(OldRes,[0 0 1],'ankle',gcf); 

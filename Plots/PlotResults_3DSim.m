@@ -2,6 +2,14 @@ function [] = PlotResults_3DSim(ResultsFile,Cs,LegName,varargin)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
+
+% Notes: We have to update the computations of the biological joint moments
+% because this is currently based on subtracting the exo torque from the
+% total ankle moment. Since we actuate more than 1 joint, we will have to
+% do this computation based on R.Exodiff_id
+
+
+
 set(0,'defaultTextInterpreter','none');
 
 if ~exist('LegName','var')
@@ -239,44 +247,58 @@ if exist(ResultsFile,'file')
     
     
     %% Plot Torque information
+    % update this here
+    boolActuation = 0;
+    if isfield(R,'Exodiff_id')
+        boolActuation = 1;
+    end
     axes('parent', tab4);
-    
+    iAnkle = strcmp(R.colheaders.joints,'ankle_angle_r');
+    iSubtalar = strcmp(R.colheaders.joints,'subtalar_angle_r');
     subplot(3,2,1)
-    plot(R.T_exo(:,1),'-','Color',Cs); hold on;
-    ylabel('Exo Moment [Nm]');  xlabel('% stride');
-    title('Left');
+    if boolActuation
+        plot(R.Exodiff_id(:,iAnkle),'-','Color',Cs); hold on;
+    else
+    end
+    ylabel('Exo Moment - Ankle [Nm]');  xlabel('% stride');
     
     subplot(3,2,2);
-    plot(R.T_exo(:,2),'-','Color',Cs); hold on;
-    ylabel('Exo Moment [Nm]'); xlabel('% stride');
-    title('Right');
+    if boolActuation
+        plot(R.Exodiff_id(:,iSubtalar),'-','Color',Cs); hold on;
+    else
+    end
+    ylabel('Exo Moment- Subtalar [Nm]'); xlabel('% stride');
     
     subplot(3,2,3)
-    plot(R.Tid(:,strcmp(R.colheaders.joints,'ankle_angle_l')),'-','Color',Cs); hold on;
+    plot(R.Tid(:,iAnkle),'-','Color',Cs); hold on;
     ylabel('Ankle moment [Nm]'); xlabel('% stride');
-    title('Left');
     
     subplot(3,2,4)
-    plot(R.Tid(:,strcmp(R.colheaders.joints,'ankle_angle_r')),'-','Color',Cs); hold on;
-    ylabel('Ankle moment [Nm]'); xlabel('% stride');
-    title('Right');
+    plot(R.Tid(:,iSubtalar),'-','Color',Cs); hold on;
+    ylabel('Subtalar moment [Nm]'); xlabel('% stride');
     
     subplot(3,2,5)
-    plot(R.Tid(:,strcmp(R.colheaders.joints,'ankle_angle_l'))-R.T_exo(:,1),'-','Color',Cs); hold on;
+    if boolActuation
+        plot(R.Tid(:,iAnkle)-R.Exodiff_id(:,iAnkle),'-','Color',Cs); hold on;
+    else
+    end
     ylabel('Biological ankle moment [Nm]'); xlabel('% stride');
     title('Left');
     
     subplot(3,2,6)
-    plot(R.Tid(:,strcmp(R.colheaders.joints,'ankle_angle_r'))-R.T_exo(:,2),'-','Color',Cs); hold on;
-    ylabel('Biological ankle moment [Nm]'); xlabel('% stride');
+    if boolActuation
+        plot(R.Tid(:,iSubtalar)-R.Exodiff_id(:,iSubtalar),'-','Color',Cs); hold on;
+    else
+    end
+    ylabel('Biological subtalar moment [Nm]'); xlabel('% stride');
     title('Left');
     
-    ax =[];
-    ax2 = [];
-    for i=1:3
-        ax(i) = subplot(3,2,i*2-1);
-        ax2(i) = subplot(3,2,i*2);
-    end
+%     ax =[];
+%     ax2 = [];
+%     for i=1:3
+%         ax(i) = subplot(3,2,i*2-1);
+%         ax2(i) = subplot(3,2,i*2);
+%     end
     %     linkaxes(ax,'x');
     %     linkaxes(ax2,'x');
     
@@ -358,7 +380,6 @@ if exist(ResultsFile,'file')
     end
     
     
-    %% detailed ankle energetics
     %% Plot ankle muscle energetics
     axes('parent', tab8);
     iSol = find(strcmp(R.colheaders.muscles,'soleus_r'));
@@ -404,28 +425,7 @@ if exist(ResultsFile,'file')
     subplot(5,4,20)
     plot(R.Tid(:,strcmp(R.colheaders.joints,'mtp_angle_r')),'-','Color',Cs); hold on;
     ylabel('mtp moment [Nm]'); xlabel('% stride');
-    
-    
-    
-    
-%     ax =[];
-%     ax2 = [];
-%     ax3 =[];
-%     ax4 = [];
-    
-%     for i=1:5
-%         ax(i) = subplot(5,4,i*4-3);
-%         ax2(i) = subplot(5,4,i*4-2);
-%         ax3(i) = subplot(5,4,i*4-1);
-%         ax4(i) = subplot(5,4,i*4);
-%     end
-    %     linkaxes(ax,'x');
-    %     linkaxes(ax2,'x');
-    %     linkaxes(ax3,'x');
-    %     linkaxes(ax4,'x');
-    
-    
-    
+        
     
 else
     warning(['File not found: ' ResultsFile]);

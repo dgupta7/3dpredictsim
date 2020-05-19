@@ -30,7 +30,9 @@ S = Sopt;
 
 %% Test the type of simulation
 
-IndexSettings = 1;
+
+
+IndexSettings = 1; % (1) ankle actuation (2) passive afo, (3) torque actuator
 ExtF = S.ExternalFunc;
 if strcmp(ExtF,'PredSim_3D_GRF.dll') && isfield(S,'AFO_stiffness')
     % AFO modelled as in Nuckols 2019: Ultrasound imaging links soleus
@@ -38,6 +40,11 @@ if strcmp(ExtF,'PredSim_3D_GRF.dll') && isfield(S,'AFO_stiffness')
     % elastic ankle exoskeletons
     disp('Post processing of passive AFO as in Nuckols - ultrasound paper');
     IndexSettings = 2;
+elseif  strcmp(ExtF,'SimExo_3D_talus.dll') | strcmp(ExtF,'SimExo_3D_talus_out.dll')
+    % After the first simulations report (May 12 2020), we changed the implemenation of the exoskeleton assistance
+    % to a torque actuator at the calcaneus and tibia. We also changed from two .dll files (one for optimization and one
+    % for post processing) to one .dll file for everything. 
+    IndexSettings = 3;
 else
     disp('Default processing with active exoskeleton (Poggensee paper)')
 end
@@ -92,7 +99,11 @@ pathmain = pwd;
 pathExternalFunctions = [pathRepo,'/ExternalFunctions'];
 % Loading external functions.
 cd(pathExternalFunctions);
-F1 = external('F',S.ExternalFunc2);
+if isfield(S,'ExternalFunc2')
+   F1 = external('F',S.ExternalFunc2);
+else
+   F1 = external('F','SimExo_3D_talus.dll');
+end
 cd(pathmain);
 
 
@@ -149,42 +160,82 @@ nq.mtp     = length(mtpi); % arms
 nq.leg      = 10; % #joints needed for polynomials
 % Second, origins bodies.
 % Calcaneus
-calcOr.r    = 32:33;
-calcOr.l    = 34:35;
-calcOr.all  = [calcOr.r,calcOr.l];
-NcalcOr     = length(calcOr.all);
-% Femurs
-femurOr.r   = 36:37;
-femurOr.l   = 38:39;
-femurOr.all = [femurOr.r,femurOr.l];
-NfemurOr    = length(femurOr.all);
-% Hands
-handOr.r    = 40:41;
-handOr.l    = 42:43;
-handOr.all  = [handOr.r,handOr.l];
-NhandOr     = length(handOr.all);
-% Tibias
-tibiaOr.r   = 44:45;
-tibiaOr.l   = 46:47;
-tibiaOr.all = [tibiaOr.r,tibiaOr.l];
-NtibiaOr    = length(tibiaOr.all);
-% External function: F1 (post-processing purpose only)
-% Ground reaction forces (GRFs)
-GRFi.r      = 32:34;
-GRFi.l      = 35:37;
-GRFi.all    = [GRFi.r,GRFi.l];
-NGRF        = length(GRFi.all);
-% Origins calcaneus (3D)
-calcOrall.r     = 38:40;
-calcOrall.l     = 41:43;
-calcOrall.all   = [calcOrall.r,calcOrall.l];
-NcalcOrall      = length(calcOrall.all);
-
+if IndexSettings == 1 || IndexSettings == 2
+    calcOr.r    = 32:33;
+    calcOr.l    = 34:35;
+    calcOr.all  = [calcOr.r,calcOr.l];
+    NcalcOr     = length(calcOr.all);
+    % Femurs
+    femurOr.r   = 36:37;
+    femurOr.l   = 38:39;
+    femurOr.all = [femurOr.r,femurOr.l];
+    NfemurOr    = length(femurOr.all);
+    % Hands
+    handOr.r    = 40:41;
+    handOr.l    = 42:43;
+    handOr.all  = [handOr.r,handOr.l];
+    NhandOr     = length(handOr.all);
+    % Tibias
+    tibiaOr.r   = 44:45;
+    tibiaOr.l   = 46:47;
+    tibiaOr.all = [tibiaOr.r,tibiaOr.l];
+    NtibiaOr    = length(tibiaOr.all);
+    % External function: F1 (post-processing purpose only)
+    % Ground reaction forces (GRFs)
+    GRFi.r      = 32:34;
+    GRFi.l      = 35:37;
+    GRFi.all    = [GRFi.r,GRFi.l];
+    NGRF        = length(GRFi.all);
+    % Origins calcaneus (3D)
+    calcOrall.r     = 38:40;
+    calcOrall.l     = 41:43;
+    calcOrall.all   = [calcOrall.r,calcOrall.l];
+    NcalcOrall      = length(calcOrall.all);
+end
 % adapt indexes GRF in Nuckols simulations
 if IndexSettings == 2
     GRFi.r      = GRFi.r + 20;
     GRFi.l      = GRFi.l + 20;
     GRFi.all    = [GRFi.r,GRFi.l];
+end
+
+if IndexSettings == 3
+    calcOr.r    = [38 40];
+    calcOr.l    = [41 43];
+    calcOr.all  = [calcOr.r,calcOr.l];
+    NcalcOr     = length(calcOr.all);
+    % Femurs
+    femurOr.r   = [43 45];
+    femurOr.l   = [46 48];
+    femurOr.all = [femurOr.r,femurOr.l];
+    NfemurOr    = length(femurOr.all);
+    % Hands
+    handOr.r    = [49 51];
+    handOr.l    = [52 54];
+    handOr.all  = [handOr.r,handOr.l];
+    NhandOr     = length(handOr.all);
+    % Tibias
+    tibiaOr.r   = [55 57];
+    tibiaOr.l   = [58 60];
+    tibiaOr.all = [tibiaOr.r,tibiaOr.l];
+    NtibiaOr    = length(tibiaOr.all);
+    % External function: F1 (post-processing purpose only)
+    % Ground reaction forces (GRFs)
+    GRFi.r      = 32:34;
+    GRFi.l      = 35:37;
+    GRFi.all    = [GRFi.r,GRFi.l];
+    NGRF        = length(GRFi.all);
+    % toe joints
+    toesOr.r   = [61 63];
+    toesOr.l   = [64 66];
+    toesOr.all = [toesOr.r,toesOr.l];
+    NtoesOr    = length(toesOr.all);
+    
+    % Origins calcaneus (3D)
+    calcOrall.r     = 38:40;
+    calcOrall.l     = 41:43;
+    calcOrall.all   = [calcOrall.r,calcOrall.l];
+    NcalcOrall      = length(calcOrall.all);
 end
 
 
@@ -554,11 +605,23 @@ Xk_Qs_Qdots_opt(:,1:2:end)  = q_opt_unsc_all.rad(2:end,:);
 Xk_Qs_Qdots_opt(:,2:2:end)  = qdot_opt_unsc_all.rad(2:end,:);
 Xk_Qdotdots_opt             = qdotdot_col_opt_unsc.rad(d:d:end,:);
 Foutk_opt                   = zeros(N,F1.nnz_out);
-Tau_passk_opt_all = zeros(N,nq.all-nq.abs);
+Tau_passk_opt_all           = zeros(N,nq.all-nq.abs);
+if IndexSettings == 3
+    Foutk_opt_Exo         = zeros(N,F1.nnz_out);
+end
+
 for i = 1:N
     % ID moments
-    [res] = F1([Xk_Qs_Qdots_opt(i,:)';Xk_Qdotdots_opt(i,:)']);
+    if IndexSettings == 1 || IndexSettings == 2    
+        [res] = F1([Xk_Qs_Qdots_opt(i,:)';Xk_Qdotdots_opt(i,:)']);
+    elseif  IndexSettings == 3       
+        [res2] = F1([Xk_Qs_Qdots_opt(i,:)';Xk_Qdotdots_opt(i,:)'; -ExoVect(:,i)]);
+        [res] = F1([Xk_Qs_Qdots_opt(i,:)';Xk_Qdotdots_opt(i,:)'; 0; 0]);
+    end
     Foutk_opt(i,:) = full(res);
+    if IndexSettings == 3
+        Foutk_opt_Exo(i,:) = full(res2);
+    end
     % passive moments
     Tau_passk_opt_all(i,:) = full(f_AllPassiveTorques(q_opt_unsc_all.rad(i+1,:),qdot_opt_unsc_all.rad(i+1,:)));
 end
@@ -569,17 +632,30 @@ Xj_Qs_Qdots_opt             = zeros(d*N,2*nq.all);
 Xj_Qs_Qdots_opt(:,1:2:end)  = q_col_opt_unsc.rad;
 Xj_Qs_Qdots_opt(:,2:2:end)  = qdot_col_opt_unsc.rad;
 Xj_Qdotdots_opt             = qdotdot_col_opt_unsc.rad;
-Foutj_opt = zeros(d*N,F1.nnz_out);
-Tau_passj_opt_all = zeros(d*N,nq.all-nq.abs);
+Foutj_opt                   = zeros(d*N,F1.nnz_out);
+Tau_passj_opt_all           = zeros(d*N,nq.all-nq.abs);
+if IndexSettings == 3
+    Foutj_opt_Exo         = zeros(d*N,F1.nnz_out);
+end
 for i = 1:d*N
+    iMesh = ceil(i/d);
     % inverse dynamics
-    [res] = F1([Xj_Qs_Qdots_opt(i,:)';Xj_Qdotdots_opt(i,:)']);
+    if IndexSettings == 1 || IndexSettings == 2    
+        [res] = F1([Xj_Qs_Qdots_opt(i,:)';Xj_Qdotdots_opt(i,:)']); 
+    elseif  IndexSettings == 3  
+        [res2] = F1([Xj_Qs_Qdots_opt(i,:)';Xj_Qdotdots_opt(i,:)'; -ExoVect(:,iMesh)]); 
+        [res] = F1([Xj_Qs_Qdots_opt(i,:)';Xj_Qdotdots_opt(i,:)'; 0; 0]);
+    end    
     Foutj_opt(i,:) = full(res);
+    if IndexSettings == 3
+        Foutj_opt_Exo(i,:) = full(res2);
+    end
     % passive torques
     Tau_passj_opt_all(i,:) = full(f_AllPassiveTorques(q_col_opt_unsc.rad(i,:),qdot_col_opt_unsc.rad(i,:)));
 end
-
 Tau_passj_J = Tau_passj_opt_all(:,[1:12 15:end]);
+
+
 %% Stride length and width
 % For the stride length we also need the values at the end of the
 % interval so N+1 where states but not controls are defined
@@ -591,7 +667,7 @@ Xk_Qs_Qdots_opt_all(:,2:2:end)  = qdot_opt_unsc_all.rad;
 Xk_Qdotdots_opt_all = zeros(N+1,size(q_opt_unsc_all.rad,2));
 out_res_opt_all = zeros(N+1,F1.nnz_out);
 for i = 1:N+1
-    [res] = F1([Xk_Qs_Qdots_opt_all(i,:)';Xk_Qdotdots_opt_all(i,:)']);
+    [res] = F1([Xk_Qs_Qdots_opt_all(i,:)';Xk_Qdotdots_opt_all(i,:)'; 0; 0]);
     out_res_opt_all(i,:) = full(res);
 end
 % The stride length is the distance covered by the calcaneus origin
@@ -754,10 +830,6 @@ else
         threshold = 20;
     end
 end
-
-
-
-
 if ~isempty(phase_tran_tgridi)
     if phase_tran_tgridi == N
         temp_idx = find(GRFk_opt(:,2)>threshold,1,'first');
@@ -997,6 +1069,28 @@ if strcmp(HS1,'l')
     T_exo_GC = T_exo_GC(:,[2 1]);
     dt_exoShift = dt_exoShift - tgrid(end);
 end
+
+% If exoskeleton is implemented as torque actuator
+% evaluate influence of ankle moment and subtalar moment
+if IndexSettings == 3
+    % get ID with exoskeleton as percentage of gait cycle
+    Ts_opt_Exo = zeros(N*2,size(Qs_opt,2));
+    Ts_opt_Exo(1:N-IC1i_c+1,1:nq.all) = Foutk_opt_Exo(IC1i_c:end,1:nq.all);
+    Ts_opt_Exo(N-IC1i_c+2:N-IC1i_c+1+N,QsSymA_ptx) = Foutk_opt_Exo(1:end,QsSymB_ptx);
+    Ts_opt_Exo(N-IC1i_c+2:N-IC1i_c+1+N,QsOpp) = -Foutk_opt_Exo(1:end,QsOpp);
+    Ts_opt_Exo(N-IC1i_c+2+N:2*N,1:nq.all) = Foutk_opt_Exo(1:IC1i_c-1,1:nq.all);
+    % If the first heel strike was on the left foot then we invert so that
+    % we always start with the right foot, for analysis purpose
+    if strcmp(HS1,'l')
+        Ts_op_Exo(:,QsSymA_ptx) = Ts_opt_Exo(:,QsSymB_ptx);
+        Ts_opt_Exo(:,QsOpp) = -Ts_opt_Exo(:,QsOpp);
+    end
+    Ts_opt_Exo = Ts_opt_Exo./body_mass;
+    % compute relative difference
+    TExo_Joint = Ts_opt - Ts_opt_Exo;
+end
+
+
 
 % Passive joint torques
 Tau_pass_opt_inv = [jointi.hip_flex.r:jointi.hip_rot.r,...
@@ -1298,8 +1392,6 @@ if IndexSettings == 2
     
 end
 
-
-
 %% Save results
 % Structure Results_all
 R.t_step    = tgrid;
@@ -1308,6 +1400,7 @@ R.t         = q_opt_GUI_GC(:,1);
 R.tend      = q_opt_GUI_GC(end,1) - q_opt_GUI_GC(1,1);
 R.Qs        = Qs_GC;
 R.Qdots     = Qdots_GC;
+R.Qddots    = Qdotdots_GC;
 R.GRFs      = GRFs_opt;
 R.Ts        = Ts_opt;
 R.Tid       = Ts_opt.*body_mass;
@@ -1350,6 +1443,11 @@ R.COTv_basal        = COTvB;
 R.Energy_basal      = EnergyVB;
 R.COTrel      = COTrel;
 
+if IndexSettings == 3
+    R.TidExo = Ts_opt_Exo.*body_mass;
+    R.Exodiff_id = TExo_Joint.*body_mass;
+end
+
 % nuckols 2019 results
 if IndexSettings == 2
     R.T_exo       = [TAFO_l TAFO_r];
@@ -1375,9 +1473,6 @@ R.info.script = 'f_LoadSim_PoggenSee2020.m';
 OutFolder = fullfile(pathRepo,'Results',S.ResultsFolder);
 FilenameAnalysis = fullfile(OutFolder,[S.savename '_pp.mat']);
 save(FilenameAnalysis,'R');
-
-
-
 
 end
 
