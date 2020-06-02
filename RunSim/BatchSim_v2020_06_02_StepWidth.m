@@ -1,8 +1,7 @@
+%% Batch Run StepWidth
 
-%% Batch Sim exoskeleton assistance
+% Influence of the kinematic constraint on stepwidth
 
-% Default simulations antoine with exoskeleton assistance.
-% Note currently without inertia of the exoskeleton
 clear all; close all; clc;
 
 %% Default settings
@@ -39,7 +38,7 @@ S.IG_PelvisY = 0.896;   % subject 1 poggensee
 S.subject            = 's1_Poggensee';
 
 % output folder
-S.ResultsFolder     = 'Debug';
+S.ResultsFolder     = 'Sens_StepWidth';
 
 % select tendon stiffness of 20
 S.CasadiFunc_Folders = 'Casadi_s1Pog_ScaleParam_k20';
@@ -50,35 +49,23 @@ S.IGmodeID      = 3;        % initial guess mode identifier (1 walk, 2 run, 3pre
 S.ResultsF_ig   = 'BatchSim_2020_03_17_UpdIG';  % copied from 17_03_UpdIG
 S.savename_ig   = 'NoExo';
 
+%% Imposing change in stepwidth with passive exoskeleton
 
-%% Passive exoskeleton
-
-% Passive exoskeleton (with limited implemenation)
-%I verified this, and the passive implemenation gives exactly the same
-%solution as in the report 1 simulations
 S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjoint mtp
-S.savename      = 'Passive_talus';
 S.ExoBool       = 1;
 S.ExoScale      = 0;
 S.DataSet       = 'PoggenSee2020_AFO';
-f_PredSim_PoggenSee2020_CalcnT(S);
 
-% Active exoskeleton (with limited implemenation)
-S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjoint mtp
-S.savename      = 'Active_talus';
-S.ExoBool       = 1;
-S.ExoScale      = 1;
-S.DataSet       = 'PoggenSee2020_AFO';
-f_PredSim_PoggenSee2020_CalcnT(S);
+Sens_dCalcn = 0.10:0.01:0.15;
+nSim = length(Sens_dCalcn);
 
-%% Compare results New implemenation and old implemenation
-
-
-NewRes = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Results\Debug\Active_talus_pp.mat';
-OldRes = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Results\Batch_SensObjective\Active_ObjA_2000_pp.mat';
-OldPass = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Results\Batch_SensObjective\Passive_ObjA_2000_pp.mat';
-
-PlotResults_3DSim(NewRes,[1 0 0],'ankle + subtalar'); 
-PlotResults_3DSim(OldRes,[0 0 1],'ankle',gcf); 
-PlotResults_3DSim(OldPass,[0 1 0],'passive',gcf); 
+for i=1:nSim
+    % set the kinematic constraint
+    S.Constr.calcn = Sens_dCalcn(i);
+    % Change the output name
+    WidthStr = round(S.Constr.calcn*10);
+    S.savename      = ['Passive_dCalcn_' num2str(WidthStr) 'cm'];
+    % run the simulation
+    f_PredSim_PoggenSee2020_CalcnT(S);
+end
 

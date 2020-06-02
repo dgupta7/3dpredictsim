@@ -259,6 +259,7 @@ if exist(ResultsFile,'file')
     if boolActuation
         plot(R.Exodiff_id(:,iAnkle),'-','Color',Cs); hold on;
     else
+        plot(R.T_exo(:,2),'-','Color',Cs); hold on;
     end
     ylabel('Exo Moment - Ankle [Nm]');  xlabel('% stride');
     
@@ -281,17 +282,27 @@ if exist(ResultsFile,'file')
     if boolActuation
         plot(R.Tid(:,iAnkle)-R.Exodiff_id(:,iAnkle),'-','Color',Cs); hold on;
     else
+        plot(R.Tid(:,iAnkle)-R.T_exo(:,2),'-','Color',Cs); hold on;
     end
     ylabel('Biological ankle moment [Nm]'); xlabel('% stride');
     title('Left');
     
     subplot(3,2,6)
     if boolActuation
-        plot(R.Tid(:,iSubtalar)-R.Exodiff_id(:,iSubtalar),'-','Color',Cs); hold on;
+        plot(R.Tid(:,iSubtalar)-R.Exodiff_id(:,iSubtalar),'-','Color',Cs,'DisplayName',LegName); hold on;
     else
+        plot(R.Tid(:,iSubtalar),'-','Color',Cs,'DisplayName',LegName); hold on;
     end
     ylabel('Biological subtalar moment [Nm]'); xlabel('% stride');
     title('Left');
+    
+    if boolFirst
+        lh=legend('-DynamicLegend','location','east');
+        lh.Interpreter = 'none';
+%         lhPos = lh.Position;
+%         lhPos(1) = lhPos(1)+0.2;
+%         set(lh,'position',lhPos);
+    end
     
 %     ax =[];
 %     ax2 = [];

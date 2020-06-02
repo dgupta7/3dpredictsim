@@ -1,16 +1,8 @@
 function [] = f_PredSim_PoggenSee2020_CalcnT(S)
 
-
-
-
 %% Notes
-rmpath(genpath('G:\PhD\Matlabcodes\Casadi\casadi'));
-addpath(genpath('D:\MaartenAfschrift\softInstall\casadi'));
-addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
-addpath(genpath('C:\Users\u0088756\Documents\Software\Casadi351'));
-addpath(genpath('C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim'));
 
-%disp(S);
+% disp(S);
 % to simplify batch processing, the casadi functions were already created
 % using the script CasadiFunctions_all_mtp_createDefault.m
 % This assumes invariant:
@@ -34,30 +26,7 @@ addpath(genpath('C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpre
 
 %% Default settings
 
-if ~isfield(S,'savename_ig')
-    S.savename_ig= [];
-end
-
-if ~isfield(S,'ResultsF_ig')
-    S.ResultsF_ig = [];
-end
-
-if  ~isfield(S,'NThreads') || isempty(S.NThreads)
-    S.NThreads = 4;
-end
-
-if ~isfield(S,'mass') || isempty(S.mass)
-    S.mass = 62;
-end
-
-if ~isfield(S,'subject') || isempty(S.subject)
-    S.subject = 'subject1';
-end
-
-% quasi random initial guess
-if ~isfield(S,'IG_PelvisY') || isempty(S.IG_PelvisY)
-    S.IG_PelvisY = 0.9385;
-end
+S = GetDefaultSettings(S);
 
 %% User inputs (typical settings structure)
 % load default CasadiFunctions
@@ -166,25 +135,25 @@ nq.trunk    = length(trunki); % trunk
 nq.arms     = length(armsi); % arms
 nq.mtp     = length(mtpi); % arms
 nq.leg      = 10; % #joints needed for polynomials
-% Second, origins bodies. We only want the x and z coordinates
+% Second, origins bodies.
 % Calcaneus
-calcOr.r    = [38 40];
-calcOr.l    = [41 43];
+calcOr.r    = 32:33;
+calcOr.l    = 34:35;
 calcOr.all  = [calcOr.r,calcOr.l];
 NcalcOr     = length(calcOr.all);
 % Femurs
-femurOr.r   = [43 45];
-femurOr.l   = [46 48];
+femurOr.r   = 36:37;
+femurOr.l   = 38:39;
 femurOr.all = [femurOr.r,femurOr.l];
 NfemurOr    = length(femurOr.all);
 % Hands
-handOr.r    = [49 51];
-handOr.l    = [52 54];
+handOr.r    = 40:41;
+handOr.l    = 42:43;
 handOr.all  = [handOr.r,handOr.l];
 NhandOr     = length(handOr.all);
 % Tibias
-tibiaOr.r   = [55 57];
-tibiaOr.l   = [58 60];
+tibiaOr.r   = 44:45;
+tibiaOr.l   = 46:47;
 tibiaOr.all = [tibiaOr.r,tibiaOr.l];
 NtibiaOr    = length(tibiaOr.all);
 % External function: F1 (post-processing purpose only)
@@ -193,12 +162,17 @@ GRFi.r      = 32:34;
 GRFi.l      = 35:37;
 GRFi.all    = [GRFi.r,GRFi.l];
 NGRF        = length(GRFi.all);
+% Origins calcaneus (3D)
+calcOrall.r     = 38:40;
+calcOrall.l     = 41:43;
+calcOrall.all   = [calcOrall.r,calcOrall.l];
+NcalcOrall      = length(calcOrall.all);
+
 % toe joints
-toesOr.r   = [61 63];
-toesOr.l   = [64 66];
+toesOr.r   = 48:49;
+toesOr.l   = 50:51;
 toesOr.all = [toesOr.r,toesOr.l];
 NtoesOr    = length(toesOr.all);
-
 
 %% Model info
 body_weight = S.mass*9.81;
@@ -621,6 +595,7 @@ orderQsOpp = [jointi.pelvis.list:jointi.pelvis.list,...
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Unscale variables
         Qskj_nsc = Qskj.*(scaling.QsQdots(1:2:end)'*ones(1,size(Qskj,2)/2));
+        
         Qdotskj_nsc = Qdotskj.*(scaling.QsQdots(2:2:end)'* ...
             ones(1,size(Qdotskj,2)/2));
         FTtildekj_nsc = FTtildekj.*(scaling.FTtilde'*ones(1,size(FTtildekj,2)));
@@ -751,7 +726,11 @@ orderQsOpp = [jointi.pelvis.list:jointi.pelvis.list,...
             W.u*B(j+1)      *(f_J8(Aj(armsi,j)))*h);
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Call external function (run inverse dynamics)
-        [Tj] = F([QsQdotskj_nsc(:,j+1);Aj_nsc(:,j);Texok(1); Texok(2)]);    % left and right leg exoskeleton torques as inputs as well.
+        [Tj] = F([QsQdotskj_nsc(:,j+1);Aj_nsc(:,j);-Texok(1); -Texok(2)]);    % left and right leg exoskeleton torques as inputs as well.
+        % note that this has to be -Texo, since a positive torque around
+        % the z-axis of the tibia results in a plantarflexion moment. (and
+        % plantarflexion is defined as negative in opensim and in the
+        % exo torque vector.
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Add path constraints
         % Null pelvis residuals
@@ -869,10 +848,10 @@ orderQsOpp = [jointi.pelvis.list:jointi.pelvis.list,...
     opti.subject_to(coll_eq_constr == 0);
     opti.subject_to(coll_ineq_constr1(:) >= 0);
     opti.subject_to(coll_ineq_constr2(:) <= 1/tact);
-    opti.subject_to(0.0081 < coll_ineq_constr3(:) < 4);
-    opti.subject_to(0.0324 < coll_ineq_constr4(:) < 4);
-    opti.subject_to(0.0121 < coll_ineq_constr5(:) < 4);
-    opti.subject_to(0.01   < coll_ineq_constr6(:) < 4); 
+    opti.subject_to(S.Constr.calcn.^2 < coll_ineq_constr3(:) < 4); % origin calcaneus
+    opti.subject_to(0.0324 < coll_ineq_constr4(:) < 4); % arms
+    opti.subject_to(S.Constr.tibia.^2 < coll_ineq_constr5(:) < 4); % origin tibia minimum x cm away from each other
+    opti.subject_to(S.Constr.toes.^2   < coll_ineq_constr6(:) < 4); % origins toes minimum x cm away from each other
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Loop over mesh points
     for k=1:N
