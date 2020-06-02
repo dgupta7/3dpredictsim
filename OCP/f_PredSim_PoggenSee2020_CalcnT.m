@@ -34,14 +34,8 @@ S = GetDefaultSettings(S);
 % settings for optimization
 v_tgt       = S.v_tgt;      % average speed
 N           = S.N;          % number of mesh intervals
-W.E         = S.W.E;        % weight metabolic energy rate
-W.Ak        = S.W.Ak;       % weight joint accelerations
-W.ArmE      = S.W.ArmE;     % weight arm excitations
-W.passMom   = S.W.passMom;  % weight passive torques
-W.A         = S.W.A;        % weight muscle activations
+W           = S.W;          % weights optimization
 exp_E       = S.W.exp_E;    % power metabolic energy
-W.Mtp       = S.W.Mtp;      % weight mtp excitations
-W.u         = S.W.u;        % weight on exctiations arm actuators
 IGsel       = S.IGsel;      % initial guess identifier
 IGm         = S.IGmodeID;   % initial guess mode identifier
 coCont      = S.coCont;     % co-contraction identifier
