@@ -36,16 +36,16 @@ S.ExoBool       = 1;
 S.ExoScale      = 0;
 S.DataSet       = 'PoggenSee2020_AFO';
 
-Sens_dCalcn = 0.10:0.01:0.15;
-nSim = length(Sens_dCalcn);
+% Sens_dCalcn = 0.10:0.01:0.15;
+% nSim = length(Sens_dCalcn);
 
-for i=1:nSim
+% for i=2:nSim
     % set the kinematic constraint
-    S.Constr.calcn = Sens_dCalcn(i);
+    S.Constr.calcn = 0.2; %Sens_dCalcn(i);
     % Change the output name
-    WidthStr = round(S.Constr.calcn*10);
+    WidthStr = round(S.Constr.calcn*100);
     S.savename      = ['Passive_dCalcn_' num2str(WidthStr) 'cm'];
     % run the simulation
     f_PredSim_PoggenSee2020_CalcnT(S);
-end
+% end
 
