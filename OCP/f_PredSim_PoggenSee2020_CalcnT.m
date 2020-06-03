@@ -284,9 +284,13 @@ if IGm == 2
     nametrial_run.IK    = ['IK_',nametrial_run.id];
     pathIK_run          = [pathData,'/IK/',nametrial_run.IK,'.mat'];
     Qs_run              = getIK(pathIK_run,joints);
-elseif IGm == 3
+elseif IGm == 3 || 4
     % Extract joint positions from existing motion (previous results)
-    GuessFolder = fullfile(pathRepo,'Results',S.ResultsF_ig);
+    if IGm == 3
+        GuessFolder = fullfile(pathRepo,'Results',S.ResultsF_ig);
+    elseif IGm ==4
+        GuessFolder = fullfile(pathRepo,'IG','data');
+    end
     pathIK      = fullfile(GuessFolder,[savename_ig '.mot']);
     Qs_ig       = getIK(pathIK,joints);
     % When saving the results, we save a full gait cycle (2*N) so here we
@@ -324,7 +328,7 @@ elseif IGsel == 2 % Data-informed initial guess
         time_IC = [Qs_run.time(1),Qs_run.time(end)];
         guess = getGuess_DI_opti_int(Qs_run,nq,N,time_IC,NMuscle,jointi,...
             scaling,v_tgt,d);
-    elseif IGm == 3 % Data from selected motion
+    elseif IGm == 3 || IGm == 4 % Data from selected motion
         time_IC = [Qs_ig_sel.time(1),Qs_ig_sel.time(end)];
         guess = getGuess_DI_opti_int_mtp(Qs_ig_sel,nq,N,time_IC,NMuscle,jointi,scaling,v_tgt,d);
     end
@@ -910,10 +914,6 @@ orderQsOpp = [jointi.pelvis.list:jointi.pelvis.list,...
     % Create and save diary
     Outname = fullfile(OutFolder,[S.savename '_log.txt']);
     diary(Outname);
-    % Data-informed (full solution at closest speed) initial guess
-    if IGm == 4
-        disp('Not supported')
-    end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Solve problem
     % Opti does not use bounds on variables but constraints. This function

@@ -1,7 +1,6 @@
 %% Batch Run StepWidth
 
 % Influence of the kinematic constraint on stepwidth
-
 clear all; close all; clc;
 
 %% Default settings
@@ -25,8 +24,7 @@ S.CasadiFunc_Folders = 'Casadi_s1Pog_ScaleParam_k20';
 
 % initial guess based on simulations without exoskeletons
 S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
-S.IGmodeID      = 3;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution)
-S.ResultsF_ig   = 'BatchSim_2020_03_17_UpdIG';  % copied from 17_03_UpdIG
+S.IGmodeID      = 4;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
 S.savename_ig   = 'NoExo';
 
 %% Imposing change in stepwidth with passive exoskeleton
@@ -36,16 +34,18 @@ S.ExoBool       = 1;
 S.ExoScale      = 0;
 S.DataSet       = 'PoggenSee2020_AFO';
 
-% Sens_dCalcn = 0.10:0.01:0.15;
-% nSim = length(Sens_dCalcn);
+SWidthV = 0:0.01:0.15;
+nSim = length(SWidthV);
 
-% for i=2:nSim
+for i=1:nSim
     % set the kinematic constraint
-    S.Constr.calcn = 0.2; %Sens_dCalcn(i);
+    S.Constr.calcn = 0.09 + SWidthV(i);
+    S.Constr.toes = 0.1 + SWidthV(i);
+    S.Constr.tibia = 0.11 + SWidthV(i);
     % Change the output name
-    WidthStr = round(S.Constr.calcn*100);
-    S.savename      = ['Passive_dCalcn_' num2str(WidthStr) 'cm'];
+    WidthStr = round(SWidthV(i)*100);
+    S.savename      = ['Passive_dFoot_' num2str(WidthStr) 'cm'];
     % run the simulation
     f_PredSim_PoggenSee2020_CalcnT(S);
-% end
+end
 
