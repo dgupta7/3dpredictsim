@@ -95,7 +95,7 @@ for i=1:nSim
     S.DataSet       = 'PoggenSee2020_AFO';
     f_PredSim_PoggenSee2020_ToeConstraint(S);
     
-    % Active exoskeletmon
+    % Active exoskeleton
     S.ExternalFunc  = 'SimExo_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp 
     S.ExternalFunc2 = 'SimExo_3D_Pog_s1_mtp_pp.dll';    % this one is with the pinjoint mtp 
     S.savename      = ['Active_ObjA_' num2str(S.W.A)];
