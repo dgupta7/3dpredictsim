@@ -46,53 +46,53 @@ S.DataSet       = 'PoggenSee2020_AFO';
 % pathExternalFunctions = fullfile(MainPath,'ExternalFunctions');
 
 %% Sensitivity weight metabolic rate
-ct = 1;
-EVect = [0 10 20 50 100 200 300 500 1000 2000 5000];
-nSim = length(EVect);
-S.W.Ak      = 50000;    % weight joint accelerations
-S.W.A       = 2000;     % weight muscle activations
-for i =1:nSim   
-    % set weight on joint accelerations
-    S.W.E      = EVect(i);    % weight joint accelerations
-    % passive simulations
-    S.ExoBool       = 1;    S.ExoScale      = 0;    
-    S.savename      = ['Passive_metab_' num2str(S.W.Ak)];
-    f_PredSim_PoggenSee2020_CalcnT(S);
-    %jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S},...
-    %    'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
-    ct = ct+1;
-    % active simulation
-    S.ExoBool       = 1;    S.ExoScale      = 1;    
-    S.savename      = ['Active_metab_' num2str(S.W.Ak)];
-    f_PredSim_PoggenSee2020_CalcnT(S);
-%     jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S},...
-%         'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
-    ct = ct+1;
-end
+% ct = 1;
+% EVect = [0 10 20 50 100 200 300 500 1000 2000 5000];
+% nSim = length(EVect);
+% S.W.Ak      = 50000;    % weight joint accelerations
+% S.W.A       = 2000;     % weight muscle activations
+% for i =1:nSim   
+%     % set weight on joint accelerations
+%     S.W.E      = EVect(i);    % weight joint accelerations
+%     % passive simulations
+%     S.ExoBool       = 1;    S.ExoScale      = 0;    
+%     S.savename      = ['Passive_metab_' num2str(S.W.Ak)];
+%     f_PredSim_PoggenSee2020_CalcnT(S);
+%     %jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S},...
+%     %    'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
+%     ct = ct+1;
+%     % active simulation
+%     S.ExoBool       = 1;    S.ExoScale      = 1;    
+%     S.savename      = ['Active_metab_' num2str(S.W.Ak)];
+%     f_PredSim_PoggenSee2020_CalcnT(S);
+% %     jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S},...
+% %         'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
+%     ct = ct+1;
+% end
 %% Sensitivity weight joint accelerations
-ct = 1;
-QddVect = [0 50 100 1000 10000 20000 50000 80000 100000 200000];
-nSim = length(QddVect);
-S.W.E       = 500;      % weight metabolic energy rate
-S.W.A       = 2000;     % weight muscle activations
-for i =1:nSim   
-    % set weight on joint accelerations
-    S.W.Ak      = QddVect(i);    % weight joint accelerations
-    % passive simulations
-    S.ExoBool       = 1;    S.ExoScale      = 0;    
-    S.savename      = ['Passive_qdd_' num2str(S.W.Ak)];
-    f_PredSim_PoggenSee2020_CalcnT(S);
-    %jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S},...
-    %    'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
-    ct = ct+1;
-    % active simulation
-    S.ExoBool       = 1;    S.ExoScale      = 1;    
-    S.savename      = ['Active_qdd_' num2str(S.W.Ak)];
-    f_PredSim_PoggenSee2020_CalcnT(S);
-    %jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S},...
-    %    'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
-    ct = ct+1;
-end
+% ct = 1;
+% QddVect = [0 50 100 1000 10000 20000 50000 80000 100000 200000];
+% nSim = length(QddVect);
+% S.W.E       = 500;      % weight metabolic energy rate
+% S.W.A       = 2000;     % weight muscle activations
+% for i =1:nSim   
+%     % set weight on joint accelerations
+%     S.W.Ak      = QddVect(i);    % weight joint accelerations
+%     % passive simulations
+%     S.ExoBool       = 1;    S.ExoScale      = 0;    
+%     S.savename      = ['Passive_qdd_' num2str(S.W.Ak)];
+%     f_PredSim_PoggenSee2020_CalcnT(S);
+%     %jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S},...
+%     %    'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
+%     ct = ct+1;
+%     % active simulation
+%     S.ExoBool       = 1;    S.ExoScale      = 1;    
+%     S.savename      = ['Active_qdd_' num2str(S.W.Ak)];
+%     f_PredSim_PoggenSee2020_CalcnT(S);
+%     %jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S},...
+%     %    'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
+%     ct = ct+1;
+% end
 
 %% Sensitivity weight activations
 
