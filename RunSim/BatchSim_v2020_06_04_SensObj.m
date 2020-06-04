@@ -8,7 +8,7 @@ clear all; close all; clc;
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
-S.NThreads  = 4;        % number of threads for parallel computing
+S.NThreads  = 2;        % number of threads for parallel computing
 
 % quasi random initial guess, pelvis y position
 S.IG_PelvisY = 0.896;   % subject 1 poggensee
@@ -34,7 +34,16 @@ S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjo
 S.DataSet       = 'PoggenSee2020_AFO';
 
 %% Open a cluster to run batch processes
-myCluster = parcluster('Maarten_8Cores');
+% open cluster
+myCluster = parcluster('Maarten_LocalProfile1');
+
+% path information for cluster
+StartPath = pwd;
+MainPath = StartPath(1:end-7);
+CasadiFiles = fullfile(MainPath,'CasADiFunctions',S.CasadiFunc_Folders);
+PathPolynomials = fullfile(MainPath,'Polynomials',S.subject);
+ExoPath = fullfile(MainPath,'Data','Poggensee_2020');
+pathExternalFunctions = fullfile(MainPath,'ExternalFunctions');
 
 %% Sensitivity weight metabolic rate
 ct = 1;
@@ -48,11 +57,14 @@ for i =1:nSim
     % passive simulations
     S.ExoBool       = 1;    S.ExoScale      = 0;    
     S.savename      = ['Passive_metab_' num2str(S.W.Ak)];
-    jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S});
+    jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S},...
+        'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
+    ct = ct+1;
     % active simulation
     S.ExoBool       = 1;    S.ExoScale      = 1;    
     S.savename      = ['Active_metab_' num2str(S.W.Ak)];
-    jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S});
+    jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S},...
+        'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
     ct = ct+1;
 end
 %% Sensitivity weight joint accelerations
@@ -67,11 +79,14 @@ for i =1:nSim
     % passive simulations
     S.ExoBool       = 1;    S.ExoScale      = 0;    
     S.savename      = ['Passive_qdd_' num2str(S.W.Ak)];
-    jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S});
+    jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S},...
+        'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
+    ct = ct+1;
     % active simulation
     S.ExoBool       = 1;    S.ExoScale      = 1;    
     S.savename      = ['Active_qdd_' num2str(S.W.Ak)];
-    jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S});
+    jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S},...
+        'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
     ct = ct+1;
 end
 
@@ -88,11 +103,14 @@ for i =1:nSim
     % passive simulations
     S.ExoBool       = 1;    S.ExoScale      = 0;    
     S.savename      = ['Passive_act_' num2str(S.W.A)];
-    jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S});
+    jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S},...
+        'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
+    ct = ct+1;
     % active simulation
     S.ExoBool       = 1;    S.ExoScale      = 1;    
     S.savename      = ['Active_act_' num2str(S.W.A)];
-    jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S});
+    jobs(ct) = batch(myCluster,'f_PredSim_PoggenSee2020_CalcnT',0,{S},...
+        'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
     ct = ct+1;
 end
 

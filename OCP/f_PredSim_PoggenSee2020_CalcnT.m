@@ -23,6 +23,8 @@ function [] = f_PredSim_PoggenSee2020_CalcnT(S)
 % for post-processing. This means that the outputs of the external
 % functions is slightly changed.
 
+% Adding the casadi path seems to be needed to run processes in batch
+addpath(genpath('C:\GBW_MyPrograms\casadi-windows-matlabR2016a-v3.5.1'));
 
 %% Default settings
 
@@ -64,13 +66,13 @@ pathmain = pwd;
 % We use different external functions, since we also want to access some
 % parameters of the model in a post-processing phase.
 [pathRepo,~,~] = fileparts(pathmain);
+addpath(genpath(pathRepo));
 pathExternalFunctions = [pathRepo,'/ExternalFunctions'];
 % Loading external functions.
-cd(pathExternalFunctions);
 setup.derivatives =  'AD'; % Algorithmic differentiation
+cd(pathExternalFunctions)
 F  = external('F',S.ExternalFunc);
 cd(pathmain);
-
 %% Output folder
 % save the results in the right folder:
 OutFolder = fullfile(pathRepo,'Results',S.ResultsFolder);
@@ -230,31 +232,26 @@ pctsts = [pctst;pctst];
 % We create several CasADi functions for later use
 pathCasADiFunctions = [pathRepo,'/CasADiFunctions'];
 PathDefaultFunc = fullfile(pathCasADiFunctions,S.CasadiFunc_Folders);
-cd(PathDefaultFunc);
-% f_coll = Function.load('f_coll');
-f_ArmActivationDynamics = Function.load('f_ArmActivationDynamics');
-f_FiberLength_TendonForce_tendon = Function.load('f_FiberLength_TendonForce_tendon');
-f_FiberVelocity_TendonForce_tendon = Function.load('f_FiberVelocity_TendonForce_tendon');
-f_forceEquilibrium_FtildeState_all_tendon = Function.load('f_forceEquilibrium_FtildeState_all_tendon');
-f_J2    = Function.load('f_J2');
-f_J23   = Function.load('f_J23');
-f_J25   = Function.load('f_J25');
-f_J8    = Function.load('f_J8');
-f_J92   = Function.load('f_J92');
-f_J92exp = Function.load('f_J92exp');
-f_Jnn2  = Function.load('f_Jnn2');
-f_Jnn3  = Function.load('f_Jnn3');
-f_lMT_vMT_dM = Function.load('f_lMT_vMT_dM');
-f_MtpActivationDynamics = Function.load('f_MtpActivationDynamics');
-% f_PassiveMoments = Function.load('f_PassiveMoments');
-% f_passiveTATorque = Function.load('f_passiveTATorque');
-f_T12 = Function.load('f_T12');
-f_T13 = Function.load('f_T13');
-f_T27 = Function.load('f_T27');
-f_T6 = Function.load('f_T6');
-f_AllPassiveTorques = Function.load('f_AllPassiveTorques');
-fgetMetabolicEnergySmooth2004all = Function.load('fgetMetabolicEnergySmooth2004all');
-cd(pathmain);
+f_ArmActivationDynamics = Function.load(fullfile(PathDefaultFunc,'f_ArmActivationDynamics'));
+f_FiberLength_TendonForce_tendon = Function.load(fullfile(PathDefaultFunc,'f_FiberLength_TendonForce_tendon'));
+f_FiberVelocity_TendonForce_tendon = Function.load(fullfile(PathDefaultFunc,'f_FiberVelocity_TendonForce_tendon'));
+f_forceEquilibrium_FtildeState_all_tendon = Function.load(fullfile(PathDefaultFunc,'f_forceEquilibrium_FtildeState_all_tendon'));
+f_J2    = Function.load(fullfile(PathDefaultFunc,'f_J2'));
+f_J23   = Function.load(fullfile(PathDefaultFunc,'f_J23'));
+f_J25   = Function.load(fullfile(PathDefaultFunc,'f_J25'));
+f_J8    = Function.load(fullfile(PathDefaultFunc,'f_J8'));
+f_J92   = Function.load(fullfile(PathDefaultFunc,'f_J92'));
+f_J92exp = Function.load(fullfile(PathDefaultFunc,'f_J92exp'));
+f_Jnn2  = Function.load(fullfile(PathDefaultFunc,'f_Jnn2'));
+f_Jnn3  = Function.load(fullfile(PathDefaultFunc,'f_Jnn3'));
+f_lMT_vMT_dM = Function.load(fullfile(PathDefaultFunc,'f_lMT_vMT_dM'));
+f_MtpActivationDynamics = Function.load(fullfile(PathDefaultFunc,'f_MtpActivationDynamics'));
+f_T12 = Function.load(fullfile(PathDefaultFunc,'f_T12'));
+f_T13 = Function.load(fullfile(PathDefaultFunc,'f_T13'));
+f_T27 = Function.load(fullfile(PathDefaultFunc,'f_T27'));
+f_T6 = Function.load(fullfile(PathDefaultFunc,'f_T6'));
+f_AllPassiveTorques = Function.load(fullfile(PathDefaultFunc,'f_AllPassiveTorques'));
+fgetMetabolicEnergySmooth2004all = Function.load(fullfile(PathDefaultFunc,'fgetMetabolicEnergySmooth2004all'));
 
 
 %% Experimental data
@@ -348,13 +345,11 @@ body_mass = S.mass;
 if S.ExoBool
     if strcmp(S.DataSet,'Zhang2017')
         % load the data from Zhang 2017
-        [DataPath,~,~] = fileparts(pathRepo);
-        Zhang = load([DataPath,'\Data\Zhang_2017\opt_tau.mat']);
+        Zhang = load([pathRepo,'\Data\Zhang_2017\opt_tau.mat']);
         Tankle = nanmean(Zhang.opt_tau)*-1.*body_mass; % -1 because plantarflexion is negative in opensim model
         ExoSpline.Tankle = spline(linspace(0,2,length(Tankle)*2),[Tankle Tankle]);
     elseif strcmp(S.DataSet,'PoggenSee2020_AFO')
-        [DataPath,~,~] = fileparts(pathRepo);
-        Poggensee = load([DataPath,'\Data\Poggensee_2020\torque_profile.mat']);
+        Poggensee = load([pathRepo,'\Data\Poggensee_2020\torque_profile.mat']);
         Tankle = Poggensee.torque*-1*body_mass; % -1 because plantarflexion is negative in opensim model
         ExoSpline.Tankle = spline(linspace(0,2,length(Tankle)*2),[Tankle' Tankle']);
     else
