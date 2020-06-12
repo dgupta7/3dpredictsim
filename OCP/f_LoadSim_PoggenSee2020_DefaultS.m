@@ -102,7 +102,8 @@ cd(pathExternalFunctions);
 if isfield(S,'ExternalFunc2')
    F1 = external('F',S.ExternalFunc2);
 else
-   F1 = external('F','SimExo_3D_talus.dll');
+   F1 = external('F','SimExo_3D_ExportAll.dll');
+   disp('Selected SimExo_3D_ExportAll.dll as external function because S.ExternalFunc2was not specified');
 end
 cd(pathmain);
 
@@ -205,18 +206,18 @@ if IndexSettings == 3
     calcOr.all  = [calcOr.r,calcOr.l];
     NcalcOr     = length(calcOr.all);
     % Femurs
-    femurOr.r   = [43 45];
-    femurOr.l   = [46 48];
+    femurOr.r   = [44 46];
+    femurOr.l   = [47 49];
     femurOr.all = [femurOr.r,femurOr.l];
     NfemurOr    = length(femurOr.all);
     % Hands
-    handOr.r    = [49 51];
-    handOr.l    = [52 54];
+    handOr.r    = [50 52];
+    handOr.l    = [53 55];
     handOr.all  = [handOr.r,handOr.l];
     NhandOr     = length(handOr.all);
     % Tibias
-    tibiaOr.r   = [55 57];
-    tibiaOr.l   = [58 60];
+    tibiaOr.r   = [56 58];
+    tibiaOr.l   = [59 61];
     tibiaOr.all = [tibiaOr.r,tibiaOr.l];
     NtibiaOr    = length(tibiaOr.all);
     % External function: F1 (post-processing purpose only)
@@ -226,8 +227,8 @@ if IndexSettings == 3
     GRFi.all    = [GRFi.r,GRFi.l];
     NGRF        = length(GRFi.all);
     % toe joints
-    toesOr.r   = [61 63];
-    toesOr.l   = [64 66];
+    toesOr.r   = [62 64];
+    toesOr.l   = [65 67];
     toesOr.all = [toesOr.r,toesOr.l];
     NtoesOr    = length(toesOr.all);
     
@@ -236,6 +237,10 @@ if IndexSettings == 3
     calcOrall.l     = 41:43;
     calcOrall.all   = [calcOrall.r,calcOrall.l];
     NcalcOrall      = length(calcOrall.all);
+    
+    % COP information
+    GroundT.r = [68 69 70];
+    GroundT.l = [71 72 73];
 end
 
 
@@ -627,6 +632,8 @@ for i = 1:N
 end
 GRFk_opt = Foutk_opt(:,GRFi.all);
 
+
+
 %% Joint torques and ground reaction forces at collocation points
 Xj_Qs_Qdots_opt             = zeros(d*N,2*nq.all);
 Xj_Qs_Qdots_opt(:,1:2:end)  = q_col_opt_unsc.rad;
@@ -933,6 +940,7 @@ if strcmp(HS1,'l')
     Qdotdots_GC(:,QsOpp) = -Qdotdots_GC(:,QsOpp);
 end
 
+
 % Ground reaction forces
 GRFs_opt = zeros(N*2,NGRF);
 GRFs_opt(1:N-IC1i_c+1,:) = GRFk_opt(IC1i_c:end,1:6);
@@ -1075,8 +1083,8 @@ end
 if IndexSettings == 3
     % get ID with exoskeleton as percentage of gait cycle
     Ts_opt_Exo = zeros(N*2,size(Qs_opt,2));
-    Ts_opt_Exo(1:N-IC1i_c+1,1:nq.all) = Foutk_opt_Exo(IC1i_c:end,1:nq.all);
-    Ts_opt_Exo(N-IC1i_c+2:N-IC1i_c+1+N,QsSymA_ptx) = Foutk_opt_Exo(1:end,QsSymB_ptx);
+    Ts_opt_Exo(1:N-IC1i_c+1,1:nq.all) = Foutk_opt_Exo(IC1i_c:end,1:nq.all);     
+    Ts_opt_Exo(N-IC1i_c+2:N-IC1i_c+1+N,QsSymA_ptx) = Foutk_opt_Exo(1:end,QsSymB_ptx); % 
     Ts_opt_Exo(N-IC1i_c+2:N-IC1i_c+1+N,QsOpp) = -Foutk_opt_Exo(1:end,QsOpp);
     Ts_opt_Exo(N-IC1i_c+2+N:2*N,1:nq.all) = Foutk_opt_Exo(1:IC1i_c-1,1:nq.all);
     % If the first heel strike was on the left foot then we invert so that
@@ -1089,8 +1097,6 @@ if IndexSettings == 3
     % compute relative difference
     TExo_Joint = Ts_opt - Ts_opt_Exo;
 end
-
-
 
 % Passive joint torques
 Tau_pass_opt_inv = [jointi.hip_flex.r:jointi.hip_rot.r,...
@@ -1162,6 +1168,46 @@ if writeIKmotion
     OutFolder = fullfile(pathRepo,'Results',S.ResultsFolder);
     filenameJointAngles = fullfile(OutFolder,[S.savename '.mot']);
     write_motionFile(JointAngleMuscleAct, filenameJointAngles);
+   
+    if IndexSettings == 3
+        
+        % compute COP information
+        nfr = length(Qs_GC(:,1));
+        qdqdd = zeros(nfr,nq.all*2);
+        qdqdd(:,1:2:62) = Qs_GC;
+        qdqdd(:,2:2:62) = Qdots_GC;
+        qdd = Qdotdots_GC;
+        qdqdd(:,[1:6 13:end]) = qdqdd(:,[1:6 13:end])*pi./180;        
+        qdqdd(:,11) = qdqdd(:,11);
+        
+        COPR = zeros(nfr,3);    FR = zeros(nfr,3);  MR = zeros(nfr,3);
+        COPL = zeros(nfr,3);    FL = zeros(nfr,3);  ML = zeros(nfr,3);
+        
+        for ind = 1:nfr
+            res = full(F1([qdqdd(ind,:)'; qdd(ind,:)'; 0;0]));
+            % compute the COP position
+            FR(ind,:) = res(GRFi.r);
+            FL(ind,:) = res(GRFi.l);
+            MR(ind,:) = res(GroundT.r);
+            ML(ind,:) = res(GroundT.l);
+            if abs(FR(ind,2)) > 10
+                COPR(ind,:) = [MR(ind,3)./FR(ind,2), 0, -MR(ind,1)./FR(ind,2)];
+            end
+            if abs(FL(ind,2)) > 10
+                COPL(ind,:) = [ML(ind,3)./FL(ind,2), 0, -ML(ind,1)./FL(ind,2)];
+            end
+        end
+        
+        % 
+        data = [FR COPR FL COPL zeros(nfr,6)];
+        dataOut = [data; zeros(size(data))];
+        colnames = get_GRFlabels();
+        filenameGRF = fullfile(OutFolder,[S.savename '_GRF.mot']);
+        time =JointAngleMuscleAct.data(:,1);
+        generateMotFile([time dataOut], ['time ' colnames], filenameGRF);
+
+        
+    end
 end
 
 %% Metabolic cost of transport for a gait cycle
@@ -1446,6 +1492,8 @@ R.COTrel      = COTrel;
 if IndexSettings == 3
     R.TidExo = Ts_opt_Exo.*body_mass;
     R.Exodiff_id = TExo_Joint.*body_mass;
+    R.COPL = COPL;
+    R.COPR = COPR;
 end
 
 % nuckols 2019 results
