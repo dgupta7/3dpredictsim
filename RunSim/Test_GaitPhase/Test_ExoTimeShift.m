@@ -44,6 +44,14 @@ cd(RunSimPath);
 % Run with the time shift
 f_PredSim_Pog_CalcnT_ShiftExoSupport(S);
 
+% sensitivity
+for i = 55:1:65
+    S.ExoTiming.Stance = i;
+    S.savename      = ['TimingOffset_Stance' num2str(i)];
+    f_PredSim_Pog_CalcnT_ShiftExoSupport(S);
+end
+
+
 % Run without the time shift
 S.savename      = 'NoShift';
 f_PredSim_PoggenSee2020_CalcnT(S);

@@ -936,6 +936,7 @@ orderQsOpp = [jointi.pelvis.list:jointi.pelvis.list,...
     
     Outname = fullfile(OutFolder,[S.savename '.mat']);
     Sopt = S;
+    Sopt.fName = 'f_PredSim_Pog_CalcnT_ShiftExoSupport';
     save(Outname,'w_opt','stats','setup','Sopt','ExoControl');    
 end
 
