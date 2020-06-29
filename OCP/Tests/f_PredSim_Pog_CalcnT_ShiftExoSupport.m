@@ -1,14 +1,8 @@
-function [] = f_PredSim_PoggenSee2020_ToeConstraint(S)
-
+function [] = f_PredSim_Pog_CalcnT_ShiftExoSupport(S)
 
 %% Notes
-rmpath(genpath('G:\PhD\Matlabcodes\Casadi\casadi'));
-addpath(genpath('D:\MaartenAfschrift\softInstall\casadi'));
-addpath(genpath('D:\MaartenAfschrift\GitProjects\3dpredictsim'));
-addpath(genpath('C:\Users\u0088756\Documents\Software\Casadi351'));
-addpath(genpath('C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim'));
 
-%disp(S);
+% disp(S);
 % to simplify batch processing, the casadi functions were already created
 % using the script CasadiFunctions_all_mtp_createDefault.m
 % This assumes invariant:
@@ -22,50 +16,28 @@ addpath(genpath('C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpre
 % 3) the exoskeleton assistance
 % 4) the external function
 
+% Exoskeleton torque is now implemented as an external torque acting at the
+% calcaneus and the tibia. Therefore, we use the new dll file
+% (SimExo_3D_talus.dll), which requires the exoskeleton torque of the left
+% and right leg as input arguments. Note that we only use 1 function here
+% for post-processing. This means that the outputs of the external
+% functions is slightly changed.
+
+% Adding the casadi path seems to be needed to run processes in batch
+addpath(genpath('C:\GBW_MyPrograms\casadi-windows-matlabR2016a-v3.5.1'));
+
 %% Default settings
 
-if ~isfield(S,'savename_ig')
-    S.savename_ig= [];
-end
-
-if ~isfield(S,'ResultsF_ig')
-    S.ResultsF_ig = [];
-end
-
-if  ~isfield(S,'NThreads') || isempty(S.NThreads)
-    S.NThreads = 4;
-end
-
-if ~isfield(S,'mass') || isempty(S.mass)
-    S.mass = 62;
-end
-
-if ~isfield(S,'subject') || isempty(S.subject)
-    S.subject = 'subject1';
-end
-
-% quasi random initial guess
-if ~isfield(S,'IG_PelvisY') || isempty(S.IG_PelvisY)
-    S.IG_PelvisY = 0.9385;
-end
+S = GetDefaultSettings(S);
 
 %% User inputs (typical settings structure)
 % load default CasadiFunctions
 
-% flow control
-solveProblem    = S.Flow.solveProblem; % set to 1 to solve problem
-
 % settings for optimization
 v_tgt       = S.v_tgt;      % average speed
 N           = S.N;          % number of mesh intervals
-W.E         = S.W.E;        % weight metabolic energy rate
-W.Ak        = S.W.Ak;       % weight joint accelerations
-W.ArmE      = S.W.ArmE;     % weight arm excitations
-W.passMom   = S.W.passMom;  % weight passive torques
-W.A         = S.W.A;        % weight muscle activations
+W           = S.W;          % weights optimization
 exp_E       = S.W.exp_E;    % power metabolic energy
-W.Mtp       = S.W.Mtp;      % weight mtp excitations
-W.u         = S.W.u;        % weight on exctiations arm actuators
 IGsel       = S.IGsel;      % initial guess identifier
 IGm         = S.IGmodeID;   % initial guess mode identifier
 coCont      = S.coCont;     % co-contraction identifier
@@ -94,13 +66,13 @@ pathmain = pwd;
 % We use different external functions, since we also want to access some
 % parameters of the model in a post-processing phase.
 [pathRepo,~,~] = fileparts(pathmain);
+addpath(genpath(pathRepo));
 pathExternalFunctions = [pathRepo,'/ExternalFunctions'];
 % Loading external functions.
-cd(pathExternalFunctions);
 setup.derivatives =  'AD'; % Algorithmic differentiation
+cd(pathExternalFunctions)
 F  = external('F',S.ExternalFunc);
 cd(pathmain);
-
 %% Output folder
 % save the results in the right folder:
 OutFolder = fullfile(pathRepo,'Results',S.ResultsFolder);
@@ -198,7 +170,6 @@ toesOr.l   = 50:51;
 toesOr.all = [toesOr.r,toesOr.l];
 NtoesOr    = length(toesOr.all);
 
-
 %% Model info
 body_weight = S.mass*9.81;
 
@@ -261,31 +232,26 @@ pctsts = [pctst;pctst];
 % We create several CasADi functions for later use
 pathCasADiFunctions = [pathRepo,'/CasADiFunctions'];
 PathDefaultFunc = fullfile(pathCasADiFunctions,S.CasadiFunc_Folders);
-cd(PathDefaultFunc);
-% f_coll = Function.load('f_coll');
-f_ArmActivationDynamics = Function.load('f_ArmActivationDynamics');
-f_FiberLength_TendonForce_tendon = Function.load('f_FiberLength_TendonForce_tendon');
-f_FiberVelocity_TendonForce_tendon = Function.load('f_FiberVelocity_TendonForce_tendon');
-f_forceEquilibrium_FtildeState_all_tendon = Function.load('f_forceEquilibrium_FtildeState_all_tendon');
-f_J2    = Function.load('f_J2');
-f_J23   = Function.load('f_J23');
-f_J25   = Function.load('f_J25');
-f_J8    = Function.load('f_J8');
-f_J92   = Function.load('f_J92');
-f_J92exp = Function.load('f_J92exp');
-f_Jnn2  = Function.load('f_Jnn2');
-f_Jnn3  = Function.load('f_Jnn3');
-f_lMT_vMT_dM = Function.load('f_lMT_vMT_dM');
-f_MtpActivationDynamics = Function.load('f_MtpActivationDynamics');
-% f_PassiveMoments = Function.load('f_PassiveMoments');
-% f_passiveTATorque = Function.load('f_passiveTATorque');
-f_T12 = Function.load('f_T12');
-f_T13 = Function.load('f_T13');
-f_T27 = Function.load('f_T27');
-f_T6 = Function.load('f_T6');
-f_AllPassiveTorques = Function.load('f_AllPassiveTorques');
-fgetMetabolicEnergySmooth2004all = Function.load('fgetMetabolicEnergySmooth2004all');
-cd(pathmain);
+f_ArmActivationDynamics = Function.load(fullfile(PathDefaultFunc,'f_ArmActivationDynamics'));
+f_FiberLength_TendonForce_tendon = Function.load(fullfile(PathDefaultFunc,'f_FiberLength_TendonForce_tendon'));
+f_FiberVelocity_TendonForce_tendon = Function.load(fullfile(PathDefaultFunc,'f_FiberVelocity_TendonForce_tendon'));
+f_forceEquilibrium_FtildeState_all_tendon = Function.load(fullfile(PathDefaultFunc,'f_forceEquilibrium_FtildeState_all_tendon'));
+f_J2    = Function.load(fullfile(PathDefaultFunc,'f_J2'));
+f_J23   = Function.load(fullfile(PathDefaultFunc,'f_J23'));
+f_J25   = Function.load(fullfile(PathDefaultFunc,'f_J25'));
+f_J8    = Function.load(fullfile(PathDefaultFunc,'f_J8'));
+f_J92   = Function.load(fullfile(PathDefaultFunc,'f_J92'));
+f_J92exp = Function.load(fullfile(PathDefaultFunc,'f_J92exp'));
+f_Jnn2  = Function.load(fullfile(PathDefaultFunc,'f_Jnn2'));
+f_Jnn3  = Function.load(fullfile(PathDefaultFunc,'f_Jnn3'));
+f_lMT_vMT_dM = Function.load(fullfile(PathDefaultFunc,'f_lMT_vMT_dM'));
+f_MtpActivationDynamics = Function.load(fullfile(PathDefaultFunc,'f_MtpActivationDynamics'));
+f_T12 = Function.load(fullfile(PathDefaultFunc,'f_T12'));
+f_T13 = Function.load(fullfile(PathDefaultFunc,'f_T13'));
+f_T27 = Function.load(fullfile(PathDefaultFunc,'f_T27'));
+f_T6 = Function.load(fullfile(PathDefaultFunc,'f_T6'));
+f_AllPassiveTorques = Function.load(fullfile(PathDefaultFunc,'f_AllPassiveTorques'));
+fgetMetabolicEnergySmooth2004all = Function.load(fullfile(PathDefaultFunc,'fgetMetabolicEnergySmooth2004all'));
 
 
 %% Experimental data
@@ -315,9 +281,13 @@ if IGm == 2
     nametrial_run.IK    = ['IK_',nametrial_run.id];
     pathIK_run          = [pathData,'/IK/',nametrial_run.IK,'.mat'];
     Qs_run              = getIK(pathIK_run,joints);
-elseif IGm == 3
+elseif IGm == 3 || 4
     % Extract joint positions from existing motion (previous results)
-    GuessFolder = fullfile(pathRepo,'Results',S.ResultsF_ig);
+    if IGm == 3
+        GuessFolder = fullfile(pathRepo,'Results',S.ResultsF_ig);
+    elseif IGm ==4
+        GuessFolder = fullfile(pathRepo,'IG','data');
+    end
     pathIK      = fullfile(GuessFolder,[savename_ig '.mot']);
     Qs_ig       = getIK(pathIK,joints);
     % When saving the results, we save a full gait cycle (2*N) so here we
@@ -355,7 +325,7 @@ elseif IGsel == 2 % Data-informed initial guess
         time_IC = [Qs_run.time(1),Qs_run.time(end)];
         guess = getGuess_DI_opti_int(Qs_run,nq,N,time_IC,NMuscle,jointi,...
             scaling,v_tgt,d);
-    elseif IGm == 3 % Data from selected motion
+    elseif IGm == 3 || IGm == 4 % Data from selected motion
         time_IC = [Qs_ig_sel.time(1),Qs_ig_sel.time(end)];
         guess = getGuess_DI_opti_int_mtp(Qs_ig_sel,nq,N,time_IC,NMuscle,jointi,scaling,v_tgt,d);
     end
@@ -375,19 +345,27 @@ body_mass = S.mass;
 if S.ExoBool
     if strcmp(S.DataSet,'Zhang2017')
         % load the data from Zhang 2017
-        [DataPath,~,~] = fileparts(pathRepo);
-        Zhang = load([DataPath,'\Data\Zhang_2017\opt_tau.mat']);
+        Zhang = load([pathRepo,'\Data\Zhang_2017\opt_tau.mat']);
         Tankle = nanmean(Zhang.opt_tau)*-1.*body_mass; % -1 because plantarflexion is negative in opensim model
         ExoSpline.Tankle = spline(linspace(0,2,length(Tankle)*2),[Tankle Tankle]);
     elseif strcmp(S.DataSet,'PoggenSee2020_AFO')
-        [DataPath,~,~] = fileparts(pathRepo);
-        Poggensee = load([DataPath,'\Data\Poggensee_2020\torque_profile.mat']);
+        Poggensee = load([pathRepo,'\Data\Poggensee_2020\torque_profile.mat']);
         Tankle = Poggensee.torque*-1*body_mass; % -1 because plantarflexion is negative in opensim model
-        ExoSpline.Tankle = spline(linspace(0,2,length(Tankle)*2),[Tankle' Tankle']);
+        ExoSpline.Tankle = spline(linspace(0,2,length(Tankle)*2),[Tankle' Tankle']);        
+        TankleInt = ppval(ExoSpline.Tankle,0:0.01:1);
+        
+        xStance = linspace(0,0.61,S.ExoTiming.Stance+1);
+        xSwing = linspace(0.61,1,100-S.ExoTiming.Stance);
+        xAdj = [xStance xSwing(2:end)];
+        TankleAdj = interp1(0:0.01:1,TankleInt,xAdj);
+        
+        ExoSpline.Tankle = spline(linspace(0,2,length(TankleAdj)*2),[TankleAdj TankleAdj]);
+%         
+        figure(); plot(TankleInt,'k'); hold on;
+        plot(TankleAdj,'r'); hold on;
     else
         error(['Could not find the dataset ' S.DataSet ' to prescribe the exoskeleton torques']);
-    end
-    
+    end    
     ExoControl.Tankle_r = ppval(ExoSpline.Tankle,linspace(0,0.5,N));
     ExoControl.Tankle_l = ppval(ExoSpline.Tankle,linspace(0.5,1,N));
     if isfield(S,'ExoScale')
@@ -461,7 +439,6 @@ orderQsOpp = [jointi.pelvis.list:jointi.pelvis.list,...
     jointi.trunk.rot:jointi.trunk.rot];
 
 
-if solveProblem
     
     %% OCP create variables and bounds
     
@@ -621,6 +598,7 @@ if solveProblem
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Unscale variables
         Qskj_nsc = Qskj.*(scaling.QsQdots(1:2:end)'*ones(1,size(Qskj,2)/2));
+        
         Qdotskj_nsc = Qdotskj.*(scaling.QsQdots(2:2:end)'* ...
             ones(1,size(Qdotskj,2)/2));
         FTtildekj_nsc = FTtildekj.*(scaling.FTtilde'*ones(1,size(FTtildekj,2)));
@@ -751,7 +729,11 @@ if solveProblem
             W.u*B(j+1)      *(f_J8(Aj(armsi,j)))*h);
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Call external function (run inverse dynamics)
-        [Tj] = F([QsQdotskj_nsc(:,j+1);Aj_nsc(:,j)]);
+        [Tj] = F([QsQdotskj_nsc(:,j+1);Aj_nsc(:,j);-Texok(1); -Texok(2)]);    % left and right leg exoskeleton torques as inputs as well.
+        % note that this has to be -Texo, since a positive torque around
+        % the z-axis of the tibia results in a plantarflexion moment. (and
+        % plantarflexion is defined as negative in opensim and in the
+        % exo torque vector.
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Add path constraints
         % Null pelvis residuals
@@ -792,11 +774,11 @@ if solveProblem
         % Ankle, left
         Ft_ankle_l      = FTj(mai(5).mus.l',1);
         T_ankle_l       = f_T12(MAj.ankle.l,Ft_ankle_l);
-        eq_constr{end+1} = Tj(jointi.ankle.l,1)-(T_ankle_l + Tau_passj.ankle.l  + Texok(1));
+        eq_constr{end+1} = Tj(jointi.ankle.l,1)-(T_ankle_l + Tau_passj.ankle.l);
         % Ankle, right
         Ft_ankle_r      = FTj(mai(5).mus.r',1);
         T_ankle_r       = f_T12(MAj.ankle.r,Ft_ankle_r);
-        eq_constr{end+1} = Tj(jointi.ankle.r,1)-(T_ankle_r + Tau_passj.ankle.r + Texok(2));
+        eq_constr{end+1} = Tj(jointi.ankle.r,1)-(T_ankle_r + Tau_passj.ankle.r);
         % Subtalar, left
         Ft_subt_l       = FTj(mai(6).mus.l',1);
         T_subt_l        = f_T12(MAj.subt.l,Ft_subt_l);
@@ -869,10 +851,10 @@ if solveProblem
     opti.subject_to(coll_eq_constr == 0);
     opti.subject_to(coll_ineq_constr1(:) >= 0);
     opti.subject_to(coll_ineq_constr2(:) <= 1/tact);
-    opti.subject_to(0.0081 < coll_ineq_constr3(:) < 4);
-    opti.subject_to(0.0324 < coll_ineq_constr4(:) < 4);
-    opti.subject_to(0.0121 < coll_ineq_constr5(:) < 4);
-    opti.subject_to(0.01   < coll_ineq_constr6(:) < 4); 
+    opti.subject_to(S.Constr.calcn.^2 < coll_ineq_constr3(:) < 4); % origin calcaneus
+    opti.subject_to(0.0324 < coll_ineq_constr4(:) < 4); % arms
+    opti.subject_to(S.Constr.tibia.^2 < coll_ineq_constr5(:) < 4); % origin tibia minimum x cm away from each other
+    opti.subject_to(S.Constr.toes.^2   < coll_ineq_constr6(:) < 4); % origins toes minimum x cm away from each other
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Loop over mesh points
     for k=1:N
@@ -937,10 +919,6 @@ if solveProblem
     % Create and save diary
     Outname = fullfile(OutFolder,[S.savename '_log.txt']);
     diary(Outname);
-    % Data-informed (full solution at closest speed) initial guess
-    if IGm == 4
-        disp('Not supported')
-    end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Solve problem
     % Opti does not use bounds on variables but constraints. This function
@@ -959,8 +937,5 @@ if solveProblem
     Outname = fullfile(OutFolder,[S.savename '.mat']);
     Sopt = S;
     save(Outname,'w_opt','stats','setup','Sopt','ExoControl');    
-end
-
-
 end
 

@@ -10,11 +10,11 @@ end
 
 % get stance and swing phase
 nFR = length(Fy(:,1));
-PartStance =  sum(Fy(:,1)>trheshold)./nFR*100;
+PartStance =  sum(Fy(:,1)>threshold)./nFR*100;
 PartSwing = 100-PartStance;
 
 % get the double support phase
-DoubleSupport = sum(Fy(:,1)>trheshold & Fy(:,2)>trheshold)./nFR*100;
+DoubleSupport = sum(Fy(:,1)>threshold & Fy(:,2)>threshold)./nFR*100;
 
 
 

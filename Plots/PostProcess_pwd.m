@@ -5,6 +5,10 @@ dpath = pwd;
 if ~isempty(varargin)
     dpath = varargin{1};
 end
+BoolReComp = 1;
+if length(varargin)>1
+    BoolReComp = varargin{2};
+end
 
 
 % Get the names of the results files
@@ -29,7 +33,12 @@ CsV = hsv(ct);
 for i = 1:ct-1
     [path,name,ext] = fileparts(Names{i});
     [mainR,Fname ]= fileparts(path);
-    f_LoadSim_PoggenSee2020_DefaultS(Fname,name);
+    BoolExist = exist(fullfile(path,[name '_pp.mat']),'file');
+    if BoolReComp | BoolExist == 0
+        f_LoadSim_PoggenSee2020_DefaultS(Fname,name);
+    else
+        disp(['Omitting file: ' fullfile(path,[name '_pp.mat'])]);
+    end
 end
 
 

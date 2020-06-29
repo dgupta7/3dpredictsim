@@ -1485,8 +1485,8 @@ R.Muscle.Fpas = Fpass_opt;
 R.Muscle.FT   = FT_opt;
 R.COTv        = COTv;
 R.Energy      = EnergyV;
-R.COTv_basal        = COTvB;
-R.Energy_basal      = EnergyVB;
+R.COTv_basal  = COTvB;
+R.Energy_basal= EnergyVB;
 R.COTrel      = COTrel;
 
 if IndexSettings == 3
@@ -1515,6 +1515,21 @@ for i = 1:NMuscle/2
         [muscleNames{i}(1:end-2),'_r'];
 end
 R.colheaders.dM = {'hip flex','hip add','hip rot','knee angle','ankle angle','subtalar angle','mtp angle', 'trunk ext ','trunk bend','trunk rot'};
+
+%% Additional outcomes
+
+% percentage stance and swing phase
+[R.Event.Stance, R.Event.Swing, R.Event.DS] = GetPercentageStance(R.GRFs(:,[2 5]).*body_weight/100,30);
+
+% Stepwidth
+if isfield(R,'COPL') && isfield(R,'COPR')
+    % compute average positin during left stance
+    COPR_mean = nanmean(R.COPR(R.GRFs(:,2).*body_weight/100>30,3));
+    COPL_mean = nanmean(R.COPL(R.GRFs(:,5).*body_weight/100>30,3));
+    % stepwidth
+    R.StepWidth_COP = abs(COPR_mean-COPL_mean);
+end
+%% Save data
 % script information
 R.info.script = 'f_LoadSim_PoggenSee2020.m';
 % Save data
