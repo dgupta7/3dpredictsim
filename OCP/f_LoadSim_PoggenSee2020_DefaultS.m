@@ -385,6 +385,19 @@ if S.ExoBool
         Poggensee = load([DataPath,'\Data\Poggensee_2020\torque_profile.mat']);
         Tankle = Poggensee.torque*-1*body_mass; % -1 because plantarflexion is negative in opensim model
         ExoSpline.Tankle = spline(linspace(0,2,length(Tankle)*2),[Tankle' Tankle']);
+        
+        % implementation with scaling exoskeleton time profile (using in
+        % f_PredSim_Pog_CalcnT_ShiftExoSupport.m)
+        if isfield(S,'ExoTiming') && isfield(S.ExoTiming,'Stance') && ...
+                ~isempty(S.ExoTiming.Stance) && isfield(S,'fName') && ...
+                strcmp(S.fName,'f_PredSim_Pog_CalcnT_ShiftExoSupport')           
+            TankleInt = ppval(ExoSpline.Tankle,0:0.01:1);        
+            xStance = linspace(0,0.61,S.ExoTiming.Stance+1);
+            xSwing = linspace(0.61,1,100-S.ExoTiming.Stance);
+            xAdj = [xStance xSwing(2:end)];
+            TankleAdj = interp1(0:0.01:1,TankleInt,xAdj);        
+            ExoSpline.Tankle = spline(linspace(0,2,length(TankleAdj)*2),[TankleAdj TankleAdj]);
+        end
     else
         error(['Could not find the dataset ' S.DataSet ' to prescribe the exoskeleton torques']);
     end
