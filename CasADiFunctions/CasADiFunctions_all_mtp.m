@@ -209,7 +209,7 @@ f_FiberVelocity_TendonForce_tendon = Function(...
     atendon_SX,shift_SX},{vM,vMtilde});
 
 
-%% Passive joint torques
+%% Passive joint torques (bushing forces/ coodinate limit forces)
 K_pass      = SX.sym('K_pass',4);
 theta_pass  = SX.sym('theta_pass',2);
 qin_pass    = SX.sym('qin_pass',1);
@@ -221,7 +221,7 @@ Tau_pass = K_pass(1,1)*exp(K_pass(2,1)*(qin_pass-theta_pass(2,1))) + ...
 f_PassiveMoments = Function('f_PassiveMoments',{K_pass,theta_pass,...
     qin_pass,qdotin_pass},{Tau_pass});
 
-%% Passive torque actuated joint torques
+%% Passive torque actuated joint torques (linear stiffnes and damping in joints)
 stiff	= SX.sym('stiff',1);
 damp	= SX.sym('damp',1);
 qin     = SX.sym('qin_pass',1);

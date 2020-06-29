@@ -8,8 +8,12 @@
 % Author: Antoine Falisse
 % Date: 12/19/2018
 % 
-function guess = getGuess_QR_opti_int(N,nq,NMuscle,scaling,v_tgt,jointi,d)
+function guess = getGuess_QR_opti_int(N,nq,NMuscle,scaling,v_tgt,jointi,d,PelvisY)
 
+
+if ~exist('PelvisY','var')
+    PelvisY = 0.9385;
+end
 %% Final time
 % The final time is function of the imposed speed
 all_speeds = 0.73:0.1:2.73;
@@ -25,7 +29,7 @@ guess.tf = all_tf(idx_speed);
 guess.Qs = zeros(N,nq.all);
 guess.Qs(:,jointi.pelvis.tx) = linspace(0,guess.tf*v_tgt,N);
 % The model is standing on the ground
-guess.Qs(:,jointi.pelvis.ty) = 0.9385;
+guess.Qs(:,jointi.pelvis.ty) = PelvisY;
 
 %% Qdots
 guess.Qdots = zeros(N,nq.all);
@@ -66,6 +70,8 @@ orderQsInv = [jointi.pelvis.tilt:2*jointi.pelvis.tz,...
     2*jointi.ankle.l-1:2*jointi.ankle.l,...
     2*jointi.subt.r-1:2*jointi.subt.r,...
     2*jointi.subt.l-1:2*jointi.subt.l,...
+    2*jointi.mtp.r-1:2*jointi.mtp.r,...
+    2*jointi.mtp.l-1:2*jointi.mtp.l,...
     2*jointi.trunk.ext-1:2*jointi.trunk.rot,...
     2*jointi.sh_flex.r-1:2*jointi.sh_rot.r,...
     2*jointi.sh_flex.l-1:2*jointi.sh_rot.l,...
@@ -96,6 +102,11 @@ orderArmInv = [jointi.sh_flex.r:jointi.sh_rot.r,...
     jointi.elb.l:jointi.elb.l]-jointi.sh_flex.l+1;
 guess.a_a = [guess.a_a; guess.a_a(1,orderArmInv)];
 
+%% Mtp activations
+guess.a_mtp = 0.1*ones(N+1,nq.mtp);
+guess.e_mtp = 0.1*ones(N,nq.mtp);
+
+
 %% Scaling
 guess.QsQdots   = guess.QsQdots./repmat(scaling.QsQdots,N+1,1);
 guess.Qdotdots  = guess.Qdotdots./repmat(scaling.Qdotdots,N,1);
@@ -104,6 +115,7 @@ guess.FTtilde   = (guess.FTtilde)./repmat(scaling.FTtilde,N+1,1);
 guess.vA        = (guess.vA)./repmat(scaling.vA,N,size(guess.vA,2));
 guess.dFTtilde  = (guess.dFTtilde)./repmat(scaling.dFTtilde,N,...
     size(guess.dFTtilde,2));
+guess.a_mtp_col = zeros(d*N,nq.mtp);
 
 %% Collocation points
     guess.a_col = zeros(d*N,NMuscle);

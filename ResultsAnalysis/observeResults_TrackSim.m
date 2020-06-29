@@ -9,7 +9,8 @@ clc
 %% Settings
 % Selected trial
 % 1: nominal cost function
-idx_ww  = 20; 
+idx_ww  = 25; 
+mtp_pin = 1; % the mtp joint is a pin rather than a custom joint
 % Fixed settings
 subject = 'subject1';
 body_mass = 62;
@@ -23,7 +24,7 @@ trackSim_mtp_settings_all
 setup.derivatives = 'AD';
 showtrackplotsonly = 0;
 showlegend = 0;
-writeModel = 1;
+writeModel = 0;
 
 %% Load results
 % Pre-allocation structures
@@ -323,7 +324,11 @@ for k = 1:length(idx_ww)
             pathVariousFunctions = [pathRepo,'\VariousFunctions'];
             addpath(genpath(pathVariousFunctions));    
             pathData = [pathRepo,'\OpenSimModel\',subject];    
-            ModelSetup = xml_read([pathData,'\',subject,'_mtp_ContactsAsForces.osim']);
+            if mtp_pin
+                ModelSetup = xml_read([pathData,'\',subject,'_mtpPin_ContactsAsForces.osim']);
+            else
+                ModelSetup = xml_read([pathData,'\',subject,'_mtp_ContactsAsForces.osim']);
+            end
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(1).location(1) = ParamsCM_opt(ww).ww(p).p(1);
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(1).location(3) = ParamsCM_opt(ww).ww(p).p(2);
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(2).location(1) = ParamsCM_opt(ww).ww(p).p(3);
@@ -352,7 +357,7 @@ for k = 1:length(idx_ww)
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(6-1) = []; % -1 cause we already removed one
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(11-2) = []; % -2 cause we already removed two
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(12-3) = []; % -3 cause we already removed three
-            if settings(ww,11) == 2
+            if settings(ww,11) == 2 || settings(ww,11) == 3
                 ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(3).body_name = 'toes_r';
                 ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(3).location(2) = -0.0214476;
                 ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(7).body_name = 'toes_l';
@@ -371,7 +376,11 @@ for k = 1:length(idx_ww)
             pathVariousFunctions = [pathRepo,'\VariousFunctions'];
             addpath(genpath(pathVariousFunctions));    
             pathData = [pathRepo,'\OpenSimModel\',subject];    
-            ModelSetup = xml_read([pathData,'\',subject,'_mtp_ContactsAsForces.osim']);
+            if mtp_pin
+                ModelSetup = xml_read([pathData,'\',subject,'_mtpPin_ContactsAsForces.osim']);
+            else
+                ModelSetup = xml_read([pathData,'\',subject,'_mtp_ContactsAsForces.osim']);
+            end
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(1).location(1) = ParamsCM_opt(ww).ww(p).p(1);
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(1).location(3) = ParamsCM_opt(ww).ww(p).p(2);
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(2).location(1) = ParamsCM_opt(ww).ww(p).p(3);
@@ -402,7 +411,7 @@ for k = 1:length(idx_ww)
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(9).radius = ParamsCM_opt(ww).ww(p).p(2*cs+3);
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(10).radius = ParamsCM_opt(ww).ww(p).p(2*cs+4);
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(11).radius = ParamsCM_opt(ww).ww(p).p(2*cs+5);               
-            if settings(ww,11) == 2
+            if settings(ww,11) == 2 || settings(ww,11) == 3
                 ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(5).body_name = 'toes_r';
                 ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(5).location(2) = -0.0214476;
                 ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(11).body_name = 'toes_l';
@@ -420,7 +429,11 @@ for k = 1:length(idx_ww)
             pathVariousFunctions = [pathRepo,'\VariousFunctions'];
             addpath(genpath(pathVariousFunctions));    
             pathData = [pathRepo,'\OpenSimModel\',subject];    
-            ModelSetup = xml_read([pathData,'\',subject,'_mtp_ContactsAsForces.osim']);
+            if mtp_pin
+                ModelSetup = xml_read([pathData,'\',subject,'_mtpPin_ContactsAsForces.osim']);
+            else
+                ModelSetup = xml_read([pathData,'\',subject,'_mtp_ContactsAsForces.osim']);
+            end
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(1).location(1) = ParamsCM_opt(ww).ww(p).p(1);
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(1).location(3) = ParamsCM_opt(ww).ww(p).p(2);
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(2).location(1) = ParamsCM_opt(ww).ww(p).p(3);
@@ -456,7 +469,25 @@ for k = 1:length(idx_ww)
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(9).radius = ParamsCM_opt(ww).ww(p).p(15);
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(10).radius = ParamsCM_opt(ww).ww(p).p(16);
             ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(11).radius = ParamsCM_opt(ww).ww(p).p(17);
-            ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(12).radius = ParamsCM_opt(ww).ww(p).p(18);                   
+            ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(12).radius = ParamsCM_opt(ww).ww(p).p(18);
+            if settings(ww,11) == 4 || settings(ww,11) == 5 || settings(ww,11) == 6
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(1).location(2) = -0.01;
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(2).location(2) = -0.01;
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(3).location(2) = -0.01;
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(4).location(2) = -0.01;
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(5).location(2) = -0.01;
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(6).location(2) = -0.01;
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(7).location(2) = -0.01;
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(8).location(2) = -0.01;
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(9).location(2) = -0.01;
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(10).location(2) = -0.01;
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(11).location(2) = -0.01;
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(12).location(2) = -0.01;
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(4).body_name = 'calcn_r';
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(10).body_name = 'calcn_l';
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(5).body_name = 'toes_r';
+                ModelSetup.Model.ContactGeometrySet.objects.ContactSphere(11).body_name = 'toes_l';
+            end
             PathNewModel = [pathresults,'\',ocp_path,'\',subject,'_mtp_c',num2str(ww),'.osim'];
             xml_writeOSIM(PathNewModel,ModelSetup,'OpenSimDocument');
         end
