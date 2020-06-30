@@ -352,6 +352,10 @@ if S.ExoBool
         Poggensee = load([pathRepo,'\Data\Poggensee_2020\torque_profile.mat']);
         Tankle = Poggensee.torque*-1*body_mass; % -1 because plantarflexion is negative in opensim model
         ExoSpline.Tankle = spline(linspace(0,2,length(Tankle)*2),[Tankle' Tankle']);
+    elseif strcmp(S.DataSet,'PoggenSee2020_Exp')
+        Poggensee = load([pathRepo,'\Data\Poggensee_2020_Exp\torque_profile.mat']);
+        Tankle = Poggensee.torque*-1; % -1 because plantarflexion is negative in opensim model
+        ExoSpline.Tankle = spline(linspace(0,2,length(Tankle)*2),[Tankle' Tankle']);
     else
         error(['Could not find the dataset ' S.DataSet ' to prescribe the exoskeleton torques']);
     end

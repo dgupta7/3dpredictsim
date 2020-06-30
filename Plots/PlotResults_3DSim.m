@@ -8,6 +8,11 @@ function [] = PlotResults_3DSim(ResultsFile,Cs,LegName,varargin)
 % total ankle moment. Since we actuate more than 1 joint, we will have to
 % do this computation based on R.Exodiff_id
 
+% varargin:
+%   (1) handle figure
+%   (2) value x-axis (COT graph)
+%   (3) label x-axis (COT graph)
+
 
 
 set(0,'defaultTextInterpreter','none');
@@ -40,6 +45,7 @@ if exist(ResultsFile,'file')
             tab6 = h.Parent.Children(1).Children(1).Children(6);
             tab7 = h.Parent.Children(1).Children(1).Children(7);
             tab8 = h.Parent.Children(1).Children(1).Children(8);
+            tab9 = h.Parent.Children(1).Children(1).Children(9);
             boolFirst = 0;
         else
             h = varargin{1};
@@ -52,6 +58,7 @@ if exist(ResultsFile,'file')
             tab6 = uitab(hTabGroup, 'Title', 'Ground reaction force');
             tab7 = uitab(hTabGroup, 'Title', 'Objective Function');
             tab8 = uitab(hTabGroup, 'Title', 'Ankle detailed');
+            tab9 = uitab(hTabGroup, 'Title', 'SpatioTemporal');
             h.Name = 'Sim3D_Results';
             set(h,'Color','w');
         end
@@ -67,6 +74,7 @@ if exist(ResultsFile,'file')
         tab6 = uitab(hTabGroup, 'Title', 'Ground reaction force');
         tab7 = uitab(hTabGroup, 'Title', 'Objective Function');
         tab8 = uitab(hTabGroup, 'Title', 'Ankle detailed');
+        tab9 = uitab(hTabGroup, 'Title', 'SpatioTemporal');
         set(h,'Color','w');
     end
     
@@ -436,6 +444,35 @@ if exist(ResultsFile,'file')
     subplot(5,4,20)
     plot(R.Tid(:,strcmp(R.colheaders.joints,'mtp_angle_r')),'-','Color',Cs); hold on;
     ylabel('mtp moment [Nm]'); xlabel('% stride');
+    
+    %% Spatiotemporal results
+    
+    axes('parent', tab9);
+    
+    subplot(2,3,1);
+    plot(xParam,R.StrideLength,'o','Color',Cs,'MarkerFaceColor',Cs); hold on;
+    ylabel('Stride length [m]');  xlabel(xParamLab);
+    
+    subplot(2,3,2);
+    plot(xParam,R.StepWidth_COP,'o','Color',Cs,'MarkerFaceColor',Cs); hold on;
+    ylabel('Stride width [m]');  xlabel(xParamLab);
+    
+    subplot(2,3,3);
+    plot(xParam,1./(R.tf_step*2),'o','Color',Cs,'MarkerFaceColor',Cs); hold on;
+    ylabel('stride frequency [Hz]');  xlabel(xParamLab);
+    
+    subplot(2,3,4);
+    plot(xParam,R.Event.Stance,'o','Color',Cs,'MarkerFaceColor',Cs); hold on;
+    ylabel('% stance');  xlabel(xParamLab);
+    
+    subplot(2,3,5);
+    plot(xParam,R.Event.Swing,'o','Color',Cs,'MarkerFaceColor',Cs); hold on;
+    ylabel('% swing');  xlabel(xParamLab);
+    
+    subplot(2,3,6);
+    plot(xParam,R.Event.DS,'o','Color',Cs,'MarkerFaceColor',Cs); hold on;
+    ylabel('% double support');  xlabel(xParamLab);
+    
         
     
 else
