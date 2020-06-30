@@ -39,7 +39,7 @@ S.IG_PelvisY = 0.896;   % subject 1 poggensee
 S.subject            = 's1_Poggensee';
 
 % output folder
-S.ResultsFolder     = 'Debug';
+S.ResultsFolder     = 'ExpTorque';
 
 % select tendon stiffness of 20
 S.CasadiFunc_Folders = 'Casadi_s1Pog_ScaleParam_k20';
@@ -57,28 +57,10 @@ S.savename_ig   = 'NoExo';
 %I verified this, and the passive implemenation gives exactly the same
 %solution as in the report 1 simulations
 S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjoint mtp
-S.savename      = 'Passive_talus';
+S.savename      = 'Active_ExpTorque';
 S.ExoBool       = 1;
-S.ExoScale      = 0;
+S.ExoScale      = 1;
 S.DataSet       = 'PoggenSee2020_Exp';
 f_PredSim_PoggenSee2020_CalcnT(S);
 
-% Active exoskeleton (with limited implemenation)
-S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjoint mtp
-S.savename      = 'Active_talus';
-S.ExoBool       = 1;
-S.ExoScale      = 1;
-S.DataSet       = 'PoggenSee2020_AFO';
-f_PredSim_PoggenSee2020_CalcnT(S);
-
-%% Compare results New implemenation and old implemenation
-
-
-NewRes = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Results\Debug\Active_talus_pp.mat';
-OldRes = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Results\Batch_SensObjective\Active_ObjA_2000_pp.mat';
-OldPass = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Results\Batch_SensObjective\Passive_ObjA_2000_pp.mat';
-
-PlotResults_3DSim(NewRes,[1 0 0],'ankle + subtalar'); 
-PlotResults_3DSim(OldRes,[0 0 1],'ankle',gcf); 
-PlotResults_3DSim(OldPass,[0 1 0],'passive',gcf); 
 
