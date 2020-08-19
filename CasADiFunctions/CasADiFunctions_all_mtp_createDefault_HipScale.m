@@ -3,41 +3,61 @@
 %
 % Author: Antoine Falisse
 % Date: 12/19/2018
-%
-
-
 
 clear all; close all; clc;
 import casadi.*
+pathRepo        = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim';
+subject         = 's1_Poggensee';
+ExtPoly         = '_mtp';
 
-kTendonV = 15:5:40; % increase strength of hip muscles
-nit = length(kTendonV);
+% muscle names
+muscleNames = {'glut_med1_r','glut_med2_r','glut_med3_r',...
+    'glut_min1_r','glut_min2_r','glut_min3_r','semimem_r',...
+    'semiten_r','bifemlh_r','bifemsh_r','sar_r','add_long_r',...
+    'add_brev_r','add_mag1_r','add_mag2_r','add_mag3_r','tfl_r',...
+    'pect_r','grac_r','glut_max1_r','glut_max2_r','glut_max3_r',......
+    'iliacus_r','psoas_r','quad_fem_r','gem_r','peri_r',...
+    'rect_fem_r','vas_med_r','vas_int_r','vas_lat_r','med_gas_r',...
+    'lat_gas_r','soleus_r','tib_post_r','flex_dig_r','flex_hal_r',...
+    'tib_ant_r','per_brev_r','per_long_r','per_tert_r','ext_dig_r',...
+    'ext_hal_r','ercspn_r','intobl_r','extobl_r','ercspn_l',...
+    'intobl_l','extobl_l'};
+
+% Indices of the muscles actuating the different joints for later use
+pathpolynomial = fullfile(pathRepo,'Polynomials',subject);
+addpath(genpath(pathpolynomial));
+tl = load([pathpolynomial,'/muscle_spanning_joint_INFO_',subject,ExtPoly, '.mat']);
+[~,mai] = MomentArmIndices(muscleNames(1:end-3),...
+    tl.muscle_spanning_joint_INFO(1:end-3,:));
+IndexHip = [mai(1).mus.l mai(1).mus.r];
+
+% scale factor for hip muscles
+HipScaleFactor = 1:0.1:2; % increase strength of hip muscles
+nit = length(HipScaleFactor);
+
+
+
 for i = 1:nit
-    clearvars -except i kTendonV nit
-        
-    kTendonSel = kTendonV(i);
+    clearvars -except i HipScaleFactor nit pathRepo subject ExtPoly muscleNames IndexHip
     
-    ExtPoly = '_mtp';
-    S.CasadiFunc_Folders = ['Casadi_s1Pog_ScaleParam_k' num2str(kTendonSel)];
-    subject              = 's1_Poggensee';
+    kTendonSel = 20; % from previous implementation
+    HipScaleSel = HipScaleFactor(i);
+    HipScaleSelSTR = round(HipScaleSel*100);
+    
+    S.CasadiFunc_Folders = ['Casadi_s1Pog_ScaleParam_HipF_' num2str(HipScaleSelSTR)];
     if isfolder(S.CasadiFunc_Folders)
         error('Never changes the casadi functions in an existing folder, these functions are important to analyse optimization results (from the optimal states and controls');
     end
-    pathRepo        = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim';
     nq.leg          = 10; % #joints needed for polynomials
     stiffnessArm = 0;
     dampingArm = 0.1;
     stiffnessMtp = 1.5/(pi/180)/5;
     dampingMtp = 0.5;
     
-    % load the matrix to scale lTs and lMo (compued with script (Scaling
-    % Achilles Properties)
-    SCinfo = load('C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Debug\lMo_lTsScale.mat');
-    iSc = find(SCinfo.kVect>=kTendonSel,1,'first');
-    MTscale = SCinfo.ScaleSol(iSc,:);
-      
+    
     % define general settings for default objective functions
     S.N             = 50;
+    
     % By default, the tendon stiffness is 35 and the shift is 0.
     NMuscle = 92;
     aTendon = 35*ones(NMuscle,1);
@@ -136,17 +156,6 @@ for i = 1:nit
     
     %% Muscle-tendon parameters
     % Muscles from one leg and from the back
-    muscleNames = {'glut_med1_r','glut_med2_r','glut_med3_r',...
-        'glut_min1_r','glut_min2_r','glut_min3_r','semimem_r',...
-        'semiten_r','bifemlh_r','bifemsh_r','sar_r','add_long_r',...
-        'add_brev_r','add_mag1_r','add_mag2_r','add_mag3_r','tfl_r',...
-        'pect_r','grac_r','glut_max1_r','glut_max2_r','glut_max3_r',......
-        'iliacus_r','psoas_r','quad_fem_r','gem_r','peri_r',...
-        'rect_fem_r','vas_med_r','vas_int_r','vas_lat_r','med_gas_r',...
-        'lat_gas_r','soleus_r','tib_post_r','flex_dig_r','flex_hal_r',...
-        'tib_ant_r','per_brev_r','per_long_r','per_tert_r','ext_dig_r',...
-        'ext_hal_r','ercspn_r','intobl_r','extobl_r','ercspn_l',...
-        'intobl_l','extobl_l'};
     % Muscle indices for later use
     pathmusclemodel = fullfile(pathRepo,'MuscleModel',subject);
     addpath(genpath(pathmusclemodel));
@@ -161,10 +170,7 @@ for i = 1:nit
     MTparameters_m = [MTparameters(:,musi),MTparameters(:,musi)];
     
     % adjust MT properties
-    MTparameters_m(2,IndexCalf(1:3)) = MTparameters_m(2,IndexCalf(1:3)).*MTscale;
-    MTparameters_m(2,IndexCalf(4:6)) = MTparameters_m(2,IndexCalf(4:6)).*MTscale;
-    MTparameters_m(3,IndexCalf(1:3)) = MTparameters_m(3,IndexCalf(1:3)).*MTscale;
-    MTparameters_m(3,IndexCalf(4:6)) = MTparameters_m(3,IndexCalf(4:6)).*MTscale;
+    MTparameters_m(1,IndexHip) = MTparameters_m(1,IndexHip).*HipScaleSel;
     
     % Indices of the muscles actuating the different joints for later use
     pathpolynomial = fullfile(pathRepo,'Polynomials',subject);
@@ -487,17 +493,6 @@ for i = 1:nit
     d = 3; % degree of interpolating polynomial
     method = 'radau'; % collocation method
     [tau_root,C,D,B] = CollocationScheme(d,method);
-    
-    
-    %% Load external functions
-    % pathmain = pwd;
-    % pathExternalFunctions = [pathRepo,'/ExternalFunctions'];
-    % % Loading external functions.
-    % cd(pathExternalFunctions);
-    % setup.derivatives =  'AD'; % Algorithmic differentiation
-    % % F  = external('F',S.ExternalFunc);
-    % % F1 = external('F',S.ExternalFunc2);
-    % cd(pathmain);
     
     
     %% Index helpers
