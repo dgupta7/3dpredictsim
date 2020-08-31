@@ -168,7 +168,8 @@ for i = 1:nit
     % angles; Row 5: maximal contraction velocities
     load([pathmusclemodel,'/MTparameters_',subject, ExtPoly, '.mat']);
     MTparameters_m = [MTparameters(:,musi),MTparameters(:,musi)];
-    
+    MTparameters_m_original = MTparameters_m;
+        
     % adjust MT properties
     MTparameters_m(1,IndexHip) = MTparameters_m(1,IndexHip).*HipScaleSel;
     
@@ -622,6 +623,10 @@ for i = 1:nit
     
     f_AllPassiveTorques = Function('f_AllPassiveTorques',{Q_SX,Qdot_SX}, ...
         {Tau_passj_all},{'Q_SX','Qdot_SX'},{'Tau_passj_all'});
+    
+    %% Computed muscle mass based on original model
+    [MassM] = GetMuscleMass(muscleNames,MTparameters_m);
+    save(fullfile(OutPath,'MassM.mat'),'MassM');
     
     
     %% save all the casadifunctions

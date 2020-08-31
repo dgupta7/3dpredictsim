@@ -1,4 +1,4 @@
-function [] = f_PredSim_PoggenSee2020_CalcnT(S)
+function [] = f_PredSim_PoggenSee2020(S)
 
 %% Notes
 
@@ -261,6 +261,14 @@ f_T6 = Function.load(fullfile(PathDefaultFunc,'f_T6'));
 f_AllPassiveTorques = Function.load(fullfile(PathDefaultFunc,'f_AllPassiveTorques'));
 fgetMetabolicEnergySmooth2004all = Function.load(fullfile(PathDefaultFunc,'fgetMetabolicEnergySmooth2004all'));
 
+% file with mass of muscles
+MassFile = fullfile(PathDefaultFunc,'MassM.mat');
+if exist(MassFile,'file')
+   MuscleMass = load(MassFile);
+else
+    MassFile = fullfile(pathCasADiFunctions,'MassM.mat');
+    MuscleMass =load(MassFile);
+end
 
 %% Experimental data
 % We extract experimental data to set bounds and initial guesses if needed
@@ -439,11 +447,9 @@ orderQsOpp = [jointi.pelvis.list:jointi.pelvis.list,...
     jointi.pelvis.tz:jointi.pelvis.tz,...
     jointi.trunk.ben:jointi.trunk.ben,...
     jointi.trunk.rot:jointi.trunk.rot];
-
-
     
     %% OCP create variables and bounds
-    
+    % using opti
     opti = casadi.Opti();
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Define static parameters
@@ -651,7 +657,7 @@ orderQsOpp = [jointi.pelvis.list:jointi.pelvis.list,...
         vMTj_lr = [vMTj_l([1:43,47:49],1);vMTj_r(1:46,1)];
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Get muscle-tendon forces and derive Hill-equilibrium
-        [Hilldiffj,FTj,Fcej,Fpassj,Fisoj,vMmaxj,massMj] = ...
+        [Hilldiffj,FTj,Fcej,Fpassj,Fisoj] = ...
             f_forceEquilibrium_FtildeState_all_tendon(akj(:,j+1),...
             FTtildekj_nsc(:,j+1),dFTtildej_nsc(:,j),...
             lMTj_lr,vMTj_lr,tensions);
@@ -666,12 +672,10 @@ orderQsOpp = [jointi.pelvis.list:jointi.pelvis.list,...
             lMTj_lr,vMTj_lr);
         % Get metabolic energy rate Bhargava et al. (2004)
         [e_totj,~,~,~,~,~] = fgetMetabolicEnergySmooth2004all(...
-            akj(:,j+1),akj(:,j+1),lMtildej,...
-            vMj,Fcej,Fpassj,massMj,pctsts,Fisoj,body_mass,10);
-        
+            akj(:,j+1),akj(:,j+1),lMtildej,vMj,Fcej,Fpassj,...
+            MuscleMass.MassM',pctsts,Fisoj,body_mass,10);        
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % Get passive joint torques
-        
+        % Get passive joint torques        
         Tau_passj_all = f_AllPassiveTorques(Qskj_nsc(:,j+1),Qdotskj_nsc(:,j+1));
         Tau_passj.hip.flex.l = Tau_passj_all(1);
         Tau_passj.hip.flex.r = Tau_passj_all(2);
