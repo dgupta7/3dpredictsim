@@ -722,7 +722,7 @@ orderQsOpp = [jointi.pelvis.list:jointi.pelvis.list,...
             W.u*B(j+1)      *(f_J92(dFTtildej(:,j)))*h + ...
             W.u*B(j+1)      *(f_J8(Aj(armsi,j)))*h);
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % Call external function (run inverse dynamics)
+        % Call external function (run inverse dynamics)        
         [Tj] = F([QsQdotskj_nsc(:,j+1);Aj_nsc(:,j);-Texok(1); -Texok(2)]);    % left and right leg exoskeleton torques as inputs as well.
         % note that this has to be -Texo, since a positive torque around
         % the z-axis of the tibia results in a plantarflexion moment. (and

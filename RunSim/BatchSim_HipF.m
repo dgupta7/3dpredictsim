@@ -43,20 +43,20 @@ for i =1:nSim
     S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp
     S.ExoBool       = 0;    S.ExoScale      = 0;    
     S.savename      = ['NoExo_HipF_' num2str(Fhip)];
-    f_PredSim_PoggenSee2020_CalcnT(S);
+    f_PredSim_PoggenSee2020(S);
     ct = ct+1;    
 
     % passive simulation
     S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjoint mtp
     S.ExoBool       = 1;    S.ExoScale      = 0;    
     S.savename      = ['Passive_HipF_' num2str(Fhip)];
-    f_PredSim_PoggenSee2020_CalcnT(S);
+    f_PredSim_PoggenSee2020(S);
     ct = ct+1;
     
     % active simulation
     S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjoint mtp
     S.ExoBool       = 1;    S.ExoScale      = 1;    
     S.savename      = ['Active_HipF_' num2str(Fhip)];
-    f_PredSim_PoggenSee2020_CalcnT(S);
+    f_PredSim_PoggenSee2020(S);
     ct = ct+1;
 end

@@ -23,7 +23,7 @@ if  ~isfield(S,'NThreads') || isempty(S.NThreads)
 end
 
 if ~isfield(S,'mass') || isempty(S.mass)
-    S.mass = 62;
+    S.mass = 64;
 end
 
 if ~isfield(S,'subject') || isempty(S.subject)
