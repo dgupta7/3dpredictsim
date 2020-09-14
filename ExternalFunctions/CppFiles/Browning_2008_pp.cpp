@@ -561,7 +561,8 @@ int F_generic(const T** arg, T** res) {
 	Vector knownUdot(ndofr);
 	knownUdot.setToZero();
 	for (int i = 0; i < ndofr; ++i) knownUdot[i] = ua[i];
-	/// Calculate residual forces
+	
+    /// Calculate residual forces
 	Vector residualMobilityForces(ndofr);
 	residualMobilityForces.setToZero();
 	model->getMatterSubsystem().calcResidualForceIgnoringConstraints(*state,

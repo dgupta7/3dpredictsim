@@ -30,6 +30,9 @@ S.DataSet       = 'PoggenSee2020_AFO';
 % select the CasadiFolder
 S.CasadiFunc_Folders = 'Casadi_s1Pog_mtp';
 
+% add post processing external function (makes it a lot easier for
+% postprocessing)
+S.ExternalFunc2 = 'Browning_2008_pp.ddl';   
 
 %% Run with all external functions
 ExtFuncs = {'Browning_2008_Reference','Browning_2008_Femur2','Browning_2008_Femur4','Browning_2008_Femur8',...

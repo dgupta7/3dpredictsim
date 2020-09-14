@@ -60,28 +60,6 @@ if ~isfield(S,'subject') || isempty(S.subject)
 end
 subject = S.subject;
 
-%% Select settings
-
-%% Load external functions
-% The external function performs inverse dynamics through the
-% OpenSim/Simbody C++ API. This external function is compiled as a dll from
-% which we create a Function instance using CasADi in MATLAB. More details
-% about the external function can be found in the documentation.
-pathmain = pwd;
-% We use different external functions, since we also want to access some
-% parameters of the model in a post-processing phase.
-pathExternalFunctions = [pathRepo,'/ExternalFunctions'];
-% Loading external functions.
-cd(pathExternalFunctions);
-if isfield(S,'ExternalFunc2')   
-   F1 = external('F',S.ExternalFunc2);
-else
-   F1 = external('F','SimExo_3D_ExportAll.dll');
-   disp('Selected SimExo_3D_ExportAll.dll as external function because S.ExternalFunc2 was not specified');
-end
-cd(pathmain);
-
-
 %% Indices external function
 % Indices of the elements in the external functions
 % External function: F
@@ -134,15 +112,36 @@ nq.arms     = length(armsi); % arms
 nq.mtp     = length(mtpi); % arms
 nq.leg      = 10; % #joints needed for polynomials
 
+%% Load external functions
+% The external function performs inverse dynamics through the
+% OpenSim/Simbody C++ API. This external function is compiled as a dll from
+% which we create a Function instance using CasADi in MATLAB. More details
+% about the external function can be found in the documentation.
+pathmain = pwd;
+% We use different external functions, since we also want to access some
+% parameters of the model in a post-processing phase.
+pathExternalFunctions = [pathRepo,'/ExternalFunctions'];
+% Loading external functions.
+cd(pathExternalFunctions);
 
+% external function used in the optimization
+ExtF = S.ExternalFunc;
+F = external('F',ExtF);
+
+% external function selected for post-processing
+if isfield(S,'ExternalFunc2')   
+   F1 = external('F',S.ExternalFunc2);
+elseif F.nnz_in ==  nq.all*3
+   F1 = external('F', 'Browning_2008_pp.dll');
+elseif F.nnz_in ==  nq.all*3 + 2   
+   F1 = external('F','SimExo_3D_ExportAll.dll');
+   disp('Selected SimExo_3D_ExportAll.dll as external function because S.ExternalFunc2 was not specified');
+end
+cd(pathmain);
 
 
 %% Test the type of simulation
 ExoImplementation = 'IdealAnkle'; % (1) ankle actuation (2) passive afo, (3) torque actuator
-ExtF = S.ExternalFunc;
-cd(pathExternalFunctions);
-F = external('F',ExtF);
-cd(pathmain);
 
 if strcmp(ExtF,'PredSim_3D_GRF.dll') && isfield(S,'AFO_stiffness')
     % AFO modelled as in Nuckols 2019: Ultrasound imaging links soleus
@@ -203,7 +202,7 @@ if strcmp(ExoImplementation,'Nuckols2019')
     GRFi.all    = [GRFi.r,GRFi.l];
 end
 
-if strcmp(ExoImplementation,'TorqueTibiaCalcn')
+if strcmp(ExoImplementation,'TorqueTibiaCalcn') || F1.nnz_out == 73
     calcOr.r    = [38 40];
     calcOr.l    = [41 43];
     calcOr.all  = [calcOr.r,calcOr.l];
@@ -1230,7 +1229,11 @@ if writeIKmotion
         COPR = zeros(nfr,3);    FR = zeros(nfr,3);  MR = zeros(nfr,3);
         COPL = zeros(nfr,3);    FL = zeros(nfr,3);  ML = zeros(nfr,3);        
         for ind = 1:nfr
-            res = full(F1([qdqdd(ind,:)'; qdd(ind,:)'; 0;0]));
+            if F1.nnz_in == nq.all*3+2
+                res = full(F1([qdqdd(ind,:)'; qdd(ind,:)'; 0;0])); % torque L and R exo added
+            else
+                res = full(F1([qdqdd(ind,:)'; qdd(ind,:)'])); % normal implementation
+            end
             % compute the COP position
             FR(ind,:) = res(GRFi.r);
             FL(ind,:) = res(GRFi.l);
@@ -1534,9 +1537,12 @@ R.COTrel      = COTrel;
 
 if strcmp(ExoImplementation,'TorqueTibiaCalcn')
     R.TidExo = Ts_opt_Exo.*body_mass;
-    R.Exodiff_id = TExo_Joint.*body_mass;
+    R.Exodiff_id = TExo_Joint.*body_mass;   
+end
+
+if F1.nnz_out == 73
     R.COPL = COPL;
-    R.COPR = COPR;
+    R.COPR = COPR; 
 end
 
 % nuckols 2019 results
