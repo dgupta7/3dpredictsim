@@ -28,25 +28,6 @@ Outname = fullfile(OutFolder,[loadname '.mat']);
 load(Outname,'w_opt','stats','Sopt');
 S = Sopt;
 
-%% Test the type of simulation
-
-IndexSettings = 1; % (1) ankle actuation (2) passive afo, (3) torque actuator
-ExtF = S.ExternalFunc;
-if strcmp(ExtF,'PredSim_3D_GRF.dll') && isfield(S,'AFO_stiffness')
-    % AFO modelled as in Nuckols 2019: Ultrasound imaging links soleus
-    % muscle neuromechanics and energetics during human walking with
-    % elastic ankle exoskeletons
-    disp('Post processing of passive AFO as in Nuckols - ultrasound paper');
-    IndexSettings = 2;
-elseif  strcmp(ExtF,'SimExo_3D_talus.dll') | strcmp(ExtF,'SimExo_3D_talus_out.dll')
-    % After the first simulations report (May 12 2020), we changed the implemenation of the exoskeleton assistance
-    % to a torque actuator at the calcaneus and tibia. We also changed from two .dll files (one for optimization and one
-    % for post processing) to one .dll file for everything. 
-    IndexSettings = 3;
-else
-    disp('Default processing with active exoskeleton (Poggensee paper)')
-end
-
 
 %% User inputs (typical settings structure)
 % load default CasadiFunctions
@@ -65,12 +46,7 @@ W.A         = S.W.A;        % weight muscle activations
 exp_E       = S.W.exp_E;    % power metabolic energy
 W.Mtp       = S.W.Mtp;      % weight mtp excitations
 W.u         = S.W.u;        % weight on exctiations arm actuators
-IGsel       = S.IGsel;      % initial guess identifier
-IGm         = S.IGmodeID;   % initial guess mode identifier
 coCont      = S.coCont;     % co-contraction identifier
-
-% identifier for EMG load
-savename_ig = S.savename_ig;
 
 % ipopt options
 tol_ipopt       = S.tol_ipopt;
@@ -97,11 +73,11 @@ pathmain = pwd;
 pathExternalFunctions = [pathRepo,'/ExternalFunctions'];
 % Loading external functions.
 cd(pathExternalFunctions);
-if isfield(S,'ExternalFunc2')
+if isfield(S,'ExternalFunc2')   
    F1 = external('F',S.ExternalFunc2);
 else
    F1 = external('F','SimExo_3D_ExportAll.dll');
-   disp('Selected SimExo_3D_ExportAll.dll as external function because S.ExternalFunc2was not specified');
+   disp('Selected SimExo_3D_ExportAll.dll as external function because S.ExternalFunc2 was not specified');
 end
 cd(pathmain);
 
@@ -157,9 +133,38 @@ nq.trunk    = length(trunki); % trunk
 nq.arms     = length(armsi); % arms
 nq.mtp     = length(mtpi); % arms
 nq.leg      = 10; % #joints needed for polynomials
-% Second, origins bodies.
+
+
+
+
+%% Test the type of simulation
+ExoImplementation = 'IdealAnkle'; % (1) ankle actuation (2) passive afo, (3) torque actuator
+ExtF = S.ExternalFunc;
+cd(pathExternalFunctions);
+F = external('F',ExtF);
+cd(pathmain);
+
+if strcmp(ExtF,'PredSim_3D_GRF.dll') && isfield(S,'AFO_stiffness')
+    % AFO modelled as in Nuckols 2019: Ultrasound imaging links soleus
+    % muscle neuromechanics and energetics during human walking with
+    % elastic ankle exoskeletons
+    disp('Post processing of passive AFO as in Nuckols - ultrasound paper');
+    ExoImplementation = 'Nuckols2019';
+elseif F.nnz_in == nq.all*3+2
+    % After the first simulations report (May 12 2020), we changed the implemenation of the exoskeleton assistance
+    % to a torque actuator at the calcaneus and tibia. We also changed from two .dll files (one for optimization and one
+    % for post processing) to one .dll file for everything. 
+    ExoImplementation = 'TorqueTibiaCalcn';
+else
+    disp('Default processing with active exoskeleton (Poggensee paper)')
+end
+
+
+
+
+%% Second, origins bodies.
 % Calcaneus
-if IndexSettings == 1 || IndexSettings == 2
+if strcmp(ExoImplementation,'IdealAnkle') || strcmp(ExoImplementation,'Nuckols2019')
     calcOr.r    = 32:33;
     calcOr.l    = 34:35;
     calcOr.all  = [calcOr.r,calcOr.l];
@@ -192,13 +197,13 @@ if IndexSettings == 1 || IndexSettings == 2
     NcalcOrall      = length(calcOrall.all);
 end
 % adapt indexes GRF in Nuckols simulations
-if IndexSettings == 2
+if strcmp(ExoImplementation,'Nuckols2019')
     GRFi.r      = GRFi.r + 20;
     GRFi.l      = GRFi.l + 20;
     GRFi.all    = [GRFi.r,GRFi.l];
 end
 
-if IndexSettings == 3
+if strcmp(ExoImplementation,'TorqueTibiaCalcn')
     calcOr.r    = [38 40];
     calcOr.l    = [41 43];
     calcOr.all  = [calcOr.r,calcOr.l];
@@ -332,6 +337,7 @@ else
     MassFile = fullfile(pathCasADiFunctions,'MassM.mat');
     MuscleMass =load(MassFile);
 end
+% disp(MuscleMass.MassM(1));
 
 %% load the metalbolic energy equations
 PathDefaultFunc = fullfile(pathCasADiFunctions,'EnergyModels');
@@ -632,21 +638,28 @@ Xk_Qs_Qdots_opt(:,2:2:end)  = qdot_opt_unsc_all.rad(2:end,:);
 Xk_Qdotdots_opt             = qdotdot_col_opt_unsc.rad(d:d:end,:);
 Foutk_opt                   = zeros(N,F1.nnz_out);
 Tau_passk_opt_all           = zeros(N,nq.all-nq.abs);
-if IndexSettings == 3
+if S.ExoBool == 1 && strcmp(ExoImplementation,'TorqueTibiaCalcn')
     Foutk_opt_Exo         = zeros(N,F1.nnz_out);
 end
 
 for i = 1:N
-    % ID moments
-    if IndexSettings == 1 || IndexSettings == 2    
-        [res] = F1([Xk_Qs_Qdots_opt(i,:)';Xk_Qdotdots_opt(i,:)']);
-    elseif  IndexSettings == 3       
-        [res2] = F1([Xk_Qs_Qdots_opt(i,:)';Xk_Qdotdots_opt(i,:)'; -ExoVect(:,i)]);
+    % ID moments    
+    if F1.nnz_in == nq.all*3 + 2
+        if S.ExoBool == 1 && strcmp(ExoImplementation,'TorqueTibiaCalcn')
+            [res2] = F1([Xk_Qs_Qdots_opt(i,:)';Xk_Qdotdots_opt(i,:)'; -ExoVect(:,i)]);
+            [res2_or] = F([Xk_Qs_Qdots_opt(i,:)';Xk_Qdotdots_opt(i,:)'; -ExoVect(:,i)]); % ext func used in optimization
+        end
         [res] = F1([Xk_Qs_Qdots_opt(i,:)';Xk_Qdotdots_opt(i,:)'; 0; 0]);
+        [res_or] = F([Xk_Qs_Qdots_opt(i,:)';Xk_Qdotdots_opt(i,:)'; 0; 0]); % ext func used in optimization
+    else
+        [res] = F1([Xk_Qs_Qdots_opt(i,:)';Xk_Qdotdots_opt(i,:)']);
+        [res_or] = F([Xk_Qs_Qdots_opt(i,:)';Xk_Qdotdots_opt(i,:)']); % ext func used in optimization
     end
     Foutk_opt(i,:) = full(res);
-    if IndexSettings == 3
+    Foutk_opt(i,1:nq.all) = full(res_or(1:nq.all)); % extract ID moments from external function used in the optimization
+    if S.ExoBool == 1 && strcmp(ExoImplementation,'TorqueTibiaCalcn')
         Foutk_opt_Exo(i,:) = full(res2);
+        Foutk_opt_Exo(i,1:nq.all) = full(res2_or(1:nq.all));
     end
     % passive moments
     Tau_passk_opt_all(i,:) = full(f_AllPassiveTorques(q_opt_unsc_all.rad(i+1,:),qdot_opt_unsc_all.rad(i+1,:)));
@@ -662,21 +675,28 @@ Xj_Qs_Qdots_opt(:,2:2:end)  = qdot_col_opt_unsc.rad;
 Xj_Qdotdots_opt             = qdotdot_col_opt_unsc.rad;
 Foutj_opt                   = zeros(d*N,F1.nnz_out);
 Tau_passj_opt_all           = zeros(d*N,nq.all-nq.abs);
-if IndexSettings == 3
+if S.ExoBool == 1 && strcmp(ExoImplementation,'TorqueTibiaCalcn')
     Foutj_opt_Exo         = zeros(d*N,F1.nnz_out);
 end
 for i = 1:d*N
     iMesh = ceil(i/d);
     % inverse dynamics
-    if IndexSettings == 1 || IndexSettings == 2    
-        [res] = F1([Xj_Qs_Qdots_opt(i,:)';Xj_Qdotdots_opt(i,:)']); 
-    elseif  IndexSettings == 3  
-        [res2] = F1([Xj_Qs_Qdots_opt(i,:)';Xj_Qdotdots_opt(i,:)'; -ExoVect(:,iMesh)]); 
+    if F1.nnz_in == nq.all*3 + 2
+        if S.ExoBool == 1 && strcmp(ExoImplementation,'TorqueTibiaCalcn')
+            [res2] = F1([Xj_Qs_Qdots_opt(i,:)';Xj_Qdotdots_opt(i,:)'; -ExoVect(:,iMesh)]); 
+            [res2_or] = F([Xj_Qs_Qdots_opt(i,:)';Xj_Qdotdots_opt(i,:)'; -ExoVect(:,iMesh)]); 
+        end
         [res] = F1([Xj_Qs_Qdots_opt(i,:)';Xj_Qdotdots_opt(i,:)'; 0; 0]);
+        [res_or] = F([Xj_Qs_Qdots_opt(i,:)';Xj_Qdotdots_opt(i,:)'; 0; 0]);
+    else
+        [res] = F1([Xj_Qs_Qdots_opt(i,:)';Xj_Qdotdots_opt(i,:)']);
+        [res_or] = F([Xj_Qs_Qdots_opt(i,:)';Xj_Qdotdots_opt(i,:)']);
     end    
     Foutj_opt(i,:) = full(res);
-    if IndexSettings == 3
+    Foutj_opt(i,1:nq.all) = full(res_or(1:nq.all)); % extract ID moments from external function used in the optimization
+    if S.ExoBool == 1 && strcmp(ExoImplementation,'TorqueTibiaCalcn')
         Foutj_opt_Exo(i,:) = full(res2);
+        Foutj_opt_Exo(i,1:nq.all) = full(res2(1:nq.all));
     end
     % passive torques
     Tau_passj_opt_all(i,:) = full(f_AllPassiveTorques(q_col_opt_unsc.rad(i,:),qdot_col_opt_unsc.rad(i,:)));
@@ -698,10 +718,13 @@ ndof = size(q_opt_unsc_all.rad,2);
 for i = 1:N+1
     if F1.nnz_in == ndof*3
         [res] = F1([Xk_Qs_Qdots_opt_all(i,:)';Xk_Qdotdots_opt_all(i,:)']);
+        [res_or] = F([Xk_Qs_Qdots_opt_all(i,:)';Xk_Qdotdots_opt_all(i,:)']);
     else
         [res] = F1([Xk_Qs_Qdots_opt_all(i,:)';Xk_Qdotdots_opt_all(i,:)'; 0; 0]);
+        [res_or] = F([Xk_Qs_Qdots_opt_all(i,:)';Xk_Qdotdots_opt_all(i,:)'; 0; 0]);
     end
     out_res_opt_all(i,:) = full(res);
+    out_res_opt_all(i,1:nq.all) = full(res(1:nq.all));
 end
 % The stride length is the distance covered by the calcaneus origin
 % Right leg
@@ -1106,7 +1129,7 @@ end
 
 % If exoskeleton is implemented as torque actuator
 % evaluate influence of ankle moment and subtalar moment
-if IndexSettings == 3
+if strcmp(ExoImplementation,'TorqueTibiaCalcn')
     % get ID with exoskeleton as percentage of gait cycle
     Ts_opt_Exo = zeros(N*2,size(Qs_opt,2));
     Ts_opt_Exo(1:N-IC1i_c+1,1:nq.all) = Foutk_opt_Exo(IC1i_c:end,1:nq.all);     
@@ -1116,7 +1139,7 @@ if IndexSettings == 3
     % If the first heel strike was on the left foot then we invert so that
     % we always start with the right foot, for analysis purpose
     if strcmp(HS1,'l')
-        Ts_op_Exo(:,QsSymA_ptx) = Ts_opt_Exo(:,QsSymB_ptx);
+        Ts_opt_Exo(:,QsSymA_ptx) = Ts_opt_Exo(:,QsSymB_ptx);
         Ts_opt_Exo(:,QsOpp) = -Ts_opt_Exo(:,QsOpp);
     end
     Ts_opt_Exo = Ts_opt_Exo./body_mass;
@@ -1195,8 +1218,7 @@ if writeIKmotion
     filenameJointAngles = fullfile(OutFolder,[S.savename '.mot']);
     write_motionFile(JointAngleMuscleAct, filenameJointAngles);
    
-    if IndexSettings == 3
-        
+    if strcmp(ExoImplementation,'TorqueTibiaCalcn')  || F1.nnz_out == 73
         % compute COP information
         nfr = length(Qs_GC(:,1));
         qdqdd = zeros(nfr,nq.all*2);
@@ -1204,11 +1226,9 @@ if writeIKmotion
         qdqdd(:,2:2:62) = Qdots_GC;
         qdd = Qdotdots_GC;
         qdqdd(:,[1:6 13:end]) = qdqdd(:,[1:6 13:end])*pi./180;        
-        qdqdd(:,11) = qdqdd(:,11);
-        
+        qdqdd(:,11) = qdqdd(:,11);        
         COPR = zeros(nfr,3);    FR = zeros(nfr,3);  MR = zeros(nfr,3);
-        COPL = zeros(nfr,3);    FL = zeros(nfr,3);  ML = zeros(nfr,3);
-        
+        COPL = zeros(nfr,3);    FL = zeros(nfr,3);  ML = zeros(nfr,3);        
         for ind = 1:nfr
             res = full(F1([qdqdd(ind,:)'; qdd(ind,:)'; 0;0]));
             % compute the COP position
@@ -1223,16 +1243,12 @@ if writeIKmotion
                 COPL(ind,:) = [ML(ind,3)./FL(ind,2), 0, -ML(ind,1)./FL(ind,2)];
             end
         end
-        
-        % 
         data = [FR COPR FL COPL zeros(nfr,6)];
         dataOut = [data; zeros(size(data))];
         colnames = get_GRFlabels();
         filenameGRF = fullfile(OutFolder,[S.savename '_GRF.mot']);
         time =JointAngleMuscleAct.data(:,1);
-        generateMotFile([time dataOut], ['time ' colnames], filenameGRF);
-
-        
+        generateMotFile([time dataOut], ['time ' colnames], filenameGRF);        
     end
 end
 
@@ -1446,7 +1462,7 @@ end
     
 %% Analyse passive exoskeleton support
 % Nuckols 2019
-if IndexSettings == 2
+if strcmp(ExoImplementation,'Nuckols2019')
     % compute torque of AFO
     GRFrY = GRFs_opt(:,2).*body_weight/100;
     GRFlY = GRFs_opt(:,5).*body_weight/100;
@@ -1516,7 +1532,7 @@ R.COTv_basal  = COTvB;
 R.Energy_basal= EnergyVB;
 R.COTrel      = COTrel;
 
-if IndexSettings == 3
+if strcmp(ExoImplementation,'TorqueTibiaCalcn')
     R.TidExo = Ts_opt_Exo.*body_mass;
     R.Exodiff_id = TExo_Joint.*body_mass;
     R.COPL = COPL;
@@ -1524,7 +1540,7 @@ if IndexSettings == 3
 end
 
 % nuckols 2019 results
-if IndexSettings == 2
+if strcmp(ExoImplementation,'Nuckols2019')
     R.T_exo       = [TAFO_l TAFO_r];
     R.Nuckols.q0  = S.AFO_q0;
     R.Nuckols.k   = S.AFO_stiffness;

@@ -172,7 +172,7 @@ NtoesOr    = length(toesOr.all);
 
 %% check if we are using a proper .dll function in this implementation
 nInput = F.nnz_in;
-if nInput == nq.all*3 && S.ExoBool == 0
+if nInput == nq.all*3 && S.ExoBool == 1
     disp('Warning: you have to use a .dll function with the exoskeleton moments as input arguments to simulate the exoskeleton');
     disp('In this new version, we implemented the exoskeleton torque as a torque acting at the tibia and calcaneus and not as an ideal acutation at the ankle joint');
     disp('Please look at the implementation in : SimExo_3D_talus_out.cpp');
