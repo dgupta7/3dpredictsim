@@ -19,9 +19,7 @@ function [] = f_PredSim_PoggenSee2020(S)
 % Exoskeleton torque is now implemented as an external torque acting at the
 % calcaneus and the tibia. Therefore, we use the new dll file
 % (SimExo_3D_talus.dll), which requires the exoskeleton torque of the left
-% and right leg as input arguments. Note that we only use 1 function here
-% for post-processing. This means that the outputs of the external
-% functions is slightly changed.
+% and right leg as input arguments.
 
 % Adding the casadi path seems to be needed to run processes in batch
 addpath(genpath('C:\GBW_MyPrograms\casadi-windows-matlabR2016a-v3.5.1'));
@@ -40,24 +38,17 @@ W           = S.W;          % weights optimization
 exp_E       = S.W.exp_E;    % power metabolic energy
 IGsel       = S.IGsel;      % initial guess identifier
 IGm         = S.IGmodeID;   % initial guess mode identifier
-coCont      = S.coCont;     % co-contraction identifier
-
-% identifier for EMG load
+subject     = S.subject;
 savename_ig = S.savename_ig;
 
 % ipopt options
 tol_ipopt       = S.tol_ipopt;
 linear_solver   = S.linear_solver;
-
-%% Settings
-
-import casadi.*
 parallelMode = 'thread';
 NThreads = S.NThreads;
-subject = S.subject;
-
 
 %% Load external functions
+import casadi.*
 % The external function performs inverse dynamics through the
 % OpenSim/Simbody C++ API. This external function is compiled as a dll from
 % which we create a Function instance using CasADi in MATLAB. More details
@@ -129,7 +120,7 @@ nq.all      = length(residualsi); % all
 nq.abs      = length(ground_pelvisi); % ground-pelvis
 nq.trunk    = length(trunki); % trunk
 nq.arms     = length(armsi); % arms
-nq.mtp     = length(mtpi); % arms
+nq.mtp      = length(mtpi); % arms
 nq.leg      = 10; % #joints needed for polynomials
 % Second, origins bodies.
 % Calcaneus
@@ -317,14 +308,21 @@ end
 pathBounds = [pathRepo,'/Bounds'];
 addpath(genpath(pathBounds));
 [bounds,scaling] = getBounds_all_mtp(Qs_walk,NMuscle,nq,jointi,v_tgt);
-% Simulate co-contraction by increasing the lower bound on muscle activations
-if coCont == 1
-    bounds.a.lower = 0.1*ones(1,NMuscle);
-elseif coCont == 2
-    bounds.a.lower = 0.15*ones(1,NMuscle);
-elseif coCont == 3
-    bounds.a.lower = 0.2*ones(1,NMuscle);
+
+% adapt bounds based on user input
+if ~isempty(S.Bounds)
+    bounds.a.lower = ones(size(bounds.a.lower)).*S.Bounds.ActLower;
+    %  (1)hip_flex (2)hip_add (3) ip_rot (4)knee (5)ankle (6)sub (7)mtp
+    % (8) lumbar ext (9)lumbar bend (10)lumbar rot
+    IndexHip = [mai(1).mus.l mai(1).mus.r];
+    bounds.a.lower(IndexHip) = S.Bounds.ActLowerHip;
+    IndexKnee = [mai(4).mus.l mai(4).mus.r];
+    bounds.a.lower(IndexKnee) = S.Bounds.ActLowerKnee;
+    IndexAnkle = [mai(5).mus.l mai(5).mus.r];
+    bounds.a.lower(IndexAnkle) = S.Bounds.ActLowerAnkle;
 end
+
+
 
 %% Initial guess
 % The initial guess depends on the settings
@@ -346,15 +344,13 @@ elseif IGsel == 2 % Data-informed initial guess
         guess = getGuess_DI_opti_int_mtp(Qs_ig_sel,nq,N,time_IC,NMuscle,jointi,scaling,v_tgt,d);
     end
 end
-% If co-contraction, the initial guess of muscles activations is increased
-if coCont == 1
-    guess.a = 0.15*ones(N,NMuscle);
-elseif coCont == 2
-    guess.a = 0.20*ones(N,NMuscle);
-elseif coCont == 3
-    guess.a = 0.25*ones(N,NMuscle);
+% update initial guess when it below the lower bound
+if ~isempty(S.Bounds)
+    Inds = guess.a(1,:) < bounds.a.lower; 
+    for i=Inds
+        guess.a(:,i) = bounds.a.lower(i);
+    end
 end
-
 %% exoskeleton torques
 ExoControl = [];
 body_mass = S.mass;

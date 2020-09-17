@@ -232,9 +232,13 @@ if exist(ResultsFile,'file')
     
     % Plot COT as a function of exo assitance
     subplot(2,2,1); hold on;
-    plot(xParam,R.COT,'o','Color',Cs,'MarkerFaceColor',Cs);
+    plot(xParam,R.COT,'o','Color',Cs,'MarkerFaceColor',Cs,'DisplayName',LegName);
     ylabel('COT');  xlabel(xParamLab);
     title('Cost of Transport');
+    if boolFirst
+        lh=legend('-DynamicLegend','location','east');
+        lh.Interpreter = 'none';
+     end
     
     % Plot stride frequency
     subplot(2,2,2); hold on;
@@ -249,14 +253,9 @@ if exist(ResultsFile,'file')
     
     
     subplot(2,2,4); hold on;
-    plot(R.T_exo(:,2),'-','Color',Cs,'DisplayName',LegName);
+    plot(R.T_exo(:,2),'-','Color',Cs);
     ylabel('Exo Moment [Nm]');  xlabel('% stride');
     title('Right');
-    
-     if boolFirst
-        lh=legend('-DynamicLegend','location','east');
-        lh.Interpreter = 'none';
-     end
     
     %% Plot Torque information
     % update this here

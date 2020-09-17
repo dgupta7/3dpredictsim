@@ -139,6 +139,28 @@ else
     S.Constr.tibia = 0.11; % by default at least 11cm distance between toes
 end
 
+
+% Settings related to bounds on muscle activations
+if isfield(S,'Bounds')
+    if ~isfield(S.Bounds,'ActLower')
+        S.Bounds.ActLower = 0.05;
+    end
+    if ~isfield(S.Bounds,'ActLowerHip')
+        S.Bounds.ActLowerHip = 0.05;
+    end
+    if ~isfield(S.Bounds,'ActLowerKnee')
+        S.Bounds.ActLowerKnee = 0.05;
+    end
+    if ~isfield(S.Bounds,'ActLowerAnkle')
+        S.Bounds.ActLowerAnkle = 0.05;
+    end
+else
+    S.Bounds.ActLower = 0.05;
+    S.Bounds.ActLowerHip = 0.05;
+    S.Bounds.ActLowerKnee = 0.05;
+    S.Bounds.ActLowerAnkle = 0.05;
+end
+
 % Print the settings to the screen
 disp(S);
 end
