@@ -161,6 +161,26 @@ else
     S.Bounds.ActLowerAnkle = 0.05;
 end
 
+% bounds on final time (i.e. imposing stride frequency / stride length)
+if ~isfield(S.Bounds.tf)
+    S.Bounds.tf = [];
+end
+
+% scaling exoskeleton timing
+if isfield(S,'PercStance')
+    if ~isfield(S.PercStance,'bool')
+        S.PercStance.bool = 0;        
+    end
+    if ~isfield(S.PercStance,'xStanceOr')
+        S.PercStance.xStanceOr = 0.61; % duration stance phase in experiment
+    end
+    if ~isfield(S.PercStance,'xStanceNew')
+        S.PercStance.xStanceNew = 0.58; % duration stance phase in simulation
+    end
+else
+    S.PercStance.bool = 0;
+end
+
 % Print the settings to the screen
 disp(S);
 end
