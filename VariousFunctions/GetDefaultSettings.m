@@ -162,7 +162,7 @@ else
 end
 
 % bounds on final time (i.e. imposing stride frequency / stride length)
-if ~isfield(S.Bounds.tf)
+if ~isfield(S.Bounds,'tf')
     S.Bounds.tf = [];
 end
 

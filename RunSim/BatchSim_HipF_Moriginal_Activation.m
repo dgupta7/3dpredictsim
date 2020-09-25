@@ -8,7 +8,7 @@ clear all; close all; clc;
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
-S.NThreads  = 8;        % number of threads for parallel computing
+S.NThreads  = 2;        % number of threads for parallel computing
 
 % quasi random initial guess, pelvis y position
 S.IG_PelvisY = 0.896;   % subject 1 poggensee
@@ -17,7 +17,7 @@ S.IG_PelvisY = 0.896;   % subject 1 poggensee
 S.subject            = 's1_Poggensee';
 
 % output folder
-S.ResultsFolder     = 'Sens_HipF_mOr';
+S.ResultsFolder     = 'Sens_HipF_mOr_act';
 
 % initial guess based on simulations without exoskeletons
 S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
@@ -27,13 +27,9 @@ S.savename_ig   = 'NoExo';
 % dataset with exoskeleton torque profile
 S.DataSet       = 'PoggenSee2020_AFO';
 
-% settings to adapt baseline activation
-
-%% Open Cluster for batch processing
-
 %% Open a cluster to run batch processes
 % open cluster
-% myCluster = parcluster('Maarten_LocalProfile1');
+myCluster = parcluster('Maarten_LocalProfile1');
 
 
 %% Sensitivity weight metabolic rate
