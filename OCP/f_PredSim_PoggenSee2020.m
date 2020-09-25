@@ -385,7 +385,7 @@ if S.ExoBool
     
     % adapt timing of exoskeleton torque to "align with natural" timing of gait
     % phases in the simulation
-    if Set.PercStance.bool
+    if S.PercStance.bool
         % adapt ExoVect to express exoskeleton assistance as a percentage of
         % the stance phase instead of stride
         nfr = length(Tankle);
@@ -398,7 +398,7 @@ if S.ExoBool
         TStance = ppval(SplineStance,xStance);
         TSwing = ppval(SplineSwing,xSwing);
         Tankle = [TStance TSwing(2:end)];
-        ExoSpline.Tankle = spline(linspace(0,2,length(Tankle)*2),[Tankle' Tankle']);
+        ExoSpline.Tankle = spline(linspace(0,2,length(Tankle)*2),[Tankle Tankle]);
     end
     
     % express exoskeleton on discretisation simulation

@@ -38,7 +38,7 @@ S.ExoBool       = 0;
 S.ExoScale      = 0;
 S.savename      = 'NoExo';
 SWadd = 0.13;
-f_PredSim_PoggenSee2020(S);
+% f_PredSim_PoggenSee2020(S);
 
 % passive simulation
 S.DataSet       = 'PoggenSee2020_ExpPass';
