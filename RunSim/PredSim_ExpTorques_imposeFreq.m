@@ -17,7 +17,7 @@ S.IG_PelvisY = 0.896;   % subject 1 poggensee
 S.subject            = 's1_Poggensee';
 
 % output folder
-S.ResultsFolder     = 'ExpTorques_SW_Freq_Timing2';
+S.ResultsFolder     = 'ExpTorques_Freq';
 
 % initial guess based on simulations without exoskeletons
 S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
@@ -30,21 +30,12 @@ S.CasadiFunc_Folders = 'Casadi_s1Pog_mtp';
 % stride frequency between 0.99 and 1.01
 S.Bounds.tf = [0.495 0.505];
 
-% Timing exoskeleton assistance
-S.PercStance.bool = 1;
-S.PercStance.xStanceOr = 0.61;
-S.PercStance.xStanceNew = 0.58;
-
 % normal walking simulation
-S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp
-S.ExternalFunc2  = 'PredSim_3D_Pog_s1_mtp_pp.dll';        % this one is with the pinjoint mtp
+S.ExternalFunc   = 'PredSim_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp
+S.ExternalFunc2 = 'PredSim_3D_Pog_s1_mtp_pp.dll';     % external function for post-processing
 S.ExoBool       = 0;    
 S.ExoScale      = 0;
 S.savename      = 'NoExo';
-SWadd = 0.13;
-S.Constr.calcn = 0.09 + SWadd;
-S.Constr.toes = 0.1 + SWadd;
-S.Constr.tibia = 0.11 + SWadd;
 f_PredSim_PoggenSee2020(S);
 
 % passive simulation
@@ -54,10 +45,6 @@ S.ExternalFunc2 = 'SimExo_3D_ExportAll.dll';        % external function for post
 S.ExoBool       = 1;    
 S.ExoScale      = 0;
 S.savename      = 'Passive';
-SWadd = 0.15;
-S.Constr.calcn = 0.09 + SWadd;
-S.Constr.toes = 0.1 + SWadd;
-S.Constr.tibia = 0.11 + SWadd;
 f_PredSim_PoggenSee2020(S);
 
 % active simulation
@@ -67,8 +54,4 @@ S.ExternalFunc2 = 'SimExo_3D_ExportAll.dll';        % external function for post
 S.ExoBool       = 1;    
 S.ExoScale      = 1;
 S.savename      = 'Active';
-SWadd = 0.15;
-S.Constr.calcn = 0.09 + SWadd;
-S.Constr.toes = 0.1 + SWadd;
-S.Constr.tibia = 0.11 + SWadd;
 f_PredSim_PoggenSee2020(S);

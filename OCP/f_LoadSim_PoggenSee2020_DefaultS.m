@@ -25,10 +25,10 @@ pathmain = mfilename('fullpath');
 [pathRepo,~,~] = fileparts(filepath);
 OutFolder = fullfile(pathRepo,'Results',ResultsFolder);
 Outname = fullfile(OutFolder,[loadname '.mat']);
-load(Outname,'w_opt','stats','Sopt');
+load(Outname,'w_opt','stats','Sopt','ExoControl');
 S = Sopt;
 
-
+body_mass = S.mass;
 %% User inputs (typical settings structure)
 % load default CasadiFunctions
 

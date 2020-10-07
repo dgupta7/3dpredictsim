@@ -327,7 +327,7 @@ end
 % adapt bound on final time if this is an input setting
 if ~isempty(S.Bounds.tf)
     bounds.tf.lower = S.Bounds.tf(1);
-    bounds.tf.lower = S.Bounds.tf(2);
+    bounds.tf.upper = S.Bounds.tf(2);
 end
 
 
@@ -357,6 +357,9 @@ if ~isempty(S.Bounds)
     for i=Inds
         guess.a(:,i) = bounds.a.lower(i);
     end
+end
+if ~isempty(S.Bounds.tf)
+    guess.tf = nanmean(S.Bounds.tf);
 end
 %% exoskeleton torques
 ExoControl = [];
