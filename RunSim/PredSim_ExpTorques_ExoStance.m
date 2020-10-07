@@ -39,14 +39,14 @@ S.ExoBool       = 0;
 S.ExoScale      = 0;
 S.savename      = 'NoExo';
 SWadd = 0.13;
-% f_PredSim_PoggenSee2020(S);
+f_PredSim_PoggenSee2020(S);
 
 % passive simulation
 S.DataSet       = 'PoggenSee2020_ExpPass';
 S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjoint mtp
 S.ExternalFunc2 = 'SimExo_3D_ExportAll.dll';        % external function for post-processing
 S.ExoBool       = 1;    
-S.ExoScale      = 0;
+S.ExoScale      = 1;
 S.savename      = 'Passive';
 f_PredSim_PoggenSee2020(S);
 

@@ -29,7 +29,7 @@ S.CasadiFunc_Folders = 'Casadi_s1Pog_mtp';
 
 % normal walking simulation
 S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp
-S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp_pp.dll';        % this one is with the pinjoint mtp
+S.ExternalFunc2  = 'PredSim_3D_Pog_s1_mtp_pp.dll';        % this one is with the pinjoint mtp
 S.ExoBool       = 0;    
 S.ExoScale      = 0;
 S.savename      = 'NoExo';
@@ -44,7 +44,7 @@ S.DataSet       = 'PoggenSee2020_ExpPass';
 S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjoint mtp
 S.ExternalFunc2 = 'SimExo_3D_ExportAll.dll';        % external function for post-processing
 S.ExoBool       = 1;    
-S.ExoScale      = 0;
+S.ExoScale      = 1;
 S.savename      = 'Passive';
 SWadd = 0.15;
 S.Constr.calcn = 0.09 + SWadd;
