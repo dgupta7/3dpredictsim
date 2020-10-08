@@ -146,19 +146,19 @@ if isfield(S,'Bounds')
         S.Bounds.ActLower = 0.05;
     end
     if ~isfield(S.Bounds,'ActLowerHip')
-        S.Bounds.ActLowerHip = 0.05;
+        S.Bounds.ActLowerHip = [];
     end
     if ~isfield(S.Bounds,'ActLowerKnee')
-        S.Bounds.ActLowerKnee = 0.05;
+        S.Bounds.ActLowerKnee = [];
     end
     if ~isfield(S.Bounds,'ActLowerAnkle')
-        S.Bounds.ActLowerAnkle = 0.05;
+        S.Bounds.ActLowerAnkle = [];
     end
 else
     S.Bounds.ActLower = 0.05;
-    S.Bounds.ActLowerHip = 0.05;
-    S.Bounds.ActLowerKnee = 0.05;
-    S.Bounds.ActLowerAnkle = 0.05;
+    S.Bounds.ActLowerHip = [];
+    S.Bounds.ActLowerKnee = [];
+    S.Bounds.ActLowerAnkle = [];
 end
 
 % bounds on final time (i.e. imposing stride frequency / stride length)

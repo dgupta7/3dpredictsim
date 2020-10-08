@@ -5,7 +5,7 @@
 % to goal of this function is to compute metabolic energy in the static
 % situation. We only analyse one frame and solve for the muscle states.
 
-clear all; close all; clc;
+clear all; close all;
 %% Settings
 S.mass = 62;
 S.subject = 's1_Poggensee';
@@ -56,8 +56,6 @@ fgetMetabolicEnergySmooth2010all_neg= Function.load('fgetMetabolicEnergySmooth20
 fgetMetabolicEnergy_MargariaSmooth  = Function.load('fgetMetabolicEnergy_MargariaSmooth');
 cd(pathmain);
 
-
-%% Muscle-tendon parameters
 %% Muscle-tendon parameters
 % Muscles from one leg and from the back
 muscleNames = {'glut_med1_r','glut_med2_r','glut_med3_r',...
@@ -308,7 +306,7 @@ R.dFtilde = dFtilde;
 
 %% compute metabolic energy from the solution
 body_mass = S.mass;
-
+b = 1000;
 
 vMT_lr = zeros(1,92);
 
@@ -324,7 +322,7 @@ vMtilde = full(vMtilde_opt)';
     fgetMetabolicEnergySmooth2004all(R.a,...
     R.a,lMtilde,full(vM_opt),...
     full(Fcej),full(Fpassj),full(massMj),pctsts,...
-    full(Fisoj),body_mass,10);
+    full(Fisoj),body_mass,b);
 
 % Umberger 2003
 vMtildeUmbk_opt = full(vM_opt)./(MTparameters_m(2,:)');
@@ -332,21 +330,21 @@ vMtildeUmbk_opt = full(vM_opt)./(MTparameters_m(2,:)');
     R.a,R.a,lMtilde,...
     vMtildeUmbk_opt,full(vM_opt),full(Fcej),...
     full(massMj),pctsts,10,...
-    full(Fisoj)',body_mass,10);
+    full(Fisoj)',body_mass,b);
 
 % Umberger 2010
 [eUmb2010,~,~,~,eUmb2010B] = fgetMetabolicEnergySmooth2010all(...
     R.a,R.a,lMtilde,...
     vMtildeUmbk_opt,full(vM_opt),full(Fcej),...
     full(massMj),pctsts,10,...
-    full(Fisoj),body_mass,10);
+    full(Fisoj),body_mass,b);
 
 % Uchida et al. (2016)
 [eUchida2016,~,~,~,eUchida2016B] = fgetMetabolicEnergySmooth2016all(...
     R.a,R.a,lMtilde,...
     vMtildeUmbk_opt,full(vM_opt),full(Fcej),...
     full(massMj),pctsts,10,...
-    full(Fisoj),body_mass,10);
+    full(Fisoj),body_mass,b);
 
 % Umberger (2010) treating muscle lengthening
 % heat rate as Umberger et al. (2003)
@@ -355,7 +353,7 @@ vMtildeUmbk_opt = full(vM_opt)./(MTparameters_m(2,:)');
     R.a,R.a,lMtilde,...
     vMtildeUmbk_opt,full(vM_opt),full(Fcej),...
     full(massMj),pctsts,10,...
-    full(Fisoj),body_mass,10);
+    full(Fisoj),body_mass,1000);
 
 % Umberger (2010) treating negative mechanical
 % work as Umberger et al. (2003)
@@ -364,7 +362,7 @@ vMtildeUmbk_opt = full(vM_opt)./(MTparameters_m(2,:)');
     R.a,R.a,lMtilde,...
     vMtildeUmbk_opt,full(vM_opt),full(Fcej),...
     full(massMj),pctsts,10,...
-    full(Fisoj),body_mass,10);
+    full(Fisoj),body_mass,b);
 
 % Margaria 1968
 eMarg1968 = fgetMetabolicEnergy_MargariaSmooth(full(Fcej),full(vM_opt)');
@@ -389,6 +387,6 @@ EdotBasal.eMarg1968   = sol.value(eMarg1968);
 %% save metabolic energy
 
 save(['MetabRate_Standing_' S.subject '.mat'],'Edot','EdotBasal');
-
+disp(Edot);
 
 

@@ -27,13 +27,9 @@ S.savename_ig   = 'NoExo';
 % select the CasadiFolder
 S.CasadiFunc_Folders = 'Casadi_s1Pog_mtp';
 
-% Timing exoskeleton assistance
-S.PercStance.bool = 1;
-S.PercStance.xStanceOr = 0.61;
-S.PercStance.xStanceNew = 0.58;
-
 % lower bound muscle activity
 S.Bounds.ActLower = 0.05;
+
 
 % normal walking simulation
 S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp
@@ -41,7 +37,6 @@ S.ExternalFunc2  = 'PredSim_3D_Pog_s1_mtp_pp.dll';        % this one is with the
 S.ExoBool       = 0;    
 S.ExoScale      = 0;
 S.savename      = 'NoExo';
-SWadd = 0.13;
 f_PredSim_PoggenSee2020(S);
 
 % passive simulation

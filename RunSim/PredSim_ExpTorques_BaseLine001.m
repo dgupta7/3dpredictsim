@@ -16,9 +16,6 @@ S.IG_PelvisY = 0.896;   % subject 1 poggensee
 % Folder with default functions
 S.subject            = 's1_Poggensee';
 
-% output folder
-S.ResultsFolder     = 'ExpTorques_Lowerb005';
-
 % initial guess based on simulations without exoskeletons
 S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
 S.IGmodeID      = 4;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
@@ -27,13 +24,11 @@ S.savename_ig   = 'NoExo';
 % select the CasadiFolder
 S.CasadiFunc_Folders = 'Casadi_s1Pog_mtp';
 
-% Timing exoskeleton assistance
-S.PercStance.bool = 1;
-S.PercStance.xStanceOr = 0.61;
-S.PercStance.xStanceNew = 0.58;
-
 % lower bound muscle activity
-S.Bounds.ActLower = 0.05;
+S.Bounds.ActLower = 0.01;
+
+% output folder
+S.ResultsFolder     = 'ExpTorques_Lowerb001';
 
 % normal walking simulation
 S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';        % this one is with the pinjoint mtp
@@ -41,7 +36,6 @@ S.ExternalFunc2  = 'PredSim_3D_Pog_s1_mtp_pp.dll';        % this one is with the
 S.ExoBool       = 0;    
 S.ExoScale      = 0;
 S.savename      = 'NoExo';
-SWadd = 0.13;
 f_PredSim_PoggenSee2020(S);
 
 % passive simulation
