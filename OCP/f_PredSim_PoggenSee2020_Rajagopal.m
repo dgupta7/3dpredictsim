@@ -373,12 +373,12 @@ if ~isempty(S.Bounds.tf)
     guess.tf = nanmean(S.Bounds.tf);
 end
 
-%% Figure guess and bounds
-figure();
-plot(bounds.Qs.upper,'ok'); hold on;
-plot(bounds.Qs.lower,'ok');
-plot(min(guess.Qs),'or');
-plot(max(guess.Qs),'or');
+% %% Figure guess and bounds
+% figure();
+% plot(bounds.Qs.upper,'ok'); hold on;
+% plot(bounds.Qs.lower,'ok');
+% plot(min(guess.Qs),'or');
+% plot(max(guess.Qs),'or');
 
 %% exoskeleton torques
 ExoControl = [];
