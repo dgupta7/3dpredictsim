@@ -21,7 +21,7 @@ function [muscle_spanning_joint_INFO,MuscleInfo] = PolynomialFit_mtp(MuscleData)
     muscle_spanning_joint_INFO(muscle_spanning_joint_INFO~=0) = 1;
     
     maxdofs = max(sum(muscle_spanning_joint_INFO,2));
-    disp(['Max ndofs for a muscle': num2str(maxdofs)]);
+    disp(['max ndofs for a muscle :' num2str(maxdofs)]);
       
     q_all = MuscleData.q;
     

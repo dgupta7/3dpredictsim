@@ -18,7 +18,7 @@ OutFolder = 'Rajagopal2015';
 % Bound_subt = [min(dat(:,18)) max(dat(:,18))];
 % Bound_mtp = [min(dat(:,20)) max(dat(:,20))];
 
-Bound_hipflex = [-60 60];
+Bound_hipflex = [-50 50];
 Bound_hipadd = [-30 30];
 Bound_hiprot = [-30 30];
 Bound_knee = [0 90];
@@ -60,9 +60,9 @@ data(:,IndexAngles) = Angles;   % right leg
 data(:,IndexAngles+8) = Angles; % left leg
 data(:,12) = Angles(:,4)*pi./180;   % right leg: I check this in the visualise and this seems to be right
 data(:,20) = Angles(:,4)*pi./180;   % left leg
-pathDummyMotion = fullfile(InstallPath,'Polynomials',OutFolder,'dummy_motion2.mot');
+pathDummyMotion = fullfile(InstallPath,'Polynomials',OutFolder,'dummy_motion.mot');
 generateMotFile(data,headers,pathDummyMotion);
 
 %Run a muscle analysis on the dummy motion
-output_path=fullfile(InstallPath,'Polynomials',OutFolder,'MuscleAnalysis2');mkdir(output_path);
+output_path=fullfile(InstallPath,'Polynomials',OutFolder,'MuscleAnalysis');mkdir(output_path);
 OpenSim_Muscle_Analysis(pathDummyMotion,model_sel,output_path,[time(1) time(end)]);
