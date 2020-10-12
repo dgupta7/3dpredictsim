@@ -36,6 +36,8 @@ S.ExoScale      = 0;        % scale factor of exoskeleton assistance profile = 0
 S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';        % external function
 S.ExternalFunc2 = 'PredSim_3D_Pog_s1_mtp_pp.dll';     % external function for post-processing
 S.savename      = 'NoExo';
-f_PredSim_PoggenSee2020_Rajagopal(S);     % run the optimization
 
+S.W.Lumbar = 10^5;
+f_PredSim_PoggenSee2020_Rajagopal(S);     % run the optimization
+f_LoadSim_PoggenSee2020_Rajagopal(S.ResultsFolder,S.savename);
 

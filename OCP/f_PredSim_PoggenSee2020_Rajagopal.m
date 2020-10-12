@@ -792,7 +792,7 @@ orderQsOpp = [jointi.pelvis.list:jointi.pelvis.list,...
             W.E*B(j+1)      *(f_J80exp(e_totj,exp_E))/body_mass*h + ... % metabolic energy
             W.A*B(j+1)      *(f_J80(akj(:,j+1)'))*h + ...               % implicit activations
             W.ArmE*B(j+1)   *(f_J8(e_ak))*h +...                        % reserve actuators arms 
-            10*B(j+1)       *(f_J3(e_lumbark))*h +...                   % reserve actuators lumbar       
+            W.Lumbar*B(j+1)       *(f_J3(e_lumbark))*h +...                   % reserve actuators lumbar       
             W.Mtp*B(j+1)    *(f_J2(e_mtpk))*h +...                      % reserve actuators mtp
             W.Ak*B(j+1)     *(f_J23(Aj(residuals_noarmsi,j)))*h + ...   % joint accelerations
             W.passMom*B(j+1)*(f_J23(Tau_passj_J))*h + ...

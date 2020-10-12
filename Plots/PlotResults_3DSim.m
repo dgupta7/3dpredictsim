@@ -401,7 +401,15 @@ if exist(ResultsFile,'file')
     iGas = find(strcmp(R.colheaders.muscles,'lat_gas_r'));
     iGas2 = find(strcmp(R.colheaders.muscles,'med_gas_r'));
     iTib = find(strcmp(R.colheaders.muscles,'tib_ant_r'));
-    
+    if isempty(iGas)
+        iGas = find(strcmp(R.colheaders.muscles,'gaslat_r'));
+    end
+    if isempty(iGas2)
+        iGas2 = find(strcmp(R.colheaders.muscles,'gasmed_r'));
+    end
+    if isempty(iTib)
+        iTib = find(strcmp(R.colheaders.muscles,'tibant_r'));
+    end
     mVect = {'Soleus','Gas-lat','Gas-med','Tib-ant'};
     
     iM = [iSol iGas iGas2 iTib];
