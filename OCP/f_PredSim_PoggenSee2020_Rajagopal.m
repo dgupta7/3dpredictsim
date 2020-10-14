@@ -22,10 +22,11 @@ function [] = f_PredSim_PoggenSee2020_Rajagopal(S)
 % and right leg as input arguments.
 
 % Adding the casadi path seems to be needed to run processes in batch
-name = getenv('COMPUTERNAME');
-if strcmp(name,'GBW-D-W2711')
-    addpath(genpath('C:\GBW_MyPrograms\casadi-windows-matlabR2016a-v3.5.1'));
-end
+addpath('D:\casadi');
+% name = getenv('COMPUTERNAME');
+% if strcmp(name,'GBW-D-W2711')
+%     addpath(genpath('C:\GBW_MyPrograms\casadi-windows-matlabR2016a-v3.5.1'));
+% end
 %% Default settings
 
 S = GetDefaultSettings(S);

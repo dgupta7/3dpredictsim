@@ -16,6 +16,8 @@ function [R] = f_LoadSim_PoggenSee2020_Rajagopal(ResultsFolder,loadname)
 % 3) the exoskeleton assistance
 % 4) the external function
 
+addpath('D:\casadi');
+
 if strcmp(loadname(end-3:end),'.mat')
     loadname = loadname(1:end-4);
 end

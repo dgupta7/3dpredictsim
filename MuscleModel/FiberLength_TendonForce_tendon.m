@@ -5,7 +5,8 @@
 % Date: 12/19/2018
 % 
 function [lM,lMtilde ] = ...
-    FiberLength_TendonForce_tendon(FTtilde,params,lMT,aTendon,shift)
+    FiberLength_TendonForce_tendon(FTtilde,params,lMT,aTendon,shift,MuscMoAsmp)
+
 
 lMo = ones(size(FTtilde,1),1)*params(2,:);
 lTs = ones(size(FTtilde,1),1)*params(3,:);
@@ -15,7 +16,11 @@ alphao = ones(size(FTtilde,1),1)*params(4,:);
 lTtilde = (log(5*(FTtilde + 0.25 - shift))/aTendon + 0.995);
 
 % Hill-type muscle model: geometric relationships
-lM = sqrt((lMo.*sin(alphao)).^2+(lMT-lTs.*lTtilde).^2);
+if(MuscMoAsmp == 0) % b = cst
+    lM = sqrt((lMo.*sin(alphao)).^2+(lMT-lTs.*lTtilde).^2);
+else    % alpha = cst = alphao
+    lM = (lMT-lTs.*lTtilde)./cos(alphao);
+end
 lMtilde = lM./lMo;
 
 end

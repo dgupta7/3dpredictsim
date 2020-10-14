@@ -8,12 +8,11 @@ clear all; clc;
 
 
 %% Path information
-Datapath = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Results';
-% DataFolders = {'BatchSim_2020_03_16_e','BatchSim_2020_03_16_UpdIG','BatchSim_2020_03_17_UpdIG',...
-%     'Batch_TendonStiff','Batch_SensObjective'};
-% DataFolders = {'BatchSim_2020_03_17_UpdIG'};
-DataFolders = {'Batch_TendonScale_k15','Batch_TendonScale_k20','Batch_TendonScale_k25',...
-    'Batch_TendonScale_k30','Batch_TendonScale_k35','Batch_TendonScale_k40','BatchSim_2020_03_17_UpdIG','Batch_TendonStiff','Batch_SensObjective'};
+cd ..;
+Datapath = [pwd '\Results'];
+addpath([pwd,'/OCP']);
+
+DataFolders = {'Test_Lars'};
 
 S.OverWrite = 1;
 

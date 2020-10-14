@@ -6,7 +6,7 @@
 % 
 function [err, FT, Fce, Fpass, Fiso, vMmax, massM] = ...
     ForceEquilibrium_FtildeState_all_tendon(a,fse,dfse,lMT,vMT,params,...
-    Fvparam,Fpparam,Faparam,tension,aTendon,shift)
+    Fvparam,Fpparam,Faparam,tension,aTendon,shift,MuscMoAsmp)
 
 FMo = ones(size(a,1),1)*params(1,:);
 lMo = ones(size(a,1),1)*params(2,:);
@@ -22,7 +22,11 @@ massM = volM.*(1059.7)./(tension*1e6);
 lTtilde = log(5*(fse + 0.25 - shift))./Atendon + 0.995;
 
 % Hill-type muscle model: geometric relationships
-lM = sqrt((lMo.*sin(alphao)).^2+(lMT-lTs.*lTtilde).^2);
+if(MuscMoAsmp == 0) % b = cst
+    lM = sqrt((lMo.*sin(alphao)).^2+(lMT-lTs.*lTtilde).^2);
+else    % alpha = cst = alphao
+   lM = (lMT-lTs.*lTtilde)./cos(alphao);
+end
 lMtilde = lM./lMo;
 
 % Active muscle force-length characteristic
@@ -51,7 +55,11 @@ FMltilde = FMtilde1+FMtilde2+FMtilde3;
 Fiso = FMltilde;
 % Active muscle force-velocity characteristic
 vT = lTs.*dfse./(0.2*Atendonsc*exp(Atendonsc*(lTtilde-0.995)));
-cos_alpha = (lMT-lTs.*lTtilde)./lM;
+if(MuscMoAsmp == 0) % b = cst
+    cos_alpha = (lMT-lTs.*lTtilde)./lM;
+else    % alpha = cst = alphao
+    cos_alpha = cos(alphao);
+end
 vM = (vMT-vT).*cos_alpha;
 vMtilde = vM./vMmax;
 e1 = Fvparam(1);
@@ -61,7 +69,7 @@ e4 = Fvparam(4);
 FMvtilde = e1*log((e2*vMtilde+e3)+sqrt((e2*vMtilde+e3).^2+1))+e4;
 % Active muscle force
 d = 0.01; % damping coefficient
-Fcetilde = a.*FMltilde.*FMvtilde + d*vMtilde;
+Fcetilde = a.*FMltilde.*FMvtilde +d*vMtilde;
 Fce = FMo.*Fcetilde;
 
 % Passive muscle force-length characteristic
