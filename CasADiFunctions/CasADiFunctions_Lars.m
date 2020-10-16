@@ -60,7 +60,7 @@ for i = 1:nit
     % By default, the tendon stiffness is 35 and the shift is 0.
     NMuscle = 92;
     aTendon = 35*ones(NMuscle,1);
-    
+    IndexCalf = [32 33 34 78 79 80];    % adjust stiffness of the calf muscles
     
     shift = getShift(aTendon);
     

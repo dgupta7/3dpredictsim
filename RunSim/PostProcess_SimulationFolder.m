@@ -11,10 +11,12 @@ clear all; clc;
 cd ..;
 Datapath = [pwd '\Results'];
 addpath([pwd,'/OCP']);
-
+addpath([pwd,'/MuscleModel']);
+addpath([pwd,'/Debug']);
+addpath('D:\casadi');
 DataFolders = {'Test_Lars'};
 
-S.OverWrite = 1;
+S.OverWrite = 0;
 
 %% Post process the simulations
 

@@ -1,15 +1,12 @@
+[pathHere,~,~] = fileparts(mfilename('fullpath'));
+[pathRepo,~,~] = fileparts(pathHere);
 
+dpath = [pathRepo,'/Results'];
+OutPath = [pathRepo,'/Figures'];
+addpath([pathRepo '/VariousFunctions']);
 
-dpath = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim\Results';
-OutPath = 'C:\Users\u0088756\Box Sync\SimExo\DefaultFigures';
-
-FolderNames = {'MainResults','BatchSim_2020_03_17_UpdIG','Batch_SensObjective','Batch_TendonStiff',...
-    'Batch_TendonScale_k15','Batch_TendonScale_k20','Batch_TendonScale_k25','Batch_TendonScale_k30',...
-    'Batch_TendonScale_k35','Batch_TendonScale_k40'};
-
-OutFNames = {'MainResults','Sensitivity_ScalingExoTorque','Sensitivity_Objective','Sensitivity_TendonStiff',...
-    'Sensitivity_TendonStiff_ExoScale/k15','Sensitivity_TendonStiff_ExoScale/k20','Sensitivity_TendonStiff_ExoScale/k25','Sensitivity_TendonStiff_ExoScale/k30',...
-    'Sensitivity_TendonStiff_ExoScale/k35','Sensitivity_TendonStiff_ExoScale/k40'};
+FolderNames = {'Test_Lars'};
+OutFNames = {'Test_Lars'};
 
 nf= length(FolderNames);
 

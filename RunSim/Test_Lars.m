@@ -15,7 +15,7 @@ addpath([pathRepo '/VariousFunctions']);
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
-S.NThreads  = 2;        % number of threads for parallel computing
+S.NThreads  = 4;        % number of threads for parallel computing
 
 % quasi random initial guess, pelvis y position
 S.IG_PelvisY = 0.896;   % subject 1 poggensee
@@ -26,7 +26,7 @@ S.subject            = 's1_Poggensee';
 % output folder
 S.ResultsFolder     = 'Test_Lars';      % temp folder 
 
-S.CasadiFunc_Folders = 'Casadi_s1Pog_ScaleParam_k35_bCst';
+S.CasadiFunc_Folders = 'Casadi_s1Pog_MuscModel_bCst';
 
 % initial guess based on simulations without exoskeletons
 S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
@@ -34,15 +34,18 @@ S.IGmodeID      = 4;        % initial guess mode identifier (1 walk, 2 run, 3pre
 S.savename_ig   = 'NoExo';
 
 % external function
-S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjoint mtp
+% S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjoint mtp
+
+S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';        % external function
+S.ExternalFunc2 = 'PredSim_3D_Pog_s1_mtp_pp.dll';     % external function for post-processing
 
 % dataset with exoskeleton torque profile
 S.DataSet       = 'PoggenSee2020_AFO';
 
-S.ExoBool       = 1;
-S.ExoScale      = 1;
+S.ExoBool       = 0;
+S.ExoScale      = 0;
 
-S.savename      = 'Test1_exo';
+S.savename      = 'Test1_bCst_no';
 
 %% Call simulation
 f_PredSim_PoggenSee2020(S);
@@ -52,8 +55,8 @@ f_PredSim_PoggenSee2020(S);
 
 
 %% path to scripts, for easy access
-
-% D:\Gebruiker\Documents\~school~\WTK\thesis\model\3dpredictsim_Lars\CasADiFunctions\CasADiFunctions_Lars.m
-% D:\Gebruiker\Documents\~school~\WTK\thesis\model\3dpredictsim_Lars\RunSim\PostProcess_SimulationFolder.m
+% 
+% open('D:\Gebruiker\Documents\~school~\WTK\thesis\model\3dpredictsim_Lars\CasADiFunctions\CasADiFunctions_Lars.m');
+% open('D:\Gebruiker\Documents\~school~\WTK\thesis\model\3dpredictsim_Lars\RunSim\PostProcess_SimulationFolder.m');
 
 

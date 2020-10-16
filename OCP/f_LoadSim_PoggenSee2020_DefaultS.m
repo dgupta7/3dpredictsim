@@ -662,7 +662,7 @@ Xk_Qs_Qdots_opt(:,2:2:end)  = qdot_opt_unsc_all.rad(2:end,:);
 Xk_Qdotdots_opt             = qdotdot_col_opt_unsc.rad(d:d:end,:);
 Foutk_opt                   = zeros(N,F1.nnz_out);
 Tau_passk_opt_all           = zeros(N,nq.all-nq.abs);
-if S.ExoBool == 1 && strcmp(ExoImplementation,'TorqueTibiaCalcn')
+if  strcmp(ExoImplementation,'TorqueTibiaCalcn') %S.ExoBool == 1 &&
     Foutk_opt_Exo         = zeros(N,F1.nnz_out);
 end
 
