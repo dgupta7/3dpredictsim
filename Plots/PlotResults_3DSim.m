@@ -488,6 +488,8 @@ if exist(ResultsFile,'file')
         lh=legend('-DynamicLegend','location','east');
         lh.Interpreter = 'none';
     end
+    
+    
 else
     warning(['File not found: ' ResultsFile]);
 end

@@ -28,8 +28,7 @@ MuscModelAsmp = [0,1];     % 0: musc width = cst, 1: pennation angle = cst
 nit = length(MuscModelAsmp);
 for i = 1:nit
     clearvars -except i nit pathRepo MuscModelAsmp
-        
-    kTendonSel = 35;    %idk, random guess to make it work
+     
     MuscMoAsmp = MuscModelAsmp(i);
     
     ExtPoly = '_mtp';
@@ -49,11 +48,11 @@ for i = 1:nit
     stiffnessMtp = 1.5/(pi/180)/5;
     dampingMtp = 0.5;
     
-    % load the matrix to scale lTs and lMo (compued with script (Scaling
-    % Achilles Properties)
-    SCinfo = load([pathRepo '\Debug\lMo_lTsScale.mat']);
-    iSc = find(SCinfo.kVect>=kTendonSel,1,'first');
-    MTscale = SCinfo.ScaleSol(iSc,:);
+%     % load the matrix to scale lTs and lMo (compued with script (Scaling
+%     % Achilles Properties)
+%     SCinfo = load([pathRepo '\Debug\lMo_lTsScale.mat']);
+%     iSc = find(SCinfo.kVect>=kTendonSel,1,'first');
+%     MTscale = SCinfo.ScaleSol(iSc,:);
       
     % define general settings for default objective functions
     S.N             = 50;

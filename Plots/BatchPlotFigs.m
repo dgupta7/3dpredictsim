@@ -1,3 +1,6 @@
+clear
+clc
+
 [pathHere,~,~] = fileparts(mfilename('fullpath'));
 [pathRepo,~,~] = fileparts(pathHere);
 
@@ -5,6 +8,7 @@ dpath = [pathRepo,'/Results'];
 OutPath = [pathRepo,'/Figures'];
 addpath([pathRepo '/VariousFunctions']);
 
+%% plot batch
 FolderNames = {'Test_Lars'};
 OutFNames = {'Test_Lars'};
 
@@ -20,3 +24,9 @@ for i= 1:nf
     end
     copyfile(fullfile(Fsel,'FigureResults.fig'),fullfile(Fout,'FigureResults.fig'));
 end
+
+%% plot difference
+% addpath([dpath,'/Test_Lars']);
+% ResultsFile1 = fullfile(dpath,'Test_Lars','Test1_bCst_exo_pp.mat');
+% ResultsFile2 = fullfile(dpath,'Test_Lars','Test1_alphaCst_exo_pp.mat');
+% PlotResultsComparison_3DSim(ResultsFile1,ResultsFile2)

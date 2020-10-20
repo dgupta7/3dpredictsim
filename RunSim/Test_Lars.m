@@ -13,7 +13,7 @@ addpath([pathRepo '/VariousFunctions']);
 %% Default settings
 
 % settings for optimization
-S.v_tgt     = 1.25;     % average speed
+S.v_tgt     = 1.33;     % average speed
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 4;        % number of threads for parallel computing
 
@@ -45,7 +45,7 @@ S.DataSet       = 'PoggenSee2020_AFO';
 S.ExoBool       = 0;
 S.ExoScale      = 0;
 
-S.savename      = 'Test1_bCst_no';
+S.savename      = 'Test1_bCst_no_v133';
 
 %% Call simulation
 f_PredSim_PoggenSee2020(S);
@@ -56,7 +56,14 @@ f_PredSim_PoggenSee2020(S);
 
 %% path to scripts, for easy access
 % 
-% open('D:\Gebruiker\Documents\~school~\WTK\thesis\model\3dpredictsim_Lars\CasADiFunctions\CasADiFunctions_Lars.m');
-% open('D:\Gebruiker\Documents\~school~\WTK\thesis\model\3dpredictsim_Lars\RunSim\PostProcess_SimulationFolder.m');
+% open('pathRepo\CasADiFunctions\CasADiFunctions_Lars.m');
+% open('pathRepo\RunSim\PostProcess_SimulationFolder.m');
+% open('pathRepo\Plots\PlotResultsComparison_3DSim.m');
+% open('pathRepo\Plots\BatchPlotFigs.m');
+% open('pathRepo\VariousFunctions\ModelValidation.m');
+
+
+
+
 
 
