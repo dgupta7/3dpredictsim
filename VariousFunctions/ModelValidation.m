@@ -1,5 +1,6 @@
-function [rmse,ccc] = ModelValidation(pathSimResults, pathExpData)
-% 
+function [ccc] = ModelValidation(pathSimResults, pathExpData)
+% returns a struct with information about the cross-correlation coefficient
+% of the simulation results and the mean measurement data
 
 
     %% load files   
@@ -28,46 +29,67 @@ function [rmse,ccc] = ModelValidation(pathSimResults, pathExpData)
         'Elbow flexion L','Elbow flexion R'};
     
         
-        LegName = file1;
+         
        
-    %% compare kinematics
-       
+    %% compare
     idx_Qs = [1,2,3,10,11,12,14,16,18,20,21,22,23,27,28,29,31];
-    rmse = -ones(length(idx_Qs),2);     % -1 default, to see if field wasn't calculated
-    ccc = -ones(length(idx_Qs),3);     % -1 default, to see if field wasn't calculated
-    
-    
+       
+    %ccc.joints =-ones(length(idx_Qs),1);
+    ccc.kinematics.atShift0 = -ones(1,length(idx_Qs));      % -1 default, to see if field wasn't calculated
+    ccc.kinematics.max = -ones(1,length(idx_Qs));           % -1 default, to see if field wasn't calculated
+    ccc.kinematics.shiftAtMax = -ones(1,length(idx_Qs));    % -1 default, to see if field wasn't calculated
+
+    ccc.kinetics.atShift0 = -ones(1,length(idx_Qs));      % -1 default, to see if field wasn't calculated
+    ccc.kinetics.max = -ones(1,length(idx_Qs));           % -1 default, to see if field wasn't calculated
+    ccc.kinetics.shiftAtMax = -ones(1,length(idx_Qs));    % -1 default, to see if field wasn't calculated
+
     subject = 'subject1';
     Qref = ExperimentalData.Q;
-    figure()
+    IDref = ExperimentalData.Torques;
+    
     for i = 1:length(idx_Qs)
         idx_jref = strcmp(Qref.(subject).Qs.colheaders,joints_ref{i});
+        ccc.joints{i} = joints_tit{idx_Qs(i)};
         mean = Qref.(subject).Qs.mean(:,idx_jref);
-%         std = Qref.(subject).Qs.std(:,idx_jref);
+        %std = Qref.(subject).Qs.std(:,idx_jref);
         sim = R.Qs(:,idx_Qs(i));
         m = size(mean);
         s = size(sim);
         if(m == s)
-        rmse(i,:) = rsquare(mean,sim);
+        %rmse(i,:) = rsquare(mean,sim);
         
         [c,lags] = xcorr(mean,sim,50,'coeff');
         lags_i = find(lags == 0);
-        ccc(i,1) = c(lags_i);   % ccc at shift = 0
-        ccc(i,2) = max(c);      % max ccc
+        ccc.kinematics.atShift0(1,i) = c(lags_i);   % ccc at shift = 0
+        ccc.kinematics.max(1,i) = max(c);      % max ccc
         c_i = find(c == max(c));
-        ccc(i,3) = lags(c_i);   % shift of max ccc
-        
-        subplot(3,6,i)
-        stem(lags,c,'DisplayName',LegName)
-        hold on
-        grid on
-        title(joints_tit{idx_Qs(i)})
-        else
-            disp(joints_ref{i});
+        ccc.kinematics.shiftAtMax(1,i) = lags(c_i);   % shift of max ccc
+        ccc.kinematics.shift(:,i) = lags';
+        ccc.kinematics.ccc(:,i) = c';
         end
+        
+        mean = IDref.(subject).mean(:,idx_jref);
+        %std = IDref.(subject).std(:,idx_jref);
+        sim = R.Tid(:,idx_Qs(i));
+        m = size(mean);
+        s = size(sim);
+        if(m == s)
+        %rmse(i,:) = rsquare(mean,sim);
+        
+        [c,lags] = xcorr(mean,sim,50,'coeff');
+        lags_i = find(lags == 0);
+        ccc.kinetics.atShift0(1,i) = c(lags_i);   % ccc at shift = 0
+        ccc.kinetics.max(1,i) = max(c);      % max ccc
+        c_i = find(c == max(c));
+        ccc.kinetics.shiftAtMax(1,i) = lags(c_i);   % shift of max ccc
+        ccc.kinetics.shift(:,i) = lags';
+        ccc.kinetics.ccc(:,i) = c';
+        end
+        
 
     end
     
+  
     
     
     
