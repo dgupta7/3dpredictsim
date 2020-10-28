@@ -16,8 +16,8 @@ clc;
 
 [pathHere,~,~] = fileparts(mfilename('fullpath'));
 [pathRepo,~,~] = fileparts(pathHere);
-addpath('D:\casadi');
 addpath([pathRepo '/VariousFunctions']);
+AddCasadiPaths();
 import casadi.*
 
 

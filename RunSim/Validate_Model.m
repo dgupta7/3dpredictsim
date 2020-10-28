@@ -95,7 +95,11 @@ set(lh,'position',lhPos);
 saveas(h,fullfile(pathFig,'FigureModelValidation.fig'));
 
 
-
+%%
+addpath([pathRepo,'/Plots']);
+hh = figure(); 	% new figure with handle
+PlotResults_3DSim(ResultsFile1,[1 0 0],'b cst',hh);
+PlotResults_3DSim(ResultsFile2,[0 0 1],'alpha cst',hh);
 
 
 

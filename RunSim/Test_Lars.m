@@ -15,7 +15,7 @@ addpath([pathRepo '/VariousFunctions']);
 % settings for optimization
 S.v_tgt     = 1.33;     % average speed
 S.N         = 50;       % number of mesh intervals
-S.NThreads  = 4;        % number of threads for parallel computing
+S.NThreads  = 8;        % number of threads for parallel computing
 
 % quasi random initial guess, pelvis y position
 S.IG_PelvisY = 0.896;   % subject 1 poggensee
@@ -27,6 +27,9 @@ S.subject            = 's1_Poggensee';
 S.ResultsFolder     = 'Test_Lars';      % temp folder 
 
 S.CasadiFunc_Folders = 'Casadi_s1Pog_MuscModel_bCst';
+
+% select folder with polynomials
+S.PolyFolder = 's1_Poggensee';
 
 % initial guess based on simulations without exoskeletons
 S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
@@ -48,7 +51,8 @@ S.ExoScale      = 0;
 S.savename      = 'Test1_bCst_no_v133';
 
 %% Call simulation
-% f_PredSim_PoggenSee2020(S);
+% f_PredSim_Gait92(S);     % run the optimization
+% f_LoadSim_Gait92(S.ResultsFolder,S.savename); % post-proces simulation results
 
 
 
@@ -56,13 +60,13 @@ S.savename      = 'Test1_bCst_no_v133';
 
 %% path to scripts, for easy access
 % 
-% open('pathRepo\CasADiFunctions\CasADiFunctions_Lars.m');
-% open('pathRepo\RunSim\PostProcess_SimulationFolder.m');
-% open('pathRepo\Plots\PlotResultsComparison_3DSim.m');
-% open('pathRepo\Plots\BatchPlotFigs.m');
-% open('pathRepo\VariousFunctions\ModelValidation.m');
-
-
+% open([pathRepo '\CasADiFunctions\CasADiFunctions_Lars.m']);
+% open([pathRepo '\RunSim\PostProcess_SimulationFolder.m']);
+% open([pathRepo '\Plots\PlotResultsComparison_3DSim.m']);
+% open([pathRepo '\Plots\BatchPlotFigs.m']);
+% open([pathRepo '\VariousFunctions\ModelValidation.m']);
+% 
+% 
 
 
 

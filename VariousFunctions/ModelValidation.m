@@ -57,8 +57,8 @@ function [ccc] = ModelValidation(pathSimResults, pathExpData)
         s = size(sim);
         if(m == s)
         %rmse(i,:) = rsquare(mean,sim);
-        
-        [c,lags] = xcorr(mean,sim,50,'coeff');
+        %[c,lags] = xcorr(mean,sim,50);
+        [c,lags] = xcorr(mean,sim,50,'coeff');     % normalized
         lags_i = find(lags == 0);
         ccc.kinematics.atShift0(1,i) = c(lags_i);   % ccc at shift = 0
         ccc.kinematics.max(1,i) = max(c);      % max ccc
@@ -75,8 +75,8 @@ function [ccc] = ModelValidation(pathSimResults, pathExpData)
         s = size(sim);
         if(m == s)
         %rmse(i,:) = rsquare(mean,sim);
-        
-        [c,lags] = xcorr(mean,sim,50,'coeff');
+        %[c,lags] = xcorr(mean,sim,50);
+        [c,lags] = xcorr(mean,sim,50,'coeff');     % normalized
         lags_i = find(lags == 0);
         ccc.kinetics.atShift0(1,i) = c(lags_i);   % ccc at shift = 0
         ccc.kinetics.max(1,i) = max(c);      % max ccc
