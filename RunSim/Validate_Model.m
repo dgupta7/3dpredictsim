@@ -16,6 +16,12 @@ pathFig = [pathRepo,'/Figures/Test_Lars'];
 ResultsFile1 = fullfile(pathResults,'Test_Lars','Test1_bCst_no_pp.mat');
 ResultsFile2 = fullfile(pathResults,'Test_Lars','Test1_alphaCst_no_pp.mat');
 
+ResultsFile3 = fullfile(pathResults,'Test_Lars','Test1_bCst_pas_pp.mat');
+ResultsFile4 = fullfile(pathResults,'Test_Lars','Test1_alphaCst_pas_pp.mat');
+
+ResultsFile5 = fullfile(pathResults,'Test_Lars','Test1_bCst_exo_pp.mat');
+ResultsFile6 = fullfile(pathResults,'Test_Lars','Test1_alphaCst_exo_pp.mat');
+
 [ccc1] = ModelValidation(ResultsFile1, pathData);
 [ccc2] = ModelValidation(ResultsFile2, pathData);
 
@@ -100,6 +106,14 @@ addpath([pathRepo,'/Plots']);
 hh = figure(); 	% new figure with handle
 PlotResults_3DSim(ResultsFile1,[1 0 0],'b cst',hh);
 PlotResults_3DSim(ResultsFile2,[0 0 1],'alpha cst',hh);
+
+
+
+%%
+
+PlotResultsComparison_3DSim(ResultsFile1,ResultsFile2)
+PlotResultsComparison_3DSim(ResultsFile3,ResultsFile4)
+PlotResultsComparison_3DSim(ResultsFile5,ResultsFile6)
 
 
 

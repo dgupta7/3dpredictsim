@@ -59,14 +59,14 @@ S.savename      = 'Test1_bCst_no_v133';
 
 
 %% path to scripts, for easy access
-% 
-% open([pathRepo '\CasADiFunctions\CasADiFunctions_Lars.m']);
-% open([pathRepo '\RunSim\PostProcess_SimulationFolder.m']);
-% open([pathRepo '\Plots\PlotResultsComparison_3DSim.m']);
-% open([pathRepo '\Plots\BatchPlotFigs.m']);
-% open([pathRepo '\VariousFunctions\ModelValidation.m']);
-% 
-% 
+
+open([pathRepo '\CasADiFunctions\CasADiFunctions_Lars.m']);
+open([pathRepo '\RunSim\PostProcess_SimulationFolder.m']);
+open([pathRepo '\Plots\PlotResultsComparison_3DSim.m']);
+open([pathRepo '\Plots\BatchPlotFigs.m']);
+open([pathRepo '\VariousFunctions\ModelValidation.m']);
+open([pathRepo '\VariousFunctions\Validate_Model.m']);
+
 
 
 
