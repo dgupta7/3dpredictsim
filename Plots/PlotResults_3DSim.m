@@ -143,7 +143,7 @@ if exist(ResultsFile,'file')
             set(gca,'Fontsize',label_fontsize);
             title(joints_tit{idx_Qs(i)},'Fontsize',label_fontsize);
             % Y-axis
-            if i == 1 || i == 5 || i == 9 ||i == 13
+            if i == 1 || i == 7 || i == 13 
                 ylabel('Angle (°)','Fontsize',label_fontsize);
             end
             % X-axis
@@ -203,7 +203,7 @@ if exist(ResultsFile,'file')
             set(gca,'Fontsize',label_fontsize);
             title(joints_tit{idx_Qs(i)},'Fontsize',label_fontsize);
             % Y-axis
-            if i == 1 || i == 5 || i == 9 ||i == 13
+            if i == 1 || i == 7 ||i == 13
                 ylabel('Torque (Nm)','Fontsize',label_fontsize);
             end
             % X-axis

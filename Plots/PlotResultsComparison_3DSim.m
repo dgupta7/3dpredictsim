@@ -77,7 +77,7 @@ mVect = {'Glut med 1','Glut med 2','Glut med 3',...
         'Lat gas','Soleus','Tib post','Flex dig','Flex hal',...
         'Tib ant','Per brev','Per long','Per tert','Ext dig',...
         'Ext hal','Ercspn','Intobl','Extobl'};
-iM = [1:46];    
+iM = [47:92];    
     
     for i=1:size(iM,2)
         ii = rem(i,4)+1;
@@ -158,6 +158,7 @@ iM = [1:46];
         plot((R.lMtilde(:,iM(i))-lMtilde1(:,iM(i))),'-','Color',Cs); hold on; grid on;
         xlabel('% stride'); ylabel('\Delta Norm fiber length');
         
+        
          subplot(5,4,ii+8)
         plot((R.lMtilde(:,iM(i))-lMtilde1(:,iM(i)))./lMtilde1(:,iM(i)),'-','Color',Cs); hold on; grid on;
         xlabel('% stride'); ylabel('\delta Norm fiber length');
@@ -196,6 +197,10 @@ iM = [1:46];
         subplot(5,4,ii)
         plot(R.a(:,iM(i)),'-','Color',Cs); hold on;  title(mVect{i});
         xlabel('% stride'); ylabel('activity');
+        
+        if j==2 && ii==1
+           legend('b cst','alpha cst') 
+        end
         
         subplot(5,4,ii+12)
         plot(R.MetabB.Etot(:,iM(i)),'-','Color',Cs); hold on;

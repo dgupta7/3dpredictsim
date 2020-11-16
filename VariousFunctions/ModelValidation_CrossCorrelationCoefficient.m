@@ -1,4 +1,4 @@
-function [ccc] = ModelValidation(pathSimResults, pathExpData)
+function [ccc] = ModelValidation_CrossCorrelationCoefficient(pathSimResults, pathExpData)
 % returns a struct with information about the cross-correlation coefficient
 % of the simulation results and the mean measurement data
 
@@ -6,7 +6,7 @@ function [ccc] = ModelValidation(pathSimResults, pathExpData)
     %% load files   
     [path1,file1,~] = fileparts(pathSimResults);
     addpath(path1);
-    load(file1);
+    load(file1,'R');
         
     [path2,file2,~] = fileparts(pathExpData);
     addpath(path2);
