@@ -137,10 +137,10 @@ bounds.Qs.lower(jointi.mtp.l) = -0.5;
 bounds.Qs.upper(jointi.mtp.r) = 1.05;
 bounds.Qs.lower(jointi.mtp.r) = -0.5;
 % Tmt
-bounds.Qs.upper(jointi.tmt.l) = 1.05;
-bounds.Qs.lower(jointi.tmt.l) = -0.5;
-bounds.Qs.upper(jointi.tmt.r) = 1.05;
-bounds.Qs.lower(jointi.tmt.r) = -0.5;
+bounds.Qs.upper(jointi.tmt.l) = 15*pi/180;
+bounds.Qs.lower(jointi.tmt.l) = -15*pi/180;
+bounds.Qs.upper(jointi.tmt.r) = 15*pi/180;
+bounds.Qs.lower(jointi.tmt.r) = -15*pi/180;
 % Elbow
 bounds.Qs.lower(jointi.elb.l) = 0;
 bounds.Qs.lower(jointi.elb.r) = 0;

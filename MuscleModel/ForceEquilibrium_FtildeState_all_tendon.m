@@ -6,7 +6,13 @@
 % 
 function [err, FT, Fce, Fpass, Fiso, vMmax, massM] = ...
     ForceEquilibrium_FtildeState_all_tendon(a,fse,dfse,lMT,vMT,params,...
-    Fvparam,Fpparam,Faparam,tension,aTendon,shift,MuscMoAsmp)
+    Fvparam,Fpparam,Faparam,tension,aTendon,shift,varargin)
+
+if isempty(varargin)
+    MuscMoAsmp = 0;
+else
+    MuscMoAsmp = varargin{1};
+end
 
 FMo = ones(size(a,1),1)*params(1,:);
 lMo = ones(size(a,1),1)*params(2,:);

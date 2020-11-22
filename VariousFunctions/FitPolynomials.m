@@ -90,7 +90,39 @@ if Bool_RunMA
         
         % select coordinate names to run muscle analysis
         CoordNames = headers(IndexAngles);
-    end    
+        
+    elseif strcmp(ModelName,'Gait92_tmt')
+        % additional bounds for the lumbar joint
+        Bound_LumbExt = [-30 30];
+        Bound_LumbBend = [-30 30];
+        Bound_LumbRot = [-30 30];
+        Bound_tmt = [];
+        
+        % create the dummy motion
+        n=5000; p=10;
+        X = lhsdesign(n,p);
+        X_scale=[diff(Bound_hipflex) diff(Bound_hipadd ) diff(Bound_hiprot),...
+            diff(Bound_knee) diff(Bound_ankle) diff(Bound_subt) diff(Bound_tmt) diff(Bound_mtp),...
+            diff(Bound_LumbExt) diff(Bound_LumbBend) diff(Bound_LumbRot)];
+        X_min=[Bound_hipflex(1) Bound_hipadd(1) Bound_hiprot(1) Bound_knee(1),...
+            Bound_ankle(1) Bound_subt(1) Bound_tmt(1) Bound_mtp(1), Bound_LumbExt(1), ...
+            Bound_LumbBend(1), Bound_LumbRot(1)];
+        Angles=X.*(ones(n,1)*X_scale)+(ones(n,1)*X_min);
+%         IndexAngles = [7 8 9 10 11 12 13 21 22 23]+1; % +1 because of time vector
+        IndexAngles = [7 8 9 10 11 12 13 14 23 24 25]+1; % +1 because of time vector
+        
+        % path with dummy motion
+        time=(1:n)./100;
+        data=zeros(length(time),length(headers));
+        data(:,1)=time;
+        data(:,IndexAngles) = Angles;   % right leg
+        data(:,IndexAngles+8) = Angles; % left leg
+        pathDummyMotion = fullfile(SubjFolder,'dummy_motion.mot');
+        generateMotFile(data,headers,pathDummyMotion);
+        
+        % select coordinate names to run muscle analysis
+        CoordNames = headers(IndexAngles);
+    end  
     %Run a muscle analysis on the dummy motion
     disp('Muscle analysis running....');
     OpenSim_Muscle_Analysis(pathDummyMotion,Modelpath,MA_path,[time(1) time(end)],CoordNames);    

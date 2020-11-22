@@ -72,8 +72,8 @@ open([pathRepo '\VariousFunctions\solveFootmodelParameters.m']);
 open([pathRepo '\OCP\f_PredSim_Gait92_tmt.m']);
 open([pathRepo '\OCP\f_LoadSim_Gait92_tmt.m']);
 open([pathRepo '\Bounds\getBounds_all_tmt.m']);
-open([pathRepo '']);
-open([pathRepo '']);
-open([pathRepo '']);
-open([pathRepo '']);
+% open([pathRepo '']);
+% open([pathRepo '']);
+% open([pathRepo '']);
+% open([pathRepo '']);
 

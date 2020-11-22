@@ -1,85 +1,119 @@
-function [] = CreateCasadiFunctions(MainPath, ModelName, ModelPath, CasadiFunc_Folders,...
-    PolyFolder,Settings)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
-AddCasadiPaths();
+% This script contains several CasADi-based functions that are
+% used when solving the OCPs
+%
+% Author: Antoine Falisse
+% Date: 12/19/2018
+%
+
+clear all; close all; clc;
 import casadi.*
-
-addpath('D:\school\WTK\thesis\model\3dpredictsim\MuscleModel');
-
-if isfolder(fullfile(MainPath,'CasADiFunctions',CasadiFunc_Folders))
-    error(['Never changes the casadi functions in an existing folder,',...
-        'these functions are important to analyse optimization results',...
-        '(from the optimal states and controls. Please change the name of',...
-        ' the folder with casadifunctions']);
+ExtPoly = '_mtp';
+S.CasadiFunc_Folders = 'Casadi_s1Pog_mtp_Default';
+subject              = 's1_Poggensee';
+if isfolder(S.CasadiFunc_Folders)
+    error('Never changes the casadi functions in an existing folder, these functions are important to analyse optimization results (from the optimal states and controls');
 end
+pathRepo        = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim';
+nq.leg          = 10; % #joints needed for polynomials
+stiffnessArm = 0;
+dampingArm = 0.1;
+stiffnessMtp = 1.5/(pi/180)/5;
+dampingMtp = 0.5;
+% define general settings for default objective functions
+% By default, the tendon stiffness is 35 and the shift is 0.
+NMuscle = 92;
+aTendon = 35*ones(NMuscle,1);
+IndexCalf = [32 33 34 78 79 80];    % adjust stiffness of the calf muscles
+aTendon(IndexCalf) = 35;
+shift = getShift(aTendon);
+%% Indices external function
+% Indices of the elements in the external functions
+% External function: F
+% First, joint torques.
+jointi.pelvis.tilt  = 1;
+jointi.pelvis.list  = 2;
+jointi.pelvis.rot   = 3;
+jointi.pelvis.tx    = 4;
+jointi.pelvis.ty    = 5;
+jointi.pelvis.tz    = 6;
+jointi.hip_flex.l   = 7;
+jointi.hip_add.l    = 8;
+jointi.hip_rot.l    = 9;
+jointi.hip_flex.r   = 10;
+jointi.hip_add.r    = 11;
+jointi.hip_rot.r    = 12;
+jointi.knee.l       = 13;
+jointi.knee.r       = 14;
+jointi.ankle.l      = 15;
+jointi.ankle.r      = 16;
+jointi.subt.l       = 17;
+jointi.subt.r       = 18;
+jointi.mtp.l        = 19;
+jointi.mtp.r        = 20;
+jointi.trunk.ext    = 21;
+jointi.trunk.ben    = 22;
+jointi.trunk.rot    = 23;
+jointi.sh_flex.l    = 24;
+jointi.sh_add.l     = 25;
+jointi.sh_rot.l     = 26;
+jointi.sh_flex.r    = 27;
+jointi.sh_add.r     = 28;
+jointi.sh_rot.r     = 29;
+jointi.elb.l        = 30;
+jointi.elb.r        = 31;
+% Vectors of indices for later use
+residualsi          = jointi.pelvis.tilt:jointi.elb.r; % all
+ground_pelvisi      = jointi.pelvis.tilt:jointi.pelvis.tz; % ground-pelvis
+trunki              = jointi.trunk.ext:jointi.trunk.rot; % trunk
+armsi               = jointi.sh_flex.l:jointi.elb.r; % arms
+mtpi                = jointi.mtp.l:jointi.mtp.r; % mtps
+residuals_noarmsi   = jointi.pelvis.tilt:jointi.trunk.rot; % all but arms
+roti                = [jointi.pelvis.tilt:jointi.pelvis.rot,...
+    jointi.hip_flex.l:jointi.elb.r];
+% Number of degrees of freedom for later use
+nq.all      = length(residualsi); % all
+nq.abs      = length(ground_pelvisi); % ground-pelvis
+nq.trunk    = length(trunki); % trunk
+nq.arms     = length(armsi); % arms
+nq.mtp     = length(mtpi); % arms
+nq.leg      = 10; % #joints needed for polynomials
+% Second, origins bodies.
+% Calcaneus
+calcOr.r    = 32:33;
+calcOr.l    = 34:35;
+calcOr.all  = [calcOr.r,calcOr.l];
+NcalcOr     = length(calcOr.all);
+% Femurs
+femurOr.r   = 36:37;
+femurOr.l   = 38:39;
+femurOr.all = [femurOr.r,femurOr.l];
+NfemurOr    = length(femurOr.all);
+% Hands
+handOr.r    = 40:41;
+handOr.l    = 42:43;
+handOr.all  = [handOr.r,handOr.l];
+NhandOr     = length(handOr.all);
+% Tibias
+tibiaOr.r   = 44:45;
+tibiaOr.l   = 46:47;
+tibiaOr.all = [tibiaOr.r,tibiaOr.l];
+NtibiaOr    = length(tibiaOr.all);
+% External function: F1 (post-processing purpose only)
+% Ground reaction forces (GRFs)
+GRFi.r      = 32:34;
+GRFi.l      = 35:37;
+GRFi.all    = [GRFi.r,GRFi.l];
+NGRF        = length(GRFi.all);
+% Origins calcaneus (3D)
+calcOrall.r     = 38:40;
+calcOrall.l     = 41:43;
+calcOrall.all   = [calcOrall.r,calcOrall.l];
+NcalcOrall      = length(calcOrall.all);
 
-if isfield(Settings,'tmt') && ~isempty(Settings.tmt)
-    tmt = Settings.tmt;
-else
-    tmt = 0;
-end
 
-if isfield(Settings,'MuscModelAsmp') && ~isempty(Settings.MuscModelAsmp)
-    MuscMoAsmp = Settings.tmt;
-else
-    MuscMoAsmp = 0;
-end
-
-%% update settings structure with defaults
-if ~exist('Settings','var')
-    Settings.kTendon_CalfM = 20;        % Atendon of calf muscles
-    Settings.kMTP = 1.5/(pi/180)/5;     % stiffness mtp joint
-    Settings.dMTP = 0.5;                % damping mtp joint
-    
-    Settings.kTMT = 800;     % stiffness tmt joint
-    Settings.dTMT = 0.5;                % damping tmt joint
-    
-else
-    if ~isfield(Settings,'kTendon_CalfM')
-        Settings.kTendon_CalfM = 20;        % Atendon of calf muscles
-    end
-    if ~isfield(Settings,'kMTP')
-        Settings.kMTP = 1.5/(pi/180)/5;
-    end
-    if ~isfield(Settings,'dMTP')
-        Settings.dMTP = 0.5;
-    end
-    
-    if ~isfield(Settings,'kTMT')
-        Settings.kTMT = 800;
-    end
-    if ~isfield(Settings,'dTMT')
-        Settings.dTMT = 0.5;
-    end
-end
-
-
-%% specific settings depending on the model used
-
-if strcmp(ModelName,'Rajagopal')
-    % number of input dofs for polynomials
-    nq.leg          = 7; % #joints needed for polynomials
-    % number of muscles
-    NMuscle         = 80;
-    % names of the muscles
-    muscleNames = {'addbrev_r','addlong_r','addmagDist_r','addmagIsch_r','addmagMid_r','addmagProx_r',...
-    'bflh_r','bfsh_r','edl_r','ehl_r','fdl_r','fhl_r','gaslat_r','gasmed_r','glmax1_r','glmax2_r',...
-    'glmax3_r','glmed1_r','glmed2_r','glmed3_r','glmin1_r','glmin2_r','glmin3_r','grac_r','iliacus_r',...
-    'perbrev_r','perlong_r','piri_r','psoas_r','recfem_r','sart_r','semimem_r','semiten_r','soleus_r',...
-    'tfl_r','tibant_r','tibpost_r','vasint_r','vaslat_r','vasmed_r'};
-    % index of the calf muscles
-    IndexCalf = [13 14 34 13+10 14+40 34+40];
-    % indexes of muscles selected for casadifunctions (assuming symmetry
-    % on left and right side)    
-    iMuscle_unique = 1:length(muscleNames);
-elseif strcmp(ModelName,'Gait92')
-    % number of input dofs for polynomials
-    nq.leg          = 10;
-    % number of muscles
-    NMuscle         = 92;
-    % names of the muscles
-    muscleNames = {'glut_med1_r','glut_med2_r','glut_med3_r',...
+%% Muscle-tendon parameters
+% Muscles from one leg and from the back
+muscleNames = {'glut_med1_r','glut_med2_r','glut_med3_r',...
     'glut_min1_r','glut_min2_r','glut_min3_r','semimem_r',...
     'semiten_r','bifemlh_r','bifemsh_r','sar_r','add_long_r',...
     'add_brev_r','add_mag1_r','add_mag2_r','add_mag3_r','tfl_r',...
@@ -90,79 +124,56 @@ elseif strcmp(ModelName,'Gait92')
     'tib_ant_r','per_brev_r','per_long_r','per_tert_r','ext_dig_r',...
     'ext_hal_r','ercspn_r','intobl_r','extobl_r','ercspn_l',...
     'intobl_l','extobl_l'};
-    % index of the calf muscles
-    IndexCalf = [32 33 34 78 79 80];
-    % indexes of muscles selected for casadifunctions (assuming symmetry
-    % on left and right side)
-    iMuscle_unique = 1:length(muscleNames(1:end-3));    
-end
-
-%% User input settings
-stiffnessArm    = 0;
-dampingArm      = 0.1;
-
-% define general settings for default objective functions
-% By default, the tendon stiffness is 35 and the shift is 0.
-aTendon = 35*ones(NMuscle,1);
-aTendon(IndexCalf) = 20;
-shift = getShift(aTendon);
-
-%% Muscle-tendon parameters
+% Muscle indices for later use
+pathmusclemodel = fullfile(pathRepo,'MuscleModel',subject);
+addpath(genpath(pathmusclemodel));
 % (1:end-3), since we do not want to count twice the back muscles
-musi = iMuscle_unique;
+musi = MuscleIndices(muscleNames(1:end-3));
 % Total number of muscles
-NMuscle = length(musi)*2;
+NMuscle = length(muscleNames(1:end-3))*2;
 % Muscle-tendon parameters. Row 1: maximal isometric forces; Row 2: optimal
 % fiber lengths; Row 3: tendon slack lengths; Row 4: optimal pennation
 % angles; Row 5: maximal contraction velocities
-Mnames = DispMusclesOsimModel(ModelPath);
-muscleNames = Mnames(musi);
-% load('D:\school\WTK\thesis\model\3dpredictsim\MuscleModel\s1_Poggensee\MTparameters_s1_Poggensee_mtp.mat','MTparameters');
-MTparameters = ReadMuscleParameters(ModelPath,muscleNames);
+load([pathmusclemodel,'/MTparameters_',subject, ExtPoly, '.mat']);
 MTparameters_m = [MTparameters(:,musi),MTparameters(:,musi)];
+% Indices of the muscles actuating the different joints for later use
+pathpolynomial = fullfile(pathRepo,'Polynomials',subject);
+addpath(genpath(pathpolynomial));
+tl = load([pathpolynomial,'/muscle_spanning_joint_INFO_',subject,ExtPoly, '.mat']);
+[~,mai] = MomentArmIndices(muscleNames(1:end-3),...
+    tl.muscle_spanning_joint_INFO(1:end-3,:));
 
-%% Indices external function
-% Indices of the elements in the external functions
-% External function: F
-% First, joint torques.
-if tmt == 1
-    jointi = getJointi_tmt();
-else
-    jointi = getJointi();
-end
-% Vectors of indices for later use
-residualsi          = jointi.pelvis.tilt:jointi.elb.r; % all
-ground_pelvisi      = jointi.pelvis.tilt:jointi.pelvis.tz; % ground-pelvis
-trunki              = jointi.trunk.ext:jointi.trunk.rot; % trunk
-armsi               = jointi.sh_flex.l:jointi.elb.r; % arms
-mtpi                = jointi.mtp.l:jointi.mtp.r; % mtps
-% Number of degrees of freedom for later use
-nq.all      = length(residualsi); % all
-nq.abs      = length(ground_pelvisi); % ground-pelvis
-nq.trunk    = length(trunki); % trunk
-nq.arms     = length(armsi); % arms
-nq.mtp     = length(mtpi); % arms
-nq.leg      = 7; % #joints needed for polynomials
+% Parameters for activation dynamics
+tact = 0.015; % Activation time constant
+tdeact = 0.06; % Deactivation time constant
 
+%% Metabolic energy model parameters
+% We extract the specific tensions and slow twitch rations.
+pathMetabolicEnergy = [pathRepo,'/MetabolicEnergy'];
+addpath(genpath(pathMetabolicEnergy));
+% (1:end-3), since we do not want to count twice the back muscles
+tension = getSpecificTensions(muscleNames(1:end-3));
+tensions = [tension;tension];
+% (1:end-3), since we do not want to count twice the back muscles
+pctst = getSlowTwitchRatios(muscleNames(1:end-3));
+pctsts = [pctst;pctst];
+
+%% CasADi functions
+% We create several CasADi functions for later use
+pathCasADiFunctions = [pathRepo,'/CasADiFunctions'];
+addpath(genpath(pathCasADiFunctions));
+% We load some variables for the polynomial approximations
+load([pathpolynomial,'/muscle_spanning_joint_INFO_',subject,ExtPoly, '.mat']);
+load([pathpolynomial,'/MuscleInfo_',subject,ExtPoly,'.mat']);
+% For the polynomials, we want all independent muscles. So we do not need
+% the muscles from both legs, since we assume bilateral symmetry, but want
+% all muscles from the back (indices 47:49).
+musi_pol = [musi,47,48,49];
+NMuscle_pol = NMuscle/2+3;
 
 %% Polynomial approximation
-
-% load the polynomial approximations
-pathpolynomial = fullfile(MainPath,'Polynomials',PolyFolder);
-load([pathpolynomial,'/muscle_spanning_joint_INFO.mat'],...
-    'muscle_spanning_joint_INFO');
-load([pathpolynomial,'/MuscleInfo.mat'],...
-    'MuscleInfo');
-
-% Nuber of muscles with polynomial approx
-NMuscle_pol = length(musi);
-
-% get the indexes for the moment arms
-[~,mai] = MomentArmIndices(muscleNames,muscle_spanning_joint_INFO);
-
-% create casadi function to 
-muscle_spanning_info_m = muscle_spanning_joint_INFO(musi,:);
-MuscleInfo_m.muscle    = MuscleInfo.muscle(musi);
+muscle_spanning_info_m = muscle_spanning_joint_INFO(musi_pol,:);
+MuscleInfo_m.muscle    = MuscleInfo.muscle(musi_pol);
 qin     = SX.sym('qin',1,nq.leg);
 qdotin  = SX.sym('qdotin',1,nq.leg);
 lMT     = SX(NMuscle_pol,1);
@@ -220,14 +231,6 @@ for i=1:length(etemp92)
 end
 Jtemp92 = Jtemp92/92;
 f_J92 = Function('f_J92',{etemp92},{Jtemp92});
-% Function for 80 elements
-etemp80 = SX.sym('etemp80',80);
-Jtemp80 = 0;
-for i=1:length(etemp80)
-    Jtemp80 = Jtemp80 + etemp80(i).^2;
-end
-Jtemp80 = Jtemp80/80;
-f_J80 = Function('f_J80',{etemp80},{Jtemp80});
 % Function for 2 elements
 etemp2 = SX.sym('etemp2',2);
 Jtemp2 = 0;
@@ -236,34 +239,6 @@ for i=1:length(etemp2)
 end
 Jtemp2 = Jtemp2/2;
 f_J2 = Function('f_J2',{etemp2},{Jtemp2});
-
-% Function for 3 elements
-etemp3 = SX.sym('etemp3',3);
-Jtemp3 = 0;
-for i=1:length(etemp3)
-    Jtemp3 = Jtemp3 + etemp3(i).^2;
-end
-Jtemp3 = Jtemp3/3;
-f_J3 = Function('f_J3',{etemp3},{Jtemp3});
-
-% Function for 30 elements
-etemp30 = SX.sym('etemp30',30);
-Jtemp30 = 0;
-for i=1:length(etemp30)
-    Jtemp30 = Jtemp30 + etemp30(i).^2;
-end
-Jtemp30 = Jtemp30/30;
-f_J30 = Function('f_J30',{etemp30},{Jtemp30});
-
-% Function for 6 elements
-etemp6 = SX.sym('etemp6',6);
-Jtemp6 = 0;
-for i=1:length(etemp6)
-    Jtemp6 = Jtemp6 + etemp6(i).^2;
-end
-Jtemp6 = Jtemp6/6;
-f_J6 = Function('f_J6',{etemp6},{Jtemp6});
-
 
 %% Sum of squared values (non-normalized)
 % Function for 3 elements
@@ -291,15 +266,6 @@ for i=1:length(etemp92exp)
 end
 Jtemp92exp = Jtemp92exp/92;
 f_J92exp = Function('f_J92exp',{etemp92exp,expo},{Jtemp92exp});
-% Function for 80 elements
-etemp80exp  = SX.sym('etemp80exp',80);
-expo        = SX.sym('exp',1);
-Jtemp80exp = 0;
-for i=1:length(etemp80exp)
-    Jtemp80exp = Jtemp80exp + etemp80exp(i).^expo;
-end
-Jtemp80exp = Jtemp80exp/80;
-f_J80exp = Function('f_J80exp',{etemp80exp,expo},{Jtemp80exp});
 
 %% Sum of products
 % Function for 27 elements
@@ -335,89 +301,12 @@ for i=1:length(ma_temp6)
 end
 f_T6 = Function('f_T6',{ma_temp6,ft_temp6},{J_sptemp6});
 
-%% Sum of products for specific joints
-
-% Function for hip flexion
-nMus = length(mai(1).mus.l);
-dM = SX.sym('dM',nMus);
-Fmus = SX.sym('Fmus',nMus);
-Jtemp = 0;
-for i=1:length(dM)
-    Jtemp = Jtemp + dM(i,1)*Fmus(i,1);
-end
-f_THipFlex = Function('f_THipFlex',{dM,Fmus},{Jtemp},...
-    {'MomentArms','MuscleForce'},{'JointTorque'});
-
-% Function for hip adduction
-nMus = length(mai(2).mus.l);
-dM = SX.sym('dM',nMus);
-Fmus = SX.sym('Fmus',nMus);
-Jtemp = 0;
-for i=1:length(dM)
-    Jtemp = Jtemp + dM(i,1)*Fmus(i,1);
-end
-f_THipAdd= Function('f_THipAdd',{dM,Fmus},{Jtemp},...
-    {'MomentArms','MuscleForce'},{'JointTorque'});
-
-% Function for hip rotation
-nMus = length(mai(3).mus.l);
-dM = SX.sym('dM',nMus);
-Fmus = SX.sym('Fmus',nMus);
-Jtemp = 0;
-for i=1:length(dM)
-    Jtemp = Jtemp + dM(i,1)*Fmus(i,1);
-end
-f_THipRot= Function('f_THipRot',{dM,Fmus},{Jtemp},...
-    {'MomentArms','MuscleForce'},{'JointTorque'});
-
-% Function for knee angle
-nMus = length(mai(4).mus.l);
-dM = SX.sym('dM',nMus);
-Fmus = SX.sym('Fmus',nMus);
-Jtemp = 0;
-for i=1:length(dM)
-    Jtemp = Jtemp + dM(i,1)*Fmus(i,1);
-end
-f_TKnee= Function('f_TKnee',{dM,Fmus},{Jtemp},...
-    {'MomentArms','MuscleForce'},{'JointTorque'});
-
-% Function for ankle angle
-nMus = length(mai(5).mus.l);
-dM = SX.sym('dM',nMus);
-Fmus = SX.sym('Fmus',nMus);
-Jtemp = 0;
-for i=1:length(dM)
-    Jtemp = Jtemp + dM(i,1)*Fmus(i,1);
-end
-f_TAnkle= Function('f_TAnkle',{dM,Fmus},{Jtemp},...
-    {'MomentArms','MuscleForce'},{'JointTorque'});
-
-% Function for subtalar
-nMus = length(mai(6).mus.l);
-dM = SX.sym('dM',nMus);
-Fmus = SX.sym('Fmus',nMus);
-Jtemp = 0;
-for i=1:length(dM)
-    Jtemp = Jtemp + dM(i,1)*Fmus(i,1);
-end
-f_TSubt= Function('f_TSubt',{dM,Fmus},{Jtemp},...
-    {'MomentArms','MuscleForce'},{'JointTorque'});
-
-
 %% Arm activation dynamics
 e_a = SX.sym('e_a',nq.arms); % arm excitations
 a_a = SX.sym('a_a',nq.arms); % arm activations
 dadt = ArmActivationDynamics(e_a,a_a);
 f_ArmActivationDynamics = ...
     Function('f_ArmActivationDynamics',{e_a,a_a},{dadt},...
-    {'e','a'},{'dadt'});
-
-%% Lumbar activation dynamics
-e_a = SX.sym('e_a',nq.trunk); % arm excitations
-a_a = SX.sym('a_a',nq.trunk); % arm activations
-dadt = TrunkActivationDynamics(e_a,a_a);
-f_TrunkActivationDynamics = ...
-    Function('f_TrunkActivationDynamics',{e_a,a_a},{dadt},...
     {'e','a'},{'dadt'});
 
 %% Mtp activation dynamics
@@ -446,15 +335,14 @@ vMmax       = SX(NMuscle,1); % Maximum contraction velocities
 massM       = SX(NMuscle,1); % Muscle mass
 Fpass       = SX(NMuscle,1); % Passive element forces
 % Parameters of force-length-velocity curves
-load(fullfile(MainPath,'MuscleModel','Fvparam.mat'),'Fvparam');
-load(fullfile(MainPath,'MuscleModel','Fpparam.mat'),'Fpparam');
-load(fullfile(MainPath,'MuscleModel','Faparam.mat'),'Faparam');
-% Parameters of force-length-velocity curves
+load Fvparam
+load Fpparam
+load Faparam
 for m = 1:NMuscle
     [Hilldiff(m),FT(m),Fce(m),Fpass(m),Fiso(m),vMmax(m),massM(m)] = ...
         ForceEquilibrium_FtildeState_all_tendon(a(m),FTtilde(m),...
         dFTtilde(m),lMT(m),vMT(m),MTparameters_m(:,m),Fvparam,Fpparam,...
-        Faparam,tension_SX(m),aTendon(m),shift(m),MuscMoAsmp);
+        Faparam,tension_SX(m),aTendon(m),shift(m));
 end
 f_forceEquilibrium_FtildeState_all_tendon = ...
     Function('f_forceEquilibrium_FtildeState_all_tendon',{a,FTtilde,...
@@ -467,7 +355,7 @@ lM      = SX(NMuscle,1);
 lMtilde = SX(NMuscle,1);
 for m = 1:NMuscle
     [lM(m),lMtilde(m)] = FiberLength_TendonForce_tendon(FTtilde(m),...
-        MTparameters_m(:,m),lMT(m),aTendon(m),shift(m),MuscMoAsmp);
+        MTparameters_m(:,m),lMT(m),aTendon(m),shift(m));
 end
 f_FiberLength_TendonForce_tendon = Function(...
     'f_FiberLength_Ftilde_tendon',{FTtilde,lMT},{lM,lMtilde},...
@@ -478,7 +366,7 @@ vM      = SX(NMuscle,1);
 vMtilde = SX(NMuscle,1);
 for m = 1:NMuscle
     [vM(m),vMtilde(m)] = FiberVelocity_TendonForce_tendon(FTtilde(m),...
-        dFTtilde(m),MTparameters_m(:,m),lMT(m),vMT(m),aTendon(m),shift(m),MuscMoAsmp);
+        dFTtilde(m),MTparameters_m(:,m),lMT(m),vMT(m),aTendon(m),shift(m));
 end
 f_FiberVelocity_TendonForce_tendon = Function(...
     'f_FiberVelocity_Ftilde_tendon',{FTtilde,dFTtilde,lMT,vMT},...
@@ -511,12 +399,15 @@ f_passiveTATorques = Function('f_passiveTATorques',{stiff,damp,qin,qdotin}, ...
 act_SX          = SX.sym('act_SX',NMuscle,1); % Muscle activations
 exc_SX          = SX.sym('exc_SX',NMuscle,1); % Muscle excitations
 lMtilde_SX      = SX.sym('lMtilde_SX',NMuscle,1); % N muscle fiber lengths
+vMtilde_SX      = SX.sym('vMtilde_SX',NMuscle,1); % N muscle fiber vel
 vM_SX           = SX.sym('vM_SX',NMuscle,1); % Muscle fiber velocities
 Fce_SX          = SX.sym('FT_SX',NMuscle,1); % Contractile element forces
 Fpass_SX        = SX.sym('FT_SX',NMuscle,1); % Passive element forces
 Fiso_SX         = SX.sym('Fiso_SX',NMuscle,1); % N forces (F-L curve)
 musclemass_SX   = SX.sym('musclemass_SX',NMuscle,1); % Muscle mass
+vcemax_SX       = SX.sym('vcemax_SX',NMuscle,1); % Max contraction vel
 pctst_SX        = SX.sym('pctst_SX',NMuscle,1); % Slow twitch ratio
+Fmax_SX         = SX.sym('Fmax_SX',NMuscle,1); % Max iso forces
 modelmass_SX    = SX.sym('modelmass_SX',1); % Model mass
 b_SX            = SX.sym('b_SX',1); % Parameter determining tanh smoothness
 % Bhargava et al. (2004)
@@ -530,10 +421,44 @@ fgetMetabolicEnergySmooth2004all = ...
     pctst_SX,Fiso_SX,modelmass_SX,b_SX},{energy_total_sm_SX,...
     Adot_sm_SX,Mdot_sm_SX,Sdot_sm_SX,Wdot_sm_SX,energy_model_sm_SX});
 
+%% get scaling (based on experimental data)
+
+% We extract experimental data to set bounds and initial guesses if needed
+pathData = [pathRepo,'/OpenSimModel/',subject];
+joints = {'pelvis_tilt','pelvis_list','pelvis_rotation','pelvis_tx',...
+    'pelvis_ty','pelvis_tz','hip_flexion_l','hip_adduction_l',...
+    'hip_rotation_l','hip_flexion_r','hip_adduction_r','hip_rotation_r',...
+    'knee_angle_l','knee_angle_r','ankle_angle_l','ankle_angle_r',...
+    'subtalar_angle_l','subtalar_angle_r','mtp_angle_l','mtp_angle_r',...
+    'lumbar_extension','lumbar_bending','lumbar_rotation','arm_flex_l',...
+    'arm_add_l','arm_rot_l','arm_flex_r','arm_add_r','arm_rot_r',...
+    'elbow_flex_l','elbow_flex_r'};
+pathVariousFunctions = [pathRepo,'/VariousFunctions'];
+addpath(genpath(pathVariousFunctions));
+% Extract joint positions from average walking motion
+motion_walk         = 'walking';
+nametrial_walk.id   = ['average_',motion_walk,'_HGC_mtp'];
+nametrial_walk.IK   = ['IK_',nametrial_walk.id];
+pathIK_walk         = [pathData,'/IK/',nametrial_walk.IK,'.mat'];
+Qs_walk             = getIK(pathIK_walk,joints);
+
+
+%% Index helpers
+
+% indexes to select kinematics left and right leg
+IndexLeft = [jointi.hip_flex.l jointi.hip_add.l jointi.hip_rot.l, ...
+    jointi.knee.l jointi.ankle.l jointi.subt.l jointi.mtp.l,...
+    jointi.trunk.ext, jointi.trunk.ben, jointi.trunk.rot];
+IndexRight = [jointi.hip_flex.r jointi.hip_add.r jointi.hip_rot.r, ...
+    jointi.knee.r jointi.ankle.r jointi.subt.r jointi.mtp.r,...
+    jointi.trunk.ext, jointi.trunk.ben, jointi.trunk.rot];
 
 %% Passive joint torques
 % We extract the parameters for the passive torques of the lower limbs and
 % the trunk
+pathPassiveMoments = [pathRepo,'/PassiveMoments'];
+addpath(genpath(pathPassiveMoments));
+
 k_pass.hip.flex = [-2.44 5.05 1.51 -21.88]';
 theta.pass.hip.flex = [-0.6981 1.81]';
 k_pass.hip.add = [-0.03 14.94 0.03 -14.94]';
@@ -556,10 +481,11 @@ k_pass.trunk.rot = [-0.25 20.36 0.25 -20.36]';
 theta.pass.trunk.rot = [-0.3490658503988659 0.3490658503988659]';
 
 
-%% Create function to compute passive moments
+%% Create function to compue passive moments
 
 Q_SX =  SX.sym('Q_SX',nq.all,1); % Muscle activations
 Qdot_SX = SX.sym('Q_SX',nq.all,1); % Muscle activations
+
 
 % Get passive joint torques
 Tau_passj.hip.flex.l    = f_PassiveMoments(k_pass.hip.flex,...
@@ -628,29 +554,12 @@ Tau_passj.arm = [Tau_passj.sh_flex.l, Tau_passj.sh_add.l, ...
     Tau_passj.sh_rot.l, Tau_passj.sh_flex.r, Tau_passj.sh_add.r, ...
     Tau_passj.sh_rot.r, Tau_passj.elb.l, Tau_passj.elb.r];
 
-Tau_passj.mtp.l = f_passiveTATorques(Settings.kMTP, Settings.dMTP, ...
+Tau_passj.mtp.l = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
     Q_SX(jointi.mtp.l), Qdot_SX(jointi.mtp.l));
-Tau_passj.mtp.r = f_passiveTATorques(Settings.kMTP, Settings.dMTP, ...
+Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
     Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r));
 Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
 
-% Assume linear stiffness for now (according to DOI: 10.1109/ROBIO.2011.6181517), will likely extend into nonlinear later
-Tau_passj.tmt.l = f_passiveTATorques(Settings.kTMT, Settings.dTMT, ...
-    Q_SX(jointi.tmt.l), Qdot_SX(jointi.tmt.l));
-Tau_passj.tmt.r = f_passiveTATorques(Settings.kTMT, Settings.dTMT, ...
-    Q_SX(jointi.tmt.r), Qdot_SX(jointi.tmt.l));
-
-
-if tmt == 1
-Tau_passj_all = [Tau_passj.hip.flex.l,Tau_passj.hip.flex.r,...
-    Tau_passj.hip.add.l,Tau_passj.hip.add.r,...
-    Tau_passj.hip.rot.l,Tau_passj.hip.rot.r,...
-    Tau_passj.knee.l,Tau_passj.knee.r,Tau_passj.ankle.l,...
-    Tau_passj.ankle.r,Tau_passj.subt.l,Tau_passj.subt.r,...
-    Tau_passj.tmt.l,Tau_passj.tmt.r,...
-    Tau_passj.mtp.all,Tau_passj.trunk.ext,Tau_passj.trunk.ben,...
-    Tau_passj.trunk.rot,Tau_passj.arm]';
-else
 Tau_passj_all = [Tau_passj.hip.flex.l,Tau_passj.hip.flex.r,...
     Tau_passj.hip.add.l,Tau_passj.hip.add.r,...
     Tau_passj.hip.rot.l,Tau_passj.hip.rot.r,...
@@ -658,34 +567,30 @@ Tau_passj_all = [Tau_passj.hip.flex.l,Tau_passj.hip.flex.r,...
     Tau_passj.ankle.r,Tau_passj.subt.l,Tau_passj.subt.r,...
     Tau_passj.mtp.all,Tau_passj.trunk.ext,Tau_passj.trunk.ben,...
     Tau_passj.trunk.rot,Tau_passj.arm]';
-end
+
 f_AllPassiveTorques = Function('f_AllPassiveTorques',{Q_SX,Qdot_SX}, ...
     {Tau_passj_all},{'Q_SX','Qdot_SX'},{'Tau_passj_all'});
 
 %% save all the casadifunctions
 
-OutPath = fullfile(MainPath,'CasADiFunctions',CasadiFunc_Folders);
+OutPath = fullfile(pwd,S.CasadiFunc_Folders);
 if ~isfolder(OutPath)
     mkdir(OutPath);
 end
 
 % save functions
+% f_coll.save(fullfile(OutPath,'f_coll'));
 f_ArmActivationDynamics.save(fullfile(OutPath,'f_ArmActivationDynamics'));
 f_FiberLength_TendonForce_tendon.save(fullfile(OutPath,'f_FiberLength_TendonForce_tendon'));
 f_FiberVelocity_TendonForce_tendon.save(fullfile(OutPath,'f_FiberVelocity_TendonForce_tendon'));
 f_forceEquilibrium_FtildeState_all_tendon.save(fullfile(OutPath,'f_forceEquilibrium_FtildeState_all_tendon'));
 f_J2.save(fullfile(OutPath,'f_J2'));
-f_TrunkActivationDynamics.save(fullfile(OutPath,'f_TrunkActivationDynamics'));
-f_J6.save(fullfile(OutPath,'f_J6'));
-f_J30.save(fullfile(OutPath,'f_J30'));
-f_J3.save(fullfile(OutPath,'f_J3'));
+
 f_J23.save(fullfile(OutPath,'f_J23'));
 f_J25.save(fullfile(OutPath,'f_J25'));
 f_J8.save(fullfile(OutPath,'f_J8'));
 f_J92.save(fullfile(OutPath,'f_J92'));
-f_J80.save(fullfile(OutPath,'f_J80'));
 f_J92exp.save(fullfile(OutPath,'f_J92exp'));
-f_J80exp.save(fullfile(OutPath,'f_J80exp'));
 f_Jnn2.save(fullfile(OutPath,'f_Jnn2'));
 f_Jnn3.save(fullfile(OutPath,'f_Jnn3'));
 f_lMT_vMT_dM.save(fullfile(OutPath,'f_lMT_vMT_dM'));
@@ -698,21 +603,12 @@ f_T27.save(fullfile(OutPath,'f_T27'));
 f_T6.save(fullfile(OutPath,'f_T6'));
 f_AllPassiveTorques.save(fullfile(OutPath,'f_AllPassiveTorques'));
 fgetMetabolicEnergySmooth2004all.save(fullfile(OutPath,'fgetMetabolicEnergySmooth2004all'));
-f_THipFlex.save(fullfile(OutPath,'f_ThipFlex'));
-f_THipAdd.save(fullfile(OutPath,'f_ThipAdd'));
-f_THipRot.save(fullfile(OutPath,'f_ThipRot'));
-f_TKnee.save(fullfile(OutPath,'f_TKnee'));
-f_TAnkle.save(fullfile(OutPath,'f_TAnkle'));
-f_TSubt.save(fullfile(OutPath,'f_TSubt'));
 
 %% Function to compute muscle mass
-BoolRajagopal = 1;
-[MassM] = GetMuscleMass(muscleNames,MTparameters_m,BoolRajagopal);
+[MassM] = GetMuscleMass(muscleNames,MTparameters_m);
 save(fullfile(OutPath,'MassM.mat'),'MassM');
 
-%% save the muscle-tendon parameters
-save(fullfile(OutPath,'MTparameters.mat'),'MTparameters');
-
-
-end
-
+%% save default setup structure
+% save default setup structure to verify this in the main function part
+SDefault = S;
+save('SDefault.mat','SDefault');

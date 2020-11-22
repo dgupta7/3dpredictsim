@@ -5,8 +5,13 @@
 % Date: 12/19/2018
 % 
 function [vM,vMtilde] = FiberVelocity_TendonForce_tendon(FTtile,...
-    dFTtilde,params,lMT,vMT,Atendon,shift,MuscMoAsmp)
+    dFTtilde,params,lMT,vMT,Atendon,shift,varargin)
 
+if isempty(varargin)
+    MuscMoAsmp = 0;
+else
+    MuscMoAsmp = varargin{1};
+end
 
 lMo = ones(size(FTtile,1),1)*params(2,:);
 lTs = ones(size(FTtile,1),1)*params(3,:);

@@ -136,7 +136,7 @@ system(TextCommand);
 %% Copy the .dll files to your predictive simulation folder
 
 if ~exist(fullfile(DllPath,[Name '.dll']),'file')
-    copyfile(fullfile(PathExtFunc,Name,'build','RelWithDebInfo',[Name '.dll ']),DllPath]);
+    copyfile(fullfile(PathExtFunc,Name,'build','RelWithDebInfo',[Name '.dll ']),DllPath);
 else
     disp(['cannot copy file ' Name '.dll because this is already in your external function folder ', ...
         DllPath]);

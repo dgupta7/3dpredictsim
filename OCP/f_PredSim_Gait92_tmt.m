@@ -31,7 +31,7 @@ cd(pathmain);
 % Indices of the elements in the external functions
 % External function: F
 % First, joint torques.
-jointi = getJointi();
+jointi = getJointi_tmt();
 
 % Vectors of indices for later use
 residualsi          = jointi.pelvis.tilt:jointi.elb.r; % all
@@ -47,26 +47,26 @@ nq.trunk    = length(trunki); % trunk
 nq.arms     = length(armsi); % arms
 nq.mtp      = length(mtpi); % arms
 nq.leg      = 10; % #joints needed for polynomials
-% Second, origins bodies.
+% Second, origins bodies. %33 states, so starts at 34
 % Calcaneus
-calcOr.r    = 32:33;
-calcOr.l    = 34:35;
+calcOr.r    = 34:35;
+calcOr.l    = 36:37;
 calcOr.all  = [calcOr.r,calcOr.l];
 % Femurs
-femurOr.r   = 36:37;
-femurOr.l   = 38:39;
+femurOr.r   = 38:39;
+femurOr.l   = 40:41;
 femurOr.all = [femurOr.r,femurOr.l];
 % Hands
-handOr.r    = 40:41;
-handOr.l    = 42:43;
+handOr.r    = 42:43;
+handOr.l    = 44:45;
 handOr.all  = [handOr.r,handOr.l];
 % Tibias
-tibiaOr.r   = 44:45;
-tibiaOr.l   = 46:47;
+tibiaOr.r   = 46:47;
+tibiaOr.l   = 48:4;
 tibiaOr.all = [tibiaOr.r,tibiaOr.l];
 % toe joints
-toesOr.r   = 48:49;
-toesOr.l   = 50:51;
+toesOr.r   = 50:51;
+toesOr.l   = 52:53;
 toesOr.all = [toesOr.r,toesOr.l];
 
 %% Collocation scheme
@@ -457,8 +457,9 @@ for j=1:d
     Tau_passj.ankle.r = Tau_passj_all(10);
     Tau_passj.subt.l = Tau_passj_all(11);
     Tau_passj.subt.r = Tau_passj_all(12);
-    Tau_passj.mtp.all = Tau_passj_all(13:14);
-    Tau_passj.tmt.all = Tau_passj_all(15:16);
+    Tau_passj.tmt.l = Tau_passj_all(13);
+    Tau_passj.tmt.r = Tau_passj_all(14);
+    Tau_passj.mtp.all = Tau_passj_all(15:16);
     Tau_passj.trunk.ext = Tau_passj_all(17);
     Tau_passj.trunk.ben = Tau_passj_all(17);
     Tau_passj.trunk.rot = Tau_passj_all(19);
@@ -588,6 +589,11 @@ for j=1:d
     % Mtp
     eq_constr{end+1} = Tj(mtpi,1)/scaling.MtpTau - (a_mtpkj(:,j+1) + ...
         (Tau_passj.mtp.all)/scaling.MtpTau);
+    % Tmt, left
+    eq_constr{end+1} = Tj(jointi.tmt.l,1) - Tau_passj.tmt.l;
+    % Tmt, right
+    eq_constr{end+1} = Tj(jointi.tmt.r,1) - Tau_passj.tmt.r;
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Activation dynamics (implicit formulation)
     act1 = vAk_nsc + akj(:,j+1)./(ones(size(akj(:,j+1),1),1)*tdeact);
