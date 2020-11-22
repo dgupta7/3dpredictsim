@@ -2,7 +2,7 @@ function [] = CreateCasadiFunctions(MainPath, ModelName, ModelPath, CasadiFunc_F
     PolyFolder,Settings)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
-AddCasadiPaths();
+
 import casadi.*
 
 addpath('D:\school\WTK\thesis\model\3dpredictsim\MuscleModel');

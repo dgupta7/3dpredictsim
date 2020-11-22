@@ -9,7 +9,7 @@ MainPath = 'D:\school\WTK\thesis\model\3dpredictsim';
 addpath(fullfile(MainPath,'\VariousFunctions'));
 addpath(fullfile(MainPath,'\CasADiFunctions'));
 addpath(fullfile(MainPath,'\Polynomials'));
-addpath(genpath('D:\software\doxygen'));
+AddCasadiPaths();
 
 % settings:
 % Folder to save the polynomials
@@ -53,8 +53,8 @@ Bool_RunMA = 0; % Boolean to select if we have to run the muscle analysis
 %% 2: Create Casadifunctions
 
 % create casadi functions for equations in optimiztion problem
-CreateCasadiFunctions(MainPath, S.ModelName, S.ModelPath, S.CasadiFunc_Folders,...
-    S.PolyFolder,SettingsCasFunc);
+% CreateCasadiFunctions(MainPath, S.ModelName, S.ModelPath, S.CasadiFunc_Folders,...
+%     S.PolyFolder,SettingsCasFunc);
 
 %% 3: Create .dll files if needed
 
@@ -64,8 +64,8 @@ CreateCasadiFunctions(MainPath, S.ModelName, S.ModelPath, S.CasadiFunc_Folders,.
 
 
 % create the .dll file automatically to solve the NLP
-[CppDir,Name,~] = fileparts(S.CppFile_NLP);
-CreateDllFileFromCpp(CppDir,Name,OsimSource,OsimBuild,DllPath,ExtFuncs,VSinstall,S.CppFile_nInput);
+% [CppDir,Name,~] = fileparts(S.CppFile_NLP);
+% CreateDllFileFromCpp(CppDir,Name,OsimSource,OsimBuild,DllPath,ExtFuncs,VSinstall,S.CppFile_nInput);
 
 % create the .dll file automatically for postprocessing
 [CppDir,Name,~] = fileparts(S.CppFile_pp);
