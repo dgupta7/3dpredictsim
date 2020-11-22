@@ -60,7 +60,7 @@ fclose(fid);
 % Win64"
 disp('... running cmake to update opensim build');
 cd(OsimBuild);
-TextCommand = ['cmake ' OsimSource ' -G "Visual Studio 14 2015 Win64"'];
+TextCommand = ['cmake ' OsimSource ' -G "Visual Studio 14 2015"'];
 system(TextCommand);
 
 % or run it automatically using devnenv
