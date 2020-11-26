@@ -142,7 +142,7 @@ nq.abs      = length(ground_pelvisi); % ground-pelvis
 nq.trunk    = length(trunki); % trunk
 nq.arms     = length(armsi); % arms
 nq.mtp     = length(mtpi); % arms
-nq.leg      = 7; % #joints needed for polynomials
+% nq.leg      = 7; % #joints needed for polynomials
 
 
 %% Polynomial approximation
@@ -155,14 +155,15 @@ load([pathpolynomial,'/MuscleInfo.mat'],...
     'MuscleInfo');
 
 % Nuber of muscles with polynomial approx
-NMuscle_pol = length(musi);
+musi_pol = [musi,47,48,49];
+NMuscle_pol = length(musi_pol);
 
 % get the indexes for the moment arms
 [~,mai] = MomentArmIndices(muscleNames,muscle_spanning_joint_INFO);
 
 % create casadi function to 
-muscle_spanning_info_m = muscle_spanning_joint_INFO(musi,:);
-MuscleInfo_m.muscle    = MuscleInfo.muscle(musi);
+muscle_spanning_info_m = muscle_spanning_joint_INFO(musi_pol,:);
+MuscleInfo_m.muscle    = MuscleInfo.muscle(musi_pol);
 qin     = SX.sym('qin',1,nq.leg);
 qdotin  = SX.sym('qdotin',1,nq.leg);
 lMT     = SX(NMuscle_pol,1);
@@ -634,14 +635,14 @@ Tau_passj.mtp.r = f_passiveTATorques(Settings.kMTP, Settings.dMTP, ...
     Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r));
 Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
 
+
+if tmt == 1
 % Assume linear stiffness for now (according to DOI: 10.1109/ROBIO.2011.6181517), will likely extend into nonlinear later
 Tau_passj.tmt.l = f_passiveTATorques(Settings.kTMT, Settings.dTMT, ...
     Q_SX(jointi.tmt.l), Qdot_SX(jointi.tmt.l));
 Tau_passj.tmt.r = f_passiveTATorques(Settings.kTMT, Settings.dTMT, ...
-    Q_SX(jointi.tmt.r), Qdot_SX(jointi.tmt.l));
+    Q_SX(jointi.tmt.r), Qdot_SX(jointi.tmt.r));
 
-
-if tmt == 1
 Tau_passj_all = [Tau_passj.hip.flex.l,Tau_passj.hip.flex.r,...
     Tau_passj.hip.add.l,Tau_passj.hip.add.r,...
     Tau_passj.hip.rot.l,Tau_passj.hip.rot.r,...

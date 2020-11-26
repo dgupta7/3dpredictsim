@@ -189,8 +189,8 @@ int F_generic(const T** arg, T** res) {
 	//calcn_r = new OpenSim::Body("calcn_r", 0.9688202167589921, Vec3(0.0913924, 0.0274177, 0), Inertia(0.000906321, 0.00252475, 0.00265422, 0, 0, 0));
 	calcn_l = new OpenSim::Body("calcn_l", 0.625241534065349, Vec3(0.066907031412174, 0.033043440839674, 2.064106263057383e-04), Inertia(6.670471633986739e-04, 8.494673219871866e-04, 0.001011813716159, 0, 0, 0));
 	calcn_r = new OpenSim::Body("calcn_r", 0.625241534065349, Vec3(0.066907031412174, 0.033043440839674, -2.064106263057383e-04), Inertia(6.670471633986739e-04, 8.494673219871866e-04, 0.001011813716159, 0, 0, 0));
-	metatarsi_l = new OpenSim::Body("metatarsi_l", 0.343578682693644, Vec3(0.027675743715505, -0.018380814192906, 0.000077084485412), Inertia(1.834e-4, 6.182e-4, 5.296e-4, 0, 0, 0));
-	metatarsi_r = new OpenSim::Body("metatarsi_r", 0.343578682693644, Vec3(0.027675743715505, -0.018380814192906, -0.000077084485412), Inertia(1.834e-4, 6.182e-4, 5.296e-4, 0, 0, 0));
+	metatarsi_l = new OpenSim::Body("metatarsi_l", 0.343578682693644, Vec3(0.027675743715505, -0.018380814192906, 0.000077084485412), Inertia(1.834e-04, 6.182e-04, 5.296e-04, 0, 0, 0));
+	metatarsi_r = new OpenSim::Body("metatarsi_r", 0.343578682693644, Vec3(0.027675743715505, -0.018380814192906, -0.000077084485412), Inertia(1.834e-04, 6.182e-04, 5.296e-04, 0, 0, 0));
 	toes_l = new OpenSim::Body("toes_l", 0.16787716715999804, Vec3(0.0316218, 0.00548355, 0.0159937), Inertia(6.2714132461258e-005, 0.000125428264922516, 6.2714132461258e-005, 0, 0, 0));
 	toes_r = new OpenSim::Body("toes_r", 0.16787716715999804, Vec3(0.0316218, 0.00548355, -0.0159937), Inertia(6.2714132461258e-005, 0.000125428264922516, 6.2714132461258e-005, 0, 0, 0));
 	torso = new OpenSim::Body("torso", 26.535288186472687, Vec3(-0.0267603, 0.306505, 0), Inertia(1.10388, 0.507805, 1.10388, 0, 0, 0));
@@ -341,7 +341,7 @@ int F_generic(const T** arg, T** res) {
 	subtalar_r = new CustomJoint("subtalar_r", *talus_r, Vec3(-0.044572100000000003, -0.038339100000000001, 0.0072382799999999997), Vec3(0), *calcn_r, Vec3(0), Vec3(0), st_subtalar_r);
 	tmt_l = new PinJoint("tmt_l", *calcn_l, Vec3(0.108274919614407, 0.035560839360244, -0.000452708769279), Vec3(0), *metatarsi_l, Vec3(0), Vec3(0));
 	tmt_r = new PinJoint("tmt_r", *calcn_r, Vec3(0.108274919614407, 0.035560839360244, 0.000452708769279), Vec3(0), *metatarsi_r, Vec3(0), Vec3(0));
-	mtp_l = new PinJoint("mtp_l", *metatarsi_l, Vec3(0.055134759159792, -0.037388688116107, -0.000534329558887), Vec3(0), *toes_r, Vec3(0), Vec3(0));
+	mtp_l = new PinJoint("mtp_l", *metatarsi_l, Vec3(0.055134759159792, -0.037388688116107, -0.000534329558887), Vec3(0), *toes_l, Vec3(0), Vec3(0));
 	mtp_r = new PinJoint("mtp_r", *metatarsi_r, Vec3(0.055134759159792, -0.037388688116107, 0.000534329558887), Vec3(0), *toes_r, Vec3(0), Vec3(0));
 	back = new CustomJoint("back", *pelvis, Vec3(-0.093338312405799553, 0.075541935477359282, 0), Vec3(0), *torso, Vec3(0), Vec3(0), st_back);
 	shoulder_l = new CustomJoint("shoulder_l", *torso, Vec3(0.0029380855493219699, 0.37148545291063978, -0.1583124585136152), Vec3(0), *humerus_l, Vec3(0), Vec3(0), st_sho_l);

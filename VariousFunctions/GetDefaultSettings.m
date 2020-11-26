@@ -205,14 +205,33 @@ if ~isfield(S,'ModelName')
     S.ModelName = 'Gait92';
 end
 
+% model has tarsometatarsal joint?
+if ~isfield(S,'tmt')
+    S.tmt = 0;
+end
+
+% tarsometatarsal joint locked?
+if ~isfield(S,'tmt_locked')
+    S.tmt_locked = 1;
+end
+
+
 % default IK file to determine bounds
 if ~isfield(S,'IKfile_Bounds')
-    S.IKfile_Bounds = 'OpenSimModel\IK_Bounds_Default.mat';
+    if S.tmt == 0
+        S.IKfile_Bounds = 'OpenSimModel\IK_Bounds_Default.mat';
+    else
+        S.IKfile_Bounds = 'OpenSimModel\IK_Bounds_Default_tmt.mat';
+    end
 end
 
 % default IK file for initial guess (when used data-informed guess)
 if ~isfield(S,'S.IKfile_guess')
-    S.IKfile_guess = 'OpenSimModel\IK_Guess_Default.mat';
+    if S.tmt == 0
+        S.IKfile_guess = 'OpenSimModel\IK_Guess_Default.mat';
+    else
+        S.IKfile_guess = 'OpenSimModel\IK_Guess_Default_tmt.mat';
+    end
 end
 
 % path with exoskeleton torque profile

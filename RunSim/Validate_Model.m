@@ -188,7 +188,7 @@ PlotResults_3DSim(ResultsFile6,[0 0 1],'alpha cst (exo)',hh3);
 
 %% Plot absolute and relative difference of simulation wrt mean measurement
 
-% PlotResultsComparison_3DSim(ResultsFile1,ResultsFile2)
+PlotResultsComparison_3DSim(ResultsFile1,ResultsFile2)
 % PlotResultsComparison_3DSim(ResultsFile3,ResultsFile4)
 % PlotResultsComparison_3DSim(ResultsFile5,ResultsFile6)
 

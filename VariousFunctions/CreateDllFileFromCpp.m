@@ -127,7 +127,7 @@ disp('... Build and install external func project in visual studio ');
 cd(ExeDevPath);
 
 % Build and install project in visual studio
-ExtFunc_Build = fullfile(ExtFuncPath,Name,'build');
+ExtFunc_Build = fullfile(ExtFuncs,Name,'build');
 TextCommand = ['devenv.exe ' ExtFunc_Build '\' Name '.sln /Build ' 'RelWithDebInfo ' '/Project ALL_BUILD' ];
 system(TextCommand);
 TextCommand = ['devenv.exe ' ExtFunc_Build '\' Name '.sln /Build ' 'RelWithDebInfo ' '/Project INSTALL' ];
@@ -136,7 +136,7 @@ system(TextCommand);
 %% Copy the .dll files to your predictive simulation folder
 
 if ~exist(fullfile(DllPath,[Name '.dll']),'file')
-    copyfile(fullfile(ExtFuncPath,Name,'build','RelWithDebInfo',[Name '.dll ']),DllPath);
+    copyfile(fullfile(ExtFuncs,Name,'build','RelWithDebInfo',[Name '.dll ']),DllPath);
 else
     disp(['cannot copy file ' Name '.dll because this is already in your external function folder ', ...
         DllPath]);

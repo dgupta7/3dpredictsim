@@ -96,7 +96,7 @@ if Bool_RunMA
         Bound_LumbExt = [-30 30];
         Bound_LumbBend = [-30 30];
         Bound_LumbRot = [-30 30];
-        Bound_tmt = [];
+        Bound_tmt = [-15 15];
         
         % create the dummy motion
         n=5000; p=10;
@@ -108,8 +108,8 @@ if Bool_RunMA
             Bound_ankle(1) Bound_subt(1) Bound_tmt(1) Bound_mtp(1), Bound_LumbExt(1), ...
             Bound_LumbBend(1), Bound_LumbRot(1)];
         Angles=X.*(ones(n,1)*X_scale)+(ones(n,1)*X_min);
-%         IndexAngles = [7 8 9 10 11 12 13 21 22 23]+1; % +1 because of time vector
-        IndexAngles = [7 8 9 10 11 12 13 14 23 24 25]+1; % +1 because of time vector
+        IndexAngles = [7 8 9 10 11 12 13 21 22 23]+1; % +1 because of time vector
+%         IndexAngles = [7 8 9 10 11 12 13 14 22 23 24]+1; % +1 because of time vector
         
         % path with dummy motion
         time=(1:n)./100;
@@ -117,7 +117,7 @@ if Bool_RunMA
         data(:,1)=time;
         data(:,IndexAngles) = Angles;   % right leg
         data(:,IndexAngles+8) = Angles; % left leg
-        pathDummyMotion = fullfile(SubjFolder,'dummy_motion.mot');
+        pathDummyMotion = fullfile(SubjFolder,'dummy_motion_tmt.mot');
         generateMotFile(data,headers,pathDummyMotion);
         
         % select coordinate names to run muscle analysis
@@ -236,8 +236,53 @@ elseif strcmp(ModelName,'Gait92')
     save(fullfile(SubjFolder,'MuscleData.mat'),'MuscleData')
     save(fullfile(SubjFolder,'muscle_spanning_joint_INFO.mat'),'muscle_spanning_joint_INFO')
     save(fullfile(SubjFolder,'MuscleInfo.mat'),'MuscleInfo');
-end
+    
 
+elseif strcmp(ModelName,'Gait92_tmt')
+    name_dummymotion = 'dummy_motion_tmt.mot';
+    dummy_motion = importdata([path_dummymotion,name_dummymotion]);
+    % Order of dofs: hip flex r, hip add r, hip rot r, knee flex r, ankle flex
+    % r, hip flex l, hip add l, hip rot l, knee flex l, ankle flex l, lumbar
+    % ext, lumbar bend, lumbar rot, subtalar r, subtalar l, mtp_r, mtp_l
+    order_Qs = [5:9,18,20,15:17];
+    q = dummy_motion.data(:,order_Qs).*(pi/180);
+    
+    MuscleData.dof_names = dummy_motion.colheaders(order_Qs);
+    muscleNames = {'glut_med1_r','glut_med2_r','glut_med3_r',...
+        'glut_min1_r','glut_min2_r','glut_min3_r','semimem_r',...
+        'semiten_r','bifemlh_r','bifemsh_r','sar_r','add_long_r',...
+        'add_brev_r','add_mag1_r','add_mag2_r','add_mag3_r','tfl_r',...
+        'pect_r','grac_r','glut_max1_r','glut_max2_r','glut_max3_r',......
+        'iliacus_r','psoas_r','quad_fem_r','gem_r','peri_r',...
+        'rect_fem_r','vas_med_r','vas_int_r','vas_lat_r','med_gas_r',...
+        'lat_gas_r','soleus_r','tib_post_r','flex_dig_r','flex_hal_r',...
+        'tib_ant_r','per_brev_r','per_long_r','per_tert_r','ext_dig_r',...
+        'ext_hal_r','ercspn_r','intobl_r','extobl_r','ercspn_l',...
+        'intobl_l','extobl_l'};
+    MuscleData.muscle_names = muscleNames;
+    for m = 1:length(muscleNames)
+        MuscleData.lMT(:,m)     = lMT.data(:,strcmp(lMT.colheaders,muscleNames{m}));            % lMT
+        MuscleData.dM(:,m,1)    = MA.hip.flex.data(:,strcmp(lMT.colheaders,muscleNames{m}));    % hip_flex
+        MuscleData.dM(:,m,2)    = MA.hip.add.data(:,strcmp(lMT.colheaders,muscleNames{m}));     % hip_add
+        MuscleData.dM(:,m,3)    = MA.hip.rot.data(:,strcmp(lMT.colheaders,muscleNames{m}));     % hip_rot
+        MuscleData.dM(:,m,4)    = MA.knee.flex.data(:,strcmp(lMT.colheaders,muscleNames{m}));   % knee
+        MuscleData.dM(:,m,5)    = MA.ankle.flex.data(:,strcmp(lMT.colheaders,muscleNames{m}));  % ankle
+        MuscleData.dM(:,m,6)    = MA.sub.data(:,strcmp(lMT.colheaders,muscleNames{m}));         % sub
+        MuscleData.dM(:,m,7)    = MA.mtp.data(:,strcmp(lMT.colheaders,muscleNames{m}));         % mtp
+        MuscleData.dM(:,m,8)    = MA.trunk.ext.data(:,strcmp(lMT.colheaders,muscleNames{m}));   % lumbar ext
+        MuscleData.dM(:,m,9)    = MA.trunk.ben.data(:,strcmp(lMT.colheaders,muscleNames{m}));   % lumbar bend
+        MuscleData.dM(:,m,10)    = MA.trunk.rot.data(:,strcmp(lMT.colheaders,muscleNames{m}));  % lumbar rot
+    end
+    MuscleData.q = q;
+    MuscleData.qdot = qdot;
+    
+    %% Call PolynomialFit
+    [muscle_spanning_joint_INFO,MuscleInfo] = ...
+        PolynomialFit_mtp(MuscleData);
+    save(fullfile(SubjFolder,'MuscleData_s1_Poggensee_tmt.mat'),'MuscleData')
+    save(fullfile(SubjFolder,'muscle_spanning_joint_INFO_s1_Poggensee_tmt.mat'),'muscle_spanning_joint_INFO')
+    save(fullfile(SubjFolder,'MuscleInfo_s1_Poggensee_tmt.mat'),'MuscleInfo');
+end
 
 
 

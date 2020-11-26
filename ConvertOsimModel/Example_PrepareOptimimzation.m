@@ -18,7 +18,7 @@ S.PolyFolder = 'testRajagopal';
 % Modelpath
 S.ModelPath = fullfile(MainPath,'OpenSimModel','Rajagopal2015.osim'); 
 % Folder with CasadiFunctions
-S.CasadiFunc_Folders = 'testRajagopal'; 
+S.CasadiFunc_Folders = 'testRajagopal1'; 
 % path to Cpp file used in the optimization
 S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','ID_Subject1.cpp'); 
  % path to Cpp file for post processing
@@ -49,14 +49,14 @@ VSinstall   = 'C:\Program Files (x86)\Microsoft Visual Studio 14.0';
 %% 1: Polynomial fitting
 
 % Fit polynmial functions
-Bool_RunMA = 1; % Boolean to select if we have to run the muscle analysis
+Bool_RunMA = 0; % Boolean to select if we have to run the muscle analysis
 FitPolynomials(MainPath,S.ModelName,S.ModelPath,S.PolyFolder,Bool_RunMA)
 
 %% 2: Create Casadifunctions
 
 % create casadi functions for equations in optimiztion problem
-% CreateCasadiFunctions(MainPath, S.ModelName, S.ModelPath, S.CasadiFunc_Folders,...
-%     S.PolyFolder,SettingsCasFunc);
+CreateCasadiFunctions(MainPath, S.ModelName, S.ModelPath, S.CasadiFunc_Folders,...
+    S.PolyFolder,SettingsCasFunc);
 
 %% 3: Create .dll files if needed
 
@@ -65,9 +65,9 @@ FitPolynomials(MainPath,S.ModelName,S.ModelPath,S.PolyFolder,Bool_RunMA)
 % addpath('C:\Users\u0088756\Documents\FWO\Software\GitProjects\CreateDll_PredSim');
 
 % create the .dll file automatically to solve the NLP
-[CppDir,Name,~] = fileparts(S.CppFile_NLP);
-CreateDllFileFromCpp(CppDir,Name,OsimSource,OsimBuild,DllPath,ExtFuncs,VSinstall,S.CppFile_nInput);
+% [CppDir,Name,~] = fileparts(S.CppFile_NLP);
+% CreateDllFileFromCpp(CppDir,Name,OsimSource,OsimBuild,DllPath,ExtFuncs,VSinstall,S.CppFile_nInput);
 
 % create the .dll file automatically for postprocessing
-[CppDir,Name,~] = fileparts(S.CppFile_pp);
-CreateDllFileFromCpp(CppDir,Name,OsimSource,OsimBuild,DllPath,ExtFuncs,VSinstall,S.CppFile_nInput);
+% [CppDir,Name,~] = fileparts(S.CppFile_pp);
+% CreateDllFileFromCpp(CppDir,Name,OsimSource,OsimBuild,DllPath,ExtFuncs,VSinstall,S.CppFile_nInput);

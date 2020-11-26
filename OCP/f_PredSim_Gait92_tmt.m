@@ -40,6 +40,7 @@ trunki              = jointi.trunk.ext:jointi.trunk.rot; % trunk
 armsi               = jointi.sh_flex.l:jointi.elb.r; % arms
 mtpi                = jointi.mtp.l:jointi.mtp.r; % mtps
 residuals_noarmsi   = jointi.pelvis.tilt:jointi.trunk.rot; % all but arms
+% residuals_noarmsi   = jointi.pelvis.tilt:jointi.subt.r,jointi.mtp.l:jointi.trunk.rot;
 % Number of degrees of freedom for later use
 nq.all      = length(residualsi); % all
 nq.abs      = length(ground_pelvisi); % ground-pelvis
@@ -47,7 +48,8 @@ nq.trunk    = length(trunki); % trunk
 nq.arms     = length(armsi); % arms
 nq.mtp      = length(mtpi); % arms
 nq.leg      = 10; % #joints needed for polynomials
-% Second, origins bodies. %33 states, so starts at 34
+% Second, origins bodies. 
+% 33 states, so starts at 34
 % Calcaneus
 calcOr.r    = 34:35;
 calcOr.l    = 36:37;
@@ -62,7 +64,7 @@ handOr.l    = 44:45;
 handOr.all  = [handOr.r,handOr.l];
 % Tibias
 tibiaOr.r   = 46:47;
-tibiaOr.l   = 48:4;
+tibiaOr.l   = 48:49;
 tibiaOr.all = [tibiaOr.r,tibiaOr.l];
 % toe joints
 toesOr.r   = 50:51;
@@ -124,6 +126,7 @@ f_FiberLength_TendonForce_tendon = Function.load(fullfile(PathDefaultFunc,'f_Fib
 f_FiberVelocity_TendonForce_tendon = Function.load(fullfile(PathDefaultFunc,'f_FiberVelocity_TendonForce_tendon'));
 f_forceEquilibrium_FtildeState_all_tendon = Function.load(fullfile(PathDefaultFunc,'f_forceEquilibrium_FtildeState_all_tendon'));
 f_J2    = Function.load(fullfile(PathDefaultFunc,'f_J2'));
+f_J25   = Function.load(fullfile(PathDefaultFunc,'f_J25'));
 f_J23   = Function.load(fullfile(PathDefaultFunc,'f_J23'));
 f_J8    = Function.load(fullfile(PathDefaultFunc,'f_J8'));
 f_J92   = Function.load(fullfile(PathDefaultFunc,'f_J92'));
@@ -181,7 +184,7 @@ elseif S.IGsel == 2 % Data-informed initial guess
         IKfile_guess    = fullfile(pathRepo, S.IKfile_guess);
         Qs_guess        = getIK(IKfile_guess,joints);
         time_IC         = [Qs_guess.time(1),Qs_guess.time(end)];
-        guess = getGuess_DI_opti_int_mtp(Qs_guess,nq,N,time_IC,NMuscle,jointi,...
+        guess = getGuess_DI_opti_int_tmt(Qs_guess,nq,N,time_IC,NMuscle,jointi,...
             scaling,S.v_tgt,d);
     elseif S.IGmodeID == 3 || S.IGmodeID == 4 % Data from selected motion
         % Extract joint positions from existing motion (previous results)
@@ -461,7 +464,7 @@ for j=1:d
     Tau_passj.tmt.r = Tau_passj_all(14);
     Tau_passj.mtp.all = Tau_passj_all(15:16);
     Tau_passj.trunk.ext = Tau_passj_all(17);
-    Tau_passj.trunk.ben = Tau_passj_all(17);
+    Tau_passj.trunk.ben = Tau_passj_all(18);
     Tau_passj.trunk.rot = Tau_passj_all(19);
     Tau_passj.arm = Tau_passj_all(20:27);
     Tau_passj_J = Tau_passj_all([1:12 17:end]);
@@ -498,7 +501,7 @@ for j=1:d
         W.A*B(j+1)      *(f_J92(akj(:,j+1)'))*h + ...
         W.ArmE*B(j+1)   *(f_J8(e_ak))*h +...
         W.Mtp*B(j+1)    *(f_J2(e_mtpk))*h +...
-        W.Ak*B(j+1)     *(f_J23(Aj(residuals_noarmsi,j)))*h + ...
+        W.Ak*B(j+1)     *(f_J25(Aj(residuals_noarmsi,j)))*h + ...
         W.passMom*B(j+1)*(f_J23(Tau_passj_J))*h + ...
         W.u*B(j+1)      *(f_J92(vAk))*h + ...
         W.u*B(j+1)      *(f_J92(dFTtildej(:,j)))*h + ...
@@ -618,6 +621,16 @@ for j=1:d
     % Origins toes (transv plane) at minimum 10 cm from each other.
     ineq_constr6{end+1} = f_Jnn2(Tj(toesOr.r,1) - Tj(toesOr.l,1));
     
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % option to lock the tmt joint
+    if S.tmt_locked == 1
+        eq_constr{end+1} = Qskj(jointi.tmt.r,:)';
+        eq_constr{end+1} = Qskj(jointi.tmt.l,:)';
+        eq_constr{end+1} = Qdotskj(jointi.tmt.r,:)';
+        eq_constr{end+1} = Qdotskj(jointi.tmt.l,:)';
+    end
+    
+    
 end % End loop over collocation points
 eq_constr = vertcat(eq_constr{:});
 ineq_constr1 = vertcat(ineq_constr1{:});
@@ -734,8 +747,7 @@ diary(Outname);
 % Opti does not use bounds on variables but constraints. This function
 % adjusts for that.
 %     opti.solve();
-% [w_opt,stats] = solve_NLPSOL(opti,options);
-disp('solve command is commented for debugging')
+[w_opt,stats] = solve_NLPSOL(opti,options);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 diary off
 % Extract results

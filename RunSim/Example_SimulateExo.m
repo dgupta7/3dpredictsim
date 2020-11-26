@@ -1,6 +1,13 @@
 %% Default settings
 
 clear all; close all; clc;
+
+[pathHere,~,~] = fileparts(mfilename('fullpath'));
+[pathRepo,~,~] = fileparts(pathHere);
+addpath([pathRepo '/OCP']);
+addpath([pathRepo '/VariousFunctions']);
+
+
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
@@ -42,7 +49,7 @@ S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';        % external function
 S.ExternalFunc2 = 'PredSim_3D_Pog_s1_mtp_pp.dll';     % external function for post-processing
 S.savename      = 'NoExo_out2';
 f_PredSim_Gait92(S);     % run the optimization
-f_LoadSim_Gait92(S.ResultsFolder,S.savename) % post-proces simulation results
+% f_LoadSim_Gait92(S.ResultsFolder,S.savename) % post-proces simulation results
 
 
 % Simulation with passive exoskeleton
