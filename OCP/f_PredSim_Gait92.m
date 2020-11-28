@@ -709,7 +709,7 @@ Jall_sc = sum(Jall)/dist_trav_tot;
 opti.minimize(Jall_sc);
 options.ipopt.hessian_approximation = 'limited-memory';
 options.ipopt.mu_strategy           = 'adaptive';
-options.ipopt.max_iter              = 10000;
+options.ipopt.max_iter              = S.max_iter;
 options.ipopt.linear_solver         = S.linear_solver;
 options.ipopt.tol                   = 1*10^(-S.tol_ipopt);
 opti.solver('ipopt', options);

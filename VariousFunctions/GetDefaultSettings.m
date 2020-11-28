@@ -10,6 +10,10 @@ if ~isfield(S,'tol_ipopt')
     S.tol_ipopt     = 4;
 end
 
+if ~isfield(S,'max_iter')
+    S.max_iter     = 10000;
+end
+
 if ~isfield(S,'savename_ig')
     S.savename_ig= [];
 end

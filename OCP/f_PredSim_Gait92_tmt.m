@@ -40,7 +40,7 @@ trunki              = jointi.trunk.ext:jointi.trunk.rot; % trunk
 armsi               = jointi.sh_flex.l:jointi.elb.r; % arms
 mtpi                = jointi.mtp.l:jointi.mtp.r; % mtps
 residuals_noarmsi   = jointi.pelvis.tilt:jointi.trunk.rot; % all but arms
-% residuals_noarmsi   = jointi.pelvis.tilt:jointi.subt.r,jointi.mtp.l:jointi.trunk.rot;
+% residuals_noarmsi   = [jointi.pelvis.tilt:jointi.subt.r, jointi.mtp.l:jointi.trunk.rot];
 % Number of degrees of freedom for later use
 nq.all      = length(residualsi); % all
 nq.abs      = length(ground_pelvisi); % ground-pelvis
@@ -162,8 +162,7 @@ joints = {'pelvis_tilt','pelvis_list','pelvis_rotation','pelvis_tx',...
     'pelvis_ty','pelvis_tz','hip_flexion_l','hip_adduction_l',...
     'hip_rotation_l','hip_flexion_r','hip_adduction_r','hip_rotation_r',...
     'knee_angle_l','knee_angle_r','ankle_angle_l','ankle_angle_r',...
-    'subtalar_angle_l','subtalar_angle_r',...
-    'tmt_angle_l','tmt_angle_r',...
+    'subtalar_angle_l','subtalar_angle_r','tmt_angle_l','tmt_angle_r',...
     'mtp_angle_l','mtp_angle_r',...
     'lumbar_extension','lumbar_bending','lumbar_rotation','arm_flex_l',...
     'arm_add_l','arm_rot_l','arm_flex_r','arm_add_r','arm_rot_r',...
@@ -178,7 +177,7 @@ bounds = AdaptBounds(bounds,S,mai);
 pathIG = [pathRepo,'/IG'];
 addpath(genpath(pathIG));
 if S.IGsel == 1 % Quasi-random initial guess
-    guess = getGuess_QR_opti_int(N,nq,NMuscle,scaling,S.v_tgt,jointi,d,S.IG_PelvisY);
+    guess = getGuess_QR_opti_int_tmt(N,nq,NMuscle,scaling,S.v_tgt,jointi,d,S.IG_PelvisY);
 elseif S.IGsel == 2 % Data-informed initial guess
     if S.IGmodeID  < 2 % Data from average walking motion
         IKfile_guess    = fullfile(pathRepo, S.IKfile_guess);
@@ -203,7 +202,7 @@ elseif S.IGsel == 2 % Data-informed initial guess
         Qs_ig_sel.time      = Qs_ig.time(1:frSel,:);
         Qs_ig_sel.colheaders = Qs_ig.colheaders;
         time_IC = [Qs_ig_sel.time(1),Qs_ig_sel.time(end)];
-        guess = getGuess_DI_opti_int_mtp(Qs_ig_sel,nq,N,time_IC,NMuscle,jointi,scaling,S.v_tgt,d);
+        guess = getGuess_DI_opti_int_tmt(Qs_ig_sel,nq,N,time_IC,NMuscle,jointi,scaling,S.v_tgt,d);
     end
 end
 
@@ -217,7 +216,7 @@ ExoVect = GetExoTorques(S,pathRepo,N);
 %% Index helpers
 % get help indexes for left and right leg and for symmetry constraint
 [IndexLeft,IndexRight,QsInvA,QsInvB,QdotsInvA,...
-    QdotsInvB,orderQsOpp] = GetIndexHelper(S,jointi);
+    QdotsInvB,orderQsOpp] = GetIndexHelper_tmt(S,jointi);
 
 %% OCP create variables and bounds
 % using opti
@@ -592,10 +591,21 @@ for j=1:d
     % Mtp
     eq_constr{end+1} = Tj(mtpi,1)/scaling.MtpTau - (a_mtpkj(:,j+1) + ...
         (Tau_passj.mtp.all)/scaling.MtpTau);
-    % Tmt, left
-    eq_constr{end+1} = Tj(jointi.tmt.l,1) - Tau_passj.tmt.l;
-    % Tmt, right
-    eq_constr{end+1} = Tj(jointi.tmt.r,1) - Tau_passj.tmt.r;
+    
+    
+    
+    % option to lock the tmt joint
+    if S.tmt_locked == 1
+        eq_constr{end+1} = Qskj(jointi.tmt.r,:)';
+        eq_constr{end+1} = Qskj(jointi.tmt.l,:)';
+        eq_constr{end+1} = Qdotskj(jointi.tmt.r,:)';
+        eq_constr{end+1} = Qdotskj(jointi.tmt.l,:)';
+    else
+        % Tmt, left
+        eq_constr{end+1} = Tj(jointi.tmt.l,1) - Tau_passj.tmt.l;
+        % Tmt, right
+        eq_constr{end+1} = Tj(jointi.tmt.r,1) - Tau_passj.tmt.r;
+    end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Activation dynamics (implicit formulation)
@@ -622,13 +632,7 @@ for j=1:d
     ineq_constr6{end+1} = f_Jnn2(Tj(toesOr.r,1) - Tj(toesOr.l,1));
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % option to lock the tmt joint
-    if S.tmt_locked == 1
-        eq_constr{end+1} = Qskj(jointi.tmt.r,:)';
-        eq_constr{end+1} = Qskj(jointi.tmt.l,:)';
-        eq_constr{end+1} = Qdotskj(jointi.tmt.r,:)';
-        eq_constr{end+1} = Qdotskj(jointi.tmt.l,:)';
-    end
+    
     
     
 end % End loop over collocation points
@@ -731,7 +735,7 @@ Jall_sc = sum(Jall)/dist_trav_tot;
 opti.minimize(Jall_sc);
 options.ipopt.hessian_approximation = 'limited-memory';
 options.ipopt.mu_strategy           = 'adaptive';
-options.ipopt.max_iter              = 10000;
+options.ipopt.max_iter              = S.max_iter;
 options.ipopt.linear_solver         = S.linear_solver;
 options.ipopt.tol                   = 1*10^(-S.tol_ipopt);
 opti.solver('ipopt', options);

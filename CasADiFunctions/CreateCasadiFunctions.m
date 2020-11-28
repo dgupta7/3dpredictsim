@@ -21,7 +21,7 @@ else
 end
 
 if isfield(Settings,'MuscModelAsmp') && ~isempty(Settings.MuscModelAsmp)
-    MuscMoAsmp = Settings.tmt;
+    MuscMoAsmp = Settings.MuscModelAsmp;
 else
     MuscMoAsmp = 0;
 end

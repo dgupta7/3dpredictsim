@@ -4,21 +4,25 @@
 % Author: Antoine Falisse
 % Date: 12/19/2018
 %
+% Adaptation of CasADiFunctions_all_mtp_createDefault
 
 clear all; close all; clc;
+AddCasadiPaths();
 import casadi.*
 ExtPoly = '_mtp';
-S.CasadiFunc_Folders = 'Casadi_s1Pog_mtp_Default';
+S.CasadiFunc_Folders = 'Casadi_s1Pog_tmt_Default';
 subject              = 's1_Poggensee';
 if isfolder(S.CasadiFunc_Folders)
     error('Never changes the casadi functions in an existing folder, these functions are important to analyse optimization results (from the optimal states and controls');
 end
-pathRepo        = 'C:\Users\u0088756\Documents\FWO\Software\ExoSim\SimExo_3D\3dpredictsim';
+pathRepo        = 'D:\school\WTK\thesis\model\3dpredictsim';
 nq.leg          = 10; % #joints needed for polynomials
 stiffnessArm = 0;
 dampingArm = 0.1;
 stiffnessMtp = 1.5/(pi/180)/5;
 dampingMtp = 0.5;
+kTMT = 800;
+dTMT = 0.5;
 % define general settings for default objective functions
 % By default, the tendon stiffness is 35 and the shift is 0.
 NMuscle = 92;
@@ -30,37 +34,38 @@ shift = getShift(aTendon);
 % Indices of the elements in the external functions
 % External function: F
 % First, joint torques.
-jointi.pelvis.tilt  = 1;
-jointi.pelvis.list  = 2;
-jointi.pelvis.rot   = 3;
-jointi.pelvis.tx    = 4;
-jointi.pelvis.ty    = 5;
-jointi.pelvis.tz    = 6;
-jointi.hip_flex.l   = 7;
-jointi.hip_add.l    = 8;
-jointi.hip_rot.l    = 9;
-jointi.hip_flex.r   = 10;
-jointi.hip_add.r    = 11;
-jointi.hip_rot.r    = 12;
-jointi.knee.l       = 13;
-jointi.knee.r       = 14;
-jointi.ankle.l      = 15;
-jointi.ankle.r      = 16;
-jointi.subt.l       = 17;
-jointi.subt.r       = 18;
-jointi.mtp.l        = 19;
-jointi.mtp.r        = 20;
-jointi.trunk.ext    = 21;
-jointi.trunk.ben    = 22;
-jointi.trunk.rot    = 23;
-jointi.sh_flex.l    = 24;
-jointi.sh_add.l     = 25;
-jointi.sh_rot.l     = 26;
-jointi.sh_flex.r    = 27;
-jointi.sh_add.r     = 28;
-jointi.sh_rot.r     = 29;
-jointi.elb.l        = 30;
-jointi.elb.r        = 31;
+% jointi.pelvis.tilt  = 1;
+% jointi.pelvis.list  = 2;
+% jointi.pelvis.rot   = 3;
+% jointi.pelvis.tx    = 4;
+% jointi.pelvis.ty    = 5;
+% jointi.pelvis.tz    = 6;
+% jointi.hip_flex.l   = 7;
+% jointi.hip_add.l    = 8;
+% jointi.hip_rot.l    = 9;
+% jointi.hip_flex.r   = 10;
+% jointi.hip_add.r    = 11;
+% jointi.hip_rot.r    = 12;
+% jointi.knee.l       = 13;
+% jointi.knee.r       = 14;
+% jointi.ankle.l      = 15;
+% jointi.ankle.r      = 16;
+% jointi.subt.l       = 17;
+% jointi.subt.r       = 18;
+% jointi.mtp.l        = 19;
+% jointi.mtp.r        = 20;
+% jointi.trunk.ext    = 21;
+% jointi.trunk.ben    = 22;
+% jointi.trunk.rot    = 23;
+% jointi.sh_flex.l    = 24;
+% jointi.sh_add.l     = 25;
+% jointi.sh_rot.l     = 26;
+% jointi.sh_flex.r    = 27;
+% jointi.sh_add.r     = 28;
+% jointi.sh_rot.r     = 29;
+% jointi.elb.l        = 30;
+% jointi.elb.r        = 31;
+jointi = getJointi_tmt();
 % Vectors of indices for later use
 residualsi          = jointi.pelvis.tilt:jointi.elb.r; % all
 ground_pelvisi      = jointi.pelvis.tilt:jointi.pelvis.tz; % ground-pelvis
@@ -68,8 +73,9 @@ trunki              = jointi.trunk.ext:jointi.trunk.rot; % trunk
 armsi               = jointi.sh_flex.l:jointi.elb.r; % arms
 mtpi                = jointi.mtp.l:jointi.mtp.r; % mtps
 residuals_noarmsi   = jointi.pelvis.tilt:jointi.trunk.rot; % all but arms
-roti                = [jointi.pelvis.tilt:jointi.pelvis.rot,...
-    jointi.hip_flex.l:jointi.elb.r];
+% residuals_noarmsi   = [jointi.pelvis.tilt:jointi.subt.r, jointi.mtp.l:jointi.trunk.rot];
+roti                = [jointi.pelvis.tilt:jointi.pelvis.rot,jointi.hip_flex.l:jointi.elb.r];
+
 % Number of degrees of freedom for later use
 nq.all      = length(residualsi); % all
 nq.abs      = length(ground_pelvisi); % ground-pelvis
@@ -79,34 +85,34 @@ nq.mtp     = length(mtpi); % arms
 nq.leg      = 10; % #joints needed for polynomials
 % Second, origins bodies.
 % Calcaneus
-calcOr.r    = 32:33;
-calcOr.l    = 34:35;
+calcOr.r    = 34:35;
+calcOr.l    = 36:37;
 calcOr.all  = [calcOr.r,calcOr.l];
 NcalcOr     = length(calcOr.all);
 % Femurs
-femurOr.r   = 36:37;
-femurOr.l   = 38:39;
+femurOr.r   = 38:39;
+femurOr.l   = 40:41;
 femurOr.all = [femurOr.r,femurOr.l];
 NfemurOr    = length(femurOr.all);
 % Hands
-handOr.r    = 40:41;
-handOr.l    = 42:43;
+handOr.r    = 42:43;
+handOr.l    = 44:45;
 handOr.all  = [handOr.r,handOr.l];
 NhandOr     = length(handOr.all);
 % Tibias
-tibiaOr.r   = 44:45;
-tibiaOr.l   = 46:47;
+tibiaOr.r   = 46:47;
+tibiaOr.l   = 48:49;
 tibiaOr.all = [tibiaOr.r,tibiaOr.l];
 NtibiaOr    = length(tibiaOr.all);
 % External function: F1 (post-processing purpose only)
 % Ground reaction forces (GRFs)
-GRFi.r      = 32:34;
-GRFi.l      = 35:37;
+GRFi.r      = 34:36;
+GRFi.l      = 37:39;
 GRFi.all    = [GRFi.r,GRFi.l];
 NGRF        = length(GRFi.all);
 % Origins calcaneus (3D)
-calcOrall.r     = 38:40;
-calcOrall.l     = 41:43;
+calcOrall.r     = 40:42;
+calcOrall.l     = 43:45;
 calcOrall.all   = [calcOrall.r,calcOrall.l];
 NcalcOrall      = length(calcOrall.all);
 
@@ -128,7 +134,8 @@ muscleNames = {'glut_med1_r','glut_med2_r','glut_med3_r',...
 pathmusclemodel = fullfile(pathRepo,'MuscleModel',subject);
 addpath(genpath(pathmusclemodel));
 % (1:end-3), since we do not want to count twice the back muscles
-musi = MuscleIndices(muscleNames(1:end-3));
+% musi = MuscleIndices(muscleNames(1:end-3));
+musi = 1:length(muscleNames(1:end-3));
 % Total number of muscles
 NMuscle = length(muscleNames(1:end-3))*2;
 % Muscle-tendon parameters. Row 1: maximal isometric forces; Row 2: optimal
@@ -422,36 +429,36 @@ fgetMetabolicEnergySmooth2004all = ...
     Adot_sm_SX,Mdot_sm_SX,Sdot_sm_SX,Wdot_sm_SX,energy_model_sm_SX});
 
 %% get scaling (based on experimental data)
-
-% We extract experimental data to set bounds and initial guesses if needed
-pathData = [pathRepo,'/OpenSimModel/',subject];
-joints = {'pelvis_tilt','pelvis_list','pelvis_rotation','pelvis_tx',...
-    'pelvis_ty','pelvis_tz','hip_flexion_l','hip_adduction_l',...
-    'hip_rotation_l','hip_flexion_r','hip_adduction_r','hip_rotation_r',...
-    'knee_angle_l','knee_angle_r','ankle_angle_l','ankle_angle_r',...
-    'subtalar_angle_l','subtalar_angle_r','mtp_angle_l','mtp_angle_r',...
-    'lumbar_extension','lumbar_bending','lumbar_rotation','arm_flex_l',...
-    'arm_add_l','arm_rot_l','arm_flex_r','arm_add_r','arm_rot_r',...
-    'elbow_flex_l','elbow_flex_r'};
-pathVariousFunctions = [pathRepo,'/VariousFunctions'];
-addpath(genpath(pathVariousFunctions));
-% Extract joint positions from average walking motion
-motion_walk         = 'walking';
-nametrial_walk.id   = ['average_',motion_walk,'_HGC_mtp'];
-nametrial_walk.IK   = ['IK_',nametrial_walk.id];
-pathIK_walk         = [pathData,'/IK/',nametrial_walk.IK,'.mat'];
-Qs_walk             = getIK(pathIK_walk,joints);
+% 
+% % We extract experimental data to set bounds and initial guesses if needed
+% pathData = [pathRepo,'/OpenSimModel/',subject];
+% joints = {'pelvis_tilt','pelvis_list','pelvis_rotation','pelvis_tx',...
+%     'pelvis_ty','pelvis_tz','hip_flexion_l','hip_adduction_l',...
+%     'hip_rotation_l','hip_flexion_r','hip_adduction_r','hip_rotation_r',...
+%     'knee_angle_l','knee_angle_r','ankle_angle_l','ankle_angle_r',...
+%     'subtalar_angle_l','subtalar_angle_r','mtp_angle_l','mtp_angle_r',...
+%     'lumbar_extension','lumbar_bending','lumbar_rotation','arm_flex_l',...
+%     'arm_add_l','arm_rot_l','arm_flex_r','arm_add_r','arm_rot_r',...
+%     'elbow_flex_l','elbow_flex_r'};
+% pathVariousFunctions = [pathRepo,'/VariousFunctions'];
+% addpath(genpath(pathVariousFunctions));
+% % Extract joint positions from average walking motion
+% motion_walk         = 'walking';
+% nametrial_walk.id   = ['average_',motion_walk,'_HGC_mtp'];
+% nametrial_walk.IK   = ['IK_',nametrial_walk.id];
+% pathIK_walk         = [pathData,'/IK/',nametrial_walk.IK,'.mat'];
+% Qs_walk             = getIK(pathIK_walk,joints);
 
 
 %% Index helpers
 
-% indexes to select kinematics left and right leg
-IndexLeft = [jointi.hip_flex.l jointi.hip_add.l jointi.hip_rot.l, ...
-    jointi.knee.l jointi.ankle.l jointi.subt.l jointi.mtp.l,...
-    jointi.trunk.ext, jointi.trunk.ben, jointi.trunk.rot];
-IndexRight = [jointi.hip_flex.r jointi.hip_add.r jointi.hip_rot.r, ...
-    jointi.knee.r jointi.ankle.r jointi.subt.r jointi.mtp.r,...
-    jointi.trunk.ext, jointi.trunk.ben, jointi.trunk.rot];
+% % indexes to select kinematics left and right leg
+% IndexLeft = [jointi.hip_flex.l jointi.hip_add.l jointi.hip_rot.l, ...
+%     jointi.knee.l jointi.ankle.l jointi.subt.l jointi.mtp.l,...
+%     jointi.trunk.ext, jointi.trunk.ben, jointi.trunk.rot];
+% IndexRight = [jointi.hip_flex.r jointi.hip_add.r jointi.hip_rot.r, ...
+%     jointi.knee.r jointi.ankle.r jointi.subt.r jointi.mtp.r,...
+%     jointi.trunk.ext, jointi.trunk.ben, jointi.trunk.rot];
 
 %% Passive joint torques
 % We extract the parameters for the passive torques of the lower limbs and
@@ -560,11 +567,19 @@ Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
     Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r));
 Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
 
+% Assume linear stiffness for now (according to DOI: 10.1109/ROBIO.2011.6181517), will likely extend into nonlinear later
+Tau_passj.tmt.l = f_passiveTATorques(kTMT, dTMT, ...
+    Q_SX(jointi.tmt.l), Qdot_SX(jointi.tmt.l));
+Tau_passj.tmt.r = f_passiveTATorques(kTMT, dTMT, ...
+    Q_SX(jointi.tmt.r), Qdot_SX(jointi.tmt.r));
+
+
 Tau_passj_all = [Tau_passj.hip.flex.l,Tau_passj.hip.flex.r,...
     Tau_passj.hip.add.l,Tau_passj.hip.add.r,...
     Tau_passj.hip.rot.l,Tau_passj.hip.rot.r,...
     Tau_passj.knee.l,Tau_passj.knee.r,Tau_passj.ankle.l,...
     Tau_passj.ankle.r,Tau_passj.subt.l,Tau_passj.subt.r,...
+    Tau_passj.tmt.l,Tau_passj.tmt.r,...
     Tau_passj.mtp.all,Tau_passj.trunk.ext,Tau_passj.trunk.ben,...
     Tau_passj.trunk.rot,Tau_passj.arm]';
 
@@ -610,5 +625,5 @@ save(fullfile(OutPath,'MassM.mat'),'MassM');
 
 %% save default setup structure
 % save default setup structure to verify this in the main function part
-SDefault = S;
-save('SDefault.mat','SDefault');
+% SDefault = S;
+% save('SDefault.mat','SDefault');

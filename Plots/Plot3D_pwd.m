@@ -30,7 +30,8 @@ h = figure();
 set(h,'Position',[82         151        1497         827]);
 for i = 1:ct-1
     [path,name,ext] = fileparts(Names{i});
-    PlotResults_3DSim(Names{i},CsV(i,:),name,h);
+    PlotResults_3DSim_tmt(Names{i},CsV(i,:),name,h);
+%     PlotResults_3DSim(Names{i},CsV(i,:),name,h);
 end
 
 filename = fullfile(dpath,'FigureResults.fig');

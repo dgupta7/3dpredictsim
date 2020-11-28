@@ -18,7 +18,7 @@ S.PolyFolder = 's1_Poggensee';
 % Modelpath
 S.ModelPath = fullfile(MainPath,'OpenSimModel','Subject1_Poggensee.osim'); 
 % Folder with CasadiFunctions
-S.CasadiFunc_Folders = 'Casadi_s1Pog_tmt_d05_k800'; 
+S.CasadiFunc_Folders = 'debug_notmt'; %'Casadi_s1Pog_tmt_d05_k800'; 
 % path to Cpp file used in the optimization
 S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','PredSim_3D_Pog_s1_tmt.cpp'); 
  % path to Cpp file for post processing
@@ -33,9 +33,9 @@ S.ModelName = 'Gait92';
 % SettingsCasFunc.kMTP = 1.5/(pi/180)/5;
 % SettingsCasFunc.dMTP = 0.5;
 
-SettingsCasFunc.tmt = 1;
-SettingsCasFunc.kTMT = 800; % 250, 500, 1000,2000, 4000
-SettingsCasFunc.dTMT = 0.5;
+SettingsCasFunc.tmt = 0;
+% SettingsCasFunc.kTMT = 800; % 250, 500, 1000,2000, 4000
+% SettingsCasFunc.dTMT = 0.5;
 
 
 % path information for automatically building cpp files

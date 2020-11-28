@@ -1,0 +1,44 @@
+if system_dependent('IsDebugMode')==1, dbquit; end
+Test_Lars
+                 v_tgt: 1.2500
+                     N: 50
+              NThreads: 10
+              max_iter: 10000
+                   tmt: 1
+            tmt_locked: 0
+               ExoBool: 0
+              ExoScale: 0
+         ResultsFolder: 'PredSim_adaptations'
+              savename: 'Pog_s1_tmt_locked_exo_no_ig21'
+               subject: 's1_Poggensee'
+                 IGsel: 2
+              IGmodeID: 1
+           savename_ig: 'NoExo'
+            IG_PelvisY: 0.8960
+            PolyFolder: 's1_Poggensee'
+    CasadiFunc_Folders: 'Casadi_s1Pog_tmt_Default'
+          ExternalFunc: 'PredSim_3D_Pog_s1_tmt.dll'
+         ExternalFunc2: 'PredSim_3D_Pog_s1_tmt_pp.dll'
+               DataSet: 'PoggenSee2020_AFO'
+         linear_solver: 'mumps'
+             tol_ipopt: 4
+           ResultsF_ig: []
+                  mass: 64
+                     W: [1×1 struct]
+                IGcase: 0
+                h_weak: 0
+                 Max_s: 0
+               pf_weak: 0
+                    mE: 0
+                coCont: 0
+                Constr: [1×1 struct]
+                Bounds: [1×1 struct]
+            PercStance: [1×1 struct]
+          parallelMode: 'thread'
+             Symmetric: 1
+              Periodic: 0
+             ModelName: 'Gait92'
+         IKfile_Bounds: 'OpenSimModel\IK_Bounds_Default_tmt.mat'
+          IKfile_guess: 'OpenSimModel\IK_Guess_Default_tmt.mat'
+
+if system_dependent('IsDebugMode')==1, dbquit; end
