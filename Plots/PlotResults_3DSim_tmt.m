@@ -106,11 +106,10 @@ if exist(ResultsFile,'file')
         pathReferenceData = [pathrepo,'/ExperimentalData'];
         load([pathReferenceData,'/ExperimentalData.mat'],'ExperimentalData');
         Qref = ExperimentalData.Q;
-        
+        subject = 'subject1';
         
         % load data Pog_s1 from struct saved during ...\Analyze_ExoData\Batch\BatchScript_LatexReport.m
-        load('D:\school\WTK\thesis\model\DataExoskeleton\ValidationReport1','Dat');
-        
+        load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
         
     end
     
@@ -128,19 +127,20 @@ if exist(ResultsFile,'file')
         subplot(3,6,i)
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         % Experimental data
-        if ~strcmp(joints_ref{i},'mtp_angle') && boolFirst == 1 && ( ~strcmp(joints_ref{i},'tmt_angle') || has_no_tmt )
-            subject = 'subject1';
+        if  boolFirst == 1
             idx_jref = strcmp(Qref.(subject).Qs.colheaders,joints_ref{i});
-            meanPlusSTD = Qref.(subject).Qs.mean(:,idx_jref) + 2*Qref.(subject).Qs.std(:,idx_jref);
-            meanMinusSTD = Qref.(subject).Qs.mean(:,idx_jref) - 2*Qref.(subject).Qs.std(:,idx_jref);
-            stepQ = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
-            intervalQ = 1:stepQ:size(R.Qs,1);
-            sampleQ = 1:size(R.Qs,1);
-            meanPlusSTD = interp1(intervalQ,meanPlusSTD,sampleQ);
-            meanMinusSTD = interp1(intervalQ,meanMinusSTD,sampleQ);
-            hold on
-            fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName',['MoCap ' subject]);
-            alpha(.25);
+            if sum(idx_jref) == 1
+                meanPlusSTD = Qref.(subject).Qs.mean(:,idx_jref) + 2*Qref.(subject).Qs.std(:,idx_jref);
+                meanMinusSTD = Qref.(subject).Qs.mean(:,idx_jref) - 2*Qref.(subject).Qs.std(:,idx_jref);
+                stepQ = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
+                intervalQ = 1:stepQ:size(R.Qs,1);
+                sampleQ = 1:size(R.Qs,1);
+                meanPlusSTD = interp1(intervalQ,meanPlusSTD,sampleQ);
+                meanMinusSTD = interp1(intervalQ,meanMinusSTD,sampleQ);
+                hold on
+                fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName',['MoCap ' subject]);
+                alpha(.25);
+            end
         end
         
         % Simulation results
@@ -177,12 +177,12 @@ if exist(ResultsFile,'file')
             end
         end
     end
-%     subplot(3,6,18)
+    
     if boolFirst
         lh=legend('-DynamicLegend','location','east');
         lh.Interpreter = 'none';
         lhPos = lh.Position;
-        lhPos(1) = lhPos(1)+0.2;
+%         lhPos(1) = lhPos(1)+0.2;
         set(lh,'position',lhPos);
     end
     
@@ -195,19 +195,21 @@ if exist(ResultsFile,'file')
         subplot(3,6,i)
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         % Experimental data
-        if ~strcmp(joints_ref{i},'mtp_angle') && boolFirst == 1 && ( ~strcmp(joints_ref{i},'tmt_angle') || has_no_tmt )
+        if  boolFirst == 1
             IDref = ExperimentalData.Torques;
             idx_jref = strcmp(IDref.(subject).colheaders,joints_ref{i});
-            meanPlusSTD = IDref.(subject).mean(:,idx_jref) + 2*IDref.(subject).std(:,idx_jref);
-            meanMinusSTD = IDref.(subject).mean(:,idx_jref) - 2*IDref.(subject).std(:,idx_jref);
-            stepID = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
-            intervalID = 1:stepID:size(R.Qs,1);
-            sampleID = 1:size(R.Qs,1);
-            meanPlusSTD = interp1(intervalID,meanPlusSTD,sampleID);
-            meanMinusSTD = interp1(intervalID,meanMinusSTD,sampleID);
-            hold on
-            fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName','MoCap');
-            alpha(.25);
+            if sum(idx_jref) == 1
+                meanPlusSTD = IDref.(subject).mean(:,idx_jref) + 2*IDref.(subject).std(:,idx_jref);
+                meanMinusSTD = IDref.(subject).mean(:,idx_jref) - 2*IDref.(subject).std(:,idx_jref);
+                stepID = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
+                intervalID = 1:stepID:size(R.Qs,1);
+                sampleID = 1:size(R.Qs,1);
+                meanPlusSTD = interp1(intervalID,meanPlusSTD,sampleID);
+                meanMinusSTD = interp1(intervalID,meanMinusSTD,sampleID);
+                hold on
+                fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName','MoCap');
+                alpha(.25);
+            end
         end
         
         % Simulation results
@@ -218,7 +220,7 @@ if exist(ResultsFile,'file')
         else
             j=j+1;
         
-            if i == length(idx_Qs)
+            if i == length(idx_tit)
                 plot(x,R.Tid(:,idx_Qs(j)),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
             else
                 plot(x,R.Tid(:,idx_Qs(j)),'color',Cs,'linewidth',line_linewidth);
@@ -249,7 +251,7 @@ if exist(ResultsFile,'file')
         lh=legend('-DynamicLegend','location','east');
         lh.Interpreter = 'none';
         lhPos = lh.Position;
-        lhPos(1) = lhPos(1)+0.2;
+%         lhPos(1) = lhPos(1)+0.2;
         set(lh,'position',lhPos);
     end
     

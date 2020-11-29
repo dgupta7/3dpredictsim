@@ -13,14 +13,19 @@ pathData = [pathRepo,'/ExperimentalData','/ExperimentalData.mat'];
 pathFig = [pathRepo,'/Figures/Test_Lars'];
 
 
-ResultsFile1 = fullfile(pathResults,'Test_Lars','Test1_bCst_no_pp.mat');
-ResultsFile2 = fullfile(pathResults,'Test_Lars','Test1_alphaCst_no_pp.mat');
+ResultsFile1 = fullfile(pathResults,'PredSim_adaptations','Pog_s1_tmtL_bCst_ig24_pp.mat');
+ResultsFile2 = fullfile(pathResults,'PredSim_adaptations','Pog_s1_bCst_ig24_pp.mat');
+ResultsFile7 = fullfile(pathResults,'PredSim_adaptations','Pog_s1_tmtL_bCst_ig24_Aj23_pp.mat');
 
-ResultsFile3 = fullfile(pathResults,'Test_Lars','Test1_bCst_pas_pp.mat');
-ResultsFile4 = fullfile(pathResults,'Test_Lars','Test1_alphaCst_pas_pp.mat');
 
-ResultsFile5 = fullfile(pathResults,'Test_Lars','Test1_bCst_exo_pp.mat');
-ResultsFile6 = fullfile(pathResults,'Test_Lars','Test1_alphaCst_exo_pp.mat');
+% ResultsFile1 = fullfile(pathResults,'Test_Lars','Test1_bCst_no_pp.mat');
+% ResultsFile2 = fullfile(pathResults,'Test_Lars','Test1_alphaCst_no_pp.mat');
+% 
+% ResultsFile3 = fullfile(pathResults,'Test_Lars','Test1_bCst_pas_pp.mat');
+% ResultsFile4 = fullfile(pathResults,'Test_Lars','Test1_alphaCst_pas_pp.mat');
+% 
+% ResultsFile5 = fullfile(pathResults,'Test_Lars','Test1_bCst_exo_pp.mat');
+% ResultsFile6 = fullfile(pathResults,'Test_Lars','Test1_alphaCst_exo_pp.mat');
 
 %% Cross-correlation coefficient
 % express similarity in shape of the simulation results and the mean measurement data
@@ -173,22 +178,23 @@ set(lh,'position',lhPos);
 
 %% Make general plots for both results
 addpath([pathRepo,'/Plots']);
-hh1 = figure(); 	% new figure with handle
-PlotResults_3DSim(ResultsFile1,[1 0 0],'b cst (no exo)',hh1);
-PlotResults_3DSim(ResultsFile2,[0 0 1],'alpha cst (no exo)',hh1);
+% hh1 = figure(); 	% new figure with handle
+% PlotResults_3DSim_tmt(ResultsFile1,[1 0 0],'b cst (no exo)',hh1);
+% PlotResults_3DSim_tmt(ResultsFile2,[0 0 1],'alpha cst (no exo)',hh1);
 
-hh2 = figure(); 	% new figure with handle
-PlotResults_3DSim(ResultsFile3,[1 0 0],'b cst (pas)',hh2);
-PlotResults_3DSim(ResultsFile4,[0 0 1],'alpha cst (pas)',hh2);
 
-hh3 = figure(); 	% new figure with handle
-PlotResults_3DSim(ResultsFile5,[1 0 0],'b cst (exo)',hh3);
-PlotResults_3DSim(ResultsFile6,[0 0 1],'alpha cst (exo)',hh3);
+% hh2 = figure(); 	% new figure with handle
+% PlotResults_3DSim(ResultsFile3,[1 0 0],'b cst (pas)',hh2);
+% PlotResults_3DSim(ResultsFile4,[0 0 1],'alpha cst (pas)',hh2);
+% 
+% hh3 = figure(); 	% new figure with handle
+% PlotResults_3DSim(ResultsFile5,[1 0 0],'b cst (exo)',hh3);
+% PlotResults_3DSim(ResultsFile6,[0 0 1],'alpha cst (exo)',hh3);
 
 
 %% Plot absolute and relative difference of simulation wrt mean measurement
 
-PlotResultsComparison_3DSim(ResultsFile1,ResultsFile2)
+% PlotResultsComparison_3DSim(ResultsFile1,ResultsFile2)
 % PlotResultsComparison_3DSim(ResultsFile3,ResultsFile4)
 % PlotResultsComparison_3DSim(ResultsFile5,ResultsFile6)
 
