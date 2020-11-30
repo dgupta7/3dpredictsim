@@ -14,10 +14,10 @@ addpath([pathRepo '/Polynomials']);
 
 %% Manual settings
 
-solve = 1;          % run solver
-pp = 1;             % postproces
-plot_folder = 1;    % plot figures (for entire resultsfolder)
-plot_comp = 0;      % plot figures (for comparison/validation)
+solve = 0;          % run solver
+pp = 0;             % postproces
+plot_folder = 0;    % plot figures (for entire resultsfolder)
+plot_comp = 1;      % plot figures (for comparison/validation)
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed
@@ -28,7 +28,7 @@ S.max_iter  = 10000;    % maximum number of iterations
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
-S.kTMT = 1000000;           % (Nm/rad) stiffness of tmt joint 
+S.kTMT = 200;           % (Nm/rad) stiffness of tmt joint 
 S.dTMT = 0;           % (Nms/rad) damping of tmt joint
 
 % assumption to simplify Hill-type muscle model
@@ -42,7 +42,7 @@ S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile
 S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque profile
                         
 % output folder
-S.ResultsFolder = 'PredSim_adaptations';    % other options: 'Test_Lars' 'debug_tmt'
+S.ResultsFolder = 'PredSim_adaptations';    % other options: 'Test_Lars' 'debug_tmt' 'PredSim_adaptations'
 
 
 % Folder with default functions
@@ -160,28 +160,29 @@ end
 
 if plot_folder             % plot default figures for entire resultsfolder
     pathResult = fullfile([pathRepo '/Results/' S.ResultsFolder]);
-    Plot3D_pwd(pathResult);
+    Plot3D_pwd(pathResult); %'no_meas_data'
 end
 
 %%
 if plot_comp
-    ResultsFile1 = fullfile(pathResults,'Pog_s1_bCst_ig24_pp.mat');
-    ResultsFile2 = fullfile(pathResults,'Pog_s1_tmtL_bCst_ig24_pp.mat');
-    ResultsFile3 = fullfile(pathResults,'Pog_s1_tmtL_bCst_ig24_Aj23_pp.mat');
+    ResultsFile1 = fullfile(pathResults,'Pog_s1_tmt_bCst_d02_k800_ig24_pp.mat');
+    ResultsFile2 = fullfile(pathResults,'Pog_s1_tmt_bCst_d02_k1000_ig24_pp.mat');
 
+    
     pathData = [pathRepo,'/ExperimentalData','/ExperimentalData.mat'];
     addpath([pathRepo,'/Plots']);
 
     % plot default figures
-    hh1 = figure(); 	% new figure with handle
-    PlotResults_3DSim_tmt(ResultsFile1,[1 0 0],'none',hh1);
-    PlotResults_3DSim_tmt(ResultsFile2,[0 0 1],'locked, Aj25',hh1);
-    PlotResults_3DSim_tmt(ResultsFile3,[0 1 0],'locked, Aj23',hh1);
+    hh1 = figure();
+    set(hh1,'Position',[82         151        1497         827]);
+    PlotResults_3DSim_tmt(ResultsFile1,[1 0 0],'k800',hh1);
+    PlotResults_3DSim_tmt(ResultsFile2,[0 0 1],'k1000',hh1);
+    
 
     % Compare kinematics and kinetics any number of results to the measurementdata
-    ValidationPlots(pathData,ResultsFile1,ResultsFile2,ResultsFile3);
+    ValidationPlots(pathData,ResultsFile1,ResultsFile2);
 
     % Compare muscles for 2 results
-    PlotResultsComparison_3DSim(ResultsFile1,ResultsFile2);
-    PlotResultsComparison_3DSim(ResultsFile1,ResultsFile3);
+%     PlotResultsComparison_3DSim(ResultsFile1,ResultsFile2);
+
 end

@@ -19,6 +19,7 @@ end
 
 
 h = figure();
+set(h,'Position',[82         151        1497         827]);
 h.Name = 'ModelValidation: Cross-correlation coefficient';
 hTabGroup = uitabgroup;
 tab1 = uitab(hTabGroup, 'Title', 'Kinematics');
@@ -61,7 +62,7 @@ set(lh,'position',lhPos);
 
 % plot kinetics
 axes('parent', tab2);  
-for i = 1:length(ccc{1}.kinetics.max)
+for i = 1:size(ccc{1}.kinetics.ccc,2)
     subplot(3,6,i)
     plot(ccc{1}.kinetics.shift(:,i),ccc{1}.kinetics.ccc(:,i),'linewidth',line_linewidth,'DisplayName',names{1})
     hold on
@@ -93,6 +94,7 @@ set(lh,'position',lhPos);
 
 
 h2 = figure();
+set(h2,'Position',[82         151        1497         827]);
 h2.Name = 'ModelValidation: Nonlinear least squares error';
 hTabGroup = uitabgroup;
 h2tab1 = uitab(hTabGroup, 'Title', 'Kinematics');
@@ -162,5 +164,19 @@ lhPos = lh.Position;
 set(lh,'position',lhPos);
 
 
+%  if boolFirst && md
+%             iSol_data = find(strcmp(Dat.Normal.EMGheaders,'soleus_r'));
+%             iGas_data = find(strcmp(Dat.Normal.EMGheaders,'gas_lat_r'));
+%             sol_act_normal = [Dat.Normal.gc.lowEMG_mean(ceil(end/2):end,iSol_data); Dat.Normal.gc.lowEMG_mean(1:ceil(end/2)-1,iSol_data)];
+%             sol_act_active = [Dat.Active.gc.lowEMG_mean(ceil(end/2):end,iSol_data); Dat.Active.gc.lowEMG_mean(1:ceil(end/2)-1,iSol_data)];
+%             gas_act_normal = [Dat.Normal.gc.lowEMG_mean(ceil(end/2):end,iGas_data); Dat.Normal.gc.lowEMG_mean(1:ceil(end/2)-1,iGas_data)];
+%             gas_act_active = [Dat.Active.gc.lowEMG_mean(ceil(end/2):end,iGas_data); Dat.Active.gc.lowEMG_mean(1:ceil(end/2)-1,iGas_data)];
+%                         
+%     end
+
+%     if boolFirst && md
+%         plot(sol_act_normal,'-','Color',darkgray,'DisplayName','Data normal shoes');
+%         plot(sol_act_active,'-','Color',lightgray,'DisplayName','Data exo active');
+%     end
 
 end

@@ -11,7 +11,10 @@ function [NLSE] = ModelValidation_NLSError(pathSimResults, pathExpData)
         
     [path2,file2,~] = fileparts(pathExpData);
     addpath(path2);
-    load(file2,'ExperimentalData');
+%     load(file2,'ExperimentalData');
+    load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
+    Qref = Dat.Normal.gc;
+
 
      %% Helper names
     joints_ref = {'pelvis_tilt','pelvis_list','pelvis_rotation',...
@@ -45,17 +48,20 @@ function [NLSE] = ModelValidation_NLSError(pathSimResults, pathExpData)
     NLSE.kinematics = -ones(1,length(idx_Qs));      % -1 default, to see if field wasn't calculated
     NLSE.kinetics = -ones(1,length(idx_Qs));        % -1 default, to see if field wasn't calculated
     
-    subject = 'subject1';
-    Qref = ExperimentalData.Q;
-    IDref = ExperimentalData.Torques;
+%     subject = 'subject1';
+%     Qref = ExperimentalData.Q;
+%     IDref = ExperimentalData.Torques;
     
     for i = 1:length(idx_Qs)
-        idx_jref = strcmp(Qref.(subject).Qs.colheaders,joints_ref{i});
+%         idx_jref = strcmp(Qref.(subject).Qs.colheaders,joints_ref{i});
+        idx_jref = strcmp(Qref.colheaders,joints_ref_r{i});
         idx_sim = strcmp(R.colheaders.joints,joints_ref_r{i});
         NLSE.joints{i} = joints_tit{idx_Qs(i)};
          if sum(idx_jref) == 1 && sum(idx_sim) == 1
-            mean = Qref.(subject).Qs.mean(:,idx_jref);
-            std = Qref.(subject).Qs.std(:,idx_jref);
+%             mean = Qref.(subject).Qs.mean(:,idx_jref);
+            mean = Qref.Qall_mean(:,idx_jref).*180/pi;
+%             std = Qref.(subject).Qs.std(:,idx_jref);
+            std = Qref.Qall_std(:,idx_jref).*180/pi;
             sim = R.Qs(:,idx_sim);
             m = size(mean);
             s = size(sim);
@@ -63,8 +69,10 @@ function [NLSE] = ModelValidation_NLSError(pathSimResults, pathExpData)
             NLSE.kinematics(1,i) = sum(((sim-mean)./std).^2);
             end
 
-            mean = IDref.(subject).mean(:,idx_jref);
-            std = IDref.(subject).std(:,idx_jref);
+%             mean = IDref.(subject).mean(:,idx_jref);
+            mean = Qref.Tall_bio_mean(:,idx_jref);
+%             std = IDref.(subject).std(:,idx_jref);
+            std = Qref.Tall_bio_std(:,idx_jref);
             sim = R.Tid(:,idx_sim);
             m = size(mean);
             s = size(sim);

@@ -21,16 +21,28 @@ if ~exist('LegName','var')
     [~,filename,~]= fileparts(ResultsFile);
     LegName = filename;
 end
+
+
+
 if exist(ResultsFile,'file')
     load(ResultsFile);
     
-    if length(varargin)<2
+    % option to show only simulation results, no measurement data
+    if strcmp(varargin{length(varargin)},'no_meas_data')
+        md = 0;
+    else
+        md = 1;
+    end
+    
+    if length(varargin)<2 || (~md && length(varargin)<3)
         xParam = R.Sopt.ExoScale;
         xParamLab = 'Level assistance';
     else
         xParam = varargin{2};
         xParamLab = varargin{3};
     end
+    
+    
     
     % determine if the model has tmt joint
     has_no_tmt = ~isfield(R.S,'tmt') || isempty(R.S.tmt) || R.S.tmt == 0;
@@ -82,11 +94,16 @@ if exist(ResultsFile,'file')
     end
     
     %% Helper names
+%     joints_ref = {'pelvis_tilt','pelvis_list','pelvis_rotation',...
+%         'hip_flexion','hip_adduction','hip_rotation',...
+%         'knee_angle','ankle_angle','subtalar_angle','tmt_angle','mtp_angle',...
+%         'lumbar_extension','lumbar_bending','lumbar_rotation',...
+%         'arm_flex','arm_add','arm_rot','elbow_flex'};
     joints_ref = {'pelvis_tilt','pelvis_list','pelvis_rotation',...
-        'hip_flexion','hip_adduction','hip_rotation',...
-        'knee_angle','ankle_angle','subtalar_angle','tmt_angle','mtp_angle',...
+        'hip_flexion_r','hip_adduction_r','hip_rotation_r',...
+        'knee_angle_r','ankle_angle_r','subtalar_angle_r','tmt_angle_r','mtp_angle_r',...
         'lumbar_extension','lumbar_bending','lumbar_rotation',...
-        'arm_flex','arm_add','arm_rot','elbow_flex'};
+        'arm_flex_r','arm_add_r','arm_rot_r','elbow_flex_r'};
     joints_tit = {'Pelvis tilt','Pelvis list','Pelvis rotation','Pelvis tx',...
         'Pelvis ty','Pelvis tz','Hip flexion L','Hip adduction L',...
         'Hip rotation L','Hip flexion R','Hip adduction R','Hip rotation R',...
@@ -100,16 +117,20 @@ if exist(ResultsFile,'file')
     %% Plot default figure kinematics (Antoine his code)
     axes('parent', tab1);
     
-    if boolFirst
-        [pathHere,~,~] = fileparts(mfilename('fullpath'));
-        [pathrepo,~,~] = fileparts(pathHere);
-        pathReferenceData = [pathrepo,'/ExperimentalData'];
-        load([pathReferenceData,'/ExperimentalData.mat'],'ExperimentalData');
-        Qref = ExperimentalData.Q;
-        subject = 'subject1';
+    if boolFirst && md
+        subject = R.S.subject;
+%         [pathHere,~,~] = fileparts(mfilename('fullpath'));
+%         [pathrepo,~,~] = fileparts(pathHere);
+% 
+%         pathReferenceData = [pathrepo,'/ExperimentalData'];
+%         load([pathReferenceData,'/ExperimentalData.mat'],'ExperimentalData');
+%         Qref = ExperimentalData.Q.(subject).Qs;
+
         
         % load data Pog_s1 from struct saved during ...\Analyze_ExoData\Batch\BatchScript_LatexReport.m
         load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
+        Qref = Dat.Normal.gc;
+
         
     end
     
@@ -118,25 +139,29 @@ if exist(ResultsFile,'file')
     else
         idx_Qs = [1,2,3,10,11,12,14,16,18,20,22,23,24,25,29,30,31,33];
     end
-    idx_tit = [1,2,3,10,11,12,14,16,18,20,22,23,24,25,29,30,31,33];
+    idx_title = [1,2,3,10,11,12,14,16,18,20,22,23,24,25,29,30,31,33];
     
     j = 0;
     label_fontsize  = 12;
     line_linewidth  = 2;
-    for i = 1:length(idx_tit)
+    for i = 1:length(idx_title)
         subplot(3,6,i)
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         % Experimental data
-        if  boolFirst == 1
-            idx_jref = strcmp(Qref.(subject).Qs.colheaders,joints_ref{i});
+        if  boolFirst == 1 && md
+            idx_jref = strcmp(Qref.colheaders,joints_ref{i});
             if sum(idx_jref) == 1
-                meanPlusSTD = Qref.(subject).Qs.mean(:,idx_jref) + 2*Qref.(subject).Qs.std(:,idx_jref);
-                meanMinusSTD = Qref.(subject).Qs.mean(:,idx_jref) - 2*Qref.(subject).Qs.std(:,idx_jref);
+%                 meanPlusSTD = Qref.(subject).Qs.mean(:,idx_jref) + 2*Qref.(subject).Qs.std(:,idx_jref);
+%                 meanMinusSTD = Qref.(subject).Qs.mean(:,idx_jref) - 2*Qref.(subject).Qs.std(:,idx_jref);
+                meanPlusSTD = (Qref.Qall_mean(:,idx_jref) + 2*Qref.Qall_std(:,idx_jref)).*180/pi;
+                meanMinusSTD = (Qref.Qall_mean(:,idx_jref) - 2*Qref.Qall_std(:,idx_jref)).*180/pi;
+                
                 stepQ = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
                 intervalQ = 1:stepQ:size(R.Qs,1);
                 sampleQ = 1:size(R.Qs,1);
                 meanPlusSTD = interp1(intervalQ,meanPlusSTD,sampleQ);
                 meanMinusSTD = interp1(intervalQ,meanMinusSTD,sampleQ);
+
                 hold on
                 fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName',['MoCap ' subject]);
                 alpha(.25);
@@ -146,12 +171,12 @@ if exist(ResultsFile,'file')
         % Simulation results
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         hold on;
-        if has_no_tmt && strcmp(joints_ref{i},'tmt_angle')
+        if has_no_tmt && (strcmp(joints_ref{i},'tmt_angle') || strcmp(joints_ref{i},'tmt_angle_r'))
             % skip this plot
         else
             j=j+1;
         
-            if i == length(idx_tit)
+            if i == length(idx_title)
                  plot(x,R.Qs(:,idx_Qs(j)),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
             else
                 plot(x,R.Qs(:,idx_Qs(j)),'color',Cs,'linewidth',line_linewidth);
@@ -161,7 +186,7 @@ if exist(ResultsFile,'file')
         % Plot settings
         if boolFirst
             set(gca,'Fontsize',label_fontsize);
-            title(joints_tit{idx_tit(i)},'Fontsize',label_fontsize);
+            title(joints_tit{idx_title(i)},'Fontsize',label_fontsize);
             % Y-axis
             if i == 1 || i == 7 || i == 13 
                 ylabel('Angle (°)','Fontsize',label_fontsize);
@@ -191,16 +216,20 @@ if exist(ResultsFile,'file')
     j = 0;
     label_fontsize  = 12;
     line_linewidth  = 2;
-    for i = 1:length(idx_tit)
+    for i = 1:length(idx_title)
         subplot(3,6,i)
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         % Experimental data
-        if  boolFirst == 1
-            IDref = ExperimentalData.Torques;
-            idx_jref = strcmp(IDref.(subject).colheaders,joints_ref{i});
+        if  boolFirst == 1 && md
+%             IDref = ExperimentalData.Torques;
+%             idx_jref = strcmp(IDref.(subject).colheaders,joints_ref{i});
+            idx_jref = strcmp(Qref.colheaders,joints_ref{i});
             if sum(idx_jref) == 1
-                meanPlusSTD = IDref.(subject).mean(:,idx_jref) + 2*IDref.(subject).std(:,idx_jref);
-                meanMinusSTD = IDref.(subject).mean(:,idx_jref) - 2*IDref.(subject).std(:,idx_jref);
+%                 meanPlusSTD = IDref.(subject).mean(:,idx_jref) + 2*IDref.(subject).std(:,idx_jref);
+%                 meanMinusSTD = IDref.(subject).mean(:,idx_jref) - 2*IDref.(subject).std(:,idx_jref);
+                meanPlusSTD = Qref.Tall_bio_mean(:,idx_jref) + 2*Qref.Tall_bio_std(:,idx_jref);
+                meanMinusSTD = Qref.Tall_bio_mean(:,idx_jref) - 2*Qref.Tall_bio_std(:,idx_jref);
+                
                 stepID = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
                 intervalID = 1:stepID:size(R.Qs,1);
                 sampleID = 1:size(R.Qs,1);
@@ -215,12 +244,12 @@ if exist(ResultsFile,'file')
         % Simulation results
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         hold on;
-        if has_no_tmt && strcmp(joints_ref{i},'tmt_angle')
+        if has_no_tmt && (strcmp(joints_ref{i},'tmt_angle') || strcmp(joints_ref{i},'tmt_angle_r'))
             % skip this plot
         else
             j=j+1;
         
-            if i == length(idx_tit)
+            if i == length(idx_title)
                 plot(x,R.Tid(:,idx_Qs(j)),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
             else
                 plot(x,R.Tid(:,idx_Qs(j)),'color',Cs,'linewidth',line_linewidth);
@@ -230,7 +259,7 @@ if exist(ResultsFile,'file')
         if boolFirst
             % Plot settings
             set(gca,'Fontsize',label_fontsize);
-            title(joints_tit{idx_tit(i)},'Fontsize',label_fontsize);
+            title(joints_tit{idx_title(i)},'Fontsize',label_fontsize);
             % Y-axis
             if i == 1 || i == 7 ||i == 13
                 ylabel('Torque (Nm)','Fontsize',label_fontsize);
@@ -264,7 +293,7 @@ if exist(ResultsFile,'file')
     % experimental data
     darkgray = [0.1 0.1 0.1];
     lightgray = [0.5 0.5 0.5];
-    if boolFirst
+    if boolFirst && md
         plot(0,Dat.Normal.COT,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
         plot(1,Dat.Active.COT,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
     end
@@ -280,7 +309,7 @@ if exist(ResultsFile,'file')
     
     % Plot stride frequency
     subplot(2,2,2); hold on;
-    if boolFirst
+    if boolFirst && md
         plot(0,Dat.Normal.Step.StrideFreq_mean,'o','Color',darkgray,'MarkerFaceColor',darkgray);
         errorbar(0,Dat.Normal.Step.StrideFreq_mean,Dat.Normal.Step.StrideFreq_std,'Color',darkgray,'LineWidth',1.5);
         plot(1,Dat.Active.Step.StrideFreq_mean,'o','Color',lightgray,'MarkerFaceColor',lightgray);
@@ -361,20 +390,8 @@ if exist(ResultsFile,'file')
     axes('parent', tab5);
     iSol = find(strcmp(R.colheaders.muscles,'soleus_r'));
     iGas = find(strcmp(R.colheaders.muscles,'lat_gas_r'));
-    if boolFirst
-            iSol_data = find(strcmp(Dat.Normal.EMGheaders,'soleus_r'));
-            iGas_data = find(strcmp(Dat.Normal.EMGheaders,'gas_lat_r'));
-            sol_act_normal = [Dat.Normal.gc.lowEMG_mean(ceil(end/2):end,iSol_data); Dat.Normal.gc.lowEMG_mean(1:ceil(end/2)-1,iSol_data)];
-            sol_act_active = [Dat.Active.gc.lowEMG_mean(ceil(end/2):end,iSol_data); Dat.Active.gc.lowEMG_mean(1:ceil(end/2)-1,iSol_data)];
-            gas_act_normal = [Dat.Normal.gc.lowEMG_mean(ceil(end/2):end,iGas_data); Dat.Normal.gc.lowEMG_mean(1:ceil(end/2)-1,iGas_data)];
-            gas_act_active = [Dat.Active.gc.lowEMG_mean(ceil(end/2):end,iGas_data); Dat.Active.gc.lowEMG_mean(1:ceil(end/2)-1,iGas_data)];
-                        
-    end
+ 
     subplot(5,2,1); hold on;
-    if boolFirst
-        plot(sol_act_normal,'-','Color',darkgray,'DisplayName','Data normal shoes');
-        plot(sol_act_active,'-','Color',lightgray,'DisplayName','Data exo active');
-    end
     plot(R.a(:,iSol),'-','Color',Cs,'DisplayName',LegName);  title('Soleus');
     xlabel('% stride'); ylabel('activity');
     
@@ -384,10 +401,10 @@ if exist(ResultsFile,'file')
     end
     
     subplot(5,2,2); hold on;
-    if boolFirst
-        plot(gas_act_normal,'-','Color',darkgray);
-        plot(gas_act_active,'-','Color',lightgray);
-    end
+%     if boolFirst && md
+%         plot(gas_act_normal,'-','Color',darkgray);
+%         plot(gas_act_active,'-','Color',lightgray);
+%     end
     plot(R.a(:,iGas),'-','Color',Cs); title('Gastrocnemius');
     xlabel('% stride'); ylabel('activity');
     
@@ -522,7 +539,7 @@ if exist(ResultsFile,'file')
     axes('parent', tab9);
     
     subplot(2,3,1); hold on;
-    if boolFirst
+    if boolFirst && md
         plot(0,Dat.Normal.speed./Dat.Normal.Step.StrideFreq_mean,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
         plot(1,Dat.Active.speed./Dat.Active.Step.StrideFreq_mean,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
     end
@@ -531,11 +548,11 @@ if exist(ResultsFile,'file')
     xlim([-0.5,1.5])
     
     subplot(2,3,2); hold on;
-    if boolFirst
+    if boolFirst && md
         mean_norm = nanmean(Dat.Normal.StepWidth);
         mean_act = nanmean(Dat.Active.StepWidth);
-        plot(0,mean_norm,'o','Color',darkgray,'MarkerFaceColor',darkgray);
-        plot(1,mean_act,'o','Color',lightgray,'MarkerFaceColor',lightgray);
+%         plot(0,mean_norm,'o','Color',darkgray,'MarkerFaceColor',darkgray);
+%         plot(1,mean_act,'o','Color',lightgray,'MarkerFaceColor',lightgray);
         errorbar(0,mean_norm,nanstd(Dat.Normal.StepWidth),'Color',darkgray,'LineWidth',1.5);
         errorbar(1,mean_act,nanstd(Dat.Active.StepWidth),'Color',lightgray,'LineWidth',1.5);
     end
@@ -546,9 +563,9 @@ if exist(ResultsFile,'file')
     xlim([-0.5,1.5])
     
     subplot(2,3,3); hold on;
-    if boolFirst
-        plot(0,Dat.Normal.Step.StrideFreq_mean,'o','Color',darkgray,'MarkerFaceColor',darkgray);
-        plot(1,Dat.Active.Step.StrideFreq_mean,'o','Color',lightgray,'MarkerFaceColor',lightgray);
+    if boolFirst && md
+%         plot(0,Dat.Normal.Step.StrideFreq_mean,'o','Color',darkgray,'MarkerFaceColor',darkgray);
+%         plot(1,Dat.Active.Step.StrideFreq_mean,'o','Color',lightgray,'MarkerFaceColor',lightgray);
         errorbar(0,Dat.Normal.Step.StrideFreq_mean,Dat.Normal.Step.StrideFreq_std,'Color',darkgray,'LineWidth',1.5);
         errorbar(1,Dat.Active.Step.StrideFreq_mean,Dat.Normal.Step.StrideFreq_std,'Color',lightgray,'LineWidth',1.5);
     end    
@@ -558,9 +575,9 @@ if exist(ResultsFile,'file')
     
     % probably mistake in std calculation data
     subplot(2,3,4); hold on;
-    if boolFirst
-        plot(0,Dat.Normal.Step.PercStance,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
-        plot(1,Dat.Active.Step.PercStance,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
+    if boolFirst && md
+%         plot(0,Dat.Normal.Step.PercStance,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
+%         plot(1,Dat.Active.Step.PercStance,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
         errorbar(0,Dat.Normal.Step.PercStance,mean(nanstd(Dat.Normal.Step.PercStance_n)),'Color',darkgray,'LineWidth',1.5);
         errorbar(1,Dat.Active.Step.PercStance,mean(nanstd(Dat.Active.Step.PercStance_n)),'Color',lightgray,'LineWidth',1.5);
     end
@@ -569,9 +586,9 @@ if exist(ResultsFile,'file')
     xlim([-0.5,1.5])
     
     subplot(2,3,5); hold on;
-    if boolFirst
-        plot(0,Dat.Normal.Step.PercSwing,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
-        plot(1,Dat.Active.Step.PercSwing,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
+    if boolFirst && md
+%         plot(0,Dat.Normal.Step.PercSwing,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
+%         plot(1,Dat.Active.Step.PercSwing,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
         errorbar(0,Dat.Normal.Step.PercSwing,mean(nanstd(Dat.Normal.Step.PercSwing_n)),'Color',darkgray,'LineWidth',1.5,'DisplayName','Data normal shoes');
         errorbar(1,Dat.Active.Step.PercSwing,mean(nanstd(Dat.Active.Step.PercSwing_n)),'Color',lightgray,'LineWidth',1.5,'DisplayName','Data exo active');
     end
@@ -580,7 +597,7 @@ if exist(ResultsFile,'file')
     xlim([-0.5,1.5])
     
     subplot(2,3,6); hold on;
-    if boolFirst
+    if boolFirst && md
 %         plot(0,Dat.Normal.Step.PercDS,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
 %         plot(1,Dat.Active.Step.PercDS,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
         errorbar(0,Dat.Normal.Step.PercDS,mean(nanstd(Dat.Normal.Step.PercDS_n)),'Color',darkgray,'LineWidth',1.5,'DisplayName','Data normal shoes');

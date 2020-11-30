@@ -2,8 +2,12 @@ function [] = Plot3D_pwd(varargin)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 dpath = pwd;
+md = 1;
 if ~isempty(varargin)
     dpath = varargin{1};
+    if length(varargin)>1 && strcmp(varargin{2},'no_meas_data')
+        md = 0;
+    end
 end
 
 
@@ -30,7 +34,11 @@ h = figure();
 set(h,'Position',[82         151        1497         827]);
 for i = 1:ct-1
     [path,name,ext] = fileparts(Names{i});
-    PlotResults_3DSim_tmt(Names{i},CsV(i,:),name,h);
+    if md
+        PlotResults_3DSim_tmt(Names{i},CsV(i,:),name,h);
+    else
+        PlotResults_3DSim_tmt(Names{i},CsV(i,:),name,h,'no_meas_data');
+    end
 %     PlotResults_3DSim(Names{i},CsV(i,:),name,h);
 end
 
