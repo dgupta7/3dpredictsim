@@ -1488,6 +1488,7 @@ R.colheaders.dM = {'hip flex','hip add','hip rot','knee angle','ankle angle','su
 % percentage stance and swing phase
 [R.Event.Stance, R.Event.Swing, R.Event.DS] = GetPercentageStance(R.GRFs(:,[2 5]).*body_weight/100,30);
 
+
 % Stepwidth
 if isfield(R,'COPL') && isfield(R,'COPR')
     % compute average positin during left stance

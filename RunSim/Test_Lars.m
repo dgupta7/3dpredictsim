@@ -14,16 +14,18 @@ addpath([pathRepo '/Polynomials']);
 
 %% Manual settings
 
-solve = 0;          % run solver
+solve = 1;          % run solver
 pp = 0;             % postproces
 plot_folder = 0;    % plot figures (for entire resultsfolder)
-plot_comp = 1;      % plot figures (for comparison/validation)
+plot_comp = 0;      % plot figures (for comparison/validation)
+timing = 0;         % compare timing of tmt and mtp movement and torque
+
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 8;        % number of threads for parallel computing
-S.max_iter  = 10000;    % maximum number of iterations
+S.max_iter  = 10;    % maximum number of iterations
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
@@ -35,7 +37,7 @@ S.dTMT = 0;           % (Nms/rad) damping of tmt joint
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
 
 % exo
-S.ExoBool       = 0;    % 1: is wearing exo
+S.ExoBool       = 1;    % 1: is wearing exo
 S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
                         
@@ -117,7 +119,7 @@ S.PolyFolder = 's1_Poggensee';
 
 % external function
 if S.tmt == 0
-    if S.ExoBool*S.ExoScale == 0
+    if S.ExoBool == 0
         S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';        % external function
         S.ExternalFunc2 = 'PredSim_3D_Pog_s1_mtp_pp.dll';     % external function for post-processing
     else
@@ -125,11 +127,12 @@ if S.tmt == 0
     end
     
 elseif S.tmt ==1
-    if S.ExoBool*S.ExoScale == 0
+    if S.ExoBool == 0
         S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt.dll';        % external function
         S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp.dll';     % external function for post-processing
     else
-        
+        S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt.dll';
+        S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp.dll';
     end
     
 end
@@ -186,3 +189,11 @@ if plot_comp
 %     PlotResultsComparison_3DSim(ResultsFile1,ResultsFile2);
 
 end
+
+%%
+
+if timing
+    ResultsFile = fullfile(pathResults,'Pog_s1_tmt_bCst_d02_k800_ig24_pp.mat');
+    Plot_tmt_mtp(ResultsFile)
+end
+

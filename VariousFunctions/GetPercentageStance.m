@@ -13,6 +13,8 @@ nFR = length(Fy(:,1));
 PartStance =  sum(Fy(:,1)>threshold)./nFR*100;
 PartSwing = 100-PartStance;
 
+
+
 % get the double support phase
 DoubleSupport = sum(Fy(:,1)>threshold & Fy(:,2)>threshold)./nFR*100;
 

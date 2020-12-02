@@ -20,11 +20,11 @@ S.ModelPath = fullfile(MainPath,'OpenSimModel','Subject1_Poggensee.osim');
 % Folder with CasadiFunctions
 S.CasadiFunc_Folders = 'debug_notmt'; %'Casadi_s1Pog_tmt_d05_k800'; 
 % path to Cpp file used in the optimization
-S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','PredSim_3D_Pog_s1_tmt.cpp'); 
+S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','SimExo_3D_Pog_s1_tmt.cpp'); 
  % path to Cpp file for post processing
-S.CppFile_pp = fullfile(MainPath,'ExternalFunctions','CppFiles','PredSim_3D_Pog_s1_tmt_pp.cpp');    
+S.CppFile_pp = fullfile(MainPath,'ExternalFunctions','CppFiles','SimExo_3D_Pog_s1_tmt_pp.cpp');    
 % Number of input arguments in the cpp file
-S.CppFile_nInput = 33*3; 
+S.CppFile_nInput = 33*3+2; 
 % model selection options: Rajagopal, Gait92
 S.ModelName = 'Gait92';      
 
@@ -54,8 +54,8 @@ VSinstall   = 'C:\Program Files (x86)\Microsoft Visual Studio 14.0';
 %% 2: Create Casadifunctions
 
 % create casadi functions for equations in optimiztion problem
-CreateCasadiFunctions(MainPath, S.ModelName, S.ModelPath, S.CasadiFunc_Folders,...
-    S.PolyFolder,SettingsCasFunc);
+% CreateCasadiFunctions(MainPath, S.ModelName, S.ModelPath, S.CasadiFunc_Folders,S.PolyFolder,SettingsCasFunc);
+   
 
 %% 3: Create .dll files if needed
 
@@ -65,9 +65,9 @@ CreateCasadiFunctions(MainPath, S.ModelName, S.ModelPath, S.CasadiFunc_Folders,.
 
 
 % % create the .dll file automatically to solve the NLP
-% [CppDir,Name,~] = fileparts(S.CppFile_NLP);
-% CreateDllFileFromCpp(CppDir,Name,OsimSource,OsimBuild,DllPath,ExtFuncs,VSinstall,S.CppFile_nInput);
-% 
+[CppDir,Name,~] = fileparts(S.CppFile_NLP);
+CreateDllFileFromCpp(CppDir,Name,OsimSource,OsimBuild,DllPath,ExtFuncs,VSinstall,S.CppFile_nInput);
+
 % % create the .dll file automatically for postprocessing
-% [CppDir,Name,~] = fileparts(S.CppFile_pp);
-% CreateDllFileFromCpp(CppDir,Name,OsimSource,OsimBuild,DllPath,ExtFuncs,VSinstall,S.CppFile_nInput);
+[CppDir,Name,~] = fileparts(S.CppFile_pp);
+CreateDllFileFromCpp(CppDir,Name,OsimSource,OsimBuild,DllPath,ExtFuncs,VSinstall,S.CppFile_nInput);
