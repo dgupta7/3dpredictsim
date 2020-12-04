@@ -14,18 +14,19 @@ addpath([pathRepo '/Polynomials']);
 
 %% Manual settings
 
-solve = 1;          % run solver
+solve = 0;          % run solver
 pp = 0;             % postproces
-plot_folder = 0;    % plot figures (for entire resultsfolder)
+plot_this = 0;      % plot solution
+plot_folder = 1;    % plot figures (for entire resultsfolder)
 plot_comp = 0;      % plot figures (for comparison/validation)
-timing = 0;         % compare timing of tmt and mtp movement and torque
+timing = 1;         % compare timing of tmt and mtp movement and torque
 
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 8;        % number of threads for parallel computing
-S.max_iter  = 10;    % maximum number of iterations
+S.max_iter  = 10000;    % maximum number of iterations
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
@@ -38,7 +39,7 @@ S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
 
 % exo
 S.ExoBool       = 1;    % 1: is wearing exo
-S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
+S.ExoScale      = 1;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
                         
 S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque profile
@@ -167,6 +168,14 @@ if plot_folder             % plot default figures for entire resultsfolder
 end
 
 %%
+if plot_this
+    h = figure();
+    set(h,'Position',[82         151        1497         827]);
+    PlotResults_3DSim_tmt(fullfile(pathResults,[savename '_pp.mat']),[1 0 0],savename,h);
+end
+
+
+
 if plot_comp
     ResultsFile1 = fullfile(pathResults,'Pog_s1_tmt_bCst_d02_k800_ig24_pp.mat');
     ResultsFile2 = fullfile(pathResults,'Pog_s1_tmt_bCst_d02_k1000_ig24_pp.mat');

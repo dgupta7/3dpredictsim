@@ -170,46 +170,46 @@ if strcmp(ExoImplementation,'Nuckols2019')
 end
 
 if strcmp(ExoImplementation,'TorqueTibiaCalcn') || F1.nnz_out == 73
-    calcOr.r    = [38 40];
-    calcOr.l    = [41 43];
+    calcOr.r    = [40 42];
+    calcOr.l    = [43 45];
     calcOr.all  = [calcOr.r,calcOr.l];
     NcalcOr     = length(calcOr.all);
     % Femurs
-    femurOr.r   = [44 46];
-    femurOr.l   = [47 49];
+    femurOr.r   = [46 48];
+    femurOr.l   = [49 51];
     femurOr.all = [femurOr.r,femurOr.l];
     NfemurOr    = length(femurOr.all);
     % Hands
-    handOr.r    = [50 52];
-    handOr.l    = [53 55];
+    handOr.r    = [52 54];
+    handOr.l    = [55 57];
     handOr.all  = [handOr.r,handOr.l];
     NhandOr     = length(handOr.all);
     % Tibias
-    tibiaOr.r   = [56 58];
-    tibiaOr.l   = [59 61];
+    tibiaOr.r   = [58 60];
+    tibiaOr.l   = [61 63];
     tibiaOr.all = [tibiaOr.r,tibiaOr.l];
     NtibiaOr    = length(tibiaOr.all);
     % External function: F1 (post-processing purpose only)
     % Ground reaction forces (GRFs)
-    GRFi.r      = 32:34;
-    GRFi.l      = 35:37;
+    GRFi.r      = 34:36;
+    GRFi.l      = 37:39;
     GRFi.all    = [GRFi.r,GRFi.l];
     NGRF        = length(GRFi.all);
     % toe joints
-    toesOr.r   = [62 64];
-    toesOr.l   = [65 67];
+    toesOr.r   = [64 66];
+    toesOr.l   = [67 69];
     toesOr.all = [toesOr.r,toesOr.l];
     NtoesOr    = length(toesOr.all);
     
     % Origins calcaneus (3D)
-    calcOrall.r     = 38:40;
-    calcOrall.l     = 41:43;
+    calcOrall.r     = 40:42;
+    calcOrall.l     = 43:45;
     calcOrall.all   = [calcOrall.r,calcOrall.l];
     NcalcOrall      = length(calcOrall.all);
     
     % COP information
-    GroundT.r = [68 69 70];
-    GroundT.l = [71 72 73];
+    GroundT.r = [70 71 72];
+    GroundT.l = [73 74 75];
 end
 
 
@@ -1139,8 +1139,8 @@ if writeIKmotion
         % compute COP information
         nfr = length(Qs_GC(:,1));
         qdqdd = zeros(nfr,nq.all*2);
-        qdqdd(:,1:2:62) = Qs_GC;
-        qdqdd(:,2:2:62) = Qdots_GC;
+        qdqdd(:,1:2:66) = Qs_GC;
+        qdqdd(:,2:2:66) = Qdots_GC;
         qdd = Qdotdots_GC;
         qdqdd(:,[1:6 13:end]) = qdqdd(:,[1:6 13:end])*pi./180;        
         qdqdd(:,11) = qdqdd(:,11);        

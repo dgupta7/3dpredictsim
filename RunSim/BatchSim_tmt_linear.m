@@ -24,8 +24,8 @@ S.max_iter  = 3;    % maximum number of iterations
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;
 
-kTMT = [250 500 800 1000 2000 4000];
-dTMT = [0 0.2 0.5 1 2];
+kTMT = [250 500 800 1000 2000];
+dTMT = [0 0.2 0.5];
 exo = [[0; 0], [1; 0], [1; 1]]';
 
 
@@ -148,7 +148,7 @@ end
 
 %% Run
 
-myCluster = parcluster('LocalProfile1');
+myCluster = parcluster('LocalProfile_2x2');
 
 StartPath = pwd;
 MainPath = pathRepo;
@@ -157,11 +157,19 @@ PathPolynomials = fullfile(MainPath,'Polynomials',S.subject);
 ExoPath = fullfile(MainPath,'Data','Poggensee_2020');
 pathExternalFunctions = fullfile(MainPath,'ExternalFunctions');
 
-for i=1:4
+imax = length(S_batch);
+for i=1:2
 
 CasadiFiles = fullfile(MainPath,'CasADiFunctions',S_batch{i}.CasadiFunc_Folders);
 job(i) = batch(myCluster,'f_PredSim_Gait92_tmt',0,{S_batch{i}},'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
 
+end
+%% rerun this section after the jobs are done to get logfiles
+
+for i=1:length(job)
     
+diary(fullfile(pathRepo,'Results',S_batch{i}.ResultsFolder,[S_batch{i}.savename '_log.txt']));
+job(1, i).Tasks.Diary
+diary off
 
 end
