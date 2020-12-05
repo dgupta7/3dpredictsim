@@ -18,7 +18,7 @@ addpath([pathRepo '/Polynomials']);
 S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 2;        % number of threads for parallel computing
-S.max_iter  = 3;    % maximum number of iterations
+S.max_iter  = 10000;    % maximum number of iterations
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
@@ -51,7 +51,7 @@ S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque pr
                         
 % output folder
 S.ResultsFolder = 'Batchsim_tmt_linear';
-
+% S.ResultsFolder = 'debug_batch';
 
 % Folder with default functions
 S.subject            = 's1_Poggensee';
@@ -147,8 +147,12 @@ clear('savename','casfuncfol');
 end
 
 %% Run
-
+name = getenv('COMPUTERNAME');
+if strcmp(name,'GBW-D-W2711')
+myCluster = parcluster('LocalProfile1_Lars_10x2');
+elseif strcmp(name,'MSI')   %Lars
 myCluster = parcluster('LocalProfile_2x2');
+end
 
 StartPath = pwd;
 MainPath = pathRepo;
@@ -158,7 +162,7 @@ ExoPath = fullfile(MainPath,'Data','Poggensee_2020');
 pathExternalFunctions = fullfile(MainPath,'ExternalFunctions');
 
 imax = length(S_batch);
-for i=1:2
+for i=1:imax
 
 CasadiFiles = fullfile(MainPath,'CasADiFunctions',S_batch{i}.CasadiFunc_Folders);
 job(i) = batch(myCluster,'f_PredSim_Gait92_tmt',0,{S_batch{i}},'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
