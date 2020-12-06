@@ -4,7 +4,7 @@ function [R] = f_LoadSim_Gait92_tmt(ResultsFolder,loadname)
 %% Notes
 
 % to simplify batch processing, the casadi functions were already created
-% using the script CasadiFunctions_all_mtp_createDefault.m
+% using the script CasadiFunctions_all_tmt.m
 % This assumes invariant:
 %   Muscle and tendon properties
 %   Polynomials to compute moment arms
@@ -15,6 +15,8 @@ function [R] = f_LoadSim_Gait92_tmt(ResultsFolder,loadname)
 % 2) the weights in the objective function
 % 3) the exoskeleton assistance
 % 4) the external function
+
+AddCasadiPaths();
 
 if strcmp(loadname(end-3:end),'.mat')
     loadname = loadname(1:end-4);

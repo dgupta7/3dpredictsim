@@ -160,20 +160,28 @@ MainPath = pathRepo;
 PathPolynomials = fullfile(MainPath,'Polynomials',S.subject);
 ExoPath = fullfile(MainPath,'Data','Poggensee_2020');
 pathExternalFunctions = fullfile(MainPath,'ExternalFunctions');
+pathResults = fullfile([pathRepo '/Results'],S.ResultsFolder);
 
+j=1;
 imax = length(S_batch);
 for i=1:imax
-
 CasadiFiles = fullfile(MainPath,'CasADiFunctions',S_batch{i}.CasadiFunc_Folders);
-job(i) = batch(myCluster,'f_PredSim_Gait92_tmt',0,{S_batch{i}},'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
-
+pathResult_pp = fullfile([pathRepo '/Results'],S_batch{i}.ResultsFolder,[S_batch{i}.savename '_pp.mat']);
+    if ~exist(pathResult_pp,'file')
+        % solve
+        job(j) = batch(myCluster,'f_PredSim_Gait92_tmt',0,{S_batch{i}},'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
+        j=j+1;
+        % % post-proces
+        % job(j) = batch(myCluster,'f_LoadSim_Gait92_tmt',0,{pathResult,S_batch{i}.savename},'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
+        % j=j+1;
+    end
 end
 %% rerun this section after the jobs are done to get logfiles
 
 for i=1:length(job)
-    
-diary(fullfile(pathRepo,'Results',S_batch{i}.ResultsFolder,[S_batch{i}.savename '_log.txt']));
-job(1, i).Tasks.Diary
-diary off
-
+    if strcmp(job(1, i).State,'finished') && strcmp(job(1, i).Name,'f_PredSim_Gait92_tmt')
+        diary(fullfile(pathRepo,'Results',S_batch{i}.ResultsFolder,[S_batch{i}.savename '_log.txt']));
+        job(1, i).Tasks.Diary
+        diary off
+    end
 end

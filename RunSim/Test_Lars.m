@@ -19,7 +19,7 @@ pp = 0;             % postproces
 plot_this = 0;      % plot solution
 plot_folder = 1;    % plot figures (for entire resultsfolder)
 plot_comp = 0;      % plot figures (for comparison/validation)
-timing = 1;         % compare timing of tmt and mtp movement and torque
+timing = 0;         % compare timing of tmt and mtp movement and torque
 
 
 % settings for optimization
@@ -45,8 +45,8 @@ S.ExoScale      = 1;    % scale factor of exoskeleton assistance profile
 S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque profile
                         
 % output folder
-S.ResultsFolder = 'PredSim_adaptations';    % other options: 'Test_Lars' 'debug_tmt' 'PredSim_adaptations'
-
+% S.ResultsFolder = 'PredSim_adaptations';    % other options: 'Test_Lars' 'debug_tmt' 'PredSim_adaptations'
+S.ResultsFolder = 'Batchsim_tmt_linear';
 
 % Folder with default functions
 S.subject            = 's1_Poggensee';
