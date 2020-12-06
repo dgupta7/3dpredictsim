@@ -24,23 +24,27 @@ S.max_iter  = 10000;    % maximum number of iterations
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;
 
+% assumption to simplify Hill-type muscle model
+S.MuscModelAsmp = 1;    % 0: musc height = cst, 1: pennation angle = cst
+
 kTMT = [250 500 800 1000 2000];
 dTMT = [0 0.2 0.5];
 exo = [[0; 0], [1; 0], [1; 1]]';
+% exo = [0 0];
 
 
-% set up settings fo
+
 count = 1;
 for ik=1:length(kTMT)
     for id=1:length(dTMT)
-        for ie=1:3
+        for ie=1:size(exo,1)
             
 
 S.kTMT = kTMT(ik);
 S.dTMT = dTMT(id);
 
 % assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
+S.MuscModelAsmp = 1;    % 0: musc width = cst, 1: pennation angle = cst
 
 % exo
 S.ExoBool       = exo(ie,1);    % 1: is wearing exo
@@ -178,10 +182,10 @@ pathResult_pp = fullfile([pathRepo '/Results'],S_batch{i}.ResultsFolder,[S_batch
 end
 %% rerun this section after the jobs are done to get logfiles
 
-for i=1:length(job)
-    if strcmp(job(1, i).State,'finished') && strcmp(job(1, i).Name,'f_PredSim_Gait92_tmt')
-        diary(fullfile(pathRepo,'Results',S_batch{i}.ResultsFolder,[S_batch{i}.savename '_log.txt']));
-        job(1, i).Tasks.Diary
-        diary off
-    end
-end
+% for i=1:length(job)
+%     if strcmp(job(1, i).State,'finished') && strcmp(job(1, i).Name,'f_PredSim_Gait92_tmt')
+%         diary(fullfile(pathRepo,'Results',S_batch{i}.ResultsFolder,[S_batch{i}.savename '_log.txt']));
+%         job(1, i).Tasks.Diary
+%         diary off
+%     end
+% end
