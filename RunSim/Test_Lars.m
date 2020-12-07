@@ -164,7 +164,8 @@ end
 
 if plot_folder             % plot default figures for entire resultsfolder
     pathResult = fullfile([pathRepo '/Results/' S.ResultsFolder]);
-    Plot3D_pwd(pathResult); %'no_meas_data'
+%     Plot3D_pwd(pathResult); %'no_meas_data'
+    Plot3D_pwd_separate(pathResult);
 end
 
 %%

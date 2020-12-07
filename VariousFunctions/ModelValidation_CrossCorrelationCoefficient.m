@@ -7,12 +7,21 @@ function [ccc] = ModelValidation_CrossCorrelationCoefficient(pathSimResults, pat
     [path1,file1,~] = fileparts(pathSimResults);
     addpath(path1);
     load(file1,'R');
-        
+    if R.S.ExoBool == 1
+        if R.S.ExoScale == 0
+            type = 'Passive';
+        else
+            type = 'Active';
+        end
+    else
+        type = 'Normal';
+    end
+
     [path2,file2,~] = fileparts(pathExpData);
     addpath(path2);
 %     load(file2,'ExperimentalData');
     load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
-    Qref = Dat.Normal.gc;
+    Qref = Dat.(type).gc;
 
     %% Helper names
     joints_ref = {'pelvis_tilt','pelvis_list','pelvis_rotation',...

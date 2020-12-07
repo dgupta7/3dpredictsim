@@ -37,14 +37,14 @@ for i = 1:ct-1
     if md
         PlotResults_3DSim_tmt(Names{i},CsV(i,:),name,h);
     else
-        PlotResults_3DSim_tmt(Names{i},CsV(i,:),name,h,'no_meas_data');
+        PlotResults_3DSim_tmt(Names{i},CsV(i,:),name,h,varargin{2});
     end
-%     PlotResults_3DSim(Names{i},CsV(i,:),name,h);
+
 end
 
-filename = fullfile(dpath,'FigureResults.fig');
+% filename = fullfile(dpath,'FigureResults.fig');
 % if ~exist(filename,'file')
-saveas(h,fullfile(dpath,'FigureResults.fig'));
+% saveas(h,fullfile(dpath,'FigureResults.fig'));
 % end
 
 

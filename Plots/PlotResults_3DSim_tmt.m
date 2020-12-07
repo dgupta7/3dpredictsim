@@ -30,11 +30,24 @@ if exist(ResultsFile,'file')
     % option to show only simulation results, no measurement data
     if strcmp(varargin{length(varargin)},'no_meas_data')
         md = 0;
+        vv = 0;
     else
         md = 1;
+        if strcmp(varargin{length(varargin)},'act')
+            type = 'Active';
+            vv = 0;
+        elseif strcmp(varargin{length(varargin)},'pas')
+            type = 'Passive';
+            vv = 0;
+        elseif strcmp(varargin{length(varargin)},'norm')
+            type = 'Normal';
+            vv = 0;
+        else
+            type = 'Normal';
+        end
     end
     
-    if length(varargin)<2 || (~md && length(varargin)<3)
+    if length(varargin)<2 || (~vv && length(varargin)<3)
         xParam = R.Sopt.ExoScale;
         xParamLab = 'Level assistance';
     else
@@ -129,7 +142,7 @@ if exist(ResultsFile,'file')
         
         % load data Pog_s1 from struct saved during ...\Analyze_ExoData\Batch\BatchScript_LatexReport.m
         load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
-        Qref = Dat.Normal.gc;
+        Qref = Dat.(type).gc;
 
         
     end
@@ -236,7 +249,7 @@ if exist(ResultsFile,'file')
                 meanPlusSTD = interp1(intervalID,meanPlusSTD,sampleID);
                 meanMinusSTD = interp1(intervalID,meanMinusSTD,sampleID);
                 hold on
-                fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName','MoCap');
+                fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName',['MoCap ' subject]);
                 alpha(.25);
             end
         end
@@ -291,9 +304,10 @@ if exist(ResultsFile,'file')
     % Plot COT as a function of exo assitance
     subplot(2,2,1); hold on;
     % experimental data
-    darkgray = [0.1 0.1 0.1];
-    lightgray = [0.5 0.5 0.5];
+    darkgray = [0.5 0.5 0.5];
+    lightgray = [0.1 0.1 0.1];
     if boolFirst && md
+        plot(0,Dat.Passive.COT,'o','Color',darkgray,'MarkerFaceColor','k','DisplayName','Data exo passive');
         plot(0,Dat.Normal.COT,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
         plot(1,Dat.Active.COT,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
     end
@@ -540,6 +554,7 @@ if exist(ResultsFile,'file')
     
     subplot(2,3,1); hold on;
     if boolFirst && md
+        plot(0,Dat.Passive.speed./Dat.Normal.Step.StrideFreq_mean,'o','Color','k','MarkerFaceColor','k','DisplayName','Data normal shoes');
         plot(0,Dat.Normal.speed./Dat.Normal.Step.StrideFreq_mean,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
         plot(1,Dat.Active.speed./Dat.Active.Step.StrideFreq_mean,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
     end
@@ -551,8 +566,10 @@ if exist(ResultsFile,'file')
     if boolFirst && md
         mean_norm = nanmean(Dat.Normal.StepWidth);
         mean_act = nanmean(Dat.Active.StepWidth);
+        mean_pas = nanmean(Dat.Passive.StepWidth);
 %         plot(0,mean_norm,'o','Color',darkgray,'MarkerFaceColor',darkgray);
 %         plot(1,mean_act,'o','Color',lightgray,'MarkerFaceColor',lightgray);
+        errorbar(0,mean_pas,nanstd(Dat.Passive.StepWidth),'Color','k','LineWidth',1.5);
         errorbar(0,mean_norm,nanstd(Dat.Normal.StepWidth),'Color',darkgray,'LineWidth',1.5);
         errorbar(1,mean_act,nanstd(Dat.Active.StepWidth),'Color',lightgray,'LineWidth',1.5);
     end
@@ -566,6 +583,7 @@ if exist(ResultsFile,'file')
     if boolFirst && md
 %         plot(0,Dat.Normal.Step.StrideFreq_mean,'o','Color',darkgray,'MarkerFaceColor',darkgray);
 %         plot(1,Dat.Active.Step.StrideFreq_mean,'o','Color',lightgray,'MarkerFaceColor',lightgray);
+        errorbar(0,Dat.Passive.Step.StrideFreq_mean,Dat.Passive.Step.StrideFreq_std,'Color','k','LineWidth',1.5);
         errorbar(0,Dat.Normal.Step.StrideFreq_mean,Dat.Normal.Step.StrideFreq_std,'Color',darkgray,'LineWidth',1.5);
         errorbar(1,Dat.Active.Step.StrideFreq_mean,Dat.Normal.Step.StrideFreq_std,'Color',lightgray,'LineWidth',1.5);
     end    
@@ -578,6 +596,7 @@ if exist(ResultsFile,'file')
     if boolFirst && md
 %         plot(0,Dat.Normal.Step.PercStance,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
 %         plot(1,Dat.Active.Step.PercStance,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
+        errorbar(0,Dat.Passive.Step.PercStance,mean(nanstd(Dat.Passive.Step.PercStance_n)),'Color','k','LineWidth',1.5);
         errorbar(0,Dat.Normal.Step.PercStance,mean(nanstd(Dat.Normal.Step.PercStance_n)),'Color',darkgray,'LineWidth',1.5);
         errorbar(1,Dat.Active.Step.PercStance,mean(nanstd(Dat.Active.Step.PercStance_n)),'Color',lightgray,'LineWidth',1.5);
     end
@@ -589,6 +608,7 @@ if exist(ResultsFile,'file')
     if boolFirst && md
 %         plot(0,Dat.Normal.Step.PercSwing,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
 %         plot(1,Dat.Active.Step.PercSwing,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
+        errorbar(0,Dat.Passive.Step.PercSwing,mean(nanstd(Dat.Passive.Step.PercSwing_n)),'Color','k','LineWidth',1.5,'DisplayName','Data exo passive');
         errorbar(0,Dat.Normal.Step.PercSwing,mean(nanstd(Dat.Normal.Step.PercSwing_n)),'Color',darkgray,'LineWidth',1.5,'DisplayName','Data normal shoes');
         errorbar(1,Dat.Active.Step.PercSwing,mean(nanstd(Dat.Active.Step.PercSwing_n)),'Color',lightgray,'LineWidth',1.5,'DisplayName','Data exo active');
     end
@@ -600,6 +620,7 @@ if exist(ResultsFile,'file')
     if boolFirst && md
 %         plot(0,Dat.Normal.Step.PercDS,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
 %         plot(1,Dat.Active.Step.PercDS,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
+        errorbar(0,Dat.Passive.Step.PercDS,mean(nanstd(Dat.Passive.Step.PercDS_n)),'Color','k','LineWidth',1.5,'DisplayName','Data exo passive');
         errorbar(0,Dat.Normal.Step.PercDS,mean(nanstd(Dat.Normal.Step.PercDS_n)),'Color',darkgray,'LineWidth',1.5,'DisplayName','Data normal shoes');
         errorbar(1,Dat.Active.Step.PercDS,mean(nanstd(Dat.Active.Step.PercDS_n)),'Color',lightgray,'LineWidth',1.5,'DisplayName','Data exo active');
     end

@@ -8,6 +8,11 @@
 function ID = getID(pathID,joints)
 
 IDall = importdata(pathID);
+% colheaders=IDall.colheaders;
+if ~isfield(IDall,'colheaders')
+    load('colheaders.mat','colheaders');
+    IDall.colheaders = colheaders;
+end
 ID.time = IDall.data(:,strcmp(IDall.colheaders,{'time'}));
 ID.all(:,1) = ID.time;
 count = 1;
