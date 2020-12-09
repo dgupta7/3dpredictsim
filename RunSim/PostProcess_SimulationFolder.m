@@ -14,7 +14,7 @@ addpath([pwd,'/OCP']);
 addpath([pwd,'/MuscleModel']);
 addpath([pwd,'/Debug']);
 AddCasadiPaths();
-DataFolders = {'without_tmt'};
+DataFolders = {'Batchsim_tmt_linear'};
 
 S.OverWrite = 0;
 

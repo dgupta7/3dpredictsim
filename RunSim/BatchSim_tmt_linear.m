@@ -153,7 +153,7 @@ end
 %% Run
 name = getenv('COMPUTERNAME');
 if strcmp(name,'GBW-D-W2711')
-myCluster = parcluster('LocalProfile1_Lars_10x2');
+myCluster = parcluster('LocalProfile1_Lars_8x2');
 elseif strcmp(name,'MSI')   %Lars
 myCluster = parcluster('LocalProfile_2x2');
 end
@@ -172,20 +172,16 @@ for i=1:imax
 CasadiFiles = fullfile(MainPath,'CasADiFunctions',S_batch{i}.CasadiFunc_Folders);
 pathResult_pp = fullfile([pathRepo '/Results'],S_batch{i}.ResultsFolder,[S_batch{i}.savename '_pp.mat']);
     if ~exist(pathResult_pp,'file')
-        % solve
         job(j) = batch(myCluster,'f_PredSim_Gait92_tmt',0,{S_batch{i}},'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
         j=j+1;
-        % % post-proces
-        % job(j) = batch(myCluster,'f_LoadSim_Gait92_tmt',0,{pathResult,S_batch{i}.savename},'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
-        % j=j+1;
     end
 end
 %% rerun this section after the jobs are done to get logfiles
 
-% for i=1:length(job)
-%     if strcmp(job(1, i).State,'finished') && strcmp(job(1, i).Name,'f_PredSim_Gait92_tmt')
-%         diary(fullfile(pathRepo,'Results',S_batch{i}.ResultsFolder,[S_batch{i}.savename '_log.txt']));
-%         job(1, i).Tasks.Diary
-%         diary off
-%     end
-% end
+for i=1:length(job)
+    if strcmp(job(1, i).State,'finished') && strcmp(job(1, i).Name,'f_PredSim_Gait92_tmt')
+        diary(fullfile(pathRepo,'Results',S_batch{i}.ResultsFolder,[S_batch{i}.savename '_log.txt']));
+        job(1, i).Tasks.Diary
+        diary off
+    end
+end
