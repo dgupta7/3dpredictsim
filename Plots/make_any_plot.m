@@ -5,29 +5,27 @@ clc
 [pathHere,~,~] = fileparts(mfilename('fullpath'));
 [pathRepo,~,~] = fileparts(pathHere);
 addpath([pathRepo '/VariousFunctions']);
-% addpath([pathRepo '/Plots']);
 
 %% Settings
 ResultsFolder = 'Batchsim_tmt_linear';
-
 
 reference_data = 'norm'; % 'none' 'norm' 'pas' act'
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
-% S.kTMT = 200;           % (Nm/rad) stiffness of tmt joint 
+S.kTMT = 800;           % (Nm/rad) stiffness of tmt joint 
 S.dTMT = 0;           % (Nms/rad) damping of tmt joint
 
 % kTMT = [250 500 800 1000 2000];
 % dTMT = [0 0.2 0.5];
 
 % assumption to simplify Hill-type muscle model
-% S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
+S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
 
 % exo
-S.ExoBool       = 0;    % 1: is wearing exo
-S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
+S.ExoBool       = 1;    % 1: is wearing exo
+S.ExoScale      = 1;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
 
 
@@ -102,18 +100,21 @@ end
 
 
 %%
-% 
-% [filteredResults]=getResultsForSameParams(pathResult,criteria);
-% 
-% Plot3D(filteredResults,reference_data)
-% 
-% ValidationPlots(pathData,filteredResults{1},filteredResults{2:end})
 
+[filteredResults]=getResultsForSameParams(pathResult,criteria);
+
+Plot3D(filteredResults,reference_data)
+
+if length(filteredResults)>1
+    ValidationPlots(pathData,filteredResults{1},filteredResults{2:end})
+else
+    ValidationPlots(pathData,filteredResults{1})
+end
 
 %%
 
 
-Plot3D_pwd_separate(pathResult); % plot default figures for entire resultsfolder
+% Plot3D_pwd_separate(pathResult); % plot default figures for entire resultsfolder
 
 %%
 % if plot_comp

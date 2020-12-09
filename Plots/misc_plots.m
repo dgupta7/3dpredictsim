@@ -1,4 +1,6 @@
 
+
+%% plot soleus activity
 load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
 Qref = Dat.Normal.gc;
 
@@ -24,3 +26,15 @@ hold on
 xlabel('Gait cycle (%)')
 ylabel('Ankle torque (Nm)')
 grid on
+
+%% plot assistance profile
+
+load('D:\school\WTK\thesis\model\3dpredictsim\Results\Batchsim_tmt_linear\Pog_s1_tmt_bCst_d00_k800_ig24_act_pp.mat');
+figure
+plot(-R.T_exo(:,2))
+ylabel('Exo Moment - Ankle [Nm]')
+xlabel('% Gait cycle')
+title('Assistance profile')
+
+
+

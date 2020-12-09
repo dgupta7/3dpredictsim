@@ -4,7 +4,7 @@ ct = length(Names);
 CsV = hsv(ct);
 h = figure();
 set(h,'Position',[82 151 1497 827]);
-for i = 1:ct-1
+for i = 1:ct
     [~,name,~] = fileparts(Names{i});
     PlotResults_3DSim_tmt(Names{i},CsV(i,:),name,h,meas_type);
 end
