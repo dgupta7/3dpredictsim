@@ -1,0 +1,57 @@
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit http://projects.coin-or.org/Ipopt
+******************************************************************************
+
+This is Ipopt version 3.12.3, running with linear solver mumps.
+NOTE: Other linear solvers might be more efficient (see Ipopt documentation).
+
+Number of nonzeros in equality constraint Jacobian...:   700766
+Number of nonzeros in inequality constraint Jacobian.:    65550
+Number of nonzeros in Lagrangian Hessian.............:        0
+
+Total number of variables............................:    76110
+                     variables with only lower bounds:        0
+                variables with lower and upper bounds:    76110
+                     variables with only upper bounds:        0
+Total number of equality constraints.................:    71010
+Total number of inequality constraints...............:    28350
+        inequality constraints with only lower bounds:    13800
+   inequality constraints with lower and upper bounds:      750
+        inequality constraints with only upper bounds:    13800
+
+iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
+   0 1.7423405e+004 5.05e+002 8.45e-001   0.0 0.00e+000    -  0.00e+000 0.00e+000   0
+   1 1.3900725e+004 3.88e+002 1.06e+003  -0.1 2.00e+001    -  2.08e-001 1.95e-001f  1
+   2 1.0899588e+004 3.02e+002 1.99e+003  -0.8 1.52e+001    -  2.36e-001 1.88e-001f  1
+   3 9.7902167e+003 2.55e+002 2.30e+003  -5.5 1.71e+001    -  8.25e-002 1.33e-001h  1
+   4 9.0062861e+003 2.16e+002 2.59e+003  -0.6 1.97e+001    -  1.97e-001 1.22e-001f  1
+   5 8.6114304e+003 2.03e+002 2.77e+003  -0.2 4.05e+001    -  3.46e-001 5.20e-002f  1
+   6 7.1019194e+003 1.24e+002 3.67e+003  -0.1 5.61e+001    -  6.14e-001 2.51e-001f  1
+   7 5.7456357e+003 8.73e+001 4.12e+003  -5.9 2.85e+001    -  1.87e-001 3.65e-001h  1
+   8 5.2434054e+003 6.81e+001 3.57e+003  -5.9 2.96e+001    -  1.07e-001 2.61e-001h  1
+   9 4.9644727e+003 5.74e+001 2.89e+003  -0.9 2.67e+001    -  3.14e-001 1.44e-001f  1
+iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
+  10 4.4923890e+003 3.63e+001 2.02e+003  -1.5 1.35e+001    -  2.01e-001 3.56e-001f  1
+  11 4.4063244e+003 3.35e+001 1.96e+003  -6.2 1.01e+001    -  3.70e-001 7.90e-002h  1
+  12 3.7876069e+003 1.95e+001 3.74e+002  -2.5 9.48e+000    -  2.99e-001 9.69e-001h  1
+  13 3.4021193e+003 2.71e+000 7.24e+001  -6.6 1.98e+000    -  3.76e-001 1.00e+000h  1
+  14 3.1922677e+003 2.34e+000 3.76e+001  -2.2 3.91e+000    -  7.66e-001 1.00e+000f  1
+  15 2.9418380e+003 1.02e+001 4.17e+001  -2.4 1.30e+001    -  4.66e-001 1.00e+000f  1
+  16 2.7995530e+003 6.05e+000 3.62e+001  -2.8 1.01e+001    -  4.38e-001 6.81e-001f  1
+  17 2.6521002e+003 1.30e+001 3.72e+001  -2.7 3.95e+000    -  7.00e-001 1.00e+000f  1
+  18 6.1936952e+003 1.13e+001 1.97e+001  -2.9 8.14e+000    -  5.28e-001 1.00e+000H  1
+  19 5.2359442e+003 5.34e+000 2.90e+001  -2.6 1.72e+001    -  1.00e+000 2.42e-001f  1
+iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
+  20 9.1042973e+003 1.79e+001 3.55e+001  -2.6 3.97e+001    -  7.75e-002 2.88e-001f  1
+  21 5.7887786e+003 4.89e+001 4.38e+001  -2.6 1.90e+001    -  4.47e-001 9.96e-001f  1
+  22 5.8983734e+003 3.47e+001 3.52e+001  -2.6 1.70e+001    -  2.08e-001 3.30e-001h  1
+  23 4.5308794e+003 1.04e+000 1.59e+001  -2.6 4.63e+000    -  1.00e+000 1.00e+000h  1
+  24 4.4767501e+003 1.16e+000 8.69e+000  -2.6 3.29e+000    -  1.00e+000 6.11e-001h  1
+  25 4.9871979e+003 2.66e+001 1.18e+001  -2.6 1.08e+001    -  7.50e-001 7.26e-001h  1
+  26 4.7373403e+003 5.73e+000 4.79e+000  -2.6 3.29e+000    -  1.00e+000 1.00e+000h  1
+  27 4.2514827e+003 6.76e+000 3.84e+000  -2.6 2.39e+000    -  9.42e-001 1.00e+000h  1
+  28 4.2596662e+003 2.41e+000 3.53e+000  -2.6 1.21e+000    -  1.00e+000 1.00e+000h  1
+  29 4.2718724e+003 6.73e+000 5.07e+000  -2.6 3.01e+000   

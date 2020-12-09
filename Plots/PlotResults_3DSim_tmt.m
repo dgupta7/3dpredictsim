@@ -28,7 +28,7 @@ if exist(ResultsFile,'file')
     load(ResultsFile);
     
     % option to show only simulation results, no measurement data
-    if strcmp(varargin{length(varargin)},'no_meas_data')
+    if strcmp(varargin{length(varargin)},'no_meas_data') || strcmp(varargin{length(varargin)},'none')
         md = 0;
         vv = 0;
     else
@@ -176,7 +176,7 @@ if exist(ResultsFile,'file')
                 meanMinusSTD = interp1(intervalQ,meanMinusSTD,sampleQ);
 
                 hold on
-                fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName',['MoCap ' subject]);
+                fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName',['MoCap ' subject '(' type ')']);
                 alpha(.25);
             end
         end
