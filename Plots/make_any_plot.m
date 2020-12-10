@@ -7,26 +7,31 @@ clc
 addpath([pathRepo '/VariousFunctions']);
 
 %% Settings
+% Folder will be filtered to only plot results that satisfy all chosen
+% settings. Put an entry in comment to not use it to filter.
+
+% folder to filter from
 ResultsFolder = 'Batchsim_tmt_linear';
 
+% experimental data to plot as reference
 reference_data = 'norm'; % 'none' 'norm' 'pas' act'
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
-S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
-S.kTMT = 800;           % (Nm/rad) stiffness of tmt joint 
-S.dTMT = 0;           % (Nms/rad) damping of tmt joint
+% S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
+S.kTMT = 800;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
+S.dTMT = 0;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
 
-% kTMT = [250 500 800 1000 2000];
-% dTMT = [0 0.2 0.5];
 
 % assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
+S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 
 % exo
 S.ExoBool       = 1;    % 1: is wearing exo
 S.ExoScale      = 1;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
+S.IGsel         = 2;    % initial guess identifier (1: quasi random, 2: data-based)
+S.IGmodeID      = 4;    % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
 
 
 
@@ -74,13 +79,15 @@ if S.tmt && isfield(S,'kTMT') && ~isempty(S.kTMT) && ~S.tmt_locked
     criteria{ct} = ['k' num2str(S.kTMT)];
     ct=ct+1;
 end
-% if S.IGsel == 1
-%     criteria{ct} = 'ig1';
-%     ct=ct+1;
-% else
-%     criteria{ct} = ['ig2' num2str(S.IGmodeID )];
-%     ct=ct+1;
-% end
+if isfield(S,'IGsel') && ~isempty(S.IGsel)
+    if S.IGsel == 1
+        criteria{ct} = 'ig1';
+        ct=ct+1;
+    else
+        criteria{ct} = ['ig2' num2str(S.IGmodeID )];
+        ct=ct+1;
+    end
+end
 if S.ExoBool == 1
     if S.ExoScale == 0
         criteria{ct} = 'pas';
@@ -101,7 +108,7 @@ end
 
 %%
 
-[filteredResults]=getResultsForSameParams(pathResult,criteria);
+[filteredResults] = filterResultfolderByParameters(pathResult,criteria);
 
 Plot3D(filteredResults,reference_data)
 

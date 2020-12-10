@@ -1,16 +1,7 @@
-function [filteredResults]=getResultsForSameParams(dpath,varargin)
-
-params = varargin{1,1};
-nP = length(params);
-% nP = length(varargin);
-% params{1} = 'xxx';
-% if nP>0
-%     params{nP};
-%     for i=1:nP
-%         params{i} = varargin{i};
-%     end
-% end
-% params{1} = param1;
+function [filteredResults]=filterResultfolderByParameters(dpath,params)
+% Folder will be filtered to only return results that satisfy all chosen
+% parameter settings. If a parameter matches none of the results, it is not
+% used as a filter. (To prevent wrong entries or typos.)
 
 % Get the names of the results files
 MatFiles = dir(fullfile(dpath,'*.mat'));
@@ -26,10 +17,11 @@ for i = 1:nFil
     end
 end
 
-nFil = ct-1;
-idx = zeros(nP,nFil);
+nP = length(params);
+nN = ct-1;
+idx = zeros(nP,nN);
 for i=1:nP
-    for j=1:nFil
+    for j=1:nN
         if  length(params{i})>4 && strcmp(params{i}(1:4),'not_')
             bool = 0;
             param = params{i}(5:end);
@@ -43,14 +35,14 @@ for i=1:nP
             idx(i,j)=abs(1-bool);
         end
     end
-    if idx(i,:)==zeros(1,nFil)
-        disp(['No files in the folder satisfy ' params{i} '. Dropping criterium.'])
-        idx(i,:) = ones(1,nFil);
+    if idx(i,:)==zeros(1,nN)
+        disp(['No files in the folder satisfy ' params{i} ', dropping criterium.'])
+        idx(i,:) = ones(1,nN);
     end
 end
 ctr = 1;
 filteredResults = {};
-for j=1:nFil
+for j=1:nN
     if sum(idx(:,j)) == nP
         filteredResults{ctr} = Names{j,1};
         ctr=ctr+1;

@@ -5,7 +5,7 @@ clc
 
 [pathHere,~,~] = fileparts(mfilename('fullpath'));
 addpath(genpath(pathHere));
-
+AddCasadiPaths();
 
 
 %% path to scripts, for easy access

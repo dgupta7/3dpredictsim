@@ -21,11 +21,11 @@ S.NThreads  = 2;        % number of threads for parallel computing
 S.max_iter  = 10000;    % maximum number of iterations
 
 % tarsometatarsal joint
-S.tmt = 1;              % 1: use a model with tmt joint
+S.tmt = 0;              % 1: use a model with tmt joint
 S.tmt_locked = 0;
 
 % assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 1;    % 0: musc height = cst, 1: pennation angle = cst
+S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 
 kTMT = [250 500 800 1000 2000];
 dTMT = [0 0.2 0.5];
@@ -172,14 +172,21 @@ for i=1:imax
 CasadiFiles = fullfile(MainPath,'CasADiFunctions',S_batch{i}.CasadiFunc_Folders);
 pathResult_pp = fullfile([pathRepo '/Results'],S_batch{i}.ResultsFolder,[S_batch{i}.savename '_pp.mat']);
     if ~exist(pathResult_pp,'file')
-        job(j) = batch(myCluster,'f_PredSim_Gait92_tmt',0,{S_batch{i}},'CurrentFolder',StartPath,'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
+        if S.tmt == 1
+            job(j) = batch(myCluster,'f_PredSim_Gait92_tmt',0,{S_batch{i}},'CurrentFolder',StartPath,...
+                'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
+        else
+            job(j) = batch(myCluster,'f_PredSim_Gait92',0,{S_batch{i}},'CurrentFolder',StartPath,...
+                'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
+        end
         j=j+1;
     end
 end
+
 %% rerun this section after the jobs are done to get logfiles
 
 for i=1:length(job)
-    if strcmp(job(1, i).State,'finished') && strcmp(job(1, i).Name,'f_PredSim_Gait92_tmt')
+    if strcmp(job(1, i).State,'finished') && strcmp(job(1, i).Name(1:9),'f_PredSim')
         diary(fullfile(pathRepo,'Results',S_batch{i}.ResultsFolder,[S_batch{i}.savename '_log.txt']));
         job(1, i).Tasks.Diary
         diary off
