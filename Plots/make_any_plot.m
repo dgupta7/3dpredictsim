@@ -11,27 +11,27 @@ addpath([pathRepo '/VariousFunctions']);
 % settings. Put an entry in comment to not use it to filter.
 
 % folder to filter from
-ResultsFolder = 'Batchsim_tmt_linear';
+ResultsFolder = 'all'; %'Batchsim_tmt_linear'
 
 % experimental data to plot as reference
 reference_data = 'norm'; % 'none' 'norm' 'pas' act'
 
 % tarsometatarsal joint
-S.tmt = 1;              % 1: use a model with tmt joint
+% S.tmt = 1;              % 1: use a model with tmt joint
 % S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
-S.kTMT = 800;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
-S.dTMT = 0;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
+% S.kTMT = 800;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
+% S.dTMT = 0;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
 
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 
 % exo
-S.ExoBool       = 1;    % 1: is wearing exo
-S.ExoScale      = 1;    % scale factor of exoskeleton assistance profile 
+S.ExoBool       = 0;    % 1: is wearing exo
+S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
-S.IGsel         = 2;    % initial guess identifier (1: quasi random, 2: data-based)
-S.IGmodeID      = 4;    % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
+% S.IGsel         = 2;    % initial guess identifier (1: quasi random, 2: data-based)
+% S.IGmodeID      = 4;    % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
 
 
 
@@ -47,20 +47,20 @@ if isfield(S,'subject') && ~isempty(S.subject) && strcmp(S.subject,'s1_Poggensee
     ct=ct+1;
 end
 if isfield(S,'tmt') && ~isempty(S.tmt)
-if S.tmt && S.tmt_locked
-    criteria{ct} ='tmtL';
-    ct=ct+1;
-end
-if S.tmt && ~S.tmt_locked
-    criteria{ct} ='tmt';
-    ct=ct+1;
-    criteria{ct} ='not_tmtL';
-    ct=ct+1;
-end
-if ~S.tmt
-    criteria{ct} ='not_tmt';
-    ct=ct+1;
-end
+    if S.tmt && S.tmt_locked
+        criteria{ct} ='tmtL';
+        ct=ct+1;
+    end
+    if S.tmt && ~S.tmt_locked
+        criteria{ct} ='tmt';
+        ct=ct+1;
+        criteria{ct} ='not_tmtL';
+        ct=ct+1;
+    end
+    if ~S.tmt
+        criteria{ct} ='not_tmt';
+        ct=ct+1;
+    end
 end
 if isfield(S,'MuscModelAsmp') && ~isempty(S.MuscModelAsmp) 
     if S.MuscModelAsmp==0
@@ -71,11 +71,11 @@ if isfield(S,'MuscModelAsmp') && ~isempty(S.MuscModelAsmp)
     ct=ct+1;
     end
 end
-if S.tmt && isfield(S,'dTMT') && ~isempty(S.dTMT) && ~S.tmt_locked
+if isfield(S,'dTMT') && ~isempty(S.dTMT) && ~S.tmt_locked
     criteria{ct} = ['d0' num2str(S.dTMT*10)];
     ct=ct+1;
 end
-if S.tmt && isfield(S,'kTMT') && ~isempty(S.kTMT) && ~S.tmt_locked
+if isfield(S,'kTMT') && ~isempty(S.kTMT) && ~S.tmt_locked
     criteria{ct} = ['k' num2str(S.kTMT)];
     ct=ct+1;
 end
@@ -110,7 +110,7 @@ end
 
 [filteredResults] = filterResultfolderByParameters(pathResult,criteria);
 
-Plot3D(filteredResults,reference_data)
+% Plot3D(filteredResults,reference_data)
 
 if length(filteredResults)>1
     ValidationPlots(pathData,filteredResults{1},filteredResults{2:end})

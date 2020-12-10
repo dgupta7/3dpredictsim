@@ -88,11 +88,11 @@ if S.tmt == 0
     
 elseif S.tmt ==1
     if S.ExoBool == 0
-        S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt.dll';        % external function
-        S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp.dll';     % external function for post-processing
+        S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt_v2.dll';        % external function
+        S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp_v2.dll';     % external function for post-processing
     else
-        S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt.dll';
-        S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp.dll';
+        S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v2.dll';
+        S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v2.dll';
     end
     
 end

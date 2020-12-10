@@ -9,8 +9,8 @@ OutPath = [pathRepo,'/Figures'];
 addpath([pathRepo '/VariousFunctions']);
 
 %% plot batch
-FolderNames = {'Test_Lars'};
-OutFNames = {'Test_Lars'};
+FolderNames = {'Test_Lars1'};
+OutFNames = {'Test_Lars1'};
 
 nf= length(FolderNames);
 
@@ -18,11 +18,11 @@ for i= 1:nf
     Fsel = fullfile(dpath,FolderNames{i});
     Fout = fullfile(OutPath,OutFNames{i});
     Plot3D_pwd(Fsel);
-    OutFile = fullfile(Fout,'FigureResults.fig');
-    if exist(OutFile,'file')
-        delete(OutFile);
-    end
-    copyfile(fullfile(Fsel,'FigureResults.fig'),fullfile(Fout,'FigureResults.fig'));
+%     OutFile = fullfile(Fout,'FigureResults.fig');
+%     if exist(OutFile,'file')
+%         delete(OutFile);
+%     end
+%     copyfile(fullfile(Fsel,'FigureResults.fig'),fullfile(Fout,'FigureResults.fig'));
 end
 
 %% plot difference

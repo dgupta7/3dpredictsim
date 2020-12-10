@@ -85,8 +85,30 @@ lhPos = lh.Position;
 % lhPos(1) = lhPos(1)+0.2;
 set(lh,'position',lhPos);
 
+
 % plot ankle muscles
 axes('parent', tab3);
+for i = 1:size(ccc{1}.muscles.ccc,2)
+    subplot(2,2,i)
+    plot(ccc{1}.muscles.shift(:,i),ccc{1}.muscles.ccc(:,i),'linewidth',line_linewidth,'DisplayName',names{1})
+    hold on
+    for j=2:nr
+        plot(ccc{j}.muscles.shift(:,i),ccc{j}.muscles.ccc(:,i),'linewidth',line_linewidth,'DisplayName',names{j})
+    end
+    grid on
+    title(ccc{1}.muscles.names{i},'Fontsize',label_fontsize)
+    if i == 1 || i == 3
+        ylabel('cross-correlation coefficient','Fontsize',label_fontsize);
+    end
+    if i > 2     
+        xlabel('shift (% gait cycle)','Fontsize',label_fontsize);
+    end
+end
+lh=legend('-DynamicLegend','location','east');
+lh.Interpreter = 'none';
+lhPos = lh.Position;
+% lhPos(1) = lhPos(1)+0.2;
+set(lh,'position',lhPos);
 
 % iSol_data = find(strcmp(Dat.Normal.EMGheaders,'soleus_r'));
 % iGas_data = find(strcmp(Dat.Normal.EMGheaders,'gas_lat_r'));

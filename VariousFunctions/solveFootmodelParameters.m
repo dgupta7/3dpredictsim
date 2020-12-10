@@ -1,4 +1,4 @@
-% Find the parameters for a new foot model, such that it is equivalent to
+% Find the parameters for a new foot model (right foot), such that it is equivalent to
 % the old footmodel, and to a more detailed footmodel.
 % Every joint is taken at its default angle of 0°. This means that the 0°
 % angle of the newly introduced tarsometatarsal joint corresponds to its
@@ -119,6 +119,18 @@ c2com_ff_s = mtp_0 + mtp2com_forefoot.*sf;
 c2com_cm_s = mtp_0 + mtp2com_cm.*sf;
 
 
+%contact spheres
+locSphere_1_r=[-0.00042152, -0.01, -0.0049972];
+locSphere_2_r=[0.06, -0.01, 0.020001];
+locSphere_3_r=[0.165, -0.01, 0.021183];
+locSphere_4_r=[0.165, -0.01, -0.01];
+locSphere_5_r=[0.053154, -0.01, -0.0034173];
+locSphere_6_r=[1.7381e-06, -0.01, 0.022294];
+
+locSphere_3_r_new = locSphere_3_r - MTJ'
+locSphere_4_r_new = locSphere_4_r - MTJ'
+
+%plot
 figure
 subplot(2,1,1)
 hold on
@@ -144,31 +156,43 @@ plot(com_cmf_0(1),com_cmf_0(2),'xg')
 plot(0,0,'og')
 title('side view (sagittal plane)')
 
+plot(locSphere_1_r(1),locSphere_1_r(2),'*c')
+plot(locSphere_2_r(1),locSphere_2_r(2),'*c')
+plot(locSphere_3_r(1),locSphere_3_r(2),'*c')
+plot(locSphere_4_r(1),locSphere_4_r(2),'*c')
+plot(mtp_0(1)+locSphere_5_r(1),mtp_0(2)+locSphere_5_r(2),'*c')
+plot(mtp_0(1)+locSphere_6_r(1),mtp_0(2)+locSphere_6_r(2),'*c')
+
 subplot(2,1,2)
 hold on
 grid on
 
-plot(c2mtpj(1),c2mtpj(3),'.b')
-plot(c2mtj(1),c2mtj(3),'.b')
-plot(c2com_ff(1),c2com_ff(3),'*b')
-plot(c2com_cm(1),c2com_cm(3),'*b')
+plot(c2mtpj(1),-c2mtpj(3),'.b')
+plot(c2mtj(1),-c2mtj(3),'.b')
+plot(c2com_ff(1),-c2com_ff(3),'*b')
+plot(c2com_cm(1),-c2com_cm(3),'*b')
 
-plot(c2mtpj_s(1),c2mtpj_s(3),'.k')
-plot(c2mtj_s(1),c2mtj_s(3),'.k')
-plot(c2com_ff_s(1),c2com_ff_s(3),'*k')
-plot(c2com_cm_s(1),c2com_cm_s(3),'*k')
+plot(c2mtpj_s(1),-c2mtpj_s(3),'.k')
+plot(c2mtj_s(1),-c2mtj_s(3),'.k')
+plot(c2com_ff_s(1),-c2com_ff_s(3),'*k')
+plot(c2com_cm_s(1),-c2com_cm_s(3),'*k')
 
-plot(mtp_0(1),mtp_0(3),'or')
-plot(MTJ(1),MTJ(3),'or')
-plot(c2COMf(1),c2COMf(3),'xr')
-plot(COMc(1),COMc(3),'xr')
+plot(mtp_0(1),-mtp_0(3),'or')
+plot(MTJ(1),-MTJ(3),'or')
+plot(c2COMf(1),-c2COMf(3),'xr')
+plot(COMc(1),-COMc(3),'xr')
 
-plot(mtp_0(1),mtp_0(3),'og')
-plot(com_cmf_0(1),com_cmf_0(3),'xg')
+plot(mtp_0(1),-mtp_0(3),'og')
+plot(com_cmf_0(1),-com_cmf_0(3),'xg')
 plot(0,0,'og')
-title('top view')
+title('top view (right foot)')
 
-
+plot(locSphere_1_r(1),-locSphere_1_r(3),'*c')
+plot(locSphere_2_r(1),-locSphere_2_r(3),'*c')
+plot(locSphere_3_r(1),-locSphere_3_r(3),'*c')
+plot(locSphere_4_r(1),-locSphere_4_r(3),'*c')
+plot(mtp_0(1)+locSphere_5_r(1),-(mtp_0(3)+locSphere_5_r(3)),'*c')
+plot(mtp_0(1)+locSphere_6_r(1),-(mtp_0(3)+locSphere_6_r(3)),'*c')
 
 
 
