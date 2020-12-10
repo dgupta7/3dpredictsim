@@ -11,16 +11,16 @@ addpath([pathRepo '/VariousFunctions']);
 % settings. Put an entry in comment to not use it to filter.
 
 % folder to filter from
-ResultsFolder = 'all'; %'Batchsim_tmt_linear'
+ResultsFolder = 'Batchsim_tmt_linear'; %'Batchsim_tmt_linear' 'all'
 
 % experimental data to plot as reference
 reference_data = 'norm'; % 'none' 'norm' 'pas' act'
 
 % tarsometatarsal joint
-% S.tmt = 1;              % 1: use a model with tmt joint
-% S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
-% S.kTMT = 800;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
-% S.dTMT = 0;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
+S.tmt = 1;              % 1: use a model with tmt joint
+S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
+S.kTMT = 800;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
+S.dTMT = 0;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
 
 
 % assumption to simplify Hill-type muscle model
@@ -110,7 +110,9 @@ end
 
 [filteredResults] = filterResultfolderByParameters(pathResult,criteria);
 
-% Plot3D(filteredResults,reference_data)
+filteredResults{3} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pp.mat';
+
+Plot3D(filteredResults,reference_data)
 
 if length(filteredResults)>1
     ValidationPlots(pathData,filteredResults{1},filteredResults{2:end})

@@ -21,7 +21,7 @@ S.NThreads  = 2;        % number of threads for parallel computing
 S.max_iter  = 10000;    % maximum number of iterations
 
 % tarsometatarsal joint
-S.tmt = 0;              % 1: use a model with tmt joint
+S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;
 
 % assumption to simplify Hill-type muscle model
@@ -30,7 +30,7 @@ S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 kTMT = [250 500 800 1000 2000];
 dTMT = [0 0.2 0.5];
 exo = [[0; 0], [1; 0], [1; 1]]';
-% exo = [0 0];
+
 
 
 
@@ -54,7 +54,7 @@ S.ExoScale      = exo(ie,2);    % scale factor of exoskeleton assistance profile
 S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque profile
                         
 % output folder
-S.ResultsFolder = 'Batchsim_tmt_linear';
+S.ResultsFolder = 'Batchsim_tmt_linear_v2';
 % S.ResultsFolder = 'debug_batch';
 
 % Folder with default functions
@@ -129,11 +129,11 @@ S.PolyFolder = 's1_Poggensee';
 
 % external function
 if S.ExoBool == 0
-    S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt.dll';        % external function
-    S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp.dll';     % external function for post-processing
+    S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt_v2.dll';        % external function
+    S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp_v2.dll';     % external function for post-processing
 else
-    S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt.dll';
-    S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp.dll';
+    S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v2.dll';
+    S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v2.dll';
 end
     
 
@@ -153,7 +153,7 @@ end
 %% Run
 name = getenv('COMPUTERNAME');
 if strcmp(name,'GBW-D-W2711')
-myCluster = parcluster('LocalProfile1_Lars_8x2');
+myCluster = parcluster('LocalProfile1_Lars_10x2');
 elseif strcmp(name,'MSI')   %Lars
 myCluster = parcluster('LocalProfile_2x2');
 end
@@ -172,13 +172,8 @@ for i=1:imax
 CasadiFiles = fullfile(MainPath,'CasADiFunctions',S_batch{i}.CasadiFunc_Folders);
 pathResult_pp = fullfile([pathRepo '/Results'],S_batch{i}.ResultsFolder,[S_batch{i}.savename '_pp.mat']);
     if ~exist(pathResult_pp,'file')
-        if S.tmt == 1
-            job(j) = batch(myCluster,'f_PredSim_Gait92_tmt',0,{S_batch{i}},'CurrentFolder',StartPath,...
-                'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
-        else
-            job(j) = batch(myCluster,'f_PredSim_Gait92',0,{S_batch{i}},'CurrentFolder',StartPath,...
-                'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
-        end
+        job(j) = batch(myCluster,'f_PredSim_Gait92_tmt',0,{S_batch{i}},'CurrentFolder',StartPath,...
+            'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
         j=j+1;
     end
 end

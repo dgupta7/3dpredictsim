@@ -15,7 +15,7 @@ addpath([pathRepo '/Polynomials']);
 %% Manual settings
 solve = 0;          % run solver
 pp = 0;             % postproces
-plot = 0;      % plot solution
+plot = 1;      % plot solution
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed
@@ -26,21 +26,21 @@ S.max_iter  = 10000;    % maximum number of iterations
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
-S.kTMT = 200;           % (Nm/rad) stiffness of tmt joint 
+S.kTMT = 800;           % (Nm/rad) stiffness of tmt joint 
 S.dTMT = 0;           % (Nms/rad) damping of tmt joint
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
 
 % exo
-S.ExoBool       = 1;    % 1: is wearing exo
-S.ExoScale      = 1;    % scale factor of exoskeleton assistance profile 
+S.ExoBool       = 0;    % 1: is wearing exo
+S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
                         
 S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque profile
                         
 % output folder
-S.ResultsFolder = 'PredSim_adaptations';
+S.ResultsFolder = 'debug_tmt';
 % other options: 'Test_Lars' 'debug_tmt' 'PredSim_adaptations' 'Batchsim_tmt_linear'
 
 % Folder with default functions
@@ -69,7 +69,7 @@ end
 % build standardised names
 [savename, casfuncfol] = getSavename(S);
 S.CasadiFunc_Folders = casfuncfol;
-S.savename = savename;
+S.savename = [savename '_v2'];
 
 % quasi random initial guess, pelvis y position
 S.IG_PelvisY = 0.896;   % subject 1 poggensee
@@ -129,7 +129,7 @@ end
 if plot
     h = figure();
     set(h,'Position',[82 151 1497 827]);
-    PlotResults_3DSim_tmt(fullfile(pathResults,[savename '_pp.mat']),[1 0 0],savename,h);
+    PlotResults_3DSim_tmt(fullfile(pathResults,[S.savename '_pp.mat']),[1 0 0],savename,h);
 end
 
 
