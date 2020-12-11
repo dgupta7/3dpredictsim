@@ -25,7 +25,7 @@ S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;
 
 % assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
+S.MuscModelAsmp = 1;    % 0: musc height = cst, 1: pennation angle = cst
 
 kTMT = [800 1000 2000]; %250 500 
 dTMT = [0 0.2 0.5];
