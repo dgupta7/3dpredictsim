@@ -14,8 +14,8 @@ addpath([pwd,'/OCP']);
 addpath([pwd,'/MuscleModel']);
 addpath([pwd,'/Debug']);
 AddCasadiPaths();
-% DataFolders = {'Batchsim_tmt_linear'};
-DataFolders = {'without_tmt'};
+DataFolders = {'Batchsim_tmt_linear_v2'};
+% DataFolders = {'without_tmt'};
 
 S.OverWrite = 0;
 
@@ -37,8 +37,7 @@ for f = 1:nF
             FolderIndex(ct) = f;
             ct= ct+1;
             if (~exist(OutName,'file') || S.OverWrite == 1)
-%                 f_LoadSim_Gait92_tmt(DataFolders{f},filename);
-                f_LoadSim_PoggenSee2020_DefaultS(DataFolders{f},filename);
+                f_LoadSim_Gait92_tmt(DataFolders{f},filename);
 %                 disp(ct);
             end
         end
