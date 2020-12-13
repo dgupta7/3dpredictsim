@@ -13,7 +13,6 @@ addpath([pathRepo '/Musclemodel']);
 addpath([pathRepo '/Polynomials']);
 
 %% Manual settings
-
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
@@ -24,9 +23,7 @@ S.max_iter  = 10000;    % maximum number of iterations
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;
 
-
 S.TMT_linear = 0;
-k1TMT = [800 1000 2000]; %250 500 
 
 exo = [[0; 0], [1; 0], [1; 1]]';
 S.dTMT = 0.2;
@@ -34,35 +31,17 @@ S.dTMT = 0.2;
 k1TMT = [800 1000 2000 4000];
 k2TMT = [1 2 3];
 t1TMT = [0.5 1];
+
+% assumption to simplify Hill-type muscle model
+mumo = [0 1];    % 0: musc height = cst, 1: pennation angle = cst
+
+
 % output folder
 S.ResultsFolder = 'Batchsim_tmt_tanh';
 
-
-
-count = 1;
-for ik1=1:length(k1TMT)
-    for ik2=1:length(k2TMT)
-        for it1=1:length(t1TMT)
-            for ie=1:size(exo,1)
-                for im=1:length(mumo)
-
-
-
-S.k1TMT = k1TMT(ik1);
-S.k2TMT = k2TMT(ik2);
-S.t1TMT = t1TMT(it1);
-
-% assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = mumo(im);    % 0: musc height = cst, 1: pennation angle = cst
-
-% exo
-S.ExoBool       = exo(ie,1);    % 1: is wearing exo
-S.ExoScale      = exo(ie,2);    % scale factor of exoskeleton assistance profile 
-                        % 0: no assistance (passive) 1: nominal assistance (active)
+% dataset with exoskeleton torque profile
+S.DataSet = 'PoggenSee2020_AFO';            
                         
-S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque profile
-                        
-
 % Folder with default functions
 S.subject            = 's1_Poggensee';
 
@@ -77,61 +56,39 @@ S.ResultsF_ig   = 'PredSim_adaptations';
 S.savename_ig   = '';
 end
 
-
-%% Automated settings
-pathResults = fullfile([pathRepo '/Results'],S.ResultsFolder);
-if ~isfolder(pathResults)
-    mkdir(pathResults);
-end
-
-% build savename and casadifunction foldername
-if strcmp(S.subject,'s1_Poggensee')
-    savename = 'Pog_s1';
-    casfuncfol = 'casadi_s1Pog';
-end
-if S.tmt
-    savename = [savename '_tmt'];
-    casfuncfol = [casfuncfol '_tmt'];
-    if S.tmt_locked
-        savename = [savename 'L'];
-    end
-end
-if isfield(S,'MuscModelAsmp') && ~isempty(S.MuscModelAsmp) && S.MuscModelAsmp==0
-    savename = [savename '_bCst'];
-    casfuncfol = [casfuncfol '_MuscModel_bCst'];
-else
-    savename = [savename '_aCst'];
-    casfuncfol = [casfuncfol '_MuscModel_alphaCst'];
-end
-if S.tmt && isfield(S,'dTMT') && ~isempty(S.dTMT) && ~S.tmt_locked
-    savename = [savename '_d0' num2str(S.dTMT*10)];
-    casfuncfol = [casfuncfol '_d0' num2str(S.dTMT*10)];
-end
-if S.tmt && isfield(S,'kTMT') && ~isempty(S.kTMT) && ~S.tmt_locked
-    savename = [savename '_k' num2str(S.kTMT)];
-    casfuncfol = [casfuncfol '_k' num2str(S.kTMT)];
-end
-if S.IGsel == 1
-    savename = [savename '_ig1'];
-else
-    savename = [savename '_ig2' num2str(S.IGmodeID )];
-end
-if S.ExoBool == 1
-    if S.ExoScale == 0
-        savename = [savename '_pas'];
-    else
-        savename = [savename '_act'];
-    end    
-end
-
-S.CasadiFunc_Folders = casfuncfol;
-S.savename = savename;
-
 % quasi random initial guess, pelvis y position
 S.IG_PelvisY = 0.896;   % subject 1 poggensee
 
 % select folder with polynomials
 S.PolyFolder = 's1_Poggensee';
+
+% make resultsfolder
+pathResults = fullfile([pathRepo '/Results'],S.ResultsFolder);
+if ~isfolder(pathResults)
+    mkdir(pathResults);
+end
+
+% build array with each combination of settings
+count = 1;
+for ik1=1:length(k1TMT)
+    for ik2=1:length(k2TMT)
+        for it1=1:length(t1TMT)
+            for ie=1:size(exo,1)
+                for im=1:length(mumo)
+
+S.k1TMT = k1TMT(ik1);
+S.k2TMT = k2TMT(ik2);
+S.t1TMT = t1TMT(it1);
+
+S.MuscModelAsmp = mumo(im);
+
+S.ExoBool = exo(ie,1);
+S.ExoScale = exo(ie,2);
+                        
+[savename, casfuncfol] = getSavename(S);
+S.CasadiFunc_Folders = casfuncfol;
+S.savename = savename;
+
 
 % external function
 if S.ExoBool == 0
@@ -141,17 +98,19 @@ else
     S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v2.dll';
     S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v2.dll';
 end
-    
 
+% % Create the casadifunctions if they do not exist yet
+% if ~isfolder([pathRepo '\CasADiFunctions\' S.CasadiFunc_Folders])
+%     disp('Creating casadifunctions...');
+%     CreateCasADiFunctions_all_tmt(pathRepo,S);
+%     disp('...casadifunctions created');
+% end
 
-% Create the casadifunctions if they do not exist yet
-if ~isfolder([pathRepo '\CasADiFunctions\' S.CasadiFunc_Folders])
-    CreateCasADiFunctions_all_tmt(pathRepo,S);
-end
 
 S_batch{count} = S;
 count = count+1;
 clear('savename','casfuncfol');
+
                 end
             end
         end
@@ -161,7 +120,7 @@ end
 %% Run
 name = getenv('COMPUTERNAME');
 if strcmp(name,'GBW-D-W2711')
-myCluster = parcluster('LocalProfile1_Lars_8x2');
+myCluster = parcluster('LocalProfile1_Lars_10x2');
 elseif strcmp(name,'MSI')   %Lars
 myCluster = parcluster('LocalProfile_2x2');
 end
