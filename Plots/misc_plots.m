@@ -38,3 +38,37 @@ title('Assistance profile')
 
 
 
+%% tmt stiffness
+
+qd = linspace(-10,10,1000);
+q=qd*pi/180;
+k=800;
+T1 = k*q;
+
+
+k1 = 800;
+t1 = 0.5*pi/180;
+t2 = 2*t1;
+k2 = 1;
+
+
+f = (tanh((q+t2)/(k2*t2))-tanh((q-t2)/(k2*t2)))/2;
+
+
+T3 = k1.*(q-t1*tanh(q/(k2*t1)));
+
+
+figure
+plot(qd,T1)
+hold on
+grid on
+plot(qd,T3)
+legend;
+
+% figure
+% hold on
+% grid on
+% plot(qd,f)
+
+
+

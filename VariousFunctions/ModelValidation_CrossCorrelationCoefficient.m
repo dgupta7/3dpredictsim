@@ -115,6 +115,12 @@ iSol = find(strcmp(R.colheaders.muscles,'soleus_r'));
 iGas = find(strcmp(R.colheaders.muscles,'lat_gas_r'));
 iGas2 = find(strcmp(R.colheaders.muscles,'med_gas_r'));
 iTib = find(strcmp(R.colheaders.muscles,'tib_ant_r'));
+
+iRect = find(strcmp(R.colheaders.muscles,'rect_fem_r'));
+iVas = find(strcmp(R.colheaders.muscles,'vas_med_r'));
+iSemi = find(strcmp(R.colheaders.muscles,'semiten_r'));
+iBic = find(strcmp(R.colheaders.muscles,'bifemlh_r')); % bifemsh
+
 if isempty(iGas)
     iGas = find(strcmp(R.colheaders.muscles,'gaslat_r'));
 end
@@ -125,26 +131,29 @@ if isempty(iTib)
     iTib = find(strcmp(R.colheaders.muscles,'tibant_r'));
 end
 
-iSol_data = find(strcmp(Dat.(type).EMGheaders,'soleus_r'));
-iGas_data = find(strcmp(Dat.(type).EMGheaders,'gas_lat_r'));
-iGas2_data = find(strcmp(Dat.(type).EMGheaders,'gas_med_r'));
-iTib_data = find(strcmp(Dat.(type).EMGheaders,'tib_ant_r'));
-% change order to match simulation gait cycle
-sol_act = [Dat.(type).gc.lowEMG_mean(ceil(end/2):end,iSol_data); Dat.(type).gc.lowEMG_mean(1:ceil(end/2)-1,iSol_data)];
-gas_act = [Dat.(type).gc.lowEMG_mean(ceil(end/2):end,iGas_data); Dat.(type).gc.lowEMG_mean(1:ceil(end/2)-1,iGas_data)];
-gas2_act = [Dat.(type).gc.lowEMG_mean(ceil(end/2):end,iGas2_data); Dat.(type).gc.lowEMG_mean(1:ceil(end/2)-1,iGas2_data)];
-tib_act = [Dat.(type).gc.lowEMG_mean(ceil(end/2):end,iTib_data); Dat.(type).gc.lowEMG_mean(1:ceil(end/2)-1,iTib_data)];
+iSol_data = find(strcmp(Dat.(type).EMGheaders,'soleus_l'));
+iGas_data = find(strcmp(Dat.(type).EMGheaders,'gas_lat_l'));
+if isempty(iGas_data)
+    iGas_data = find(strcmp(Dat.(type).EMGheaders,'gas_las_l')); % typoe in data headers
+end
+iGas2_data = find(strcmp(Dat.(type).EMGheaders,'gas_med_l'));
+iTib_data = find(strcmp(Dat.(type).EMGheaders,'tib_ant_l'));
 
-mDat_act = [sol_act, gas_act, gas2_act, tib_act];
+iRect_data = find(strcmp(Dat.(type).EMGheaders,'rect_fem_l'));
+iVas_data = find(strcmp(Dat.(type).EMGheaders,'vast_med_l'));
+iSemi_data = find(strcmp(Dat.(type).EMGheaders,'semitend_l'));
+iBic_data = find(strcmp(Dat.(type).EMGheaders,'bic_fem_l'));
 
-mVect = {'Soleus','Gas-lat','Gas-med','Tib-ant'};
-iM = [iSol iGas iGas2 iTib];
 
+mVect = {'Soleus','Gas-lat','Gas-med','Tib-ant','Rect-fem','Vas-med','Semiten','Bic-fem'};
+
+iM = [iSol iGas iGas2 iTib iRect iVas iSemi iBic];
+iM_data = [iSol_data iGas_data iGas2_data iTib_data iRect_data iVas_data iSemi_data iBic_data];
 ccc.muscles.names = mVect;
 
-for i=1:4
+for i=1:length(iM)
     
-    mean = mDat_act(:,i);
+    mean = Dat.(type).gc.lowEMG_mean(:,iM_data(i));
     sim = R.a(:,iM(i));
     m = size(mean);
     s = size(sim);

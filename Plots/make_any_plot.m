@@ -10,6 +10,9 @@ addpath([pathRepo '/VariousFunctions']);
 % Folder will be filtered to only plot results that satisfy all chosen
 % settings. Put an entry in comment to not use it to filter.
 
+plot_default = 0;
+plot_validation = 1;
+
 % folder to filter from
 ResultsFolder = 'Batchsim_tmt_linear_v2'; %'Batchsim_tmt_linear_v2' 'Batchsim_tmt_linear' 'all'
 
@@ -19,7 +22,7 @@ reference_data = 'norm'; % 'none' 'norm' 'pas' act'
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
-% S.kTMT = 800;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
+S.kTMT = 1000;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
 S.dTMT = 0.2;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
 
 
@@ -27,9 +30,11 @@ S.dTMT = 0.2;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
 S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 
 % exo
-S.ExoBool       = 0;    % 1: is wearing exo
-S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
+% S.ExoBool       = 0;    % 1: is wearing exo
+% S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
+
+% initial guess
 % S.IGsel         = 2;    % initial guess identifier (1: quasi random, 2: data-based)
 % S.IGmodeID      = 4;    % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
 
@@ -88,39 +93,62 @@ if isfield(S,'IGsel') && ~isempty(S.IGsel)
         ct=ct+1;
     end
 end
-if S.ExoBool == 1
-    if S.ExoScale == 0
-        criteria{ct} = 'pas';
-        ct=ct+1;
-        reference_data = 'pas';
+if isfield(S,'ExoBool') && ~isempty(S.ExoBool)
+    if S.ExoBool == 1
+        if S.ExoScale == 0
+            criteria{ct} = 'pas';
+            ct=ct+1;
+            reference_data = 'pas';
+        else
+            criteria{ct} = 'act';
+            ct=ct+1;
+            reference_data = 'act';
+        end
     else
-        criteria{ct} = 'act';
+        criteria{ct} = 'not_pas';
         ct=ct+1;
-        reference_data = 'act';
+        criteria{ct} = 'not_act';
+        ct=ct+1;
     end
-else
-    criteria{ct} = 'not_pas';
-    ct=ct+1;
-    criteria{ct} = 'not_act';
-    ct=ct+1;
 end
 
 
 %%
 
 [filteredResults] = filterResultfolderByParameters(pathResult,criteria);
+
+% use this as reference
 n = length(filteredResults);
-filteredResults{n+1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pp.mat';
-
-Plot3D(filteredResults,reference_data)
-
-if length(filteredResults)>1
-    ValidationPlots(pathData,filteredResults{1},filteredResults{2:end})
+if isfield(S,'ExoBool') && ~isempty(S.ExoBool) && S.ExoBool == 1
+    if S.ExoScale == 1
+        ref = 'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_act_pp.mat';
+    else
+        ref = 'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pas_pp.mat';
+    end
 else
-    ValidationPlots(pathData,filteredResults{1})
+    ref = 'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pp.mat';
 end
 
-%%
+ref = {'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_act_pp.mat',...
+       'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pas_pp.mat',...
+       'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pp.mat'};
+
+filteredResultsWithRef = {ref{:}, filteredResults{:}};
+
+if plot_default
+    Plot3D(filteredResultsWithRef,reference_data)
+end
+
+if plot_validation
+    if length(filteredResultsWithRef)>1
+        ValidationPlots(pathData,filteredResultsWithRef{1},filteredResultsWithRef{2:end})
+    else
+        ValidationPlots(pathData,filteredResultsWithRef{1})
+    end
+end
+
+
+%% old/temp stuff
 
 
 % Plot3D_pwd_separate(pathResult); % plot default figures for entire resultsfolder

@@ -37,8 +37,19 @@ if isfield(S,'dTMT') && ~isempty(S.dTMT)
 else
     dTMT = 0.5;
 end
-    
-nq.leg          = 10; % #joints needed for polynomials
+
+if isfield(S,'TMT_linear') && ~isempty(S.TMT_linear)
+    tmt_linear = S.TMT_linear;
+else
+    tmt_linear = 1;
+end
+
+k1TMT = S.k1TMT;
+k2TMT = S.k2TMT;
+t1TMT = S.t1TMT*pi/180;
+
+
+nq.leg = 10; % #joints needed for polynomials
 stiffnessArm = 0;
 dampingArm = 0.1;
 stiffnessMtp = 1.5/(pi/180)/5;
@@ -423,6 +434,17 @@ passTATorques = -stiff * qin - damp * qdotin;
 f_passiveTATorques = Function('f_passiveTATorques',{stiff,damp,qin,qdotin}, ...
     {passTATorques},{'stiff','damp','qin','qdotin'},{'passTATorques'});
 
+%% Passive torque stiffening joint
+stiff1	= SX.sym('stiff1',1);
+stiff2	= SX.sym('stiff2',1);
+theta1	= SX.sym('theta1',1);
+damp	= SX.sym('damp',1);
+qin     = SX.sym('qin_pass',1);
+qdotin  = SX.sym('qdotin_pass',1);
+passTanhTorques = -stiff1 * (qin - theta1 * tanh(qin/(stiff2*theta1)) ) - damp * qdotin;
+f_passiveTanhTorques = Function('f_passiveTanhTorques',{stiff1,stiff2,theta1,damp,qin,qdotin}, ...
+    {passTanhTorques},{'stiff1','stiff2','theta1','damp','qin','qdotin'},{'passTanhTorques'});
+
 %% Metabolic energy models
 act_SX          = SX.sym('act_SX',NMuscle,1); % Muscle activations
 exc_SX          = SX.sym('exc_SX',NMuscle,1); % Muscle excitations
@@ -588,12 +610,18 @@ Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
     Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r));
 Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
 
-% Assume linear stiffness for now (according to DOI: 10.1109/ROBIO.2011.6181517), will likely extend into nonlinear later
-Tau_passj.tmt.l = f_passiveTATorques(kTMT, dTMT, ...
-    Q_SX(jointi.tmt.l), Qdot_SX(jointi.tmt.l));
-Tau_passj.tmt.r = f_passiveTATorques(kTMT, dTMT, ...
-    Q_SX(jointi.tmt.r), Qdot_SX(jointi.tmt.r));
-
+if tmt_linear
+    % Assume linear stiffness for now (according to DOI: 10.1109/ROBIO.2011.6181517), will likely extend into nonlinear later
+    Tau_passj.tmt.l = f_passiveTATorques(kTMT, dTMT, ...
+        Q_SX(jointi.tmt.l), Qdot_SX(jointi.tmt.l));
+    Tau_passj.tmt.r = f_passiveTATorques(kTMT, dTMT, ...
+        Q_SX(jointi.tmt.r), Qdot_SX(jointi.tmt.r));
+else
+    Tau_passj.tmt.l = f_passiveTanhTorques(k1TMT, k2TMT, t1TMT, dTMT, ...
+        Q_SX(jointi.tmt.l), Qdot_SX(jointi.tmt.l));
+    Tau_passj.tmt.r = f_passiveTanhTorques(k1TMT, k2TMT, t1TMT, dTMT, ...
+        Q_SX(jointi.tmt.r), Qdot_SX(jointi.tmt.r));
+end
 
 Tau_passj_all = [Tau_passj.hip.flex.l,Tau_passj.hip.flex.r,...
     Tau_passj.hip.add.l,Tau_passj.hip.add.r,...

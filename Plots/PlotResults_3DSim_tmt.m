@@ -156,7 +156,7 @@ if exist(ResultsFile,'file')
     
     j = 0;
     label_fontsize  = 12;
-    line_linewidth  = 2;
+    line_linewidth  = 0.5;
     for i = 1:length(idx_title)
         subplot(3,6,i)
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
@@ -228,7 +228,7 @@ if exist(ResultsFile,'file')
     axes('parent', tab2);
     j = 0;
     label_fontsize  = 12;
-    line_linewidth  = 2;
+    line_linewidth  = 0.5;
     for i = 1:length(idx_title)
         subplot(3,6,i)
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
@@ -409,10 +409,7 @@ if exist(ResultsFile,'file')
     plot(R.a(:,iSol),'-','Color',Cs,'DisplayName',LegName);  title('Soleus');
     xlabel('% stride'); ylabel('activity');
     
-    if boolFirst
-        lh=legend('-DynamicLegend','location','east');
-        lh.Interpreter = 'none';
-    end
+    
     
     subplot(5,2,2); hold on;
 %     if boolFirst && md
@@ -454,7 +451,10 @@ if exist(ResultsFile,'file')
     plot(R.FT(:,iGas),'-','Color',Cs,'DisplayName',LegName); hold on;
     xlabel('% stride'); ylabel('Norm muscle force');
     
-    
+    if boolFirst
+        lh=legend('-DynamicLegend','location','east');
+        lh.Interpreter = 'none';
+    end
     
     %% Ground reaction force
     axes('parent', tab6);

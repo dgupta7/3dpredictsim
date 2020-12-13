@@ -22,9 +22,24 @@ if S.tmt && isfield(S,'dTMT') && ~isempty(S.dTMT) && ~S.tmt_locked
     savename = [savename '_d0' num2str(S.dTMT*10)];
     casfuncfol = [casfuncfol '_d0' num2str(S.dTMT*10)];
 end
-if S.tmt && isfield(S,'kTMT') && ~isempty(S.kTMT) && ~S.tmt_locked
-    savename = [savename '_k' num2str(S.kTMT)];
-    casfuncfol = [casfuncfol '_k' num2str(S.kTMT)];
+if ~S.TMT_linear
+    if S.tmt && isfield(S,'k1TMT') && ~isempty(S.k1TMT) && ~S.tmt_locked
+        savename = [savename '_k' num2str(S.k1TMT)];
+        casfuncfol = [casfuncfol '_k' num2str(S.k1TMT)];
+    end
+    if S.tmt && isfield(S,'k2TMT') && ~isempty(S.k2TMT) && ~S.tmt_locked
+        savename = [savename '_kc' num2str(S.k2TMT)];
+        casfuncfol = [casfuncfol '_kc' num2str(S.k2TMT)];
+    end
+    if S.tmt && isfield(S,'t1TMT') && ~isempty(S.t1TMT) && ~S.tmt_locked
+        savename = [savename '_t' num2str(S.t1TMT*10)];
+        casfuncfol = [casfuncfol '_t' num2str(S.t1TMT*10)];
+    end
+else
+    if S.tmt && isfield(S,'kTMT') && ~isempty(S.kTMT) && ~S.tmt_locked
+        savename = [savename '_k' num2str(S.kTMT)];
+        casfuncfol = [casfuncfol '_k' num2str(S.kTMT)];
+    end
 end
 if S.IGsel == 1
     savename = [savename '_ig1'];
