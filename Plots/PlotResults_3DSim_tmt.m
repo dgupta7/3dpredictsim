@@ -26,7 +26,7 @@ end
 
 if exist(ResultsFile,'file')
     load(ResultsFile);
-    
+    subject = R.S.subject;
     % option to show only simulation results, no measurement data
     if strcmp(varargin{length(varargin)},'no_meas_data') || strcmp(varargin{length(varargin)},'none')
         md = 0;
@@ -42,6 +42,10 @@ if exist(ResultsFile,'file')
         elseif strcmp(varargin{length(varargin)},'norm')
             type = 'Normal';
             vv = 0;
+        elseif strcmp(varargin{length(varargin)},'Fal_s1')
+            type = 'Normal';
+            vv = 0;
+            subject = 'Fal_s1';
         else
             type = 'Normal';
         end
@@ -107,16 +111,19 @@ if exist(ResultsFile,'file')
     end
     
     %% Helper names
-%     joints_ref = {'pelvis_tilt','pelvis_list','pelvis_rotation',...
-%         'hip_flexion','hip_adduction','hip_rotation',...
-%         'knee_angle','ankle_angle','subtalar_angle','tmt_angle','mtp_angle',...
-%         'lumbar_extension','lumbar_bending','lumbar_rotation',...
-%         'arm_flex','arm_add','arm_rot','elbow_flex'};
-    joints_ref = {'pelvis_tilt','pelvis_list','pelvis_rotation',...
-        'hip_flexion_r','hip_adduction_r','hip_rotation_r',...
-        'knee_angle_r','ankle_angle_r','subtalar_angle_r','tmt_angle_r','mtp_angle_r',...
-        'lumbar_extension','lumbar_bending','lumbar_rotation',...
-        'arm_flex_r','arm_add_r','arm_rot_r','elbow_flex_r'};
+    if strcmp(subject,'Fal_s1')
+        joints_ref = {'pelvis_tilt','pelvis_list','pelvis_rotation',...
+            'hip_flexion','hip_adduction','hip_rotation',...
+            'knee_angle','ankle_angle','subtalar_angle','tmt_angle','mtp_angle',...
+            'lumbar_extension','lumbar_bending','lumbar_rotation',...
+            'arm_flex','arm_add','arm_rot','elbow_flex'};
+    else
+        joints_ref = {'pelvis_tilt','pelvis_list','pelvis_rotation',...
+            'hip_flexion_r','hip_adduction_r','hip_rotation_r',...
+            'knee_angle_r','ankle_angle_r','subtalar_angle_r','tmt_angle_r','mtp_angle_r',...
+            'lumbar_extension','lumbar_bending','lumbar_rotation',...
+            'arm_flex_r','arm_add_r','arm_rot_r','elbow_flex_r'};
+    end
     joints_tit = {'Pelvis tilt','Pelvis list','Pelvis rotation','Pelvis tx',...
         'Pelvis ty','Pelvis tz','Hip flexion L','Hip adduction L',...
         'Hip rotation L','Hip flexion R','Hip adduction R','Hip rotation R',...
@@ -131,17 +138,12 @@ if exist(ResultsFile,'file')
     axes('parent', tab1);
     
     if boolFirst && md
-        subject = R.S.subject;
-%         [pathHere,~,~] = fileparts(mfilename('fullpath'));
-%         [pathrepo,~,~] = fileparts(pathHere);
-% 
-%         pathReferenceData = [pathrepo,'/ExperimentalData'];
-%         load([pathReferenceData,'/ExperimentalData.mat'],'ExperimentalData');
-%         Qref = ExperimentalData.Q.(subject).Qs;
-
-        
-        % load data Pog_s1 from struct saved during ...\Analyze_ExoData\Batch\BatchScript_LatexReport.m
-        load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
+        if strcmp(subject,'Fal_s1')
+            load('D:\school\WTK\thesis\model\3dpredictsim\Data\Fal_s1.mat','Dat');
+        else
+            % load data Pog_s1 from struct saved during ...\Analyze_ExoData\Batch\BatchScript_LatexReport.m
+            load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
+        end
         Qref = Dat.(type).gc;
 
         
@@ -306,7 +308,7 @@ if exist(ResultsFile,'file')
     % experimental data
     darkgray = [0.5 0.5 0.5];
     lightgray = [0.1 0.1 0.1];
-    if boolFirst && md
+    if boolFirst && md && ~strcmp(subject,'Fal_s1')
         plot(0,Dat.Passive.COT,'o','Color',darkgray,'MarkerFaceColor','k','DisplayName','Data exo passive');
         plot(0,Dat.Normal.COT,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
         plot(1,Dat.Active.COT,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
@@ -323,14 +325,15 @@ if exist(ResultsFile,'file')
     
     % Plot stride frequency
     subplot(2,2,2); hold on;
-    if boolFirst && md
+    if boolFirst && md && ~strcmp(subject,'Fal_s1')
         plot(0,Dat.Normal.Step.StrideFreq_mean,'o','Color',darkgray,'MarkerFaceColor',darkgray);
         errorbar(0,Dat.Normal.Step.StrideFreq_mean,Dat.Normal.Step.StrideFreq_std,'Color',darkgray,'LineWidth',1.5);
         plot(1,Dat.Active.Step.StrideFreq_mean,'o','Color',lightgray,'MarkerFaceColor',lightgray);
         errorbar(1,Dat.Active.Step.StrideFreq_mean,Dat.Normal.Step.StrideFreq_std,'Color',lightgray,'LineWidth',1.5);
     end
-    dt = R.t(end);
-    plot(xParam,1./dt,'o','Color',Cs,'MarkerFaceColor',Cs);
+%     dt = R.t(end);
+%     plot(xParam,1./dt,'o','Color',Cs,'MarkerFaceColor',Cs);
+    plot(xParam,1./(R.tf_step*2),'o','Color',Cs,'MarkerFaceColor',Cs);
     ylabel('Stride Frequency'); xlabel(xParamLab);
     title('Stride Frequency');
     xlim([-0.5,1.5])
@@ -553,7 +556,7 @@ if exist(ResultsFile,'file')
     axes('parent', tab9);
     
     subplot(2,3,1); hold on;
-    if boolFirst && md
+    if boolFirst && md && ~strcmp(subject,'Fal_s1')
         plot(0,Dat.Passive.speed./Dat.Normal.Step.StrideFreq_mean,'o','Color','k','MarkerFaceColor','k','DisplayName','Data normal shoes');
         plot(0,Dat.Normal.speed./Dat.Normal.Step.StrideFreq_mean,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
         plot(1,Dat.Active.speed./Dat.Active.Step.StrideFreq_mean,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
@@ -563,7 +566,7 @@ if exist(ResultsFile,'file')
     xlim([-0.5,1.5])
     
     subplot(2,3,2); hold on;
-    if boolFirst && md
+    if boolFirst && md && ~strcmp(subject,'Fal_s1')
         mean_norm = nanmean(Dat.Normal.StepWidth);
         mean_act = nanmean(Dat.Active.StepWidth);
         mean_pas = nanmean(Dat.Passive.StepWidth);
@@ -580,7 +583,7 @@ if exist(ResultsFile,'file')
     xlim([-0.5,1.5])
     
     subplot(2,3,3); hold on;
-    if boolFirst && md
+    if boolFirst && md && ~strcmp(subject,'Fal_s1')
 %         plot(0,Dat.Normal.Step.StrideFreq_mean,'o','Color',darkgray,'MarkerFaceColor',darkgray);
 %         plot(1,Dat.Active.Step.StrideFreq_mean,'o','Color',lightgray,'MarkerFaceColor',lightgray);
         errorbar(0,Dat.Passive.Step.StrideFreq_mean,Dat.Passive.Step.StrideFreq_std,'Color','k','LineWidth',1.5);
@@ -593,7 +596,7 @@ if exist(ResultsFile,'file')
     
     % probably mistake in std calculation data
     subplot(2,3,4); hold on;
-    if boolFirst && md
+    if boolFirst && md && ~strcmp(subject,'Fal_s1')
 %         plot(0,Dat.Normal.Step.PercStance,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
 %         plot(1,Dat.Active.Step.PercStance,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
         errorbar(0,Dat.Passive.Step.PercStance,mean(nanstd(Dat.Passive.Step.PercStance_n)),'Color','k','LineWidth',1.5);
@@ -605,7 +608,7 @@ if exist(ResultsFile,'file')
     xlim([-0.5,1.5])
     
     subplot(2,3,5); hold on;
-    if boolFirst && md
+    if boolFirst && md && ~strcmp(subject,'Fal_s1')
 %         plot(0,Dat.Normal.Step.PercSwing,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
 %         plot(1,Dat.Active.Step.PercSwing,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
         errorbar(0,Dat.Passive.Step.PercSwing,mean(nanstd(Dat.Passive.Step.PercSwing_n)),'Color','k','LineWidth',1.5,'DisplayName','Data exo passive');
@@ -617,7 +620,7 @@ if exist(ResultsFile,'file')
     xlim([-0.5,1.5])
     
     subplot(2,3,6); hold on;
-    if boolFirst && md
+    if boolFirst && md && ~strcmp(subject,'Fal_s1')
 %         plot(0,Dat.Normal.Step.PercDS,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
 %         plot(1,Dat.Active.Step.PercDS,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
         errorbar(0,Dat.Passive.Step.PercDS,mean(nanstd(Dat.Passive.Step.PercDS_n)),'Color','k','LineWidth',1.5,'DisplayName','Data exo passive');

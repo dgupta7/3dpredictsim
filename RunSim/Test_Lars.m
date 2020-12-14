@@ -13,23 +13,23 @@ addpath([pathRepo '/Musclemodel']);
 addpath([pathRepo '/Polynomials']);
 
 %% Manual settings
-solve = 0;          % run solver
-pp = 0;             % postproces
-plot = 1;      % plot solution
+solve = 1;          % run solver
+pp = 1;             % postproces
+plot = 0;      % plot solution
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
-S.NThreads  = 10;        % number of threads for parallel computing
+S.NThreads  = 8;        % number of threads for parallel computing
 S.max_iter  = 10000;    % maximum number of iterations
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
-S.kTMT = 800;           % (Nm/rad) stiffness of tmt joint 
-S.dTMT = 0.2;           % (Nms/rad) damping of tmt joint
+S.kTMT = 2000;           % (Nm/rad) stiffness of tmt joint 
+S.dTMT = 0;           % (Nms/rad) damping of tmt joint
 % nonlinear spring tmt
-S.TMT_linear = 0;
+S.TMT_linear = 1;
 S.k1TMT = 800;
 S.k2TMT = 1;
 S.t1TMT = 0.5;
@@ -74,7 +74,7 @@ end
 % build standardised names
 [savename, casfuncfol] = getSavename(S);
 S.CasadiFunc_Folders = casfuncfol;
-S.savename = [savename '_v2'];
+S.savename = [savename '_v3'];
 
 % quasi random initial guess, pelvis y position
 S.IG_PelvisY = 0.896;   % subject 1 poggensee
@@ -93,11 +93,11 @@ if S.tmt == 0
     
 elseif S.tmt ==1
     if S.ExoBool == 0
-        S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt_v2.dll';        % external function
-        S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp_v2.dll';     % external function for post-processing
+        S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt_v3.dll';        % external function
+        S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp_v3.dll';     % external function for post-processing
     else
-        S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v2.dll';
-        S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v2.dll';
+        S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v3.dll';
+        S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v3.dll';
     end
     
 end
@@ -137,5 +137,6 @@ if plot
     PlotResults_3DSim_tmt(fullfile(pathResults,[S.savename '_pp.mat']),[1 0 0],savename,h);
 end
 
+% fullfile(pathResults,[S.savename '_pp.mat'])
 
 

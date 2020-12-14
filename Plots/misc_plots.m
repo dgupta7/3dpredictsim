@@ -40,35 +40,89 @@ title('Assistance profile')
 
 %% tmt stiffness
 
-qd = linspace(-10,10,1000);
+qd = linspace(-2,4,1000);
 q=qd*pi/180;
 k=800;
 T1 = k*q;
 
-
-k1 = 800;
-t1 = 0.5*pi/180;
-t2 = 2*t1;
-k2 = 1;
-
-
-f = (tanh((q+t2)/(k2*t2))-tanh((q-t2)/(k2*t2)))/2;
-
-
-T3 = k1.*(q-t1*tanh(q/(k2*t1)));
-
-
 figure
-plot(qd,T1)
+plot(qd,T1,'LineWidth',2)
 hold on
 grid on
-plot(qd,T3)
-legend;
+xlabel('angle (°)')
+ylabel('passive torque (Nm)')
+title('Nonlinear tendon and ligament stiffness')
 
-% figure
-% hold on
-% grid on
-% plot(qd,f)
+k1 = 800;
+k2 = 2;
+t1 = 0.5*pi/180;
+T2 = k1.*(q-t1*tanh(q/(k2*t1)));
+plot(qd,T2,'LineWidth',2)
+
+
+% k1 = 800;
+% k2 = 1;
+% t1 = 1*pi/180;
+% T2 = k1.*(q-t1*tanh(q/(k2*t1)));
+% plot(qd,T2)
+% 
+% k1 = 800;
+% k2 = 3;
+% t1 = 0.5*pi/180;
+% T2 = k1.*(q-t1*tanh(q/(k2*t1)));
+% plot(qd,T2)
+% 
+% k1 = 800;
+% k2 = 3;
+% t1 = 1.5*pi/180;
+% T2 = k1.*(q-t1*tanh(q/(k2*t1)));
+% plot(qd,T2)
+
+
+%%
+
+figure
+load('D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_act_pp.mat');
+x = 1:(100-1)/(size(R.Qs,1)-1):100;
+plot(x,R.Qs(:,14),'DisplayName','h = cst');
+hold on
+grid on
+title('Knee angle (assistance)')
+ylabel('Angle (°)')
+xlabel('Gait cycle (%)')
+load('D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_aCst_act_pp.mat');
+plot(x,R.Qs(:,14),'--','DisplayName','\alpha = cst');
+legend('location','best')
+
+%%
+figure
+load('D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pp.mat');
+x = 1:(100-1)/(size(R.Qs,1)-1):100;
+plot(x,R.Tid(:,16),'DisplayName','h = cst');
+hold on
+grid on
+title('Ankle torque (normal shoes)')
+ylabel('Torque (Nm)')
+xlabel('Gait cycle (%)')
+load('D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_aCst_pp.mat');
+plot(x,R.Tid(:,16),'--','DisplayName','\alpha = cst');
+legend('location','best')
+
+%%
+figure
+load('D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pas_pp.mat');
+iSol = find(strcmp(R.colheaders.muscles,'soleus_r'));
+x = 1:(100-1)/(size(R.Qs,1)-1):100;
+plot(x,R.a(:,iSol),'DisplayName','h = cst');
+hold on
+grid on
+title('Soleus activity (unpowered exo)')
+ylabel('Activity (-)')
+xlabel('Gait cycle (%)')
+load('D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_aCst_pas_pp.mat');
+plot(x,R.a(:,iSol),'--','DisplayName','\alpha = cst');
+legend('location','best')
+ylim([0.02, 0.36])
 
 
 

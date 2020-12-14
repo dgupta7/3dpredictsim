@@ -17,23 +17,30 @@ else
     type = 'Normal';
 end
 
-[path2,file2,~] = fileparts(pathExpData);
-addpath(path2);
-%     load(file2,'ExperimentalData');
-load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
+if exist(pathExpData,'file')
+    load(pathExpData,'Dat')
+    [~,name,~] = fileparts(pathExpData);
+else
+    load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
+end
 Qref = Dat.(type).gc;
 
 %% Helper names
-joints_ref = {'pelvis_tilt','pelvis_list','pelvis_rotation',...
-    'hip_flexion','hip_adduction','hip_rotation',...
-    'knee_angle','ankle_angle','subtalar_angle','tmt_angle','mtp_angle',...
-    'lumbar_extension','lumbar_bending','lumbar_rotation',...
-    'arm_flex','arm_add','arm_rot','elbow_flex'};
 joints_ref_r = {'pelvis_tilt','pelvis_list','pelvis_rotation',...
     'hip_flexion_r','hip_adduction_r','hip_rotation_r',...
     'knee_angle_r','ankle_angle_r','subtalar_angle_r','tmt_angle_r','mtp_angle_r',...
     'lumbar_extension','lumbar_bending','lumbar_rotation',...
     'arm_flex_r','arm_add_r','arm_rot_r','elbow_flex_r'};
+
+if strcmp(name,'Fal_s1')
+joints_ref = {'pelvis_tilt','pelvis_list','pelvis_rotation',...
+    'hip_flexion','hip_adduction','hip_rotation',...
+    'knee_angle','ankle_angle','subtalar_angle','tmt_angle','mtp_angle',...
+    'lumbar_extension','lumbar_bending','lumbar_rotation',...
+    'arm_flex','arm_add','arm_rot','elbow_flex'};
+else
+joints_ref = joints_ref_r;
+end
 % since joint names are not consistent between measurement data and
 % simulation results :(
 joints_tit = {'Pelvis tilt','Pelvis list','Pelvis rotation','Pelvis tx',...
@@ -61,13 +68,10 @@ ccc.kinetics.atShift0 = -ones(1,length(idx_Qs));      % -1 default, to see if fi
 ccc.kinetics.max = -ones(1,length(idx_Qs));           % -1 default, to see if field wasn't calculated
 ccc.kinetics.shiftAtMax = -ones(1,length(idx_Qs));    % -1 default, to see if field wasn't calculated
 
-%     subject = 'subject1';
-%     Qref = ExperimentalData.Q;
-%     IDref = ExperimentalData.Torques;
 
 for i = 1:length(idx_Qs)
 %         idx_jref = strcmp(Qref.(subject).Qs.colheaders,joints_ref{i});
-    idx_jref = strcmp(Qref.colheaders,joints_ref_r{i});
+    idx_jref = strcmp(Qref.colheaders,joints_ref{i});
     idx_sim = strcmp(R.colheaders.joints,joints_ref_r{i});
     ccc.joints{i} = joints_tit{idx_Qs(i)};
     if sum(idx_jref) == 1 && sum(idx_sim) == 1
@@ -132,15 +136,32 @@ if isempty(iTib)
 end
 
 iSol_data = find(strcmp(Dat.(type).EMGheaders,'soleus_l'));
+if isempty(iSol_data)
+    iSol_data = find(strcmp(Dat.(type).EMGheaders,'Soleus'));
+end
 iGas_data = find(strcmp(Dat.(type).EMGheaders,'gas_lat_l'));
 if isempty(iGas_data)
-    iGas_data = find(strcmp(Dat.(type).EMGheaders,'gas_las_l')); % typoe in data headers
+    iGas_data = find(strcmp(Dat.(type).EMGheaders,'gas_las_l')); % typo in data headers
+end
+if isempty(iGas_data)
+    iGas_data = find(strcmp(Dat.(type).EMGheaders,'Gastrocnemius-lateralis'));
 end
 iGas2_data = find(strcmp(Dat.(type).EMGheaders,'gas_med_l'));
+if isempty(iGas2_data)
+    iGas2_data = find(strcmp(Dat.(type).EMGheaders,'Gastrocnemius-medialis'));
+end
 iTib_data = find(strcmp(Dat.(type).EMGheaders,'tib_ant_l'));
-
+if isempty(iTib_data)
+    iTib_data = find(strcmp(Dat.(type).EMGheaders,'Tibialis-anterior'));
+end
 iRect_data = find(strcmp(Dat.(type).EMGheaders,'rect_fem_l'));
+if isempty(iRect_data)
+    iRect_data = find(strcmp(Dat.(type).EMGheaders,'Rectus-femoris'));
+end
 iVas_data = find(strcmp(Dat.(type).EMGheaders,'vast_med_l'));
+if isempty(iVas_data)
+    iVas_data = find(strcmp(Dat.(type).EMGheaders,'Vastus-medialis'));
+end
 iSemi_data = find(strcmp(Dat.(type).EMGheaders,'semitend_l'));
 iBic_data = find(strcmp(Dat.(type).EMGheaders,'bic_fem_l'));
 
@@ -151,7 +172,7 @@ iM = [iSol iGas iGas2 iTib iRect iVas iSemi iBic];
 iM_data = [iSol_data iGas_data iGas2_data iTib_data iRect_data iVas_data iSemi_data iBic_data];
 ccc.muscles.names = mVect;
 
-for i=1:length(iM)
+for i=1:length(iM_data)
     
     mean = Dat.(type).gc.lowEMG_mean(:,iM_data(i));
     sim = R.a(:,iM(i));

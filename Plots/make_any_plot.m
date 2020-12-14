@@ -10,28 +10,29 @@ addpath([pathRepo '/VariousFunctions']);
 % Folder will be filtered to only plot results that satisfy all chosen
 % settings. Put an entry in comment to not use it to filter.
 
-plot_default = 0;
+plot_default = 1;
 plot_validation = 1;
 
 % folder to filter from
-ResultsFolder = 'Batchsim_tmt_linear_v2'; %'Batchsim_tmt_linear_v2' 'Batchsim_tmt_linear' 'all'
+ResultsFolder = 'debug_tmt'; %'Batchsim_tmt_linear_v2' 'Batchsim_tmt_linear' 'all' 'test_Lars1'
 
 % experimental data to plot as reference
-reference_data = 'norm'; % 'none' 'norm' 'pas' act'
+reference_data = 'norm'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
+
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
-S.kTMT = 1000;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
-S.dTMT = 0.2;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
+% S.kTMT = 800;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
+% S.dTMT = 0.2;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
 
 
 % assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
+% S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 
 % exo
-% S.ExoBool       = 0;    % 1: is wearing exo
-% S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
+S.ExoBool       = 0;    % 1: is wearing exo
+S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
 
 % initial guess
@@ -98,11 +99,15 @@ if isfield(S,'ExoBool') && ~isempty(S.ExoBool)
         if S.ExoScale == 0
             criteria{ct} = 'pas';
             ct=ct+1;
-            reference_data = 'pas';
+            if ~strcmp(reference_data,'none')
+                reference_data = 'pas';
+            end
         else
             criteria{ct} = 'act';
             ct=ct+1;
-            reference_data = 'act';
+            if ~strcmp(reference_data,'none')
+                reference_data = 'act';
+            end
         end
     else
         criteria{ct} = 'not_pas';
@@ -112,6 +117,7 @@ if isfield(S,'ExoBool') && ~isempty(S.ExoBool)
     end
 end
 
+criteria{ct} = 'v3';
 
 %%
 
@@ -121,25 +127,34 @@ end
 n = length(filteredResults);
 if isfield(S,'ExoBool') && ~isempty(S.ExoBool) && S.ExoBool == 1
     if S.ExoScale == 1
-        ref = 'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_act_pp.mat';
+        ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_act_pp.mat';
     else
-        ref = 'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pas_pp.mat';
+        ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pas_pp.mat';
     end
 else
-    ref = 'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pp.mat';
+    ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pp.mat';
 end
 
-ref = {'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_act_pp.mat',...
-       'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pas_pp.mat',...
-       'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pp.mat'};
+% ref = {'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_act_pp.mat',...
+%        'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pas_pp.mat',...
+%        'D:\school\WTK\thesis\model\3dpredictsim\Results\all\Pog_s1_bCst_pp.mat'};
+
+% filteredResults{n+1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug_tmt\Pog_s1_tmt_bCst_d02_k800_kc1_t5_ig24_v3_pp.mat';
+% filteredResults{n+2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug_tmt\Pog_s1_tmt_bCst_d02_k800_ig24_v3_pp.mat';
 
 filteredResultsWithRef = {ref{:}, filteredResults{:}};
 
 if plot_default
     Plot3D(filteredResultsWithRef,reference_data)
+%     Plot3D(filteredResults,reference_data)
 end
 
 if plot_validation
+    if strcmp(reference_data,'Fal_s1')
+        pathData = 'D:\school\WTK\thesis\model\3dpredictsim\Data\Fal_s1.mat';
+    else
+        pathData = 'D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat';
+    end
     if length(filteredResultsWithRef)>1
         ValidationPlots(pathData,filteredResultsWithRef{1},filteredResultsWithRef{2:end})
     else
