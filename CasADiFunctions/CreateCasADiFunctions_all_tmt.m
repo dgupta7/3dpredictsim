@@ -37,6 +37,11 @@ if isfield(S,'dTMT') && ~isempty(S.dTMT)
 else
     dTMT = 0.5;
 end
+if isfield(S,'tmt') && ~isempty(S.tmt)
+    tmt = S.tmt;
+else
+    tmt = 0;
+end
 
 if isfield(S,'TMT_linear') && ~isempty(S.TMT_linear)
     tmt_linear = S.TMT_linear;
@@ -97,7 +102,13 @@ shift = getShift(aTendon);
 % jointi.sh_rot.r     = 29;
 % jointi.elb.l        = 30;
 % jointi.elb.r        = 31;
-jointi = getJointi_tmt();
+
+if tmt == 1
+    jointi = getJointi_tmt();
+else
+    jointi = getJointi();
+end
+
 % Vectors of indices for later use
 residualsi          = jointi.pelvis.tilt:jointi.elb.r; % all
 ground_pelvisi      = jointi.pelvis.tilt:jointi.pelvis.tz; % ground-pelvis
@@ -117,36 +128,36 @@ nq.mtp     = length(mtpi); % arms
 nq.leg      = 10; % #joints needed for polynomials
 % Second, origins bodies.
 % Calcaneus
-calcOr.r    = 34:35;
-calcOr.l    = 36:37;
-calcOr.all  = [calcOr.r,calcOr.l];
-NcalcOr     = length(calcOr.all);
+% calcOr.r    = 34:35;
+% calcOr.l    = 36:37;
+% calcOr.all  = [calcOr.r,calcOr.l];
+% NcalcOr     = length(calcOr.all);
 % Femurs
-femurOr.r   = 38:39;
-femurOr.l   = 40:41;
-femurOr.all = [femurOr.r,femurOr.l];
-NfemurOr    = length(femurOr.all);
+% femurOr.r   = 38:39;
+% femurOr.l   = 40:41;
+% femurOr.all = [femurOr.r,femurOr.l];
+% NfemurOr    = length(femurOr.all);
 % Hands
-handOr.r    = 42:43;
-handOr.l    = 44:45;
-handOr.all  = [handOr.r,handOr.l];
-NhandOr     = length(handOr.all);
+% handOr.r    = 42:43;
+% handOr.l    = 44:45;
+% handOr.all  = [handOr.r,handOr.l];
+% NhandOr     = length(handOr.all);
 % Tibias
-tibiaOr.r   = 46:47;
-tibiaOr.l   = 48:49;
-tibiaOr.all = [tibiaOr.r,tibiaOr.l];
-NtibiaOr    = length(tibiaOr.all);
+% tibiaOr.r   = 46:47;
+% tibiaOr.l   = 48:49;
+% tibiaOr.all = [tibiaOr.r,tibiaOr.l];
+% NtibiaOr    = length(tibiaOr.all);
 % External function: F1 (post-processing purpose only)
 % Ground reaction forces (GRFs)
-GRFi.r      = 34:36;
-GRFi.l      = 37:39;
-GRFi.all    = [GRFi.r,GRFi.l];
-NGRF        = length(GRFi.all);
+% GRFi.r      = 34:36;
+% GRFi.l      = 37:39;
+% GRFi.all    = [GRFi.r,GRFi.l];
+% NGRF        = length(GRFi.all);
 % Origins calcaneus (3D)
-calcOrall.r     = 40:42;
-calcOrall.l     = 43:45;
-calcOrall.all   = [calcOrall.r,calcOrall.l];
-NcalcOrall      = length(calcOrall.all);
+% calcOrall.r     = 40:42;
+% calcOrall.l     = 43:45;
+% calcOrall.all   = [calcOrall.r,calcOrall.l];
+% NcalcOrall      = length(calcOrall.all);
 
 
 %% Muscle-tendon parameters
@@ -178,24 +189,24 @@ MTparameters_m = [MTparameters(:,musi),MTparameters(:,musi)];
 % Indices of the muscles actuating the different joints for later use
 pathpolynomial = fullfile(pathRepo,'Polynomials',subject);
 addpath(genpath(pathpolynomial));
-tl = load([pathpolynomial,'/muscle_spanning_joint_INFO_',subject,ExtPoly, '.mat']);
-[~,mai] = MomentArmIndices(muscleNames(1:end-3),...
-    tl.muscle_spanning_joint_INFO(1:end-3,:));
+% tl = load([pathpolynomial,'/muscle_spanning_joint_INFO_',subject,ExtPoly, '.mat']);
+% [~,mai] = MomentArmIndices(muscleNames(1:end-3),...
+%     tl.muscle_spanning_joint_INFO(1:end-3,:));
 
 % Parameters for activation dynamics
-tact = 0.015; % Activation time constant
-tdeact = 0.06; % Deactivation time constant
+% tact = 0.015; % Activation time constant
+% tdeact = 0.06; % Deactivation time constant
 
 %% Metabolic energy model parameters
 % We extract the specific tensions and slow twitch rations.
 pathMetabolicEnergy = [pathRepo,'/MetabolicEnergy'];
 addpath(genpath(pathMetabolicEnergy));
 % (1:end-3), since we do not want to count twice the back muscles
-tension = getSpecificTensions(muscleNames(1:end-3));
-tensions = [tension;tension];
+% tension = getSpecificTensions(muscleNames(1:end-3));
+% tensions = [tension;tension];
 % (1:end-3), since we do not want to count twice the back muscles
-pctst = getSlowTwitchRatios(muscleNames(1:end-3));
-pctsts = [pctst;pctst];
+% pctst = getSlowTwitchRatios(muscleNames(1:end-3));
+% pctsts = [pctst;pctst];
 
 %% CasADi functions
 % We create several CasADi functions for later use
@@ -610,27 +621,36 @@ Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
     Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r));
 Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
 
-if tmt_linear
-    % Assume linear stiffness for now (according to DOI: 10.1109/ROBIO.2011.6181517), will likely extend into nonlinear later
-    Tau_passj.tmt.l = f_passiveTATorques(kTMT, dTMT, ...
-        Q_SX(jointi.tmt.l), Qdot_SX(jointi.tmt.l));
-    Tau_passj.tmt.r = f_passiveTATorques(kTMT, dTMT, ...
-        Q_SX(jointi.tmt.r), Qdot_SX(jointi.tmt.r));
+if tmt
+    if tmt_linear
+        % Assume linear stiffness (according to DOI: 10.1109/ROBIO.2011.6181517)
+        Tau_passj.tmt.l = f_passiveTATorques(kTMT, dTMT, ...
+            Q_SX(jointi.tmt.l), Qdot_SX(jointi.tmt.l));
+        Tau_passj.tmt.r = f_passiveTATorques(kTMT, dTMT, ...
+            Q_SX(jointi.tmt.r), Qdot_SX(jointi.tmt.r));
+    else
+        Tau_passj.tmt.l = f_passiveTanhTorques(k1TMT, k2TMT, t1TMT, dTMT, ...
+            Q_SX(jointi.tmt.l), Qdot_SX(jointi.tmt.l));
+        Tau_passj.tmt.r = f_passiveTanhTorques(k1TMT, k2TMT, t1TMT, dTMT, ...
+            Q_SX(jointi.tmt.r), Qdot_SX(jointi.tmt.r));
+    end
+    Tau_passj_all = [Tau_passj.hip.flex.l,Tau_passj.hip.flex.r,...
+        Tau_passj.hip.add.l,Tau_passj.hip.add.r,...
+        Tau_passj.hip.rot.l,Tau_passj.hip.rot.r,...
+        Tau_passj.knee.l,Tau_passj.knee.r,Tau_passj.ankle.l,...
+        Tau_passj.ankle.r,Tau_passj.subt.l,Tau_passj.subt.r,...
+        Tau_passj.tmt.l,Tau_passj.tmt.r,...
+        Tau_passj.mtp.all,Tau_passj.trunk.ext,Tau_passj.trunk.ben,...
+        Tau_passj.trunk.rot,Tau_passj.arm]';
 else
-    Tau_passj.tmt.l = f_passiveTanhTorques(k1TMT, k2TMT, t1TMT, dTMT, ...
-        Q_SX(jointi.tmt.l), Qdot_SX(jointi.tmt.l));
-    Tau_passj.tmt.r = f_passiveTanhTorques(k1TMT, k2TMT, t1TMT, dTMT, ...
-        Q_SX(jointi.tmt.r), Qdot_SX(jointi.tmt.r));
+    Tau_passj_all = [Tau_passj.hip.flex.l,Tau_passj.hip.flex.r,...
+        Tau_passj.hip.add.l,Tau_passj.hip.add.r,...
+        Tau_passj.hip.rot.l,Tau_passj.hip.rot.r,...
+        Tau_passj.knee.l,Tau_passj.knee.r,Tau_passj.ankle.l,...
+        Tau_passj.ankle.r,Tau_passj.subt.l,Tau_passj.subt.r,...
+        Tau_passj.mtp.all,Tau_passj.trunk.ext,Tau_passj.trunk.ben,...
+        Tau_passj.trunk.rot,Tau_passj.arm]';
 end
-
-Tau_passj_all = [Tau_passj.hip.flex.l,Tau_passj.hip.flex.r,...
-    Tau_passj.hip.add.l,Tau_passj.hip.add.r,...
-    Tau_passj.hip.rot.l,Tau_passj.hip.rot.r,...
-    Tau_passj.knee.l,Tau_passj.knee.r,Tau_passj.ankle.l,...
-    Tau_passj.ankle.r,Tau_passj.subt.l,Tau_passj.subt.r,...
-    Tau_passj.tmt.l,Tau_passj.tmt.r,...
-    Tau_passj.mtp.all,Tau_passj.trunk.ext,Tau_passj.trunk.ben,...
-    Tau_passj.trunk.rot,Tau_passj.arm]';
 
 f_AllPassiveTorques = Function('f_AllPassiveTorques',{Q_SX,Qdot_SX}, ...
     {Tau_passj_all},{'Q_SX','Qdot_SX'},{'Tau_passj_all'});

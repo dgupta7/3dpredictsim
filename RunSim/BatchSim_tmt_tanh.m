@@ -92,11 +92,11 @@ S.savename = savename;
 
 % external function
 if S.ExoBool == 0
-    S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt_v2.dll';        % external function
-    S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp_v2.dll';     % external function for post-processing
+    S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt_v3.dll';        % external function
+    S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp_v3.dll';     % external function for post-processing
 else
-    S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v2.dll';
-    S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v2.dll';
+    S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v4.dll';
+    S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v4.dll';
 end
 
 % % Create the casadifunctions if they do not exist yet

@@ -24,7 +24,7 @@ S.NThreads  = 8;        % number of threads for parallel computing
 S.max_iter  = 10000;    % maximum number of iterations
 
 % tarsometatarsal joint
-S.tmt = 1;              % 1: use a model with tmt joint
+S.tmt = 0;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
 S.kTMT = 2000;           % (Nm/rad) stiffness of tmt joint 
 S.dTMT = 0;           % (Nms/rad) damping of tmt joint
@@ -45,8 +45,8 @@ S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile
 S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque profile
                         
 % output folder
-S.ResultsFolder = 'debug_tmt';
-% other options: 'Test_Lars' 'debug_tmt' 'PredSim_adaptations' 'Batchsim_tmt_linear'
+S.ResultsFolder = 'debug';
+
 
 % Folder with default functions
 S.subject            = 's1_Poggensee';
@@ -73,8 +73,8 @@ end
 
 % build standardised names
 [savename, casfuncfol] = getSavename(S);
-S.CasadiFunc_Folders = casfuncfol;
-S.savename = [savename '_v3'];
+S.CasadiFunc_Folders = [casfuncfol '_test'];
+S.savename = [savename '_test'];
 
 % quasi random initial guess, pelvis y position
 S.IG_PelvisY = 0.896;   % subject 1 poggensee
@@ -96,8 +96,8 @@ elseif S.tmt ==1
         S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt_v3.dll';        % external function
         S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp_v3.dll';     % external function for post-processing
     else
-        S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v3.dll';
-        S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v3.dll';
+        S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v4.dll';
+        S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v4.dll';
     end
     
 end

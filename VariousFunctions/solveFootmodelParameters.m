@@ -87,17 +87,17 @@ optim_options = optimset('Display','off');
     end
     
 %% results for right foot
-format long
-mc = x(1)
-mf = x(2)
-COMc = x(3:5)
-COMf = x(6:8)
-MTJ = x(9:11)
-Ic = x(12:14)
-MTPJ = mtp_0-MTJ
+% format long
+mc = x(1);
+mf = x(2);
+COMc = x(3:5);
+COMf = x(6:8);
+MTJ = x(9:11);
+Ic = x(12:14);
+MTPJ = mtp_0-MTJ;
 
 
-disp('      I0        Ic        If')
+disp('           I0                  Ic                  If')
 disp([I_cmf_0 Ic If])
 
 %% plot results in calcaneus ref frame
@@ -127,8 +127,8 @@ locSphere_4_r=[0.165, -0.01, -0.01];
 locSphere_5_r=[0.053154, -0.01, -0.0034173];
 locSphere_6_r=[1.7381e-06, -0.01, 0.022294];
 
-locSphere_3_r_new = locSphere_3_r - MTJ'
-locSphere_4_r_new = locSphere_4_r - MTJ'
+locSphere_3_r_new = locSphere_3_r - MTJ';
+locSphere_4_r_new = locSphere_4_r - MTJ';
 
 %plot
 figure
@@ -194,6 +194,31 @@ plot(locSphere_4_r(1),-locSphere_4_r(3),'*c')
 plot(mtp_0(1)+locSphere_5_r(1),-(mtp_0(3)+locSphere_5_r(3)),'*c')
 plot(mtp_0(1)+locSphere_6_r(1),-(mtp_0(3)+locSphere_6_r(3)),'*c')
 
+
+
+%% relating vectors to foot arch compression
+% based on DOI: 10.1038/srep19403
+
+a = MTJ(1:2);
+b = MTPJ(1:2);
+
+h0 = -b(2); 
+% Difference in y-coordinate between calcn origin and mtpj 
+% results in 1° difference, so it is omitted.
+
+c0 = acos(h0/norm(a));
+d0 = acos(h0/norm(b));
+
+tmt0 = (c0+d0)*180/pi;
+
+h1 = h0*0.8; 
+c1 = acos(h1/norm(a));
+d1 = acos(h1/norm(b));
+
+tmt1 = (c1+d1)*180/pi;
+
+tmt_bound = tmt1 - tmt0
+% So 15° bound is sensible
 
 
 

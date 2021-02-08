@@ -20,11 +20,11 @@ S.ModelPath = fullfile(MainPath,'OpenSimModel','Subject1_Poggensee.osim');
 % Folder with CasadiFunctions
 S.CasadiFunc_Folders = 'debug_notmt'; %'Casadi_s1Pog_tmt_d05_k800'; 
 % path to Cpp file used in the optimization
-S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','SimExo_3D_Pog_s1_tmt_v3.cpp'); 
+% S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','SimExo_3D_Pog_s1_tmt_v4.cpp'); 
  % path to Cpp file for post processing
-S.CppFile_pp = fullfile(MainPath,'ExternalFunctions','CppFiles','SimExo_3D_Pog_s1_tmt_pp_v3.cpp');    
+% S.CppFile_pp = fullfile(MainPath,'ExternalFunctions','CppFiles','SimExo_3D_Pog_s1_tmt_pp_v4.cpp');    
 % Number of input arguments in the cpp file
-S.CppFile_nInput = 33*3+2; 
+% S.CppFile_nInput = 33*3+2; 
 % model selection options: Rajagopal, Gait92
 S.ModelName = 'Gait92';      
 
@@ -33,7 +33,7 @@ S.ModelName = 'Gait92';
 % SettingsCasFunc.kMTP = 1.5/(pi/180)/5;
 % SettingsCasFunc.dMTP = 0.5;
 
-SettingsCasFunc.tmt = 0;
+% SettingsCasFunc.tmt = 0;
 % SettingsCasFunc.kTMT = 800; % 250, 500, 1000,2000, 4000
 % SettingsCasFunc.dTMT = 0.5;
 
@@ -65,9 +65,22 @@ VSinstall   = 'C:\Program Files (x86)\Microsoft Visual Studio 14.0';
 
 
 % % create the .dll file automatically to solve the NLP
-[CppDir,Name,~] = fileparts(S.CppFile_NLP);
-CreateDllFileFromCpp(CppDir,Name,OsimSource,OsimBuild,DllPath,ExtFuncs,VSinstall,S.CppFile_nInput);
+% [CppDir,Name,~] = fileparts(S.CppFile_NLP);
+% CreateDllFileFromCpp(CppDir,Name,OsimSource,OsimBuild,DllPath,ExtFuncs,VSinstall,S.CppFile_nInput);
 
 % % create the .dll file automatically for postprocessing
-[CppDir,Name,~] = fileparts(S.CppFile_pp);
-CreateDllFileFromCpp(CppDir,Name,OsimSource,OsimBuild,DllPath,ExtFuncs,VSinstall,S.CppFile_nInput);
+% [CppDir,Name,~] = fileparts(S.CppFile_pp);
+% CreateDllFileFromCpp(CppDir,Name,OsimSource,OsimBuild,DllPath,ExtFuncs,VSinstall,S.CppFile_nInput);
+
+
+%%
+CppFile = fullfile(MainPath,'ExternalFunctions','CppFiles','cartPendulum_4dof_v1.cpp'); 
+CppFile_nInput = 12; 
+
+[CppDir,Name,~] = fileparts(CppFile);
+CreateDllFileFromCpp(CppDir,Name,OsimSource,OsimBuild,DllPath,ExtFuncs,VSinstall,CppFile_nInput);
+
+
+
+
+

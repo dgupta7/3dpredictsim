@@ -242,8 +242,8 @@ if exist(ResultsFile,'file')
             if sum(idx_jref) == 1
 %                 meanPlusSTD = IDref.(subject).mean(:,idx_jref) + 2*IDref.(subject).std(:,idx_jref);
 %                 meanMinusSTD = IDref.(subject).mean(:,idx_jref) - 2*IDref.(subject).std(:,idx_jref);
-                meanPlusSTD = Qref.Tall_bio_mean(:,idx_jref) + 2*Qref.Tall_bio_std(:,idx_jref);
-                meanMinusSTD = Qref.Tall_bio_mean(:,idx_jref) - 2*Qref.Tall_bio_std(:,idx_jref);
+                meanPlusSTD = Qref.Tall_mean(:,idx_jref) + 2*Qref.Tall_std(:,idx_jref);
+                meanMinusSTD = Qref.Tall_mean(:,idx_jref) - 2*Qref.Tall_std(:,idx_jref);
                 
                 stepID = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
                 intervalID = 1:stepID:size(R.Qs,1);
@@ -308,9 +308,9 @@ if exist(ResultsFile,'file')
     % experimental data
     darkgray = [0.5 0.5 0.5];
     lightgray = [0.1 0.1 0.1];
-    if boolFirst && md && ~strcmp(subject,'Fal_s1')
-        plot(0,Dat.Passive.COT,'o','Color',darkgray,'MarkerFaceColor','k','DisplayName','Data exo passive');
+    if boolFirst && md && ~strcmp(subject,'Fal_s1') 
         plot(0,Dat.Normal.COT,'o','Color',darkgray,'MarkerFaceColor',darkgray,'DisplayName','Data normal shoes');
+        plot(0,Dat.Passive.COT,'o','Color',darkgray,'MarkerFaceColor','k','DisplayName','Data exo passive');
         plot(1,Dat.Active.COT,'o','Color',lightgray,'MarkerFaceColor',lightgray,'DisplayName','Data exo active');
     end
     % simulation results
@@ -357,7 +357,9 @@ if exist(ResultsFile,'file')
     axes('parent', tab4);
     iAnkle = strcmp(R.colheaders.joints,'ankle_angle_r');
     iSubtalar = strcmp(R.colheaders.joints,'subtalar_angle_r');
-    subplot(3,2,1)
+    iTmt = strcmp(R.colheaders.joints,'tmt_angle_r');
+    
+    subplot(3,3,1)
     if boolActuation
         plot(R.Exodiff_id(:,iAnkle),'-','Color',Cs); hold on;
     else
@@ -365,22 +367,34 @@ if exist(ResultsFile,'file')
     end
     ylabel('Exo Moment - Ankle [Nm]');  xlabel('% stride');
     
-    subplot(3,2,2);
+    subplot(3,3,2);
     if boolActuation
         plot(R.Exodiff_id(:,iSubtalar),'-','Color',Cs); hold on;
     else
     end
     ylabel('Exo Moment- Subtalar [Nm]'); xlabel('% stride');
     
-    subplot(3,2,3)
+    subplot(3,3,3);
+    if boolActuation && ~has_no_tmt
+        plot(R.Exodiff_id(:,iTmt),'-','Color',Cs); hold on;
+    end
+    ylabel('Exo Moment- tmt [Nm]'); xlabel('% stride');
+    
+    subplot(3,3,4)
     plot(R.Tid(:,iAnkle),'-','Color',Cs); hold on;
     ylabel('Ankle moment [Nm]'); xlabel('% stride');
     
-    subplot(3,2,4)
+    subplot(3,3,5)
     plot(R.Tid(:,iSubtalar),'-','Color',Cs); hold on;
     ylabel('Subtalar moment [Nm]'); xlabel('% stride');
     
-    subplot(3,2,5)
+    subplot(3,3,6)
+    if ~has_no_tmt
+        plot(R.Tid(:,iTmt),'-','Color',Cs); hold on;
+    end
+    ylabel('Tmt moment [Nm]'); xlabel('% stride');
+    
+    subplot(3,3,7)
     if boolActuation
         plot(R.Tid(:,iAnkle)-R.Exodiff_id(:,iAnkle),'-','Color',Cs); hold on;
     else
@@ -389,13 +403,25 @@ if exist(ResultsFile,'file')
     ylabel('Biological ankle moment [Nm]'); xlabel('% stride');
     title('Left');
     
-    subplot(3,2,6)
+    subplot(3,3,8)
     if boolActuation
         plot(R.Tid(:,iSubtalar)-R.Exodiff_id(:,iSubtalar),'-','Color',Cs,'DisplayName',LegName); hold on;
     else
         plot(R.Tid(:,iSubtalar),'-','Color',Cs,'DisplayName',LegName); hold on;
     end
     ylabel('Biological subtalar moment [Nm]'); xlabel('% stride');
+    title('Left');
+    
+    
+    subplot(3,3,9)
+    if ~has_no_tmt
+        if boolActuation
+            plot(R.Tid(:,iTmt)-R.Exodiff_id(:,iTmt),'-','Color',Cs,'DisplayName',LegName); hold on;
+        else
+            plot(R.Tid(:,iTmt),'-','Color',Cs,'DisplayName',LegName); hold on;
+        end
+    end
+    ylabel('Biological tmt moment [Nm]'); xlabel('% stride');
     title('Left');
     
     if boolFirst
