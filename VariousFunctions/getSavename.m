@@ -9,6 +9,7 @@ if S.tmt
     casfuncfol = [casfuncfol '_tmt'];
     if S.tmt_locked
         savename = [savename 'L'];
+        casfuncfol = [casfuncfol 'L'];
     end
 end
 if isfield(S,'MuscModelAsmp') && ~isempty(S.MuscModelAsmp) && S.MuscModelAsmp==0
@@ -51,6 +52,22 @@ if S.ExoBool == 1
         savename = [savename '_pas'];
     else
         savename = [savename '_act'];
+        if isfield(S,'ExoImplementation') && ~isempty(S.ExoImplementation)
+            if strcmp(S.ExoImplementation,'TorqueTibiaCalcn')
+                savename = [savename '_TTC'];
+            elseif strcmp(S.ExoImplementation,'TorqueTibiaMetatarsi')
+                savename = [savename '_TTM'];
+            end
+        end
+        if isfield(S,'ExoController') && ~isempty(S.ExoController) && strcmp(S.ExoController,'Ideal Assistance')
+            savename = [savename '_IA'];
+            if isfield(S,'T_max_ankle_exo') && ~isempty(S.T_max_ankle_exo)
+                savename = [savename 'T' num2str(S.T_max_ankle_exo)];
+            end
+            if isfield(S,'P_max_ankle_exo') && ~isempty(S.P_max_ankle_exo)
+                savename = [savename 'P' num2str(S.P_max_ankle_exo)];
+            end
+        end
     end    
 end
 disp(savename);

@@ -220,5 +220,11 @@ tmt1 = (c1+d1)*180/pi;
 tmt_bound = tmt1 - tmt0
 % So 15° bound is sensible
 
+h2 = h0*0.87; 
+c2 = acos(h2/norm(a));
+d2 = acos(h2/norm(b));
 
+tmt2 = (c2+d2)*180/pi;
+
+tmt_2 = tmt2 - tmt0
 

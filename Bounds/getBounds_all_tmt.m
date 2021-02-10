@@ -7,7 +7,14 @@
 % Author: Antoine Falisse
 % Date: 12/19/2018
 %
-function [bounds,scaling] = getBounds_all_tmt(Qs,NMuscle,nq,jointi,v_tgt)
+function [bounds,scaling] = getBounds_all_tmt(Qs,NMuscle,nq,jointi,v_tgt,varargin)
+
+if length(varargin) == 1
+    T_max_ankle_exo = varargin{1};
+else
+    T_max_ankle_exo = 0;
+end
+    
 
 %% Spline approximation of Qs to get Qdots and Qdotdots
 Qs_spline.data = zeros(size(Qs.allfilt));
@@ -446,6 +453,16 @@ bounds.e_lumbar.upper = ones(1,nq.trunk);
 %% Final time
 bounds.tf.lower = 0.1;
 bounds.tf.upper = 1;
+
+%% Ideal Assistance
+if T_max_ankle_exo ~= 0
+    bounds.T_exo_ankle.upper = 1;
+    bounds.T_exo_ankle.lower = -1;
+
+    scaling.T_exo_ankle = T_max_ankle_exo;
+else
+    scaling.T_exo_ankle = 1;
+end
 
 %% Scaling
 % Qs

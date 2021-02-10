@@ -1,0 +1,120 @@
+if system_dependent('IsDebugMode')==1, dbquit; end
+Test_Lars
+Pog_s1_tmt_bCst_d00_k2000_ig24_act_TTC_IAT30
+casadi_s1Pog_tmt_MuscModel_bCst_d00_k2000
+                 v_tgt: 1.2500
+                     N: 50
+              NThreads: 6
+              max_iter: 10000
+                   tmt: 1
+            tmt_locked: 0
+                  kTMT: 2000
+                  dTMT: 0
+            TMT_linear: 1
+                 k1TMT: 800
+                 k2TMT: 1
+                 t1TMT: 0.5000
+         MuscModelAsmp: 0
+               ExoBool: 1
+              ExoScale: 1
+               DataSet: 'PoggenSee2020_AFO'
+     ExoImplementation: 'TorqueTibiaCalcn'
+       T_max_ankle_exo: 30
+         ResultsFolder: 'debug'
+               subject: 's1_Poggensee'
+                 IGsel: 2
+              IGmodeID: 4
+           savename_ig: 'NoExo'
+         ExoController: 'Ideal Assistance'
+            IG_PelvisY: 0.8960
+            PolyFolder: 's1_Poggensee'
+          ExternalFunc: 'SimExo_3D_Pog_s1_tmt_v3.dll'
+         ExternalFunc2: 'SimExo_3D_Pog_s1_tmt_pp_v3.dll'
+    CasadiFunc_Folders: 'casadi_s1Pog_tmt_MuscModel_bCst_d00_k2000'
+              savename: 'Pog_s1_tmt_bCst_d00_k2000_ig24_act_TTC_IAT30_v4'
+         linear_solver: 'mumps'
+             tol_ipopt: 4
+           ResultsF_ig: []
+                  mass: 64
+                     W: [1×1 struct]
+                IGcase: 0
+                h_weak: 0
+                 Max_s: 0
+               pf_weak: 0
+                    mE: 0
+                coCont: 0
+                Constr: [1×1 struct]
+                Bounds: [1×1 struct]
+            PercStance: [1×1 struct]
+          parallelMode: 'thread'
+             Symmetric: 1
+              Periodic: 0
+             ModelName: 'Gait92'
+         IKfile_Bounds: 'OpenSimModel\IK_Bounds_Default_tmt.mat'
+          IKfile_guess: 'OpenSimModel\IK_Guess_Default_tmt.mat'
+       P_max_ankle_exo: 0
+
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('cd')" style="font-weight:bold">cd</a>
+Cannot CD to D:\school\WTK\thesis\model/ExternalFunctions (Name is nonexistent or not a directory).
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('f_PredSim_Gait92_tmt_ia', 'D:\school\WTK\thesis\model\3dpredictsim\OCP\f_PredSim_Gait92_tmt_ia.m', 28)" style="font-weight:bold">f_PredSim_Gait92_tmt_ia</a> (<a href="matlab: opentoline('D:\school\WTK\thesis\model\3dpredictsim\OCP\f_PredSim_Gait92_tmt_ia.m',28,0)">line 28</a>)
+cd(pathExternalFunctions)
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Test_Lars', 'D:\school\WTK\thesis\model\3dpredictsim\RunSim\Test_Lars.m', 140)" style="font-weight:bold">Test_Lars</a> (<a href="matlab: opentoline('D:\school\WTK\thesis\model\3dpredictsim\RunSim\Test_Lars.m',140,0)">line 140</a>)
+            f_PredSim_Gait92_tmt_ia(S);
+} 
+Test_Lars
+Pog_s1_tmt_bCst_d00_k2000_ig24_act_TTC_IAT30
+casadi_s1Pog_tmt_MuscModel_bCst_d00_k2000
+                 v_tgt: 1.2500
+                     N: 50
+              NThreads: 6
+              max_iter: 10000
+                   tmt: 1
+            tmt_locked: 0
+                  kTMT: 2000
+                  dTMT: 0
+            TMT_linear: 1
+                 k1TMT: 800
+                 k2TMT: 1
+                 t1TMT: 0.5000
+         MuscModelAsmp: 0
+               ExoBool: 1
+              ExoScale: 1
+               DataSet: 'PoggenSee2020_AFO'
+     ExoImplementation: 'TorqueTibiaCalcn'
+       T_max_ankle_exo: 30
+         ResultsFolder: 'debug'
+               subject: 's1_Poggensee'
+                 IGsel: 2
+              IGmodeID: 4
+           savename_ig: 'NoExo'
+         ExoController: 'Ideal Assistance'
+            IG_PelvisY: 0.8960
+            PolyFolder: 's1_Poggensee'
+          ExternalFunc: 'SimExo_3D_Pog_s1_tmt_v3.dll'
+         ExternalFunc2: 'SimExo_3D_Pog_s1_tmt_pp_v3.dll'
+    CasadiFunc_Folders: 'casadi_s1Pog_tmt_MuscModel_bCst_d00_k2000'
+              savename: 'Pog_s1_tmt_bCst_d00_k2000_ig24_act_TTC_IAT30_v4'
+         linear_solver: 'mumps'
+             tol_ipopt: 4
+           ResultsF_ig: []
+                  mass: 64
+                     W: [1×1 struct]
+                IGcase: 0
+                h_weak: 0
+                 Max_s: 0
+               pf_weak: 0
+                    mE: 0
+                coCont: 0
+                Constr: [1×1 struct]
+                Bounds: [1×1 struct]
+            PercStance: [1×1 struct]
+          parallelMode: 'thread'
+             Symmetric: 1
+              Periodic: 0
+             ModelName: 'Gait92'
+         IKfile_Bounds: 'OpenSimModel\IK_Bounds_Default_tmt.mat'
+          IKfile_guess: 'OpenSimModel\IK_Guess_Default_tmt.mat'
+       P_max_ankle_exo: 0
+

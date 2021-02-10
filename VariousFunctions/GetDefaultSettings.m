@@ -253,6 +253,21 @@ if ~isfield(S,'ExoScale')
     S.ExoScale      = 0;        % scale factor of exoskeleton assistance profile = 0 (i.e. no assistance)
 end
 
+% choosing assistance profile or control law
+if ~isfield(S,'ExoController')
+    S.ExoController = 's1 Pog';
+end
+
+% max motor torque for ideal assistance
+if ~isfield(S,'T_max_ankle_exo')
+    S.T_max_ankle_exo = 0;
+end
+
+% max motor power for ideal assistance
+if ~isfield(S,'P_max_ankle_exo')
+    S.P_max_ankle_exo = 0;
+end
+
 % Print the settings to the screen
 disp(S);
 

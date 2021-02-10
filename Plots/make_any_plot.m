@@ -14,7 +14,7 @@ plot_default = 1;
 plot_validation = 0;
 
 % folder to filter from
-ResultsFolder = 'tmt_lin'; %'Batchsim_tmt_linear_v2' 'Batchsim_tmt_linear' 'all' 'test_Lars1'
+ResultsFolder = 'debug'; % 'tmt_lin'
 
 % experimental data to plot as reference
 reference_data = 'norm'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
@@ -22,7 +22,7 @@ reference_data = 'norm'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
-S.tmt_locked = 1;       % 1: lock the tmt joint (to compare with model w/o)
+S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
 % S.kTMT = 800;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
 % S.dTMT = 0.2;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
 
@@ -31,8 +31,8 @@ S.tmt_locked = 1;       % 1: lock the tmt joint (to compare with model w/o)
 S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 
 % exo
-S.ExoBool       = 0;    % 1: is wearing exo
-S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
+S.ExoBool       = 1;    % 1: is wearing exo
+S.ExoScale      = 1;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
 
 % initial guess
@@ -136,7 +136,6 @@ else
 end
 
 % ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\tmt_lin\Pog_s1_tmtL_bCst_ig24_v3_pp.mat';
-ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug\Pog_s1_bCst_ig24_test_pp.mat';
 
 % ref = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pp.mat',...
 %        'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pas_pp.mat',...

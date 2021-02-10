@@ -13,18 +13,18 @@ addpath([pathRepo '/Musclemodel']);
 addpath([pathRepo '/Polynomials']);
 
 %% Manual settings
-solve = 1;          % run solver
-pp = 1;             % postproces
-plot = 0;      % plot solution
+slv = 0;                % run solver
+pp = 1;                 % postproces
+plot = 1;               % plot solution
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
-S.NThreads  = 8;        % number of threads for parallel computing
+S.NThreads  = 6;        % number of threads for parallel computing
 S.max_iter  = 10000;    % maximum number of iterations
 
 % tarsometatarsal joint
-S.tmt = 0;              % 1: use a model with tmt joint
+S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
 S.kTMT = 2000;           % (Nm/rad) stiffness of tmt joint 
 S.dTMT = 0;           % (Nms/rad) damping of tmt joint
@@ -38,15 +38,20 @@ S.t1TMT = 0.5;
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
 
 % exo
-S.ExoBool       = 0;    % 1: is wearing exo
-S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
+S.ExoBool       = 1;    % 1: is wearing exo
+S.ExoScale      = 1;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
                         
 S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque profile
-                        
-% output folder
-S.ResultsFolder = 'debug';
 
+S.ExoImplementation = 'TorqueTibiaCalcn';     %'TorqueTibiaMetatarsi'
+
+% Ideal assistance
+ia = 1;
+S.T_max_ankle_exo = 30;
+
+% output folder
+S.ResultsFolder = 'debug'; % 'tmt_lin'
 
 % Folder with default functions
 S.subject            = 's1_Poggensee';
@@ -65,16 +70,10 @@ end
 
 %% Automated settings
 
-% make folder to store results if it doesn't exist
-pathResults = fullfile([pathRepo '/Results'],S.ResultsFolder);
-if ~isfolder(pathResults)
-    mkdir(pathResults);
+% Ideal assistance
+if ia
+    S.ExoController = 'Ideal Assistance';
 end
-
-% build standardised names
-[savename, casfuncfol] = getSavename(S);
-S.CasadiFunc_Folders = [casfuncfol '_test'];
-S.savename = [savename '_test'];
 
 % quasi random initial guess, pelvis y position
 S.IG_PelvisY = 0.896;   % subject 1 poggensee
@@ -96,10 +95,26 @@ elseif S.tmt ==1
         S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt_v3.dll';        % external function
         S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp_v3.dll';     % external function for post-processing
     else
-        S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v4.dll';
-        S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v4.dll';
+        if strcmp(S.ExoImplementation,'TorqueTibiaCalcn')
+            S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v3.dll';
+            S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v3.dll';
+        elseif strcmp(S.ExoImplementation,'TorqueTibiaMetatarsi')
+            S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v4.dll';
+            S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v4.dll';
+        end
     end
     
+end
+
+% build standardised names
+[savename, casfuncfol] = getSavename(S);
+S.CasadiFunc_Folders = casfuncfol;
+S.savename = savename;
+
+% make folder to store results if it doesn't exist
+pathResults = fullfile([pathRepo '/Results'],S.ResultsFolder);
+if ~isfolder(pathResults)
+    mkdir(pathResults);
 end
 
 % Create the casadifunctions if they do not exist yet
@@ -113,18 +128,26 @@ end
 %% Run
 
 if S.tmt == 0
-    if solve        % run the optimization
+    if slv        % run the optimization
     f_PredSim_Gait92(S);
     end
     if pp           % post-proces simulation results
     f_LoadSim_Gait92(S.ResultsFolder,S.savename);
     end
 elseif S.tmt == 1
-    if solve        % run the optimization
-    f_PredSim_Gait92_tmt(S);
+    if slv        % run the optimization
+        if ia
+            f_PredSim_Gait92_tmt_ia(S);
+        else
+            f_PredSim_Gait92_tmt(S);
+        end
     end
     if pp           % post-proces simulation results
-    f_LoadSim_Gait92_tmt(S.ResultsFolder,S.savename);
+        if ia
+            f_LoadSim_Gait92_tmt_ia(S.ResultsFolder,S.savename);
+        else
+            f_LoadSim_Gait92_tmt(S.ResultsFolder,S.savename);
+        end
     end
 end
 
