@@ -25,7 +25,7 @@ S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;
 
 % assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 1;    % 0: musc height = cst, 1: pennation angle = cst
+S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 
 kTMT = [500 800 1000 2000]; % 250
 dTMT = [0 0.5]; % 0.2
@@ -142,6 +142,7 @@ pathResults = fullfile([pathRepo '/Results'],S.ResultsFolder);
 
 j=1;
 imax = length(S_batch);
+% imax = 2;
 for i=1:imax
 CasadiFiles = fullfile(MainPath,'CasADiFunctions',S_batch{i}.CasadiFunc_Folders);
 pathResult_pp = fullfile([pathRepo '/Results'],S_batch{i}.ResultsFolder,[S_batch{i}.savename '_pp.mat']);
