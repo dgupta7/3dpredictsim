@@ -2,6 +2,7 @@ function [S] = GetDefaultSettings(S)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
+%% solver settings
 if ~isfield(S,'linear_solver')    
     S.linear_solver = 'mumps';
 end
@@ -22,31 +23,41 @@ if ~isfield(S,'ResultsF_ig')
     S.ResultsF_ig = [];
 end
 
+% parallel computation settings
+if ~isfield(S,'parallelMode')
+    S.parallelMode = 'thread';
+end
+
 if  ~isfield(S,'NThreads') || isempty(S.NThreads)
     S.NThreads = 4;
+end
+
+% default number of mesh intervals
+if ~isfield(S,'N') || isempty(S.N)
+    S.N         = 50;       
+end
+
+%% subject settings
+if ~isfield(S,'subject') || isempty(S.subject)
+    S.subject = 'subject1';
 end
 
 if ~isfield(S,'mass') || isempty(S.mass)
     S.mass = 64;
 end
 
-if ~isfield(S,'subject') || isempty(S.subject)
-    S.subject = 'subject1';
-end
-
 % quasi random initial guess
 if ~isfield(S,'IG_PelvisY') || isempty(S.IG_PelvisY)
-    S.IG_PelvisY = 0.9385;
+    if strcmp(S.subject,'s1_Poggensee')
+        S.IG_PelvisY = 0.896;   % subject 1 poggensee
+    else
+        S.IG_PelvisY = 0.9385;  % subject 1
+    end
 end
 
 % default settings walking speed
 if ~isfield(S,'v_tgt') || isempty(S.v_tgt)
     S.v_tgt = 1.25;
-end
-
-% default number of mesh intervals
-if ~isfield(S,'N') || isempty(S.N)
-    S.N         = 50;       
 end
 
 % default weights
@@ -189,10 +200,7 @@ else
     S.PercStance.bool = 0;
 end
 
-% parallel computation settings
-if ~isfield(S,'parallelMode')
-    S.parallelMode = 'thread';
-end
+
 
 % symmetric motion ?
 if ~isfield(S,'Symmetric')
@@ -216,7 +224,7 @@ end
 
 % tarsometatarsal joint locked?
 if ~isfield(S,'tmt_locked')
-    S.tmt_locked = 1;
+    S.tmt_locked = 0;
 end
 
 
@@ -256,6 +264,11 @@ end
 % choosing assistance profile or control law
 if ~isfield(S,'ExoController')
     S.ExoController = 's1 Pog';
+end
+
+% how the exo torque is transfered to the ankle
+if ~isfield(S,'ExoImplementation')
+    S.ExoImplementation = 'TorqueTibiaCalcn';
 end
 
 % max motor torque for ideal assistance

@@ -13,7 +13,7 @@ addpath([pathRepo '/Musclemodel']);
 addpath([pathRepo '/Polynomials']);
 
 %% Manual settings
-slv = 0;                % run solver
+slv = 1;                % run solver
 pp = 1;                 % postproces
 plot = 1;               % plot solution
 
@@ -26,8 +26,8 @@ S.max_iter  = 10000;    % maximum number of iterations
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
-S.kTMT = 2000;           % (Nm/rad) stiffness of tmt joint 
-S.dTMT = 0;           % (Nms/rad) damping of tmt joint
+S.kTMT = 1000;          % (Nm/rad) stiffness of tmt joint 
+S.dTMT = 0;             % (Nms/rad) damping of tmt joint
 % nonlinear spring tmt
 S.TMT_linear = 1;
 S.k1TMT = 800;
@@ -44,10 +44,11 @@ S.ExoScale      = 1;    % scale factor of exoskeleton assistance profile
                         
 S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque profile
 
-S.ExoImplementation = 'TorqueTibiaCalcn';     %'TorqueTibiaMetatarsi'
+% S.ExoImplementation = 'TorqueTibiaMetatarsi';
+S.ExoImplementation = 'TorqueTibiaCalcn';
 
 % Ideal assistance
-ia = 1;
+ia = 0;
 S.T_max_ankle_exo = 30;
 
 % output folder
@@ -74,9 +75,6 @@ end
 if ia
     S.ExoController = 'Ideal Assistance';
 end
-
-% quasi random initial guess, pelvis y position
-S.IG_PelvisY = 0.896;   % subject 1 poggensee
 
 % select folder with polynomials
 S.PolyFolder = 's1_Poggensee';
@@ -160,6 +158,6 @@ if plot
     PlotResults_3DSim_tmt(fullfile(pathResults,[S.savename '_pp.mat']),[1 0 0],savename,h);
 end
 
-% fullfile(pathResults,[S.savename '_pp.mat'])
+
 
 

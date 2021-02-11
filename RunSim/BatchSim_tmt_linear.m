@@ -18,7 +18,7 @@ addpath([pathRepo '/Polynomials']);
 S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 2;        % number of threads for parallel computing
-S.max_iter  = 10000;    % maximum number of iterations
+S.max_iter  = 10;    % maximum number of iterations
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
@@ -27,10 +27,17 @@ S.tmt_locked = 0;
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 1;    % 0: musc height = cst, 1: pennation angle = cst
 
-kTMT = [800 1000 2000]; %250 500 
-dTMT = [0 0.2 0.5];
+kTMT = [500 800 1000 2000]; % 250
+dTMT = [0 0.5]; % 0.2
 exo = [[0; 0], [1; 0], [1; 1]]';
 
+
+% S.ExoImplementation = 'TorqueTibiaMetatarsi';
+S.ExoImplementation = 'TorqueTibiaCalcn';
+
+% output folder
+% S.ResultsFolder = 'Batchsim_tmt_linear_v4';
+S.ResultsFolder = 'debug_batch';
 
 
 
@@ -43,7 +50,6 @@ for ik=1:length(kTMT)
 S.kTMT = kTMT(ik);
 S.dTMT = dTMT(id);
 
-
 % exo
 S.ExoBool       = exo(ie,1);    % 1: is wearing exo
 S.ExoScale      = exo(ie,2);    % scale factor of exoskeleton assistance profile 
@@ -51,9 +57,6 @@ S.ExoScale      = exo(ie,2);    % scale factor of exoskeleton assistance profile
                         
 S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque profile
                         
-% output folder
-S.ResultsFolder = 'Batchsim_tmt_linear_v4';
-% S.ResultsFolder = 'debug_batch';
 
 % Folder with default functions
 S.subject            = 's1_Poggensee';
@@ -76,48 +79,7 @@ if ~isfolder(pathResults)
     mkdir(pathResults);
 end
 
-% build savename and casadifunction foldername
-if strcmp(S.subject,'s1_Poggensee')
-    savename = 'Pog_s1';
-    casfuncfol = 'casadi_s1Pog';
-end
-if S.tmt
-    savename = [savename '_tmt'];
-    casfuncfol = [casfuncfol '_tmt'];
-    if S.tmt_locked
-        savename = [savename 'L'];
-    end
-end
-if isfield(S,'MuscModelAsmp') && ~isempty(S.MuscModelAsmp) && S.MuscModelAsmp==0
-    savename = [savename '_bCst'];
-    casfuncfol = [casfuncfol '_MuscModel_bCst'];
-else
-    savename = [savename '_aCst'];
-    casfuncfol = [casfuncfol '_MuscModel_alphaCst'];
-end
-if S.tmt && isfield(S,'dTMT') && ~isempty(S.dTMT) && ~S.tmt_locked
-    savename = [savename '_d0' num2str(S.dTMT*10)];
-    casfuncfol = [casfuncfol '_d0' num2str(S.dTMT*10)];
-end
-if S.tmt && isfield(S,'kTMT') && ~isempty(S.kTMT) && ~S.tmt_locked
-    savename = [savename '_k' num2str(S.kTMT)];
-    casfuncfol = [casfuncfol '_k' num2str(S.kTMT)];
-end
-if S.IGsel == 1
-    savename = [savename '_ig1'];
-else
-    savename = [savename '_ig2' num2str(S.IGmodeID )];
-end
-if S.ExoBool == 1
-    if S.ExoScale == 0
-        savename = [savename '_pas'];
-    else
-        savename = [savename '_act'];
-    end    
-end
 
-S.CasadiFunc_Folders = casfuncfol;
-S.savename = savename;
 
 % quasi random initial guess, pelvis y position
 S.IG_PelvisY = 0.896;   % subject 1 poggensee
@@ -127,14 +89,28 @@ S.PolyFolder = 's1_Poggensee';
 
 % external function
 if S.ExoBool == 0
-    S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt_v3.dll';        % external function
-    S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp_v3.dll';     % external function for post-processing
+    S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt_v3.dll';
+    S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp_v3.dll';
 else
-    S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v4.dll';
-    S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v4.dll';
+    if strcmp(S.ExoImplementation,'TorqueTibiaCalcn')
+        S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v3.dll';
+        S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v3.dll';
+    elseif strcmp(S.ExoImplementation,'TorqueTibiaMetatarsi')
+        S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v4.dll';
+        S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v4.dll';
+    end
 end
     
+% build standardised names
+[savename, casfuncfol] = getSavename(S);
+S.CasadiFunc_Folders = casfuncfol;
+S.savename = savename;
 
+% make folder to store results if it doesn't exist
+pathResults = fullfile([pathRepo '/Results'],S.ResultsFolder);
+if ~isfolder(pathResults)
+    mkdir(pathResults);
+end
 
 % Create the casadifunctions if they do not exist yet
 if ~isfolder([pathRepo '\CasADiFunctions\' S.CasadiFunc_Folders])
@@ -150,9 +126,9 @@ end
 
 %% Run
 name = getenv('COMPUTERNAME');
-if strcmp(name,'GBW-D-W2711')
+if strcmp(name,'GBW-D-W2711')   % simulationpc
 myCluster = parcluster('LocalProfile1_Lars_8x2');
-elseif strcmp(name,'MSI')   %Lars
+elseif strcmp(name,'MSI')       % Lars
 myCluster = parcluster('LocalProfile_2x2');
 end
 
@@ -177,11 +153,11 @@ pathResult_pp = fullfile([pathRepo '/Results'],S_batch{i}.ResultsFolder,[S_batch
 end
 
 %% rerun this section after the jobs are done to get logfiles
-
-for i=1:length(job)
-    if strcmp(job(1, i).State,'finished') && strcmp(job(1, i).Name(1:9),'f_PredSim')
-        diary(fullfile(pathRepo,'Results',S_batch{i}.ResultsFolder,[S_batch{i}.savename '_log.txt']));
-        job(1, i).Tasks.Diary
-        diary off
-    end
-end
+% 
+% for i=1:length(job)
+%     if strcmp(job(1, i).State,'finished') && strcmp(job(1, i).Name(1:9),'f_PredSim')
+%         diary(fullfile(pathRepo,'Results',S_batch{i}.ResultsFolder,[S_batch{i}.savename '_log.txt']));
+%         job(1, i).Tasks.Diary
+%         diary off
+%     end
+% end

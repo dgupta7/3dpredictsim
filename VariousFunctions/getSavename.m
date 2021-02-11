@@ -23,7 +23,7 @@ if S.tmt && isfield(S,'dTMT') && ~isempty(S.dTMT) && ~S.tmt_locked
     savename = [savename '_d0' num2str(S.dTMT*10)];
     casfuncfol = [casfuncfol '_d0' num2str(S.dTMT*10)];
 end
-if ~S.TMT_linear
+if isfield(S,'TMT_linear') && ~isempty(S.TMT_linear) && ~S.TMT_linear
     if S.tmt && isfield(S,'k1TMT') && ~isempty(S.k1TMT) && ~S.tmt_locked
         savename = [savename '_k' num2str(S.k1TMT)];
         casfuncfol = [casfuncfol '_k' num2str(S.k1TMT)];
