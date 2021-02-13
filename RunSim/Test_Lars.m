@@ -14,14 +14,14 @@ addpath([pathRepo '/Polynomials']);
 
 %% Manual settings
 slv = 1;                % run solver
-pp = 1;                 % postproces
-plot = 1;               % plot solution
+pp = 0;                 % postproces
+plot = 0;               % plot solution
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 6;        % number of threads for parallel computing
-S.max_iter  = 10000;    % maximum number of iterations
+S.max_iter  = 10;    % maximum number of iterations
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
@@ -48,7 +48,7 @@ S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque pr
 S.ExoImplementation = 'TorqueTibiaCalcn';
 
 % Ideal assistance
-ia = 0;
+ia = 1;
 S.T_max_ankle_exo = 30;
 
 % output folder

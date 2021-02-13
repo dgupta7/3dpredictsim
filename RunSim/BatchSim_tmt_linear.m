@@ -18,14 +18,14 @@ addpath([pathRepo '/Polynomials']);
 S.v_tgt     = 1.25;     % average speed
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 2;        % number of threads for parallel computing
-S.max_iter  = 10;    % maximum number of iterations
+S.max_iter  = 10000;    % maximum number of iterations
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;
 
 % assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
+S.MuscModelAsmp = 1;    % 0: musc height = cst, 1: pennation angle = cst
 
 kTMT = [500 800 1000 2000]; % 250
 dTMT = [0 0.5]; % 0.2
