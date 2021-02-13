@@ -18,13 +18,13 @@ pp = 0;                 % postproces
 plot = 0;               % plot solution
 
 % settings for optimization
-S.v_tgt     = 1.25;     % average speed
+S.v_tgt     = 2.7;     % average speed 1.25
 S.N         = 50;       % number of mesh intervals
-S.NThreads  = 6;        % number of threads for parallel computing
-S.max_iter  = 10;    % maximum number of iterations
+S.NThreads  = 10;        % number of threads for parallel computing
+S.max_iter  = 10000;    % maximum number of iterations
 
 % tarsometatarsal joint
-S.tmt = 1;              % 1: use a model with tmt joint
+S.tmt = 0;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
 S.kTMT = 1000;          % (Nm/rad) stiffness of tmt joint 
 S.dTMT = 0;             % (Nms/rad) damping of tmt joint
@@ -38,8 +38,8 @@ S.t1TMT = 0.5;
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
 
 % exo
-S.ExoBool       = 1;    % 1: is wearing exo
-S.ExoScale      = 1;    % scale factor of exoskeleton assistance profile 
+S.ExoBool       = 0;    % 1: is wearing exo
+S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
                         
 S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque profile
@@ -48,11 +48,11 @@ S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque pr
 S.ExoImplementation = 'TorqueTibiaCalcn';
 
 % Ideal assistance
-ia = 1;
+ia = 0;
 S.T_max_ankle_exo = 30;
 
 % output folder
-S.ResultsFolder = 'debug'; % 'tmt_lin'
+S.ResultsFolder = 'running'; % 'tmt_lin'
 
 % Folder with default functions
 S.subject            = 's1_Poggensee';
@@ -107,7 +107,7 @@ end
 % build standardised names
 [savename, casfuncfol] = getSavename(S);
 S.CasadiFunc_Folders = casfuncfol;
-S.savename = savename;
+S.savename = [savename '_27ms'];
 
 % make folder to store results if it doesn't exist
 pathResults = fullfile([pathRepo '/Results'],S.ResultsFolder);

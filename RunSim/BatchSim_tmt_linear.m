@@ -15,7 +15,7 @@ addpath([pathRepo '/Polynomials']);
 %% Manual settings
 
 % settings for optimization
-S.v_tgt     = 1.25;     % average speed
+S.v_tgt     = 4.5;     % average speed 1.25
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 2;        % number of threads for parallel computing
 S.max_iter  = 10000;    % maximum number of iterations
@@ -25,19 +25,22 @@ S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;
 
 % assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 1;    % 0: musc height = cst, 1: pennation angle = cst
+S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 
-kTMT = [500 800 1000 2000]; % 250
-dTMT = [0 0.5]; % 0.2
-exo = [[0; 0], [1; 0], [1; 1]]';
+% kTMT = [500 800 1000 2000]; % 250
+% dTMT = [0 0.5]; % 0.2
+% exo = [[0; 0], [1; 0], [1; 1]]';
 
+kTMT = [1000];
+dTMT = [0.5];
+exo = [0, 0];
 
 % S.ExoImplementation = 'TorqueTibiaMetatarsi';
 S.ExoImplementation = 'TorqueTibiaCalcn';
 
 % output folder
 % S.ResultsFolder = 'Batchsim_tmt_linear_v4';
-S.ResultsFolder = 'debug_batch';
+S.ResultsFolder = 'running';
 
 
 
@@ -104,7 +107,7 @@ end
 % build standardised names
 [savename, casfuncfol] = getSavename(S);
 S.CasadiFunc_Folders = casfuncfol;
-S.savename = savename;
+S.savename = [savename '_27ms'];
 
 % make folder to store results if it doesn't exist
 pathResults = fullfile([pathRepo '/Results'],S.ResultsFolder);
