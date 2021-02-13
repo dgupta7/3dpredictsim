@@ -42,6 +42,14 @@ else
         casfuncfol = [casfuncfol '_k' num2str(S.kTMT)];
     end
 end
+if isfield(S,'Windlass') && ~isempty(S.Windlass) && S.Windlass
+    savename = [savename '_WL'];
+    casfuncfol = [casfuncfol '_WL'];
+    if isfield(S,'cWL') && ~isempty(S.cWL)
+        savename = [savename num2str(S.cWL*1000)];
+        casfuncfol = [casfuncfol num2str(S.cWL*1000)];
+    end
+end
 if S.IGsel == 1
     savename = [savename '_ig1'];
 else

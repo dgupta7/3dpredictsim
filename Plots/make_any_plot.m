@@ -10,7 +10,7 @@ addpath([pathRepo '/VariousFunctions']);
 % Folder will be filtered to only plot results that satisfy all chosen
 % settings. Put an entry in comment to not use it to filter.
 
-plot_default = 1;
+plot_default = 0;
 plot_validation = 0;
 
 % folder to filter from
@@ -45,79 +45,18 @@ pathResult = fullfile([pathRepo '/Results/' ResultsFolder]);
 pathData = [pathRepo,'/ExperimentalData','/ExperimentalData.mat'];
 
 
-
-% build criteria to filter resultsfolder
-ct=1;
-if isfield(S,'subject') && ~isempty(S.subject) && strcmp(S.subject,'s1_Poggensee')
-    criteria{ct} = 'Pog_s1';
-    ct=ct+1;
-end
-if isfield(S,'tmt') && ~isempty(S.tmt)
-    if S.tmt && S.tmt_locked
-        criteria{ct} ='tmtL';
-        ct=ct+1;
-    end
-    if S.tmt && ~S.tmt_locked
-        criteria{ct} ='tmt';
-        ct=ct+1;
-        criteria{ct} ='not_tmtL';
-        ct=ct+1;
-    end
-    if ~S.tmt
-        criteria{ct} ='not_tmt';
-        ct=ct+1;
-    end
-end
-if isfield(S,'MuscModelAsmp') && ~isempty(S.MuscModelAsmp) 
-    if S.MuscModelAsmp==0
-    criteria{ct} = 'bCst';
-    ct=ct+1;
-    elseif S.MuscModelAsmp==1
-        criteria{ct} = 'aCst';
-    ct=ct+1;
-    end
-end
-if isfield(S,'dTMT') && ~isempty(S.dTMT) && ~S.tmt_locked
-    criteria{ct} = ['d0' num2str(S.dTMT*10)];
-    ct=ct+1;
-end
-if isfield(S,'kTMT') && ~isempty(S.kTMT) && ~S.tmt_locked
-    criteria{ct} = ['k' num2str(S.kTMT)];
-    ct=ct+1;
-end
-if isfield(S,'IGsel') && ~isempty(S.IGsel)
-    if S.IGsel == 1
-        criteria{ct} = 'ig1';
-        ct=ct+1;
-    else
-        criteria{ct} = ['ig2' num2str(S.IGmodeID )];
-        ct=ct+1;
-    end
-end
-if isfield(S,'ExoBool') && ~isempty(S.ExoBool)
-    if S.ExoBool == 1
-        if S.ExoScale == 0
-            criteria{ct} = 'pas';
-            ct=ct+1;
-            if ~strcmp(reference_data,'none')
-                reference_data = 'pas';
-            end
-        else
-            criteria{ct} = 'act';
-            ct=ct+1;
-            if ~strcmp(reference_data,'none')
-                reference_data = 'act';
-            end
-        end
-    else
-        criteria{ct} = 'not_pas';
-        ct=ct+1;
-        criteria{ct} = 'not_act';
-        ct=ct+1;
+if isfield(S,'ExoBool') && ~isempty(S.ExoBool) && S.ExoBool == 1
+    if S.ExoScale == 0 && ~strcmp(reference_data,'none')
+        reference_data = 'pas';
+    elseif ~strcmp(reference_data,'none')
+        reference_data = 'act';
     end
 end
 
-% criteria{ct} = 'v3';
+
+[~,~,criteria] = getSavename2(S);
+
+% criteria{end+1} = 'v3';
 
 %%
 

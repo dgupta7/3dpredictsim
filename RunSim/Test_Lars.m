@@ -107,7 +107,7 @@ end
 % build standardised names
 [savename, casfuncfol] = getSavename(S);
 S.CasadiFunc_Folders = casfuncfol;
-S.savename = [savename '_27ms'];
+S.savename = savename;
 
 % make folder to store results if it doesn't exist
 pathResults = fullfile([pathRepo '/Results'],S.ResultsFolder);
