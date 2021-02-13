@@ -228,3 +228,25 @@ tmt2 = (c2+d2)*180/pi;
 
 tmt_2 = tmt2 - tmt0
 
+%% Windlass mechanism
+
+a = norm(a);    % calcn length
+b = norm(b);    % metatarsi length
+phi0 = tmt0;    % tmt vector angle
+e0 = phi0;      % tmt vector angle inf stiff
+
+q1 = -5:1:15;
+q2 = -20:5:30;
+
+l0 = sqrt(a^2 + b^2 - 2*a*b*cos(phi0*pi/180));
+
+l = (1-0.03/(0.97*20)*q2)*l0;
+
+e = acos( (a^2 + b^2 - l.^2)/(2*a*b) )*180/pi;
+
+q1_0 = e-e0;
+
+figure
+plot(q2,q1_0)
+
+

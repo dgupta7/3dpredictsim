@@ -72,6 +72,9 @@ tibiaOr.all = [tibiaOr.r,tibiaOr.l];
 toesOr.r   = 50:51;
 toesOr.l   = 52:53;
 toesOr.all = [toesOr.r,toesOr.l];
+% exo velocities
+exo_w.r    = 54;
+exo_w.l    = 55;
 
 %% Collocation scheme
 % We use a pseudospectral direct collocation method, i.e. we use Lagrange
@@ -392,6 +395,7 @@ ineq_constr3 = {}; % Initialize inequality constraint vector 3
 ineq_constr4 = {}; % Initialize inequality constraint vector 4
 ineq_constr5 = {}; % Initialize inequality constraint vector 5
 ineq_constr6 = {}; % Initialize inequality constraint vector 6
+P_me         = [0,0];  % Initialize exoskeleton motor powers
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Time step
 h = tfk/N;
@@ -632,6 +636,10 @@ for j=1:d
         % Tmt, right
         eq_constr{end+1} = Tj(jointi.tmt.r,1) - Tau_passj.tmt.r;
     end
+    
+    % exo power limit
+    p_me(1) = p_me(1) + Tj(exo_w.r,1)*Texok_nsc(2);
+    p_me(2) = p_me(2) + Tj(exo_w.l,1)*Texok_nsc(1);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Activation dynamics (implicit formulation)
