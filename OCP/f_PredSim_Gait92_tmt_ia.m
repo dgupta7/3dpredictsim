@@ -395,7 +395,8 @@ ineq_constr3 = {}; % Initialize inequality constraint vector 3
 ineq_constr4 = {}; % Initialize inequality constraint vector 4
 ineq_constr5 = {}; % Initialize inequality constraint vector 5
 ineq_constr6 = {}; % Initialize inequality constraint vector 6
-P_me         = [0,0];  % Initialize exoskeleton motor powers
+P_me_l         = 0;  % Initialize exoskeleton motor powers
+P_me_r         = 0;  % Initialize exoskeleton motor powers
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Time step
 h = tfk/N;
@@ -638,8 +639,8 @@ for j=1:d
     end
     
     % exo power limit
-    p_me(1) = p_me(1) + Tj(exo_w.r,1)*Texok_nsc(2);
-    p_me(2) = p_me(2) + Tj(exo_w.l,1)*Texok_nsc(1);
+    P_me_r = P_me_r + Tj(exo_w.r,1)*Texok_nsc(2);
+    P_me_l = P_me_l + Tj(exo_w.l,1)*Texok_nsc(1);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Activation dynamics (implicit formulation)
@@ -682,15 +683,15 @@ ineq_constr6 = vertcat(ineq_constr6{:});
 f_coll = Function('f_coll',{tfk,ak,aj,FTtildek,FTtildej,Qsk,Qsj,Qdotsk,...
     Qdotsj,a_ak,a_aj,a_mtpk,a_mtpj,vAk,e_ak,e_mtpk,dFTtildej,Aj,Texok},...
     {eq_constr,ineq_constr1,ineq_constr2,ineq_constr3,ineq_constr4,...
-    ineq_constr5,ineq_constr6,J});
+    ineq_constr5,ineq_constr6,J,P_me_l,P_me_r});
 % assign NLP problem to multiple cores
 f_coll_map = f_coll.map(N,S.parallelMode,S.NThreads);
 [coll_eq_constr, coll_ineq_constr1, coll_ineq_constr2, coll_ineq_constr3,...
-    coll_ineq_constr4, coll_ineq_constr5, coll_ineq_constr6, Jall] = f_coll_map(tf,...
+    coll_ineq_constr4, coll_ineq_constr5, coll_ineq_constr6, Jall, P_me_l_all, P_me_r_all] = f_coll_map(tf,...
     a(:,1:end-1), a_col, FTtilde(:,1:end-1), FTtilde_col, Qs(:,1:end-1), ...
     Qs_col, Qdots(:,1:end-1), Qdots_col, a_a(:,1:end-1), a_a_col, ...
     a_mtp(:,1:end-1), a_mtp_col, vA, e_a, e_mtp, dFTtilde_col, A_col,ExoVect);
-% constrains
+% constraints
 opti.subject_to(coll_eq_constr == 0);
 opti.subject_to(coll_ineq_constr1(:) >= 0);
 opti.subject_to(coll_ineq_constr2(:) <= 1/tact);
@@ -741,6 +742,11 @@ if S.Symmetric
     % Mtp activations
     orderMtpInv = [jointi.mtp.r,jointi.mtp.l]-jointi.mtp.l+1;
     opti.subject_to(a_mtp(:,end) - a_mtp(orderMtpInv,1) == 0);
+    % Exoskeleton power
+    % Combine half gait cycle for each leg to get full gait cycle.
+    P_avg_norm = (P_me_l_all + P_me_r_all)/(d*N*2)/S.P_max_ankle_exo;
+    opti.subject_to(-1 <= P_avg_norm <= 1);
+    
 elseif S.Periodic
     opti.subject_to(Qs(:,end) - Qs(:,1) == 0);
     opti.subject_to(Qdots(:,end) - Qdots(:,1) == 0);
@@ -754,6 +760,12 @@ elseif S.Periodic
     opti.subject_to(a_a(:,end) - a_a(:,1) == 0);
     % Mtp activations
     opti.subject_to(a_mtp(:,end) - a_mtp(:,1) == 0);
+    % Exoskeleton power
+    % Full gait cycle for both legs as separate constraints.
+    P_avg_l_norm = (P_me_l_all)/(d*N)/S.P_max_ankle_exo;
+    opti.subject_to(-1 <= P_avg_l_norm <= 1);
+    P_avg_r_norm = (P_me_r_all)/(d*N)/S.P_max_ankle_exo;
+    opti.subject_to(-1 <= P_avg_r_norm <= 1);
 end
 % Average speed
 % Provide expression for the distance traveled

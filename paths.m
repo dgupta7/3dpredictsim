@@ -22,6 +22,6 @@ AddCasadiPaths();
 % open([pathRepo '\OCP\f_LoadSim_Gait92_tmt.m']);
 % open([pathRepo '\Bounds\getBounds_all_tmt.m']);
 % open([pathRepo '\CasADiFunctions\CasADiFunctions_all_tmt_createDefault.m']);
-% open([pathRepo '']);
+% open('D:\school\WTK\thesis\model\Analyze_ExoData\Batch\BatchScript_LatexReport.m');
 % open([pathRepo '']);
 % open([pathRepo '']);

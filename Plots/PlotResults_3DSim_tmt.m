@@ -78,6 +78,7 @@ if exist(ResultsFile,'file')
             tab7 = h.Parent.Children(1).Children(1).Children(7);
             tab8 = h.Parent.Children(1).Children(1).Children(8);
             tab9 = h.Parent.Children(1).Children(1).Children(9);
+            tab10 = h.Parent.Children(1).Children(1).Children(10);
             boolFirst = 0;
         else
             h = varargin{1};
@@ -91,6 +92,7 @@ if exist(ResultsFile,'file')
             tab7 = uitab(hTabGroup, 'Title', 'Objective Function');
             tab8 = uitab(hTabGroup, 'Title', 'Ankle detailed');
             tab9 = uitab(hTabGroup, 'Title', 'SpatioTemporal');
+            tab10 = uitab(hTabGroup, 'Title', 'Windlass');
             h.Name = 'Sim3D_Results';
             set(h,'Color','w');
         end
@@ -107,6 +109,7 @@ if exist(ResultsFile,'file')
         tab7 = uitab(hTabGroup, 'Title', 'Objective Function');
         tab8 = uitab(hTabGroup, 'Title', 'Ankle detailed');
         tab9 = uitab(hTabGroup, 'Title', 'SpatioTemporal');
+        tab10 = uitab(hTabGroup, 'Title', 'Windlass');
         set(h,'Color','w');
     end
     
@@ -661,6 +664,104 @@ if exist(ResultsFile,'file')
     if boolFirst
         lh=legend('-DynamicLegend','location','east');
         lh.Interpreter = 'none';
+    end
+    
+    
+    %% Windlass mechanism
+    
+    axes('parent', tab10);
+    
+    has_tmt = isfield(R.S,'tmt') && ~isempty(R.S.tmt) && R.S.tmt;
+    has_tmt_unlocked =  isfield(R.S,'tmt_locked') && ~isempty(R.S.tmt_locked) && ~R.S.tmt_locked;
+    has_WL = isfield(R.S,'Windlass') && ~isempty(R.S.Windlass) && R.S.Windlass ~= 0;
+    
+    if has_tmt && has_tmt_unlocked && has_WL
+        cWL = R.S.cWL*(-12.35);
+        itmt = find(strcmp(R.colheaders.joints,'tmt_angle_r'));
+        imtp = find(strcmp(R.colheaders.joints,'mtp_angle_r'));
+        
+        Q_tmt = R.Qs(:,itmt);
+        Q_mtp = R.Qs(:,imtp);
+        
+        Q_tmt_0 = cWL*Q_mtp;
+        Q_tmt_d = Q_tmt - Q_tmt_0;
+        x = 1:(100-1)/(size(R.Qs,1)-1):100;
+        
+        if strcmp(R.S.subject,'s1_Poggensee')
+            % see \VariousFunctions\solveFootmodelParameters.m section Windlass mechanism
+            L_calcn = 0.1140; % length of vector from calcn_or to tmt
+            L_metatarsi = 0.0666; % length of vector from metatarsi_or to mtp
+            Q_tmt_compl_0 = 2.2114; % angle between both vectors above (in rest)
+            L_arch_0 = 0.1628; % length of vector from calcn_or to mtp = foot arch length (in rest)
+            H_arch_0 = L_calcn*L_metatarsi/L_arch_0*sin(Q_tmt_compl_0); % foot arch height (in rest)
+            
+            Q_tmt_compl = Q_tmt_compl_0 + Q_tmt*pi/180;
+            L_arch = sqrt(L_calcn^2 + L_metatarsi^2 - 2*L_calcn*L_metatarsi*cos(Q_tmt_compl));
+            H_arch = L_calcn*L_metatarsi./L_arch.*sin(Q_tmt_compl);
+            
+            % infinite tendon stiffness
+            Q_tmt_compl_inf = Q_tmt_compl_0 + Q_tmt_0*pi/180;
+            L_arch_inf = sqrt(L_calcn^2 + L_metatarsi^2 - 2*L_calcn*L_metatarsi*cos(Q_tmt_compl_inf));
+            H_arch_inf = L_calcn*L_metatarsi./L_arch_inf.*sin(Q_tmt_compl_inf);
+            
+            subplot(2,3,3)
+            hold on
+            pl3=plot(x,L_arch/L_arch_0,'color',Cs,'linewidth',line_linewidth,'DisplayName','elastic tendon');
+            pl4=plot(x,L_arch_inf/L_arch_0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','inf stiff tendon');
+            if boolFirst
+                legend([pl3, pl4],'location','best');
+            end
+            title('Foot arch length')
+            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+            ylabel('relative length (-)','Fontsize',label_fontsize);
+            
+            subplot(2,3,6)
+            hold on
+            pl5=plot(x,H_arch/H_arch_0,'color',Cs,'linewidth',line_linewidth,'DisplayName','elastic tendon');
+            pl6=plot(x,H_arch_inf/H_arch_0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','inf stiff tendon');
+            if boolFirst
+                legend([pl5, pl6],'location','best');
+            end
+            title('Foot arch height')
+            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+            ylabel('relative height (-)','Fontsize',label_fontsize);
+            
+        end
+        
+        subplot(2,3,1)
+        hold on
+        pl1=plot(x,Q_tmt,'color',Cs,'linewidth',line_linewidth,'DisplayName','Full angle');
+        pl2=plot(x,Q_tmt_0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','Angle inf stiff');
+        if boolFirst
+            legend([pl1, pl2],'location','best');
+            title('tmt angle')
+            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+            ylabel('Angle (°)','Fontsize',label_fontsize);
+        end
+        
+        subplot(2,3,2)
+        hold on
+        plot(x,Q_mtp,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+        lh=legend('-DynamicLegend','location','east');
+        lh.Interpreter = 'none';
+        title('mtp angle')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('Angle (°)','Fontsize',label_fontsize);
+        
+        subplot(2,3,4)
+        hold on
+        plot(x,Q_tmt_d,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+        title('tmt angle difference')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('Angle (°)','Fontsize',label_fontsize);
+        
+        subplot(2,3,5)
+        hold on
+        plot(x,R.Tid(:,itmt),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+        title('tmt moment')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('Moment (Nm)','Fontsize',label_fontsize);
+        
     end
     
 else

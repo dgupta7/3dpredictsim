@@ -202,6 +202,7 @@ plot(mtp_0(1)+locSphere_6_r(1),-(mtp_0(3)+locSphere_6_r(3)),'*c')
 a = MTJ(1:2);
 b = MTPJ(1:2);
 
+l_0 = norm(a+b);
 h0 = -b(2); 
 % Difference in y-coordinate between calcn origin and mtpj 
 % results in 1° difference, so it is omitted.
@@ -229,120 +230,122 @@ tmt2 = (c2+d2)*180/pi;
 tmt_2 = tmt2 - tmt0
 
 %% Windlass mechanism
-% close all
+close all
+clc
+
 
 a = norm(a);    % calcn length
 b = norm(b);    % metatarsi length
-phi0 = tmt0;    % tmt vector angle
+phi0 = tmt0*pi/180;    % tmt vector angle
 g0 = phi0;      % tmt vector angle inf stiff
 
-q1 = -5:1:15;
-q2 = -20:5:30;
+q1 = [-5:1:15]*pi/180;
+q2 = [-20:5:30]*pi/180;
 
-l0 = sqrt(a^2 + b^2 - 2*a*b*cos(phi0*pi/180));
+l0 = sqrt(a^2 + b^2 - 2*a*b*cos(phi0));
 
-ws = [0.8:0.1:1.3];
-% ws = 1;
+% ws = [0.8:0.1:1.3];
+ws = 1;
 
 for w=1:length(ws)
 
 cWL = 0.03/0.97 * ws(w);
-l = (1-cWL*q2/20)*l0;
+l = (1-cWL*(q2*180/pi)/20)*l0;
 
-g = acos( (a^2 + b^2 - l.^2)/(2*a*b) )*180/pi;
+g = acos( (a^2 + b^2 - l.^2)/(2*a*b) );
 
 q1_0 = g-g0;
 
 cWL_l = nanmean(q1_0./q2); % linearly dependent on cWL
 
-% figure
-% plot(q2,q1_0)
-% grid on
-% hold on
-% plot(q2,cWL_l*q2)
-% xlabel('mtp angle')
-% ylabel('tmt angle (k = inf)')
+figure
+plot(q2,q1_0)
+grid on
+hold on
+plot(q2,cWL_l*q2,'--')
+xlabel('mtp angle')
+ylabel('tmt angle (k = inf)')
 
-%
+
 kTMT = 1000;
 
 for i=1:length(q2)
-   M_lin(:,i) = kTMT*(q1(:) - q1_0(i))*pi/180;
-   M_lin_lin(:,i) = kTMT*(q1(:) - q2(i)*cWL_l)*pi/180;
-   M_l(:,i) = kTMT*(q1(:) - q2(i)*cWL*(-12.35))*pi/180;
+   M_lin(:,i) = kTMT*(q1(:) - q1_0(i));
+   M_lin_lin(:,i) = kTMT*(q1(:) - q2(i)*cWL_l);
+   M_l(:,i) = kTMT*(q1(:) - q2(i)*cWL*(-12.35));
 end
 
 colr = hsv(i);
 
-% figure
-% hold on
-% grid on
-% for j=1:i
-%     plot(q1,M_lin(:,j),'color',colr(j,:),'DisplayName',[num2str(q2(j)) ' nonl'])
-%     plot(q1,M_lin_lin(:,j),'--','color',colr(j,:),'DisplayName',[num2str(q2(j)) ' WL qs lin'])
-%     plot(q1,M_l(:,j),':','color',colr(j,:),'DisplayName',[num2str(q2(j)) ' WL qs lin smpl'])
-% end
-% legend
-% xlabel('tmt angle')
-% ylabel('tmt moment')
-% title('effect WL on \Delta q1 (k=cst)')
+figure
+hold on
+grid on
+for j=1:i
+    plot(q1,M_lin(:,j),'color',colr(j,:),'DisplayName',[num2str(q2(j)) ' nonl'])
+    plot(q1,M_lin_lin(:,j),'--','color',colr(j,:),'DisplayName',[num2str(q2(j)) ' WL qs lin'])
+    plot(q1,M_l(:,j),':','color',colr(j,:),'DisplayName',[num2str(q2(j)) ' WL qs lin smpl'])
+end
+legend
+xlabel('tmt angle')
+ylabel('tmt moment')
+title('effect WL on \Delta q1 (k=cst)')
 
-%
+
 phi = phi0 + q1;
-L = sqrt(a^2 + b^2 - 2*a*b*cos(phi*pi/180));
-h = a*b./L.*sin(phi*pi/180);
+L = sqrt(a^2 + b^2 - 2*a*b*cos(phi));
+h = a*b./L.*sin(phi);
 
-% figure
-% plot(q1,h)
+figure
+plot(q1,h)
 
 k0 = 8.2055e+05;
 
 for i=1:length(q2)
    F(:,i) = k0*l0/l(i)*(L(:)-l(i));
    M(:,i) = F(:,i).*h(:);
-   k_nl(1,i) = nanmean( M(:,i)./((q1(:) - q1_0(i))*pi/180) );
+   k_nl(1,i) = nanmean( M(:,i)./((q1(:) - q1_0(i))) );
 end
 
-cWLk = nanmean( (k_nl(q2~=0)-k_nl(q2==0))./(q2(q2~=0)*pi/180) );
-k_l = kTMT+q2*pi/180*cWLk;
+cWLk = nanmean( (k_nl(q2~=0)-k_nl(q2==0))./(q2(q2~=0)) );
+k_l = kTMT+q2*cWLk;
 
-% figure
-% plot(q2,k_nl)
-% hold on
-% grid on
-% plot(q2,k_l)
-% xlabel('tmt angle')
-% ylabel('tmt k')
-% title('effect WL on k')
+figure
+plot(q2,k_nl)
+hold on
+grid on
+plot(q2,k_l)
+xlabel('tmt angle')
+ylabel('tmt k')
+title('effect WL on k')
 
-% figure
-% hold on
-% grid on
-% for j=1:i
-%    plot(q1,k_nl(:,j)*h,'color',colr(j,:),'DisplayName',num2str(q2(j)))
-% end
-% xlabel('tmt angle')
-% ylabel('tmt k*h')
-% title('effect WL on k and moment arm')
+figure
+hold on
+grid on
+for j=1:i
+   plot(q1,k_nl(:,j)*h,'color',colr(j,:),'DisplayName',num2str(q2(j)))
+end
+xlabel('tmt angle')
+ylabel('tmt k*h')
+title('effect WL on k and moment arm')
 
 
 for i=1:length(q2)
-   M_l(:,i) = k_l(i)*(q1(:) - q2(i)*cWL_l)*pi/180;
+   M_l(:,i) = k_l(i)*(q1(:) - q2(i)*cWL_l);
 end
 
 colr = hsv(i);
 
-% figure
-% hold on
-% grid on
-% for j=1:i
-%     plot(q1,M(:,j),'color',colr(j,:),'DisplayName',num2str(q2(j)))
-%     plot(q1,M_l(:,j),'--','color',colr(j,:),'DisplayName',num2str(q2(j)))
-% end
-% legend
-% xlabel('tmt angle')
-% ylabel('tmt moment')
-% title('effect WL on \Delta q1 and k')
+figure
+hold on
+grid on
+for j=1:i
+    plot(q1,M(:,j),'color',colr(j,:),'DisplayName',num2str(q2(j)))
+    plot(q1,M_l(:,j),'--','color',colr(j,:),'DisplayName',num2str(q2(j)))
+end
+legend
+xlabel('tmt angle')
+ylabel('tmt moment')
+title('effect WL on \Delta q1 and k')
 
 cw(1,w) = cWL;
 cw(2,w) = cWL_l;
@@ -351,20 +354,23 @@ cw(3,w) = cWLk;
 end
 
 %%
-figure
-subplot(311)
-plot(ws,cw(1,:))
-subplot(312)
-plot(ws,cw(2,:))
-subplot(313)
-plot(ws,cw(3,:))
+if w>1
+    figure
+    subplot(311)
+    plot(ws,cw(1,:))
+    subplot(312)
+    plot(ws,cw(2,:))
+    subplot(313)
+    plot(ws,cw(3,:))
 
 
-nanmean(cw(1,:)./ws);
-nanmean(cw(2,:)./ws);
-nanmean(cw(3,:)./ws);
+    nanmean(cw(1,:)./ws);
+    nanmean(cw(2,:)./ws);
+    nanmean(cw(3,:)./ws);
 
-figure
-plot(ws,cw(2,:)./cw(1,:))
+    figure
+    plot(ws,cw(2,:)./cw(1,:))
 
-nanmean(cw(2,:)./cw(1,:))
+    nanmean(cw(2,:)./cw(1,:))
+end
+

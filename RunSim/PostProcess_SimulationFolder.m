@@ -13,8 +13,9 @@ Datapath = [pwd '\Results'];
 addpath([pwd,'/OCP']);
 addpath([pwd,'/MuscleModel']);
 addpath([pwd,'/Debug']);
+addpath([pwd '/VariousFunctions']);
 AddCasadiPaths();
-DataFolders = {'debug_batch'};
+DataFolders = {'windlass'};
 
 
 S.OverWrite = 0;
@@ -37,7 +38,11 @@ for f = 1:nF
             FolderIndex(ct) = f;
             ct= ct+1;
             if (~exist(OutName,'file') || S.OverWrite == 1)
-                f_LoadSim_Gait92_tmt(DataFolders{f},filename);
+                try
+                    f_LoadSim_Gait92_tmt(DataFolders{f},filename);
+                catch
+                    f_LoadSim_Gait92(DataFolders{f},filename);
+                end
 %                 disp(ct);
             end
         end

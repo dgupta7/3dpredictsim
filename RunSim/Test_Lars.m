@@ -13,26 +13,31 @@ addpath([pathRepo '/Musclemodel']);
 addpath([pathRepo '/Polynomials']);
 
 %% Manual settings
-slv = 1;                % run solver
+slv = 0;                % run solver
 pp = 0;                 % postproces
 plot = 0;               % plot solution
+batchQueue = 1;         % save settings to run later
 
 % settings for optimization
-S.v_tgt     = 2.7;     % average speed 1.25
+S.v_tgt     = 1.25;     % average speed 1.25
 S.N         = 50;       % number of mesh intervals
-S.NThreads  = 10;        % number of threads for parallel computing
+S.NThreads  = 6;        % number of threads for parallel computing
 S.max_iter  = 10000;    % maximum number of iterations
 
 % tarsometatarsal joint
-S.tmt = 0;              % 1: use a model with tmt joint
+S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
-S.kTMT = 1000;          % (Nm/rad) stiffness of tmt joint 
+% linear spring
+S.kTMT = 500;          % (Nm/rad) stiffness of tmt joint 
 S.dTMT = 0;             % (Nms/rad) damping of tmt joint
 % nonlinear spring tmt
 S.TMT_linear = 1;
 S.k1TMT = 800;
 S.k2TMT = 1;
 S.t1TMT = 0.5;
+% windlass mechanism
+S.Windlass = 1;
+S.cWL = 0.04;           % relative change in foot arch length at mtp 20° dorsiflexion
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
@@ -50,9 +55,10 @@ S.ExoImplementation = 'TorqueTibiaCalcn';
 % Ideal assistance
 ia = 0;
 S.T_max_ankle_exo = 30;
+S.P_max_ankle_exo = 50;
 
 % output folder
-S.ResultsFolder = 'running'; % 'tmt_lin'
+S.ResultsFolder = 'windlass'; % 'tmt_lin'
 
 % Folder with default functions
 S.subject            = 's1_Poggensee';
@@ -94,7 +100,7 @@ elseif S.tmt ==1
         S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp_v3.dll';     % external function for post-processing
     else
         if strcmp(S.ExoImplementation,'TorqueTibiaCalcn')
-            S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v3.dll';
+            S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v5.dll';
             S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v3.dll';
         elseif strcmp(S.ExoImplementation,'TorqueTibiaMetatarsi')
             S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v4.dll';
@@ -109,23 +115,37 @@ end
 S.CasadiFunc_Folders = casfuncfol;
 S.savename = savename;
 
-% make folder to store results if it doesn't exist
-pathResults = fullfile([pathRepo '/Results'],S.ResultsFolder);
-if ~isfolder(pathResults)
-    mkdir(pathResults);
-end
+if batchQueue
+    if (exist([pathRepo '/Results/batchQ.mat'],'file')==2) 
+        load([pathRepo '/Results/batchQ.mat'],'batchQ');
+    else
+        batchQ.(S.savename) = struct('S',[]);
+    end
+    batchQ.(S.savename).S = S;
+    
+else
+    % make folder to store results if it doesn't exist
+    pathResults = fullfile([pathRepo '/Results'],S.ResultsFolder);
+    if ~isfolder(pathResults)
+        mkdir(pathResults);
+    end
 
-% Create the casadifunctions if they do not exist yet
-if ~isfolder([pathRepo '\CasADiFunctions\' S.CasadiFunc_Folders])
-    disp('Creating casadifunctions...');
-    CreateCasADiFunctions_all_tmt(pathRepo,S);
-    disp('...casadifunctions created');
-end
+    % Create the casadifunctions if they do not exist yet
+    if ~isfolder([pathRepo '\CasADiFunctions\' S.CasadiFunc_Folders])
+        disp('Creating casadifunctions...');
+        CreateCasADiFunctions_all_tmt(pathRepo,S);
+        disp('...casadifunctions created');
+    end
 
+end
 
 %% Run
 
 if S.tmt == 0
+    if batchQueue
+        batchQ.(S.savename).PredSim = 'f_PredSim_Gait92';
+        batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92';
+    end
     if slv        % run the optimization
     f_PredSim_Gait92(S);
     end
@@ -133,23 +153,34 @@ if S.tmt == 0
     f_LoadSim_Gait92(S.ResultsFolder,S.savename);
     end
 elseif S.tmt == 1
-    if slv        % run the optimization
-        if ia
+    if ia
+        if batchQueue
+            batchQ.(S.savename).PredSim = 'f_PredSim_Gait92_tmt_ia';
+            batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92_tmt_ia';
+        end
+        if slv
             f_PredSim_Gait92_tmt_ia(S);
-        else
+        end
+        if pp
+            f_LoadSim_Gait92_tmt_ia(S.ResultsFolder,S.savename);
+        end
+    else
+        if batchQueue
+            batchQ.(S.savename).PredSim = 'f_PredSim_Gait92_tmt';
+            batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92_tmt';
+        end
+        if slv
             f_PredSim_Gait92_tmt(S);
         end
-    end
-    if pp           % post-proces simulation results
-        if ia
-            f_LoadSim_Gait92_tmt_ia(S.ResultsFolder,S.savename);
-        else
+        if pp
             f_LoadSim_Gait92_tmt(S.ResultsFolder,S.savename);
         end
     end
 end
 
-
+if batchQueue
+    save([pathRepo '/Results/batchQ.mat'],'batchQ');
+end
 
 %%
 if plot
