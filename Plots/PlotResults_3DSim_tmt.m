@@ -65,6 +65,7 @@ if exist(ResultsFile,'file')
     has_no_tmt = ~isfield(R.S,'tmt') || isempty(R.S.tmt) || R.S.tmt == 0;
     
     boolFirst = 1;
+    
     % create figure handles
     if ~isempty(varargin) && ~isempty(varargin{1})
         if ~isempty(varargin{1}.Name)
@@ -676,92 +677,180 @@ if exist(ResultsFile,'file')
     has_WL = isfield(R.S,'Windlass') && ~isempty(R.S.Windlass) && R.S.Windlass ~= 0;
     
     if has_tmt && has_tmt_unlocked && has_WL
-        cWL = R.S.cWL*(-12.35);
         itmt = find(strcmp(R.colheaders.joints,'tmt_angle_r'));
         imtp = find(strcmp(R.colheaders.joints,'mtp_angle_r'));
         
-        Q_tmt = R.Qs(:,itmt);
-        Q_mtp = R.Qs(:,imtp);
-        
-        Q_tmt_0 = cWL*Q_mtp;
-        Q_tmt_d = Q_tmt - Q_tmt_0;
+        q_tmt = R.Qs(:,itmt);
+        qdot_tmt = R.Qdots(:,itmt);
+        q_mtp = R.Qs(:,imtp);
+
+        kTMT_li = 1.5/(pi/180)/5;
+        kTMT_PF = R.S.kTMT;
+        dTMT = R.S.dTMT;
+        cWL = R.S.cWL;
+
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         
-        if strcmp(R.S.subject,'s1_Poggensee')
-            % see \VariousFunctions\solveFootmodelParameters.m section Windlass mechanism
-            L_calcn = 0.1140; % length of vector from calcn_or to tmt
-            L_metatarsi = 0.0666; % length of vector from metatarsi_or to mtp
-            Q_tmt_compl_0 = 2.2114; % angle between both vectors above (in rest)
-            L_arch_0 = 0.1628; % length of vector from calcn_or to mtp = foot arch length (in rest)
-            H_arch_0 = L_calcn*L_metatarsi/L_arch_0*sin(Q_tmt_compl_0); % foot arch height (in rest)
-            
-            Q_tmt_compl = Q_tmt_compl_0 + Q_tmt*pi/180;
-            L_arch = sqrt(L_calcn^2 + L_metatarsi^2 - 2*L_calcn*L_metatarsi*cos(Q_tmt_compl));
-            H_arch = L_calcn*L_metatarsi./L_arch.*sin(Q_tmt_compl);
-            
-            % infinite tendon stiffness
-            Q_tmt_compl_inf = Q_tmt_compl_0 + Q_tmt_0*pi/180;
-            L_arch_inf = sqrt(L_calcn^2 + L_metatarsi^2 - 2*L_calcn*L_metatarsi*cos(Q_tmt_compl_inf));
-            H_arch_inf = L_calcn*L_metatarsi./L_arch_inf.*sin(Q_tmt_compl_inf);
-            
-            subplot(2,3,3)
-            hold on
-            pl3=plot(x,L_arch/L_arch_0,'color',Cs,'linewidth',line_linewidth,'DisplayName','elastic tendon');
-            pl4=plot(x,L_arch_inf/L_arch_0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','inf stiff tendon');
-            if boolFirst
-                legend([pl3, pl4],'location','best');
-            end
-            title('Foot arch length')
-            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-            ylabel('relative length (-)','Fontsize',label_fontsize);
-            
-            subplot(2,3,6)
-            hold on
-            pl5=plot(x,H_arch/H_arch_0,'color',Cs,'linewidth',line_linewidth,'DisplayName','elastic tendon');
-            pl6=plot(x,H_arch_inf/H_arch_0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','inf stiff tendon');
-            if boolFirst
-                legend([pl5, pl6],'location','best');
-            end
-            title('Foot arch height')
-            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-            ylabel('relative height (-)','Fontsize',label_fontsize);
-            
+        M = zeros(length(x),1);
+        M_PF = zeros(length(x),1);
+        F_PF = zeros(length(x),1);
+        l_fa = zeros(length(x),1);
+        h_fa = zeros(length(x),1);
+        l0_fa = zeros(length(x),1);
+        h0_fa = zeros(length(x),1);
+
+        for i=1:length(R.Qs)
+            [Mi, M_PFi,F_PFi,~,~,li,l0i,L0,hi,h0i,H0] = ...
+            getPassiveTmtjMomentWindlass(q_tmt(i)*pi/180,qdot_tmt(i)*pi/180,q_mtp(i)*pi/180,kTMT_li,kTMT_PF,dTMT,R.S.subject,cWL);
+
+            M(i) = Mi;
+            M_PF(i) = M_PFi;
+            l_fa(i) = li;
+            h_fa(i) = hi;
+            F_PF(i) = F_PFi;
+            l0_fa(i) = l0i;
+            h0_fa(i) = h0i;
         end
+
         
         subplot(2,3,1)
         hold on
-        pl1=plot(x,Q_tmt,'color',Cs,'linewidth',line_linewidth,'DisplayName','Full angle');
-        pl2=plot(x,Q_tmt_0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','Angle inf stiff');
-        if boolFirst
-            legend([pl1, pl2],'location','best');
-            title('tmt angle')
-            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-            ylabel('Angle (°)','Fontsize',label_fontsize);
-        end
-        
-        subplot(2,3,2)
+        plot(x,q_tmt,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+        title('tmt angle')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('Angle (°)','Fontsize',label_fontsize);
+
+        subplot(2,3,4)
         hold on
-        plot(x,Q_mtp,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-        lh=legend('-DynamicLegend','location','east');
-        lh.Interpreter = 'none';
+        plot(x,q_mtp,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
         title('mtp angle')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Angle (°)','Fontsize',label_fontsize);
-        
-        subplot(2,3,4)
+
+        subplot(2,3,2)
         hold on
-        plot(x,Q_tmt_d,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-        title('tmt angle difference')
-        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        ylabel('Angle (°)','Fontsize',label_fontsize);
-        
-        subplot(2,3,5)
-        hold on
-        plot(x,R.Tid(:,itmt),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+        plot(x,R.Tid(:,itmt),'color',Cs,'linewidth',line_linewidth,'DisplayName','Tid');
+        plot(x,M,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','M');
+        plot(x,-M_PF,':','color',Cs,'linewidth',line_linewidth,'DisplayName','M PF');
+        legend('location','best')
         title('tmt moment')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Moment (Nm)','Fontsize',label_fontsize);
+
+        subplot(2,3,5)
+        hold on
+        plot(x,F_PF,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+        title('Plantar fascia force')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('Force (N)','Fontsize',label_fontsize);
+
+        subplot(2,3,3)
+        hold on
+%         plot(x,L0*ones(size(x)),'color',Cs,'linewidth',line_linewidth,'DisplayName','unloaded')
+        plot(x,l0_fa/L0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','Windlass')
+        plot(x,l_fa/L0,':','color',Cs,'linewidth',line_linewidth,'DisplayName','PF stretched')
+        legend('location','best')
+        title('Foot arch length')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('relative length (-)','Fontsize',label_fontsize);
+
+        subplot(2,3,6)
+        hold on
+%         plot(x,H0*ones(size(x)),'color',Cs,'linewidth',line_linewidth,'DisplayName','unloaded')
+        plot(x,h0_fa/H0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','Windlass')
+        plot(x,h_fa/H0,':','color',Cs,'linewidth',line_linewidth,'DisplayName','PF stretched')
+        legend('location','best')
+        title('Foot arch height')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('relative height (-)','Fontsize',label_fontsize);
+
+
+   
         
+        
+%         Q_tmt = R.Qs(:,itmt);
+%         Q_mtp = R.Qs(:,imtp);
+%         
+%         cWL = R.S.cWL*(-12.35);
+%         Q_tmt_0 = cWL*Q_mtp;
+%         Q_tmt_d = Q_tmt - Q_tmt_0;
+%         x = 1:(100-1)/(size(R.Qs,1)-1):100;
+%         
+%         if strcmp(R.S.subject,'s1_Poggensee')
+%             % see \VariousFunctions\solveFootmodelParameters.m section Windlass mechanism
+%             L_calcn = 0.1140; % length of vector from calcn_or to tmt
+%             L_metatarsi = 0.0666; % length of vector from metatarsi_or to mtp
+%             Q_tmt_compl_0 = 2.2114; % angle between both vectors above (in rest)
+%             L_arch_0 = 0.1628; % length of vector from calcn_or to mtp = foot arch length (in rest)
+%             H_arch_0 = L_calcn*L_metatarsi/L_arch_0*sin(Q_tmt_compl_0); % foot arch height (in rest)
+%             
+%             Q_tmt_compl = Q_tmt_compl_0 + Q_tmt*pi/180;
+%             L_arch = sqrt(L_calcn^2 + L_metatarsi^2 - 2*L_calcn*L_metatarsi*cos(Q_tmt_compl));
+%             H_arch = L_calcn*L_metatarsi./L_arch.*sin(Q_tmt_compl);
+%             
+%             % infinite tendon stiffness
+%             Q_tmt_compl_inf = Q_tmt_compl_0 + Q_tmt_0*pi/180;
+%             L_arch_inf = sqrt(L_calcn^2 + L_metatarsi^2 - 2*L_calcn*L_metatarsi*cos(Q_tmt_compl_inf));
+%             H_arch_inf = L_calcn*L_metatarsi./L_arch_inf.*sin(Q_tmt_compl_inf);
+%             
+%             subplot(2,3,3)
+%             hold on
+%             pl3=plot(x,L_arch/L_arch_0,'color',Cs,'linewidth',line_linewidth,'DisplayName','elastic tendon');
+%             pl4=plot(x,L_arch_inf/L_arch_0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','inf stiff tendon');
+%             if boolFirst
+%                 legend([pl3, pl4],'location','best');
+%             end
+%             title('Foot arch length')
+%             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+%             ylabel('relative length (-)','Fontsize',label_fontsize);
+%             
+%             subplot(2,3,6)
+%             hold on
+%             pl5=plot(x,H_arch/H_arch_0,'color',Cs,'linewidth',line_linewidth,'DisplayName','elastic tendon');
+%             pl6=plot(x,H_arch_inf/H_arch_0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','inf stiff tendon');
+%             if boolFirst
+%                 legend([pl5, pl6],'location','best');
+%             end
+%             title('Foot arch height')
+%             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+%             ylabel('relative height (-)','Fontsize',label_fontsize);
+%             
+%         end
+%         
+%         subplot(2,3,1)
+%         hold on
+%         pl1=plot(x,Q_tmt,'color',Cs,'linewidth',line_linewidth,'DisplayName','Full angle');
+%         pl2=plot(x,Q_tmt_0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','Angle inf stiff');
+%         
+%         legend([pl1, pl2],'location','best');
+%         title('tmt angle')
+%         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+%         ylabel('Angle (°)','Fontsize',label_fontsize);
+% 
+% 
+%         subplot(2,3,2)
+%         hold on
+%         plot(x,Q_mtp,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+%         lh=legend('-DynamicLegend','location','east');
+%         lh.Interpreter = 'none';
+%         title('mtp angle')
+%         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+%         ylabel('Angle (°)','Fontsize',label_fontsize);
+%         
+%         subplot(2,3,4)
+%         hold on
+%         plot(x,Q_tmt_d,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+%         title('tmt angle difference')
+%         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+%         ylabel('Angle (°)','Fontsize',label_fontsize);
+%         
+%         subplot(2,3,5)
+%         hold on
+%         plot(x,R.Tid(:,itmt),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+%         title('tmt moment')
+%         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+%         ylabel('Moment (Nm)','Fontsize',label_fontsize);
+%         
     end
     
 else

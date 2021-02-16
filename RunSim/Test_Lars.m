@@ -16,19 +16,19 @@ addpath([pathRepo '/Polynomials']);
 slv = 0;                % run solver
 pp = 0;                 % postproces
 plot = 0;               % plot solution
-batchQueue = 1;         % save settings to run later
+batchQueue = 0;         % save settings to run later
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed 1.25
 S.N         = 50;       % number of mesh intervals
-S.NThreads  = 6;        % number of threads for parallel computing
+S.NThreads  = 8;        % number of threads for parallel computing
 S.max_iter  = 10000;    % maximum number of iterations
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
 % linear spring
-S.kTMT = 500;          % (Nm/rad) stiffness of tmt joint 
+S.kTMT = 2000;          % (Nm/rad) stiffness of tmt joint 
 S.dTMT = 0;             % (Nms/rad) damping of tmt joint
 % nonlinear spring tmt
 S.TMT_linear = 1;
@@ -37,7 +37,7 @@ S.k2TMT = 1;
 S.t1TMT = 0.5;
 % windlass mechanism
 S.Windlass = 1;
-S.cWL = 0.04;           % relative change in foot arch length at mtp 20° dorsiflexion
+S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsiflexion
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst

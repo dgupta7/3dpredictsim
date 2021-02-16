@@ -26,6 +26,8 @@ S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
 % S.kTMT = 1000;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
 % S.dTMT = 0.2;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
 
+S.Windlass = 1;
+S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsiflexion
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
@@ -75,7 +77,7 @@ else
 end
 
 % ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\tmt_lin\Pog_s1_tmtL_bCst_ig24_v3_pp.mat';
-ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug_batch\Pog_s1_tmt_bCst_d00_k1000_ig24_pp.mat';
+% ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug_batch\Pog_s1_tmt_bCst_d00_k1000_ig24_pp.mat';
 
 % ref = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pp.mat',...
 %        'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pas_pp.mat',...
