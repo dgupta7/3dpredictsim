@@ -56,7 +56,7 @@ M = -(M_PF + M_li + M_d);
 
 % Return some more outputs if the function is called from postprocessing
 if nargout > 1
-    varargout = {M_PF,F_PF,M_li,M_d,l,l_0,L0,h,h_0,H0};
+    varargout = {M_PF,F_PF,M_li,M_d,l,l_0,L0,h,h_0,H0,q_tmt_0};
 end
 
 

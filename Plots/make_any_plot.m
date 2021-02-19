@@ -5,6 +5,7 @@ clc
 [pathHere,~,~] = fileparts(mfilename('fullpath'));
 [pathRepo,~,~] = fileparts(pathHere);
 addpath([pathRepo '/VariousFunctions']);
+addpath([pathRepo '/PassiveMoments']);
 
 %% Settings
 % Folder will be filtered to only plot results that satisfy all chosen
@@ -27,13 +28,13 @@ S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
 % S.dTMT = 0.2;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
 
 S.Windlass = 1;
-S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsiflexion
+% S.cWL = 0.02;           % relative change in foot arch length at mtp 20° dorsiflexion
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 
 % exo
-S.ExoBool       = 0;    % 1: is wearing exo
+S.ExoBool       = 1;    % 1: is wearing exo
 S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
 

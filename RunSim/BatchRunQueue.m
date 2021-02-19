@@ -23,7 +23,7 @@ fields = fieldnames(batchQ);
 for i=1:numel(fields)
 pathResult_pp = fullfile([pathRepo '/Results'],batchQ.(fields{i}).S.ResultsFolder,[batchQ.(fields{i}).S.savename '_pp.mat']);
     if exist(pathResult_pp,'file')
-        batchQ = rmfield(batchQ,batchQ.(fields{i}));
+        batchQ = rmfield(batchQ,(fields{i}));
     end
 end
 

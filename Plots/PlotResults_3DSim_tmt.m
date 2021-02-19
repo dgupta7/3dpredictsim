@@ -445,10 +445,6 @@ if exist(ResultsFile,'file')
     
     
     subplot(5,2,2); hold on;
-%     if boolFirst && md
-%         plot(gas_act_normal,'-','Color',darkgray);
-%         plot(gas_act_active,'-','Color',lightgray);
-%     end
     plot(R.a(:,iGas),'-','Color',Cs); title('Gastrocnemius');
     xlabel('% stride'); ylabel('activity');
     
@@ -491,11 +487,22 @@ if exist(ResultsFile,'file')
     
     %% Ground reaction force
     axes('parent', tab6);
+    
+    if boolFirst && md && ~strcmp(subject,'Fal_s1')
+        for i=1:3
+            subplot(2,3,i)
+            hold on
+%             GRF_data(:,i) = Dat.(type).gc.GRF.Fmean/(R.body_mass*9.81)*100;
+            plot(Dat.(type).gc.GRF.Fmean(:,i)/(R.body_mass*9.81)*100,'-k');
+        end
+    end
     for i=1:6
-        subplot(2,3,i);
-        l = plot(R.GRFs(:,i),'-','Color',Cs); hold on;
+        subplot(2,3,i)
+        hold on
+        l = plot(R.GRFs(:,i),'-','Color',Cs);
         title(R.colheaders.GRF{i});
         xlabel('% stride');
+        ylabel('% body weight')
     end
     l.DisplayName = LegName;
      if boolFirst
@@ -524,10 +531,12 @@ if exist(ResultsFile,'file')
     
     %% Plot ankle muscle energetics
     axes('parent', tab8);
+    
     iSol = find(strcmp(R.colheaders.muscles,'soleus_r'));
     iGas = find(strcmp(R.colheaders.muscles,'lat_gas_r'));
     iGas2 = find(strcmp(R.colheaders.muscles,'med_gas_r'));
     iTib = find(strcmp(R.colheaders.muscles,'tib_ant_r'));
+    
     if isempty(iGas)
         iGas = find(strcmp(R.colheaders.muscles,'gaslat_r'));
     end
@@ -537,13 +546,52 @@ if exist(ResultsFile,'file')
     if isempty(iTib)
         iTib = find(strcmp(R.colheaders.muscles,'tibant_r'));
     end
+    
+    if boolFirst && md && ~strcmp(subject,'Fal_s1')
+        
+        iSol_data = find(strcmp(Dat.(type).EMGheaders,'soleus_r'));
+        iGas_data = find(strcmp(Dat.(type).EMGheaders,'gas_med_r'));
+        iGas2_data = find(strcmp(Dat.(type).EMGheaders,'gas_lat_r'));
+        iTib_data = find(strcmp(Dat.(type).EMGheaders,'tib_ant_r'));
+        
+        ankle_act(:,1) = Dat.(type).gc.lowEMG_mean(:,iSol_data);
+        ankle_act(:,2) = Dat.(type).gc.lowEMG_mean(:,iGas_data);
+        ankle_act(:,3) = Dat.(type).gc.lowEMG_mean(:,iGas2_data);
+        ankle_act(:,4) = Dat.(type).gc.lowEMG_mean(:,iTib_data);
+        
+        ankle_a = [ankle_act(ceil(end/2):end,:); ankle_act(1:ceil(end/2)-1,:)];
+        
+%         sol_act_std = Dat.(type).gc.lowEMG_std(:,iSol_data);
+%         gas_act_std = Dat.(type).gc.lowEMG_std(:,iGas_data);
+%         gas2_act_std = Dat.(type).gc.lowEMG_std(:,iGas2_data);
+%         tib_act_std = Dat.(type).gc.lowEMG_std(:,iTib_data);
+
+        scale(1) = max(R.a(:,iSol))/max(ankle_act(:,1));
+        scale(2) = max(R.a(:,iGas))/max(ankle_act(:,2));
+        scale(3) = max(R.a(:,iGas2))/max(ankle_act(:,3));
+        scale(4) = max(R.a(:,iTib))/max(ankle_act(:,4));
+        
+        scale = diag(scale);
+        
+        ankle_a_sc = ankle_a*scale;
+        
+        for i=1:4
+            subplot(5,4,i)
+            hold on
+            plot(ankle_a_sc(:,i),'-k') 
+        end
+
+    end
+    
+    
     mVect = {'Soleus','Gas-lat','Gas-med','Tib-ant'};
     
     iM = [iSol iGas iGas2 iTib];
     
     for i=1:4
         subplot(5,4,i)
-        plot(R.a(:,iM(i)),'-','Color',Cs); hold on; title(mVect{i});
+        hold on
+        plot(R.a(:,iM(i)),'-','Color',Cs);  title(mVect{i});
         xlabel('% stride'); ylabel('activity');
         
         subplot(5,4,i+4)
@@ -698,9 +746,10 @@ if exist(ResultsFile,'file')
         h_fa = zeros(length(x),1);
         l0_fa = zeros(length(x),1);
         h0_fa = zeros(length(x),1);
+        q_tmt_0 = zeros(length(x),1);
 
         for i=1:length(R.Qs)
-            [Mi, M_PFi,F_PFi,~,~,li,l0i,L0,hi,h0i,H0] = ...
+            [Mi, M_PFi,F_PFi,~,~,li,l0i,L0,hi,h0i,H0,q_tmt_0i] = ...
             getPassiveTmtjMomentWindlass(q_tmt(i)*pi/180,qdot_tmt(i)*pi/180,q_mtp(i)*pi/180,kTMT_li,kTMT_PF,dTMT,R.S.subject,cWL);
 
             M(i) = Mi;
@@ -710,148 +759,90 @@ if exist(ResultsFile,'file')
             F_PF(i) = F_PFi;
             l0_fa(i) = l0i;
             h0_fa(i) = h0i;
+            q_tmt_0(i) = q_tmt_0i*180/pi;
         end
 
         
-        subplot(2,3,1)
+        set(0,'defaultTextInterpreter','none');
+        
+        subplot(2,4,1)
         hold on
-        plot(x,q_tmt,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+        p1=plot(x,q_tmt,'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
+        p2=plot(x,q_tmt_0,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Windlass');
+        legend([p1,p2],'location','best')
         title('tmt angle')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Angle (°)','Fontsize',label_fontsize);
 
-        subplot(2,3,4)
+        subplot(2,4,5)
         hold on
         plot(x,q_mtp,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+        legend('location','best')
         title('mtp angle')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Angle (°)','Fontsize',label_fontsize);
 
-        subplot(2,3,2)
+        subplot(2,4,2)
         hold on
-        plot(x,R.Tid(:,itmt),'color',Cs,'linewidth',line_linewidth,'DisplayName','Tid');
-        plot(x,M,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','M');
-        plot(x,-M_PF,':','color',Cs,'linewidth',line_linewidth,'DisplayName','M PF');
-        legend('location','best')
-        title('tmt moment')
+        p1=plot(x,R.Tid(:,itmt),'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
+        p2=plot(x,-M_PF,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Plantar fascia');
+        legend([p1,p2],'location','best')
+        title('tmt torque')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        ylabel('Moment (Nm)','Fontsize',label_fontsize);
+        ylabel('Torque (Nm)','Fontsize',label_fontsize);
 
-        subplot(2,3,5)
+        subplot(2,4,6)
         hold on
+        line(get(gca, 'xlim'),[1,1]*R.body_mass*9.81,'color','k','LineStyle','-')
         plot(x,F_PF,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
         title('Plantar fascia force')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Force (N)','Fontsize',label_fontsize);
 
-        subplot(2,3,3)
+        subplot(2,4,3)
         hold on
-%         plot(x,L0*ones(size(x)),'color',Cs,'linewidth',line_linewidth,'DisplayName','unloaded')
-        plot(x,l0_fa/L0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','Windlass')
-        plot(x,l_fa/L0,':','color',Cs,'linewidth',line_linewidth,'DisplayName','PF stretched')
-        legend('location','best')
+        p1=plot(x,l_fa/L0,'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
+        p2=plot(x,l0_fa/L0,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Windlass');
+        legend([p1,p2],'location','best')
         title('Foot arch length')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('relative length (-)','Fontsize',label_fontsize);
 
-        subplot(2,3,6)
+        subplot(2,4,7)
         hold on
-%         plot(x,H0*ones(size(x)),'color',Cs,'linewidth',line_linewidth,'DisplayName','unloaded')
-        plot(x,h0_fa/H0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','Windlass')
-        plot(x,h_fa/H0,':','color',Cs,'linewidth',line_linewidth,'DisplayName','PF stretched')
-        legend('location','best')
+        p1=plot(x,h_fa/H0,'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
+        p2=plot(x,h0_fa/H0,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Windlass');
+        legend([p1,p2],'location','best')
         title('Foot arch height')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('relative height (-)','Fontsize',label_fontsize);
 
+        
+        k_tmt = M./(q_tmt*pi/180);
+        W_tmt(:) = ( q_tmt(:)-q_tmt(1) )*pi/180 .* M(:);
+        
+        subplot(2,4,4)
+        hold on
+        plot(q_mtp,k_tmt,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName)
+        title('tmt stiffness')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('k (Nm/rad)','Fontsize',label_fontsize);
 
-   
+        subplot(2,4,8)
+        hold on
+        plot(x,W_tmt,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName)
+        title('tmt work')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('W (J)','Fontsize',label_fontsize);
         
         
-%         Q_tmt = R.Qs(:,itmt);
-%         Q_mtp = R.Qs(:,imtp);
-%         
-%         cWL = R.S.cWL*(-12.35);
-%         Q_tmt_0 = cWL*Q_mtp;
-%         Q_tmt_d = Q_tmt - Q_tmt_0;
-%         x = 1:(100-1)/(size(R.Qs,1)-1):100;
-%         
-%         if strcmp(R.S.subject,'s1_Poggensee')
-%             % see \VariousFunctions\solveFootmodelParameters.m section Windlass mechanism
-%             L_calcn = 0.1140; % length of vector from calcn_or to tmt
-%             L_metatarsi = 0.0666; % length of vector from metatarsi_or to mtp
-%             Q_tmt_compl_0 = 2.2114; % angle between both vectors above (in rest)
-%             L_arch_0 = 0.1628; % length of vector from calcn_or to mtp = foot arch length (in rest)
-%             H_arch_0 = L_calcn*L_metatarsi/L_arch_0*sin(Q_tmt_compl_0); % foot arch height (in rest)
-%             
-%             Q_tmt_compl = Q_tmt_compl_0 + Q_tmt*pi/180;
-%             L_arch = sqrt(L_calcn^2 + L_metatarsi^2 - 2*L_calcn*L_metatarsi*cos(Q_tmt_compl));
-%             H_arch = L_calcn*L_metatarsi./L_arch.*sin(Q_tmt_compl);
-%             
-%             % infinite tendon stiffness
-%             Q_tmt_compl_inf = Q_tmt_compl_0 + Q_tmt_0*pi/180;
-%             L_arch_inf = sqrt(L_calcn^2 + L_metatarsi^2 - 2*L_calcn*L_metatarsi*cos(Q_tmt_compl_inf));
-%             H_arch_inf = L_calcn*L_metatarsi./L_arch_inf.*sin(Q_tmt_compl_inf);
-%             
-%             subplot(2,3,3)
-%             hold on
-%             pl3=plot(x,L_arch/L_arch_0,'color',Cs,'linewidth',line_linewidth,'DisplayName','elastic tendon');
-%             pl4=plot(x,L_arch_inf/L_arch_0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','inf stiff tendon');
-%             if boolFirst
-%                 legend([pl3, pl4],'location','best');
-%             end
-%             title('Foot arch length')
-%             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-%             ylabel('relative length (-)','Fontsize',label_fontsize);
-%             
-%             subplot(2,3,6)
-%             hold on
-%             pl5=plot(x,H_arch/H_arch_0,'color',Cs,'linewidth',line_linewidth,'DisplayName','elastic tendon');
-%             pl6=plot(x,H_arch_inf/H_arch_0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','inf stiff tendon');
-%             if boolFirst
-%                 legend([pl5, pl6],'location','best');
-%             end
-%             title('Foot arch height')
-%             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-%             ylabel('relative height (-)','Fontsize',label_fontsize);
-%             
-%         end
-%         
-%         subplot(2,3,1)
-%         hold on
-%         pl1=plot(x,Q_tmt,'color',Cs,'linewidth',line_linewidth,'DisplayName','Full angle');
-%         pl2=plot(x,Q_tmt_0,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','Angle inf stiff');
-%         
-%         legend([pl1, pl2],'location','best');
-%         title('tmt angle')
-%         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-%         ylabel('Angle (°)','Fontsize',label_fontsize);
-% 
-% 
-%         subplot(2,3,2)
-%         hold on
-%         plot(x,Q_mtp,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-%         lh=legend('-DynamicLegend','location','east');
-%         lh.Interpreter = 'none';
-%         title('mtp angle')
-%         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-%         ylabel('Angle (°)','Fontsize',label_fontsize);
-%         
-%         subplot(2,3,4)
-%         hold on
-%         plot(x,Q_tmt_d,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-%         title('tmt angle difference')
-%         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-%         ylabel('Angle (°)','Fontsize',label_fontsize);
-%         
-%         subplot(2,3,5)
-%         hold on
-%         plot(x,R.Tid(:,itmt),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-%         title('tmt moment')
-%         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-%         ylabel('Moment (Nm)','Fontsize',label_fontsize);
-%         
+      
+
+
+        
+        
     end
+   
     
 else
     warning(['File not found: ' ResultsFile]);

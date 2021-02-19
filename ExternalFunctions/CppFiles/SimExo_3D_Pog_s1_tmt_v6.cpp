@@ -98,8 +98,7 @@ SimTK::Array_<int> getIndicesSimbodyInOS(const Model& model) {
 }
 
 // Torque actuator. Adds torque to the appliedBodyForces
-void ExoActuation(Model& model, const OpenSim::Body& bodyA, const OpenSim::Body& bodyB, State& s, const Vec3& ExoTorque, Vector_<SpatialVec>& appliedBodyForces)
-{
+void ExoActuation(Model& model, const OpenSim::Body& bodyA, const OpenSim::Body& bodyB, State& s, const Vec3& ExoTorque, Vector_<SpatialVec>& appliedBodyForces) {
 
 	/// Get the mobilized bodies
 	SimTK::MobilizedBodyIndex IndexBodyA = bodyA.getMobilizedBodyIndex();
@@ -119,8 +118,7 @@ void ExoActuation(Model& model, const OpenSim::Body& bodyA, const OpenSim::Body&
 }
 
 // Find angular velocity of the exoskeleton motor
-osim_double_adouble ExoAngularVelocity(Model& model, const OpenSim::Body& bodyA, const OpenSim::Body& bodyB, State& s, const Vec3& ExoTorque)
-{
+osim_double_adouble ExoAngularVelocity(Model& model, const OpenSim::Body& bodyA, const OpenSim::Body& bodyB, State& s, const Vec3& ExoTorque) {
 
 	/// Get the mobilized bodies in the coordinate system of body A
 	SimTK::MobilizedBodyIndex IndexBodyA = bodyA.getMobilizedBodyIndex();
@@ -135,10 +133,12 @@ osim_double_adouble ExoAngularVelocity(Model& model, const OpenSim::Body& bodyA,
 
 	/// Project velocity onto torque to get scalar velocity of motor
 	osim_double_adouble ExoTorqueMag = ExoTorque.norm();
-	if (d < SimTK::Eps) // avoid dividing by zero
+	/// avoid dividing by zero
+	if (ExoTorqueMag < SimTK::Eps) {
 		return ExoTorqueMag;
-	else
+	} else {
 		return dot(Exo_Vel, ExoTorque.normalize());
+	}
 }
 
 // Function F
@@ -235,7 +235,7 @@ int F_generic(const T** arg, T** res) {
 	for (int i = 0; i < 3; ++i) {
 		COMs = (COMShank_Exo.get(i)*mShank_Exo + COMTibia.get(i)*mTibia) / mTib_tot;
 		COM_TibNew.set(i, COMs);
-		COMs = (COMFoot_Exo.get(i)*mFoot_Exo + COMTalus.get(i)*mTalus) / mTib_tot;
+		COMs = (COMFoot_Exo.get(i)*mFoot_Exo + COMTalus.get(i)*mTalus) / mFoot_tot;
 		COM_FootNew.set(i, COMs);
 	}
 

@@ -1,4 +1,9 @@
+clear
+clc
 
+load('D:\school\WTK\thesis\model\3dpredictsim\Results\windlass\Pog_s1_tmt_bCst_d00_k1000_WL20_ig24_pp.mat')
+
+%%
 itmt = find(strcmp(R.colheaders.joints,'tmt_angle_r'));
 imtp = find(strcmp(R.colheaders.joints,'mtp_angle_r'));
 q_tmt = R.Qs(:,itmt);
@@ -9,21 +14,26 @@ q_mtp = R.Qs(:,imtp);
 kTMT_li = 1.5/(pi/180)/5;
 kTMT_PF = R.S.kTMT;
 dTMT = R.S.dTMT;
-cWL = 0.03;
+cWL = R.S.cWL;
+% cWL = 0.01;
 
 x = 1:(100-1)/(size(R.Qs,1)-1):100;
 
+%%
+
 for i=1:length(R.Qs)
-    [Mi, M_PFi,F_PFi,~,~,li,l0i,L0,hi,h0i,H0] = ...
-        getPassiveTmtjMomentWindlass(q_tmt(i)*pi/180,qdot_tmt(i),q_mtp(i)*pi/180,kTMT_li,kTMT_PF,dTMT,R.S.subject,cWL);
+    [Mi, M_PFi,F_PFi,M_lii,~,li,l0i,L0,hi,h0i,H0,q_tmt_0i] = ...
+        getPassiveTmtjMomentWindlass1(q_tmt(i)*pi/180,qdot_tmt(i),q_mtp(i)*pi/180,kTMT_li,kTMT_PF,dTMT,R.S.subject,cWL);
     
     M(i) = Mi;
     M_PF(i) = M_PFi;
+    M_li(i) = M_lii;
     l(i) = li;
     h(i) = hi;
     F_PF(i) = F_PFi;
     l0(i) = l0i;
     h0(i) = h0i;
+    q_tmt_0(i) = q_tmt_0i*180/pi;
 end
 
 
@@ -33,6 +43,7 @@ figure
 subplot(2,3,1)
 hold on
 plot(x,q_tmt)
+plot(x,q_tmt_0,'--')
 title('tmt angle')
 xlabel('Gait cycle (%)','Fontsize',label_fontsize);
 ylabel('Angle (°)','Fontsize',label_fontsize);

@@ -60,9 +60,9 @@ end
 if isfield(S,'Windlass') && ~isempty(S.Windlass)
     WL = S.Windlass;
     if isfield(S,'cWL') && ~isempty(S.cWL)
-        cWL = S.cWL*(-12.35); % transform into relation between qs
+        cWL = S.cWL;
     else
-        cWL = 0.03*(-12.35);
+        cWL = 0.03;
     end
 else
     WL = 0;
@@ -479,7 +479,8 @@ qin2     = SX.sym('qin_pass2',1);
 qdotin1  = SX.sym('qdotin_pass1',1);
 % c_WL  = SX.sym('cst_WL',1);
 % passWLTorques = -stiff *( qin1 - qin2*c_WL) - damp * qdotin;
-kTMT_li = stiffnessMtp;
+
+kTMT_li = stiffnessMtp; % rough approx, not main parameter here
 
 passWLTorques = getPassiveTmtjMomentWindlass(qin1,qdotin1,qin2,kTMT_li,kTMT,dTMT,subject,cWL);
 f_passiveWLTorques = Function('f_passiveWLTorques',{qin1,qdotin1,qin2}, ...
