@@ -78,6 +78,10 @@ nq.arms     = length(armsi); % arms
 nq.mtp     = length(mtpi); % arms
 nq.leg      = 10; % #joints needed for polynomials
 
+% exo velocities
+exo_w.r    = 54;
+exo_w.l    = 55;
+
 %% Load external functions
 % The external function performs inverse dynamics through the
 % OpenSim/Simbody C++ API. This external function is compiled as a dll from
@@ -212,6 +216,16 @@ if strcmp(ExoImplementation,'TorqueTibiaCalcn') || F1.nnz_out == 73
     % COP information
     GroundT.r = [70 71 72];
     GroundT.l = [73 74 75];
+    
+    % separate GRF
+    GRFi.calcn.r = 76:78;
+    GRFi.metatarsi.r = 79:81;
+    GRFi.toes.r = 82:84;
+    GRFi.calcn.l = 85:87;
+    GRFi.metatarsi.l = 88:90;
+    GRFi.toes.l = 91:93;
+    GRFi.separate = GRFi.calcn.r(1):GRFi.toes.l(end);
+    GRF_separate_labels = {'calcn_r','metatarsi_r','toes_r','calcn_l','metatarsi_l','toes_l'};
 end
 
 
@@ -568,6 +582,7 @@ Foutk_opt                   = zeros(N,F1.nnz_out);
 Tau_passk_opt_all           = zeros(N,nq.all-nq.abs);
 if S.ExoBool == 1 && strcmp(ExoImplementation,'TorqueTibiaCalcn')
     Foutk_opt_Exo         = zeros(N,F1.nnz_out);
+    Veloutk_opt_Exo       = zeros(N,2);
 end
 
 for i = 1:N
@@ -588,12 +603,15 @@ for i = 1:N
     if S.ExoBool == 1 && strcmp(ExoImplementation,'TorqueTibiaCalcn')
         Foutk_opt_Exo(i,:) = full(res2);
         Foutk_opt_Exo(i,1:nq.all) = full(res2_or(1:nq.all));
+        if numel(res2_or) >= exo_w.l
+            Veloutk_opt_Exo(i,:) = full(res2_or(exo_w.r:exo_w.l));
+        end
     end
     % passive moments
     Tau_passk_opt_all(i,:) = full(f_AllPassiveTorques(q_opt_unsc_all.rad(i+1,:),qdot_opt_unsc_all.rad(i+1,:)));
 end
 GRFk_opt = Foutk_opt(:,GRFi.all);
-
+GRFk_separate_opt = Foutk_opt(:,GRFi.separate);
 
 
 %% Joint torques and ground reaction forces at collocation points
@@ -605,6 +623,7 @@ Foutj_opt                   = zeros(d*N,F1.nnz_out);
 Tau_passj_opt_all           = zeros(d*N,nq.all-nq.abs);
 if S.ExoBool == 1 && strcmp(ExoImplementation,'TorqueTibiaCalcn')
     Foutj_opt_Exo         = zeros(d*N,F1.nnz_out);
+    Veloutj_opt_Exo       = zeros(d*N,2);
 end
 for i = 1:d*N
     iMesh = ceil(i/d);
@@ -625,6 +644,9 @@ for i = 1:d*N
     if S.ExoBool == 1 && strcmp(ExoImplementation,'TorqueTibiaCalcn')
         Foutj_opt_Exo(i,:) = full(res2);
         Foutj_opt_Exo(i,1:nq.all) = full(res2(1:nq.all));
+        if numel(res2_or) >= exo_w.l
+            Veloutj_opt_Exo(i,:) = full(res2_or(exo_w.r:exo_w.l));
+        end
     end
     % passive torques
     Tau_passj_opt_all(i,:) = full(f_AllPassiveTorques(q_col_opt_unsc.rad(i,:),qdot_col_opt_unsc.rad(i,:)));
@@ -933,6 +955,21 @@ if strcmp(HS1,'l')
     GRFs_opt(:,[3,6]) = -GRFs_opt(:,[3,6]);
 end
 
+% Separate GRF
+GRFs_sep_opt = zeros(N*2,18);
+GRFs_sep_opt(1:N-IC1i_c+1,:) = GRFk_separate_opt(IC1i_c:end,1:18);
+GRFs_sep_opt(N-IC1i_c+2:N-IC1i_c+1+N,:) = GRFk_separate_opt(1:end,[10:18,1:9]);
+GRFs_sep_opt(N-IC1i_c+2:N-IC1i_c+1+N,[3,6,9,12,15,18]) = ...
+    -GRFs_sep_opt(N-IC1i_c+2:N-IC1i_c+1+N,[3,6,9,12,15,18]);
+GRFs_sep_opt(N-IC1i_c+2+N:2*N,:) = GRFk_separate_opt(1:IC1i_c-1,1:18);
+GRFs_sep_opt = GRFs_sep_opt./(body_weight/100);
+% If the first heel strike was on the left foot then we invert so that
+% we always start with the right foot, for analysis purpose
+if strcmp(HS1,'l')
+    GRFs_sep_opt(:,[10:18,1:9]) = GRFs_sep_opt(:,:);
+    GRFs_sep_opt(:,[3,6,9,12,15,18]) = -GRFs_sep_opt(:,[3,6,9,12,15,18]);
+end
+
 % Joint torques
 Ts_opt = zeros(N*2,size(Qs_opt,2));
 Ts_opt(1:N-IC1i_c+1,1:nq.all) = Foutk_opt(IC1i_c:end,1:nq.all);
@@ -1075,6 +1112,20 @@ if strcmp(ExoImplementation,'TorqueTibiaCalcn')
     Ts_opt_Exo = Ts_opt_Exo./body_mass;
     % compute relative difference
     TExo_Joint = Ts_opt - Ts_opt_Exo;
+    
+    % get exoskeleton velocities as percentage of gait cycle
+    Vels_opt_Exo = zeros(N*2,2);
+    Vels_opt_Exo(1:N-IC1i_c+1,:) = Veloutk_opt_Exo(IC1i_c:end,[2,1]); % [l,r] = [l,r]
+    Vels_opt_Exo(N-IC1i_c+2:N-IC1i_c+1+N,:) = Veloutk_opt_Exo(1:end,[1,2]); % [l,r] = [r,l]
+    Vels_opt_Exo(N-IC1i_c+2+N:2*N,:) = Veloutk_opt_Exo(1:IC1i_c-1,[2,1]); % [l,r] = [l,r]
+    if strcmp(HS1,'l')
+        Vels_opt_Exo(:,[1,2]) = Vels_opt_Exo(:,[2,1]);
+    end
+    
+end
+% Calculate exo power
+if strcmp(ExoImplementation,'TorqueTibiaCalcn')
+    Ps_opt_exo = Vels_opt_Exo.*T_exo_GC;
 end
 
 % Passive joint torques
@@ -1415,6 +1466,11 @@ if strcmp(ExoImplementation,'Nuckols2019')
     
 end
 
+%% Exoskeleton work
+W_exo = mean(Ps_opt_exo)*tgrid(end);
+W_exo_rel = W_exo/body_mass/dist_trav_opt_GC;
+
+
 %% Save results
 % Structure Results_all
 R.t_step    = tgrid;
@@ -1425,6 +1481,7 @@ R.Qs        = Qs_GC;
 R.Qdots     = Qdots_GC;
 R.Qddots    = Qdotdots_GC;
 R.GRFs      = GRFs_opt;
+R.GRFs_separate = GRFs_sep_opt;
 R.Ts        = Ts_opt;
 R.Tid       = Ts_opt.*body_mass;
 R.a         = Acts_GC;
@@ -1452,6 +1509,10 @@ R.TPass       = Tau_pass_opt_GC;
 R.dt          = nanmean(diff(R.t));
 R.T_exo       = T_exo_GC;
 R.dt_exoShift = dt_exoShift;
+R.w_RotVel_exo = Vels_opt_Exo;
+R.P_exo       = Ps_opt_exo;
+R.W_exo       = W_exo;
+R.W_exo_rel   = W_exo_rel;
 R.Obj         = Obj;
 R.lMT         = lMT_Vect;
 R.vMT         = vMT_Vect;
@@ -1495,6 +1556,7 @@ for i = 1:NMuscle/2
         [muscleNames{i}(1:end-2),'_r'];
 end
 R.colheaders.dM = {'hip flex','hip add','hip rot','knee angle','ankle angle','subtalar angle','mtp angle', 'trunk ext ','trunk bend','trunk rot'};
+R.colheaders.GRFS_separate = GRF_separate_labels;
 
 %% Additional outcomes
 

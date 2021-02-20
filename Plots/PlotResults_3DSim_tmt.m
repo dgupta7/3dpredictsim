@@ -80,6 +80,8 @@ if exist(ResultsFile,'file')
             tab8 = h.Parent.Children(1).Children(1).Children(8);
             tab9 = h.Parent.Children(1).Children(1).Children(9);
             tab10 = h.Parent.Children(1).Children(1).Children(10);
+            tab11 = h.Parent.Children(1).Children(1).Children(11);
+            tab12 = h.Parent.Children(1).Children(1).Children(12);
             boolFirst = 0;
         else
             h = varargin{1};
@@ -90,10 +92,12 @@ if exist(ResultsFile,'file')
             tab4 = uitab(hTabGroup, 'Title', 'ExoInfo');
             tab5 = uitab(hTabGroup, 'Title', 'CalfM');
             tab6 = uitab(hTabGroup, 'Title', 'Ground reaction force');
-            tab7 = uitab(hTabGroup, 'Title', 'Objective Function');
-            tab8 = uitab(hTabGroup, 'Title', 'Ankle detailed');
-            tab9 = uitab(hTabGroup, 'Title', 'SpatioTemporal');
-            tab10 = uitab(hTabGroup, 'Title', 'Windlass');
+            tab7 = uitab(hTabGroup, 'Title', 'GRF detailed');
+            tab8 = uitab(hTabGroup, 'Title', 'Objective Function');
+            tab9 = uitab(hTabGroup, 'Title', 'Ankle detailed');
+            tab10 = uitab(hTabGroup, 'Title', 'SpatioTemporal');
+            tab11 = uitab(hTabGroup, 'Title', 'Windlass');
+            tab12 = uitab(hTabGroup, 'Title', 'Exo assistance');
             h.Name = 'Sim3D_Results';
             set(h,'Color','w');
         end
@@ -510,8 +514,47 @@ if exist(ResultsFile,'file')
         lh.Interpreter = 'none';
     end
     
-    %% Objective function
+%% GRF detailed
     axes('parent', tab7);
+    
+    if boolFirst && md && ~strcmp(subject,'Fal_s1')
+        for i=1:3
+            subplot(2,3,i)
+            hold on
+            plot(Dat.(type).gc.GRF.Fmean(:,i)/(R.body_mass*9.81)*100,'-k');
+        end
+    end
+    for i=1:3
+        subplot(2,3,i)
+        hold on
+        l = plot(R.GRFs(:,i),'-','Color',Cs);
+        title(R.colheaders.GRF{i});
+        xlabel('% stride');
+        ylabel('% body weight')
+    end
+    l.DisplayName = LegName;
+    if boolFirst
+        lh=legend('-DynamicLegend','location','east');
+        lh.Interpreter = 'none';
+    end
+
+    for i=1:3
+        subplot(2,3,i+3)
+        hold on
+        p1=plot(R.GRFs_separate(:,i),'-','Color',Cs,'DisplayName','calcaneus');
+        p2=plot(R.GRFs_separate(:,i+3),'--','Color',Cs,'DisplayName','midfoot');
+        p3=plot(R.GRFs_separate(:,i+6),':','Color',Cs,'DisplayName','toes');
+        title(R.colheaders.GRF{i});
+        xlabel('% stride');
+        ylabel('% body weight')
+    end
+    if boolFirst
+        lh=legend([p1,p2,p3],'location','best');
+        lh.Interpreter = 'none';
+    end
+
+    %% Objective function
+    axes('parent', tab8);
     if isfield(R,'Obj')
         Fields = fieldnames(R.Obj);
         nf = length(Fields);
@@ -530,7 +573,7 @@ if exist(ResultsFile,'file')
     
     
     %% Plot ankle muscle energetics
-    axes('parent', tab8);
+    axes('parent', tab9);
     
     iSol = find(strcmp(R.colheaders.muscles,'soleus_r'));
     iGas = find(strcmp(R.colheaders.muscles,'lat_gas_r'));
@@ -558,6 +601,7 @@ if exist(ResultsFile,'file')
         ankle_act(:,2) = Dat.(type).gc.lowEMG_mean(:,iGas_data);
         ankle_act(:,3) = Dat.(type).gc.lowEMG_mean(:,iGas2_data);
         ankle_act(:,4) = Dat.(type).gc.lowEMG_mean(:,iTib_data);
+        
         
         ankle_a = [ankle_act(ceil(end/2):end,:); ankle_act(1:ceil(end/2)-1,:)];
         
@@ -631,7 +675,7 @@ if exist(ResultsFile,'file')
     
     %% Spatiotemporal results
     
-    axes('parent', tab9);
+    axes('parent', tab10);
     
     subplot(2,3,1); hold on;
     if boolFirst && md && ~strcmp(subject,'Fal_s1')
@@ -718,7 +762,7 @@ if exist(ResultsFile,'file')
     
     %% Windlass mechanism
     
-    axes('parent', tab10);
+    axes('parent', tab11);
     
     has_tmt = isfield(R.S,'tmt') && ~isempty(R.S.tmt) && R.S.tmt;
     has_tmt_unlocked =  isfield(R.S,'tmt_locked') && ~isempty(R.S.tmt_locked) && ~R.S.tmt_locked;
@@ -777,10 +821,11 @@ if exist(ResultsFile,'file')
         subplot(2,4,5)
         hold on
         plot(x,q_mtp,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-        legend('location','best')
         title('mtp angle')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Angle (°)','Fontsize',label_fontsize);
+        lh = legend('location','best');
+        lh.Interpreter = 'none';
 
         subplot(2,4,2)
         hold on
@@ -834,15 +879,57 @@ if exist(ResultsFile,'file')
         title('tmt work')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('W (J)','Fontsize',label_fontsize);
-        
-        
       
-
-
-        
-        
     end
    
+    %% Exo assistance
+    
+    axes('parent', tab12);
+    if isfield(R,'w_RotVel_exo') && ~isempty(R.w_RotVel_exo)
+        
+        subplot(2,2,1)
+        hold on
+        plot(R.T_exo(:,2),'-','Color',Cs)
+        if R.S.T_max_ankle_exo > 0
+            line(get(gca, 'xlim'),[1,1]*R.S.T_max_ankle_exo,'color',Cs,'LineStyle',':')
+            line(get(gca, 'xlim'),-[1,1]*R.S.T_max_ankle_exo,'color',Cs,'LineStyle',':')
+        end
+        ylabel('Exo Moment [Nm]')
+        xlabel('% stride')
+        title('Exo Moment')
+        
+        subplot(2,2,2)
+        hold on
+        plot(R.w_RotVel_exo(:,2)*180/pi,'-','Color',Cs)
+        ylabel('Exo Velocity [°/s]')
+        xlabel('% stride')
+        title('Exo rotational velocity')
+        
+        P_mean = mean(R.P_exo(:,2));
+        subplot(2,2,3)
+        hold on
+        plot(R.P_exo(:,2),'-','Color',Cs)
+        line(get(gca, 'xlim'),[1,1]*P_mean,'color',Cs,'LineStyle','--')
+        if R.S.P_max_ankle_exo > 0
+            line(get(gca, 'xlim'),[1,1]*R.S.P_max_ankle_exo,'color',Cs,'LineStyle',':')
+        end
+        ylabel('Exo Power [W]')
+        xlabel('% stride')
+        title('Exo Power')
+        
+        subplot(2,2,4)
+        title('Energy')
+        hold on
+        yyaxis left
+        plot(1,sum(R.W_exo_rel),'o','Color',Cs)
+        ylabel('Exo work (J/(kg m)')
+        
+        yyaxis right
+        plot(2,R.COT,'o','Color',Cs)
+        ylabel('COT (J/(kg m)')
+        xlim([0,3])
+    
+    end
     
 else
     warning(['File not found: ' ResultsFile]);

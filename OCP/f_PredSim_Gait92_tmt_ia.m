@@ -344,12 +344,14 @@ opti.subject_to(bounds.Qdotdots.lower'*ones(1,d*N) < A_col < ...
 opti.set_initial(A_col, guess.Qdotdots_col');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ideal exoskeleton assistance on ankle
-% mesh points only, to keep consistency with 
+% mesh points only, to keep consistency
 if strcmp(S.ExoController,'Ideal Assistance')
     ExoVect = opti.variable(2,N);
     opti.subject_to(bounds.T_exo_ankle.lower*ones(2,N) < ExoVect < ...
         bounds.T_exo_ankle.upper*ones(2,N));
     opti.set_initial(ExoVect, zeros(2,N));
+else
+    ExoVect = ExoVect_nsc/scaling.T_exo_ankle;
 end
 
 
@@ -544,6 +546,13 @@ for j=1:d
     elseif F.nnz_in == nq.all*3+2
         % exoskeleton torques as input in active simulations
         [Tj] = F([QsQdotskj_nsc(:,j+1);Aj_nsc(:,j);-Texok_nsc(1); -Texok_nsc(2)]);    % left and right leg exoskeleton torques as inputs as well.
+        
+        % exo power limit
+        if numel(Tj) >= exo_w.l
+            P_me_r = P_me_r + Tj(exo_w.r,1)*Texok_nsc(2);
+            P_me_l = P_me_l + Tj(exo_w.l,1)*Texok_nsc(1);
+        end
+        
     end
     
     % note that this has to be -Texo, since a positive torque around
@@ -623,24 +632,11 @@ for j=1:d
     eq_constr{end+1} = Tj(mtpi,1)/scaling.MtpTau - (a_mtpkj(:,j+1) + ...
         (Tau_passj.mtp.all)/scaling.MtpTau);
     
-    
-    
-    % option to lock the tmt joint
-    if S.tmt_locked == 1
-        eq_constr{end+1} = Qskj(jointi.tmt.r,:)';
-        eq_constr{end+1} = Qskj(jointi.tmt.l,:)';
-        eq_constr{end+1} = Qdotskj(jointi.tmt.r,:)';
-        eq_constr{end+1} = Qdotskj(jointi.tmt.l,:)';
-    else
-        % Tmt, left
-        eq_constr{end+1} = Tj(jointi.tmt.l,1) - Tau_passj.tmt.l;
-        % Tmt, right
-        eq_constr{end+1} = Tj(jointi.tmt.r,1) - Tau_passj.tmt.r;
-    end
-    
-    % exo power limit
-    P_me_r = P_me_r + Tj(exo_w.r,1)*Texok_nsc(2);
-    P_me_l = P_me_l + Tj(exo_w.l,1)*Texok_nsc(1);
+    % Tmt, left
+    eq_constr{end+1} = Tj(jointi.tmt.l,1) - Tau_passj.tmt.l;
+    % Tmt, right
+    eq_constr{end+1} = Tj(jointi.tmt.r,1) - Tau_passj.tmt.r;
+
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Activation dynamics (implicit formulation)
@@ -691,6 +687,7 @@ f_coll_map = f_coll.map(N,S.parallelMode,S.NThreads);
     a(:,1:end-1), a_col, FTtilde(:,1:end-1), FTtilde_col, Qs(:,1:end-1), ...
     Qs_col, Qdots(:,1:end-1), Qdots_col, a_a(:,1:end-1), a_a_col, ...
     a_mtp(:,1:end-1), a_mtp_col, vA, e_a, e_mtp, dFTtilde_col, A_col,ExoVect);
+    
 % constraints
 opti.subject_to(coll_eq_constr == 0);
 opti.subject_to(coll_ineq_constr1(:) >= 0);
@@ -744,8 +741,10 @@ if S.Symmetric
     opti.subject_to(a_mtp(:,end) - a_mtp(orderMtpInv,1) == 0);
     % Exoskeleton power
     % Combine half gait cycle for each leg to get full gait cycle.
-    P_avg_norm = (P_me_l_all + P_me_r_all)/(d*N*2)/S.P_max_ankle_exo;
-    opti.subject_to(-1 <= P_avg_norm <= 1);
+    if S.P_max_ankle_exo > 0
+        P_avg_norm = (P_me_l_all + P_me_r_all)/(d*N*2)/S.P_max_ankle_exo;
+        opti.subject_to(-1 <= P_avg_norm <= 1);
+    end
     
 elseif S.Periodic
     opti.subject_to(Qs(:,end) - Qs(:,1) == 0);
@@ -762,10 +761,12 @@ elseif S.Periodic
     opti.subject_to(a_mtp(:,end) - a_mtp(:,1) == 0);
     % Exoskeleton power
     % Full gait cycle for both legs as separate constraints.
-    P_avg_l_norm = (P_me_l_all)/(d*N)/S.P_max_ankle_exo;
-    opti.subject_to(-1 <= P_avg_l_norm <= 1);
-    P_avg_r_norm = (P_me_r_all)/(d*N)/S.P_max_ankle_exo;
-    opti.subject_to(-1 <= P_avg_r_norm <= 1);
+    if S.P_max_ankle_exo > 0
+        P_avg_l_norm = (P_me_l_all)/(d*N)/S.P_max_ankle_exo;
+        opti.subject_to(-1 <= P_avg_l_norm <= 1);
+        P_avg_r_norm = (P_me_r_all)/(d*N)/S.P_max_ankle_exo;
+        opti.subject_to(-1 <= P_avg_r_norm <= 1);
+    end
 end
 % Average speed
 % Provide expression for the distance traveled

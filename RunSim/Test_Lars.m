@@ -13,16 +13,16 @@ addpath([pathRepo '/Musclemodel']);
 addpath([pathRepo '/Polynomials']);
 
 %% Manual settings
-slv = 1;                % run solver
-pp = 0;                 % postproces
+slv = 0;                % run solver
+pp = 1;                 % postproces
 plot = 0;               % plot solution
 batchQueue = 0;         % save settings to run later
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed 1.25
 S.N         = 50;       % number of mesh intervals
-S.NThreads  = 6;        % number of threads for parallel computing
-S.max_iter  = 10;    % maximum number of iterations
+S.NThreads  = 8;        % number of threads for parallel computing
+% S.max_iter  = 10;    % maximum number of iterations
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
@@ -53,14 +53,14 @@ S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque pr
 S.ExoImplementation = 'TorqueTibiaCalcn';
 
 % Ideal assistance
-ia = 0;
-S.T_max_ankle_exo = 30;
-S.P_max_ankle_exo = 50;
+ia = 1;
+% S.T_max_ankle_exo = 30;
+% S.P_max_ankle_exo = 50;
 
 % output folder
 S.ResultsFolder = 'debug'; % 'tmt_lin'
 suffixCasName = '';
-suffixName = '';
+suffixName = '_ia';
 
 % Folder with default functions
 S.subject            = 's1_Poggensee';
@@ -80,9 +80,9 @@ end
 %% Automated settings
 
 % Ideal assistance
-if ia
-    S.ExoController = 'Ideal Assistance';
-end
+% if ia
+%     S.ExoController = 'Ideal Assistance';
+% end
 
 % select folder with polynomials
 S.PolyFolder = 's1_Poggensee';
@@ -101,15 +101,9 @@ elseif S.tmt ==1
         S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt_v3.dll';        % external function
         S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp_v3.dll';     % external function for post-processing
     else
-        if strcmp(S.ExoImplementation,'TorqueTibiaCalcn')
-%             S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v3.dll';
-%             S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v3.dll';
-            
-            S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_TTC_v1.dll';
-            S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_TTC_pp_v1.dll';
-            
-%             S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_TTC_v2.dll';
-%             S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_TTC_pp_v1.dll';
+        if strcmp(S.ExoImplementation,'TorqueTibiaCalcn')            
+            S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_TTC_v3.dll';
+            S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_TTC_pp_v3.dll';
             
 %         elseif strcmp(S.ExoImplementation,'TorqueTibiaMetatarsi')
 %             S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v4.dll';

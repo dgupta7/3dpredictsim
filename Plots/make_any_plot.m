@@ -15,7 +15,7 @@ plot_default = 1;
 plot_validation = 0;
 
 % folder to filter from
-ResultsFolder = 'windlass'; % 'tmt_lin' 'debug' 'debug_batch' 'running'
+ResultsFolder = 'debug'; % 'tmt_lin' 'debug' 'debug_batch' 'running'
 
 % experimental data to plot as reference
 reference_data = 'norm'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
@@ -24,10 +24,10 @@ reference_data = 'norm'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
-% S.kTMT = 1000;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
-% S.dTMT = 0.2;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
+S.kTMT = 1000;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
+S.dTMT = 0;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
 
-S.Windlass = 1;
+S.Windlass = 0;
 % S.cWL = 0.02;           % relative change in foot arch length at mtp 20° dorsiflexion
 
 % assumption to simplify Hill-type muscle model
@@ -35,7 +35,7 @@ S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 
 % exo
 S.ExoBool       = 1;    % 1: is wearing exo
-S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
+S.ExoScale      = 1;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
 
 % initial guess
@@ -59,7 +59,7 @@ end
 
 [~,~,criteria] = getSavename(S);
 
-% criteria{end+1} = 'v3';
+criteria{end+1} = 'ia';
 
 %%
 
@@ -92,8 +92,8 @@ filteredResultsWithRef = {ref{:}, filteredResults{:}};
 %%
 
 if plot_default
-    Plot3D(filteredResultsWithRef,reference_data)
-%     Plot3D(filteredResults,reference_data)
+%     Plot3D(filteredResultsWithRef,reference_data)
+    Plot3D(filteredResults,reference_data)
 %     Plot3D(ref,reference_data)
 end
 
