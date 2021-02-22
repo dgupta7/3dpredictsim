@@ -11,11 +11,12 @@ addpath([pathRepo '/PassiveMoments']);
 % Folder will be filtered to only plot results that satisfy all chosen
 % settings. Put an entry in comment to not use it to filter.
 
-plot_default = 1;
-plot_validation = 0;
+plot_default = 0;
+plot_validation = 1;
 
 % folder to filter from
-ResultsFolder = 'batch_windlass'; % 'tmt_lin' 'debug' 'debug_batch' 'running'
+
+ResultsFolder = 'windlass'; % 'tmt_lin' 'debug' 'debug_batch' 'running'
 
 % experimental data to plot as reference
 reference_data = 'none'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
@@ -27,15 +28,16 @@ S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
 % S.kTMT = 1000;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
 % S.dTMT = 0;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
 
-S.Windlass = 1;
+
+% S.Windlass = 1;
 % S.cWL = 0.02;           % relative change in foot arch length at mtp 20° dorsiflexion
 
 % assumption to simplify Hill-type muscle model
 % S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 
 % exo
-S.ExoBool       = 1;    % 1: is wearing exo
-S.ExoScale      = 1;    % scale factor of exoskeleton assistance profile 
+% S.ExoBool       = 0;    % 1: is wearing exo
+% S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
 
 % initial guess
@@ -87,29 +89,20 @@ end
 % filteredResults{n+1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug_tmt\Pog_s1_tmt_bCst_d02_k800_kc1_t5_ig24_v3_pp.mat';
 % filteredResults{n+2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug_tmt\Pog_s1_tmt_bCst_d02_k800_ig24_v3_pp.mat';
 
-filteredResultsWithRef = {ref{:}, filteredResults{:}};
+filteredResultsWithRef = {filteredResults{:}, ref{:}};
 
 %%
-
-if plot_default
-%     Plot3D(filteredResultsWithRef,reference_data)
-    Plot3D(filteredResults,reference_data)
-%     Plot3D(ref,reference_data)
-end
-
+pl = 0;
 if plot_validation
-    if strcmp(reference_data,'Fal_s1')
-        pathData = 'D:\school\WTK\thesis\model\3dpredictsim\Data\Fal_s1.mat';
+    if plot_default
+        pl=2;
     else
-        pathData = 'D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat';
-    end
-    if length(filteredResultsWithRef)>1
-        ValidationPlots(pathData,filteredResultsWithRef{1},filteredResultsWithRef{2:end})
-    else
-        ValidationPlots(pathData,filteredResultsWithRef{1})
+        pl = 1;
     end
 end
-
+Plot3D(filteredResultsWithRef,reference_data,pl)
+% Plot3D(filteredResults,reference_data,pl)
+% Plot3D(ref,reference_data,pl)
 
 %% old/temp stuff
 

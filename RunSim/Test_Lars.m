@@ -55,6 +55,7 @@ S.ExoImplementation = 'TorqueTibiaCalcn';
 % Ideal assistance
 ia = 0;
 % S.T_max_ankle_exo = 30;
+% S.T_min_ankle_exo = 0;
 % S.P_max_ankle_exo = 50;
 
 % output folder

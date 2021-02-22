@@ -9,10 +9,12 @@
 %
 function [bounds,scaling] = getBounds_all_tmt(Qs,NMuscle,nq,jointi,v_tgt,varargin)
 
-if length(varargin) == 1
+if length(varargin) == 2
     T_max_ankle_exo = varargin{1};
+    T_min_ankle_exo = varargin{2};
 else
     T_max_ankle_exo = 0;
+    T_min_ankle_exo = 0;
 end
     
 
@@ -456,10 +458,11 @@ bounds.tf.upper = 1;
 
 %% Ideal Assistance
 if T_max_ankle_exo ~= 0
-    bounds.T_exo_ankle.upper = 1;
-    bounds.T_exo_ankle.lower = -1;
+    scaling.T_exo_ankle = max(abs(T_max_ankle_exo,T_min_ankle_exo));
+    
+    bounds.T_exo_ankle.upper = T_max_ankle_exo/scaling.T_exo_ankle;
+    bounds.T_exo_ankle.lower = T_min_ankle_exo/scaling.T_exo_ankle;
 
-    scaling.T_exo_ankle = T_max_ankle_exo;
 else
     scaling.T_exo_ankle = 1;
 end

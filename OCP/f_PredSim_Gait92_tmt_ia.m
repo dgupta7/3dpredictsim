@@ -183,7 +183,7 @@ joints_no_tmt = {'pelvis_tilt','pelvis_list','pelvis_rotation','pelvis_tx',...
     'elbow_flex_l','elbow_flex_r'};
 
 Qs_walk          = getIK(IKfile_bounds,joints);
-[bounds,scaling] = getBounds_all_tmt(Qs_walk,NMuscle,nq,jointi,S.v_tgt,S.T_max_ankle_exo);
+[bounds,scaling] = getBounds_all_tmt(Qs_walk,NMuscle,nq,jointi,S.v_tgt,S.T_max_ankle_exo,S.T_min_ankle_exo);
 
 % adapt bounds based on user input
 bounds = AdaptBounds(bounds,S,mai);

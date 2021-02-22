@@ -275,8 +275,11 @@ end
 if ~isfield(S,'T_max_ankle_exo')
     S.T_max_ankle_exo = 0;
 end
+if ~isfield(S,'T_min_ankle_exo')
+    S.T_min_ankle_exo = -S.T_max_ankle_exo; % symmetric if not specified
+end
 
-% max motor power for ideal assistance
+% max average motor power for ideal assistance
 if ~isfield(S,'P_max_ankle_exo')
     S.P_max_ankle_exo = 0;
 end

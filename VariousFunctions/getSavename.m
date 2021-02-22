@@ -74,35 +74,39 @@ if isfield(S,'IGsel') && ~isempty(S.IGsel)
         savenameparts{end+1} = ['ig2' num2str(S.IGmodeID )];
     end
 end
-if S.ExoBool == 1
-    if S.ExoScale == 0
-        savenameparts{end+1} = ['pas'];
-    else
-        savenameparts{end+1} = ['act'];
-        if isfield(S,'ExoImplementation') && ~isempty(S.ExoImplementation)
-            if strcmp(S.ExoImplementation,'TorqueTibiaCalcn')
-                savenameparts{end+1} = ['TTC'];
-            elseif strcmp(S.ExoImplementation,'TorqueTibiaMetatarsi')
-                savenameparts{end+1} = ['TTM'];
-            end
-        end
-        if isfield(S,'ExoController') && ~isempty(S.ExoController) 
-            if strcmp(S.ExoController,'Ideal Assistance')
-                savenameparts{end+1} = ['IA'];
-                if isfield(S,'T_max_ankle_exo') && ~isempty(S.T_max_ankle_exo)
-                    savenameparts{end} = [savenameparts{end} 'T' num2str(S.T_max_ankle_exo)];
-                end
-                if isfield(S,'P_max_ankle_exo') && ~isempty(S.P_max_ankle_exo)
-                    savenameparts{end} = [savenameparts{end} 'P' num2str(S.P_max_ankle_exo)];
-                end
+if isfield(S,'ExoBool') && ~isempty(S.ExoBool)
+    if S.ExoBool == 1
+        if isfield(S,'ExoScale') && ~isempty(S.ExoScale)
+            if S.ExoScale == 0
+                savenameparts{end+1} = ['pas'];
             else
-                not{end+1} = 'not_IA';
+                savenameparts{end+1} = ['act'];
+                if isfield(S,'ExoImplementation') && ~isempty(S.ExoImplementation)
+                    if strcmp(S.ExoImplementation,'TorqueTibiaCalcn')
+                        savenameparts{end+1} = ['TTC'];
+                    elseif strcmp(S.ExoImplementation,'TorqueTibiaMetatarsi')
+                        savenameparts{end+1} = ['TTM'];
+                    end
+                end
+                if isfield(S,'ExoController') && ~isempty(S.ExoController) 
+                    if strcmp(S.ExoController,'Ideal Assistance')
+                        savenameparts{end+1} = ['IA'];
+                        if isfield(S,'T_max_ankle_exo') && ~isempty(S.T_max_ankle_exo)
+                            savenameparts{end} = [savenameparts{end} 'T' num2str(S.T_max_ankle_exo)];
+                        end
+                        if isfield(S,'P_max_ankle_exo') && ~isempty(S.P_max_ankle_exo)
+                            savenameparts{end} = [savenameparts{end} 'P' num2str(S.P_max_ankle_exo)];
+                        end
+                    else
+                        not{end+1} = 'not_IA';
+                    end
+                end
             end
         end
+    else
+        not{end+1} = 'not_pas';
+        not{end+1} = 'not_act';
     end
-else
-    not{end+1} = 'not_pas';
-    not{end+1} = 'not_act';
 end
 
 savename = savenameparts{1};

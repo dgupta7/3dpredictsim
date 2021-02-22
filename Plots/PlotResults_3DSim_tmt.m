@@ -111,10 +111,12 @@ if exist(ResultsFile,'file')
         tab4 = uitab(hTabGroup, 'Title', 'ExoInfo');
         tab5 = uitab(hTabGroup, 'Title', 'CalfM');
         tab6 = uitab(hTabGroup, 'Title', 'Ground reaction force');
-        tab7 = uitab(hTabGroup, 'Title', 'Objective Function');
-        tab8 = uitab(hTabGroup, 'Title', 'Ankle detailed');
-        tab9 = uitab(hTabGroup, 'Title', 'SpatioTemporal');
-        tab10 = uitab(hTabGroup, 'Title', 'Windlass');
+        tab7 = uitab(hTabGroup, 'Title', 'GRF detailed');
+        tab8 = uitab(hTabGroup, 'Title', 'Objective Function');
+        tab9 = uitab(hTabGroup, 'Title', 'Ankle detailed');
+        tab10 = uitab(hTabGroup, 'Title', 'SpatioTemporal');
+        tab11 = uitab(hTabGroup, 'Title', 'Windlass');
+        tab12 = uitab(hTabGroup, 'Title', 'Exo assistance');
         set(h,'Color','w');
     end
     
@@ -146,14 +148,18 @@ if exist(ResultsFile,'file')
     axes('parent', tab1);
     
     if boolFirst && md
-        if strcmp(subject,'Fal_s1')
-            load('D:\school\WTK\thesis\model\3dpredictsim\Data\Fal_s1.mat','Dat');
+        pc_name = getenv('COMPUTERNAME');
+        if strcmp(pc_name,'MSI')
+            if strcmp(subject,'Fal_s1')
+                load('D:\school\WTK\thesis\model\3dpredictsim\Data\Fal_s1.mat','Dat');
+            else
+                % load data Pog_s1 from struct saved during ...\Analyze_ExoData\Batch\BatchScript_LatexReport.m
+                load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
+            end
+            Qref = Dat.(type).gc;
         else
-            % load data Pog_s1 from struct saved during ...\Analyze_ExoData\Batch\BatchScript_LatexReport.m
-            load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
+            md = 0;
         end
-        Qref = Dat.(type).gc;
-
         
     end
     
@@ -496,7 +502,6 @@ if exist(ResultsFile,'file')
         for i=1:3
             subplot(2,3,i)
             hold on
-%             GRF_data(:,i) = Dat.(type).gc.GRF.Fmean/(R.body_mass*9.81)*100;
             plot(Dat.(type).gc.GRF.Fmean(:,i)/(R.body_mass*9.81)*100,'-k');
         end
     end
@@ -538,19 +543,21 @@ if exist(ResultsFile,'file')
         lh.Interpreter = 'none';
     end
 
-    for i=1:3
-        subplot(2,3,i+3)
-        hold on
-        p1=plot(R.GRFs_separate(:,i),'-','Color',Cs,'DisplayName','calcaneus');
-        p2=plot(R.GRFs_separate(:,i+3),'--','Color',Cs,'DisplayName','midfoot');
-        p3=plot(R.GRFs_separate(:,i+6),':','Color',Cs,'DisplayName','toes');
-        title(R.colheaders.GRF{i});
-        xlabel('% stride');
-        ylabel('% body weight')
-    end
-    if boolFirst
-        lh=legend([p1,p2,p3],'location','best');
-        lh.Interpreter = 'none';
+    if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
+        for i=1:3
+            subplot(2,3,i+3)
+            hold on
+            p1=plot(R.GRFs_separate(:,i),'-','Color',Cs,'DisplayName','calcaneus');
+            p2=plot(R.GRFs_separate(:,i+3),'--','Color',Cs,'DisplayName','midfoot');
+            p3=plot(R.GRFs_separate(:,i+6),':','Color',Cs,'DisplayName','toes');
+            title(R.colheaders.GRF{i});
+            xlabel('% stride');
+            ylabel('% body weight')
+        end
+        if boolFirst
+            lh=legend([p1,p2,p3],'location','best');
+            lh.Interpreter = 'none';
+        end
     end
 
     %% Objective function
@@ -887,12 +894,14 @@ if exist(ResultsFile,'file')
     axes('parent', tab12);
     if isfield(R,'w_RotVel_exo') && ~isempty(R.w_RotVel_exo)
         
+        T_mean = mean(R.T_exo(:,2));
         subplot(2,2,1)
         hold on
         plot(R.T_exo(:,2),'-','Color',Cs)
+        line(get(gca, 'xlim'),[1,1]*T_mean,'color',Cs,'LineStyle','--')
         if R.S.T_max_ankle_exo > 0
             line(get(gca, 'xlim'),[1,1]*R.S.T_max_ankle_exo,'color',Cs,'LineStyle',':')
-            line(get(gca, 'xlim'),-[1,1]*R.S.T_max_ankle_exo,'color',Cs,'LineStyle',':')
+            line(get(gca, 'xlim'),[1,1]*R.S.T_min_ankle_exo,'color',Cs,'LineStyle',':')
         end
         ylabel('Exo Moment [Nm]')
         xlabel('% stride')
