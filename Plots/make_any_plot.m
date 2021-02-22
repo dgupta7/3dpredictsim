@@ -15,23 +15,23 @@ plot_default = 1;
 plot_validation = 0;
 
 % folder to filter from
-ResultsFolder = 'debug'; % 'tmt_lin' 'debug' 'debug_batch' 'running'
+ResultsFolder = 'batch_windlass'; % 'tmt_lin' 'debug' 'debug_batch' 'running'
 
 % experimental data to plot as reference
-reference_data = 'norm'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
+reference_data = 'none'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
 
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
-S.kTMT = 1000;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
-S.dTMT = 0;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
+% S.kTMT = 1000;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
+% S.dTMT = 0;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
 
-S.Windlass = 0;
+S.Windlass = 1;
 % S.cWL = 0.02;           % relative change in foot arch length at mtp 20° dorsiflexion
 
 % assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
+% S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 
 % exo
 S.ExoBool       = 1;    % 1: is wearing exo
@@ -59,7 +59,7 @@ end
 
 [~,~,criteria] = getSavename(S);
 
-criteria{end+1} = 'ia';
+% criteria{end+1} = 'ia';
 
 %%
 

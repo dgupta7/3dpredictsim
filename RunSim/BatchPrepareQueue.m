@@ -24,11 +24,11 @@ fst=1;
 for ik=1:length(kTMT)
     for id=1:length(dTMT)
         for ie=1:size(exo,1)
-            for iw=1:size(cWL,1)
+            for iw=1:length(cWL)
                 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
-
+S.tmt_locked = 0;
 % linear spring
 S.kTMT = kTMT(ik);          % (Nm/rad) stiffness of tmt joint 
 S.dTMT = dTMT(id);            % (Nms/rad) damping of tmt joint
@@ -38,7 +38,7 @@ S.Windlass = 1;
 S.cWL = cWL(iw);           % relative change in foot arch length at mtp 20° dorsiflexion
 
 % assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
+S.MuscModelAsmp = 1;    % 0: musc height = cst, 1: pennation angle = cst
 
 % exo
 S.ExoBool       = exo(ie,1);
@@ -95,24 +95,24 @@ end
 S.CasadiFunc_Folders = [casfuncfol suffixCasName];
 S.savename = [savename suffixName];
 
-if fst
+% if fst
     fst = 0;
     if (exist([pathRepo '/Results/batchQ.mat'],'file')==2) 
         load([pathRepo '/Results/batchQ.mat'],'batchQ');
     else
         batchQ.(S.savename) = struct('S',[]);
     end
-end
+% end
 batchQ.(S.savename).S = S;
 
 batchQ.(S.savename).PredSim = 'f_PredSim_Gait92_tmt';
 batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92_tmt';
 
-
+save([pathRepo '/Results/batchQ.mat'],'batchQ');
             end
         end
     end
 end
-save([pathRepo '/Results/batchQ.mat'],'batchQ');
+
 
 

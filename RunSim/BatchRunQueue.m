@@ -27,7 +27,7 @@ pathResult_pp = fullfile([pathRepo '/Results'],batchQ.(fields{i}).S.ResultsFolde
     end
 end
 
-imax = 2; % max nr of jobs to start
+imax = 200; % max nr of jobs to start
 
 
 %%
