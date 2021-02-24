@@ -206,8 +206,7 @@ if exist(ResultsFile,'file')
                 xlabel('cWL (/°)','Fontsize',label_fontsize);
             end
             if i == 8 || i == 19 || i == 18
-                xlabel('h cst      alpha cst','Fontsize',label_fontsize);
-                xlim([-0.5,1.5])
+                xlabel('h cst      alpha cst','Fontsize',label_fontsize); 
             end
             if i == 15
                 lh=legend('-DynamicLegend','location','northwest');

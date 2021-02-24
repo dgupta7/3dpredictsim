@@ -11,42 +11,45 @@ addpath([pathRepo '/PassiveMoments']);
 % Folder will be filtered to only plot results that satisfy all chosen
 % settings. Put an entry in comment to not use it to filter.
 
-plot_default = 0;
+plot_default = 1;
 plot_validation = 1;
 
 % folder to filter from
 
-ResultsFolder = 'windlass'; % 'tmt_lin' 'debug' 'debug_batch' 'running'
+% ResultsFolder = {'batch_windlass','batch_tmt_lin'}; % 'tmt_lin' 'debug' 'debug_batch' 'running'
+ResultsFolder = {'batch_windlass'};
 
 % experimental data to plot as reference
-reference_data = 'none'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
+reference_data = 'norm'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
 
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
 % S.kTMT = 1000;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
-% S.dTMT = 0;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
+S.dTMT = 0.5;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
 
 
-% S.Windlass = 1;
-% S.cWL = 0.02;           % relative change in foot arch length at mtp 20° dorsiflexion
+S.Windlass = 1;
+% S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsiflexion
 
 % assumption to simplify Hill-type muscle model
-% S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
+S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 
 % exo
-% S.ExoBool       = 0;    % 1: is wearing exo
-% S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
+S.ExoBool       = 1;    % 1: is wearing exo
+S.ExoScale      = 1;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
+S.ExoImplementation = 'TorqueTibiaCalcn';
 
 % initial guess
 % S.IGsel         = 2;    % initial guess identifier (1: quasi random, 2: data-based)
 % S.IGmodeID      = 4;    % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
 
 
-
-pathResult = fullfile([pathRepo '/Results/' ResultsFolder]);
+for i=1:numel(ResultsFolder)
+    pathResult{i} = fullfile([pathRepo '/Results/' ResultsFolder{i}]);
+end
 pathData = [pathRepo,'/ExperimentalData','/ExperimentalData.mat'];
 
 
@@ -61,11 +64,14 @@ end
 
 [~,~,criteria] = getSavename(S);
 
-% criteria{end+1} = 'ia';
+criteria{end+1} = 'not_WL10';
+% criteria{end+1} = 'not_act';
 
 %%
 
 [filteredResults] = filterResultfolderByParameters(pathResult,criteria);
+
+%%
 
 % use this as reference
 n = length(filteredResults);
@@ -82,9 +88,9 @@ end
 % ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\tmt_lin\Pog_s1_tmtL_bCst_ig24_v3_pp.mat';
 % ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug_batch\Pog_s1_tmt_bCst_d00_k1000_ig24_pp.mat';
 
-% ref = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pp.mat',...
+% ref = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_act_pp.mat',...
 %        'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pas_pp.mat',...
-%        'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_act_pp.mat'};
+%        'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pp.mat'};
 
 % filteredResults{n+1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug_tmt\Pog_s1_tmt_bCst_d02_k800_kc1_t5_ig24_v3_pp.mat';
 % filteredResults{n+2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug_tmt\Pog_s1_tmt_bCst_d02_k800_ig24_v3_pp.mat';
@@ -103,6 +109,23 @@ end
 Plot3D(filteredResultsWithRef,reference_data,pl)
 % Plot3D(filteredResults,reference_data,pl)
 % Plot3D(ref,reference_data,pl)
+
+
+%% Relative effect COT and stride frequency
+% DataFile = 'D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat';
+% 
+% ReferenceFiles = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_act_pp.mat',...
+%        'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pas_pp.mat',...
+%        'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pp.mat'};
+% 
+% 
+% ValidationPlots_CotSpatiotemp(filteredResults,ReferenceFiles,DataFile);
+
+
+
+
+
+
 
 %% old/temp stuff
 

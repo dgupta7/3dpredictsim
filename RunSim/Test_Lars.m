@@ -13,23 +13,23 @@ addpath([pathRepo '/Musclemodel']);
 addpath([pathRepo '/Polynomials']);
 
 %% Manual settings
-slv = 0;                % run solver
-pp = 0;                 % postproces
+slv = 1;                % run solver
+pp = 1;                 % postproces
 plot = 0;               % plot solution
-batchQueue = 1;         % save settings to run later
+batchQueue = 0;         % save settings to run later
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed 1.25
 S.N         = 50;       % number of mesh intervals
-S.NThreads  = 8;        % number of threads for parallel computing
+S.NThreads  = 6;        % number of threads for parallel computing
 % S.max_iter  = 10;    % maximum number of iterations
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
 % linear spring
-S.kTMT = 800;          % (Nm/rad) stiffness of tmt joint 
-S.dTMT = 0;             % (Nms/rad) damping of tmt joint
+S.kTMT = 1000;          % (Nm/rad) stiffness of tmt joint 
+S.dTMT = 0.5;             % (Nms/rad) damping of tmt joint
 % nonlinear spring tmt
 S.TMT_linear = 1;
 S.k1TMT = 800;
@@ -37,14 +37,14 @@ S.k2TMT = 1;
 S.t1TMT = 0.5;
 % windlass mechanism
 S.Windlass = 1;
-S.cWL = 0.01;           % relative change in foot arch length at mtp 20° dorsiflexion
+S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsiflexion
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
 
 % exo
 S.ExoBool       = 1;    % 1: is wearing exo
-S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
+S.ExoScale      = 1;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
                         
 S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque profile
@@ -106,9 +106,9 @@ elseif S.tmt ==1
             S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_TTC_v3.dll';
             S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_TTC_pp_v3.dll';
             
-%         elseif strcmp(S.ExoImplementation,'TorqueTibiaMetatarsi')
-%             S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_v4.dll';
-%             S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_pp_v4.dll';
+        elseif strcmp(S.ExoImplementation,'TorqueTibiaMetatarsi')
+            S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_TTCM_v1.dll';
+            S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_TTCM_pp_v1.dll';
         end
     end
     

@@ -1467,7 +1467,7 @@ if strcmp(ExoImplementation,'Nuckols2019')
 end
 
 %% Exoskeleton work
-W_exo = mean(Ps_opt_exo)*tgrid(end);
+W_exo = mean(Ps_opt_exo)*tgrid(end)*2;
 W_exo_rel = W_exo/body_mass/dist_trav_opt_GC;
 
 

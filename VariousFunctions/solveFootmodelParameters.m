@@ -9,7 +9,7 @@
 % external functions.
 
 clear
-% close all
+close all
 clc
 
 %% parameters from old model

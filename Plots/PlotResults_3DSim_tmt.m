@@ -769,13 +769,15 @@ if exist(ResultsFile,'file')
     
     %% Windlass mechanism
     
-    axes('parent', tab11);
+%     axes('parent', tab11);
     
     has_tmt = isfield(R.S,'tmt') && ~isempty(R.S.tmt) && R.S.tmt;
     has_tmt_unlocked =  isfield(R.S,'tmt_locked') && ~isempty(R.S.tmt_locked) && ~R.S.tmt_locked;
     has_WL = isfield(R.S,'Windlass') && ~isempty(R.S.Windlass) && R.S.Windlass ~= 0;
     
     if has_tmt && has_tmt_unlocked && has_WL
+        axes('parent', tab11);
+        
         itmt = find(strcmp(R.colheaders.joints,'tmt_angle_r'));
         imtp = find(strcmp(R.colheaders.joints,'mtp_angle_r'));
         

@@ -1,6 +1,5 @@
 /*  This code describes the OpenSim model and the skeleton dynamics
 Author: Antoine Falisse
-Implementation exoskeleton: Maarten Afschrift
 Contributor: Joris Gillis, Gil Serrancoli, Chris Dembia
 */
 #include <OpenSim/Simulation/Model/Model.h>
@@ -41,13 +40,13 @@ using type T. F(x,u)->(r).
 constexpr int n_in = 2;
 constexpr int n_out = 1;
 /// number of elements in input/output vectors of function F
-constexpr int ndof = 33;        // # degrees of freedom (excluding locked)
-constexpr int ndofr = ndof + 2;   // # degrees of freedom (including locked)
-constexpr int NX = ndof * 2;      // # states
-constexpr int NU = ndof + 2;        // # controls
-constexpr int NR = ndof + 5 * 4 + 2;    // # residual torques + # joint origins (+ 2 exoskeleton velocities)
+constexpr int ndof = 31+2;           // # degrees of freedom (excluding locked)
+constexpr int ndofr = ndof + 2;    // # degrees of freedom (including locked)
+constexpr int NX = ndof * 2;       // # states
+constexpr int NU = ndof + 2;           // # controls
+constexpr int NR = ndof + 6 + 5 * 6 + 6 + 18;   // # residual torques + joint origins + residual torques + GRFs
 
-									// Helper function value
+									   // Helper function value
 template<typename T>
 T value(const Recorder& e) { return e; }
 template<>
@@ -98,8 +97,8 @@ SimTK::Array_<int> getIndicesSimbodyInOS(const Model& model) {
 }
 
 // Torque actuator. Adds torque to the appliedBodyForces
-void ExoActuation(Model& model, const OpenSim::Body& bodyA, const OpenSim::Body& bodyB, State& s, const Vec3& ExoTorque, Vector_<SpatialVec>& appliedBodyForces) {
-
+void ExoActuation(Model& model, const OpenSim::Body& bodyA, const OpenSim::Body& bodyB, State& s, const Vec3 ExoTorque, Vector_<SpatialVec>& appliedBodyForces)
+{
 	/// Get the mobilized bodies
 	SimTK::MobilizedBodyIndex IndexBodyA = bodyA.getMobilizedBodyIndex();
 	SimTK::MobilizedBodyIndex IndexBodyB = bodyB.getMobilizedBodyIndex();
@@ -116,34 +115,6 @@ void ExoActuation(Model& model, const OpenSim::Body& bodyA, const OpenSim::Body&
 	/// and torque in opposite direction on body B
 	model.getMatterSubsystem().addInBodyTorque(s, IndexBodyB, -Exo_Ground, appliedBodyForces);
 }
-
-// Find angular velocity of the exoskeleton motor
-osim_double_adouble ExoAngularVelocity(Model& model, const OpenSim::Body& bodyA, const OpenSim::Body& bodyB, State& s, const Vec3& ExoTorque) {
-
-	osim_double_adouble ExoAngVel = 0;
-	
-	/// Get the mobilized bodies in the coordinate system of body A
-	SimTK::MobilizedBodyIndex IndexBodyA = bodyA.getMobilizedBodyIndex();
-	SimTK::MobilizedBodyIndex IndexBodyB = bodyB.getMobilizedBodyIndex();
-	SimTK::MobilizedBody Mobil_BodyA = bodyA.getMobilizedBody();
-	SimTK::MobilizedBody Mobil_BodyB = bodyB.getMobilizedBody();
-
-	/// Get the relative angular velocity vector
-	Vec3 Exo_Vel = Mobil_BodyB.findBodyAngularVelocityInAnotherBody(s, Mobil_BodyA);
-
-	/// Note that we assume that the ExoTorque is always expressed in the coordinate system of body A
-
-	/// Project velocity onto torque to get scalar velocity of motor
-	osim_double_adouble ExoTorqueMag = ExoTorque.norm();
-	/// avoid dividing by zero
-
-	if (ExoTorqueMag > SimTK::Eps) {
-		ExoAngVel = dot(Exo_Vel, ExoTorque.normalize());
-	}
-
-	return ExoAngVel;
-}
-
 
 // Function F
 template<typename T>
@@ -212,7 +183,6 @@ int F_generic(const T** arg, T** res) {
 	OpenSim::HuntCrossleyForce_smooth* HC_5_l;
 	OpenSim::HuntCrossleyForce_smooth* HC_6_l;
 
-
 	// Inertia of the exoskeleton for right side
 	/// Human segment properties
 	Vec3 COMTibia = Vec3(0, -0.178389, 0);
@@ -236,6 +206,7 @@ int F_generic(const T** arg, T** res) {
 	Vec3 IShankExo = Vec3(0.0073, 0.0027, 0.0066);
 	//// get COM in calcn frame
 	COMFoot_Exo = COMFoot_Exo - dSubtalar;
+	
 
 	/// Get combined COM location
 	osim_double_adouble mTib_tot = mTibia + mShank_Exo;
@@ -279,7 +250,7 @@ int F_generic(const T** arg, T** res) {
 	// resulting inertia
 	Inertia ITibiaNew(IShankTotalx, IShankTotaly, IShankTotalz, 0, 0, 0);
 	Inertia IFootNew(IFootTotalx, IFootTotaly, IFootTotalz, 0, 0, 0);
-	
+
 	// OpenSim model: initialize components
 	/// Model
 	model = new OpenSim::Model();
@@ -442,6 +413,8 @@ int F_generic(const T** arg, T** res) {
 	ankle_r = new CustomJoint("ankle_r", *tibia_r, Vec3(0, -0.41085882914747662, 0), Vec3(0), *talus_r, Vec3(0), Vec3(0), st_ankle_r);
 	subtalar_l = new CustomJoint("subtalar_l", *talus_l, Vec3(-0.044572100000000003, -0.038339100000000001, -0.0072382799999999997), Vec3(0), *calcn_l, Vec3(0), Vec3(0), st_subtalar_l);
 	subtalar_r = new CustomJoint("subtalar_r", *talus_r, Vec3(-0.044572100000000003, -0.038339100000000001, 0.0072382799999999997), Vec3(0), *calcn_r, Vec3(0), Vec3(0), st_subtalar_r);
+	//mtp_l = new PinJoint("mtp_l", *calcn_l, Vec3(0.163409678774199, -0.00182784875586352, -0.000987038328166303), Vec3(0), *toes_l, Vec3(0), Vec3(0));
+	//mtp_r = new PinJoint("mtp_r", *calcn_r, Vec3(0.163409678774199, -0.00182784875586352, 0.000987038328166303), Vec3(0), *toes_r, Vec3(0), Vec3(0));
 	tmt_l = new PinJoint("tmt_l", *calcn_l, Vec3(0.108274919614407, 0.035560839360244, -0.000452708769279), Vec3(0), *metatarsi_l, Vec3(0), Vec3(0));
 	tmt_r = new PinJoint("tmt_r", *calcn_r, Vec3(0.108274919614407, 0.035560839360244, 0.000452708769279), Vec3(0), *metatarsi_r, Vec3(0), Vec3(0));
 	mtp_l = new PinJoint("mtp_l", *metatarsi_l, Vec3(0.055134759159792, -0.037388688116107, -0.000534329558887), Vec3(0), *toes_l, Vec3(0), Vec3(0));
@@ -478,6 +451,7 @@ int F_generic(const T** arg, T** res) {
 	model->addBody(radius_r);       model->addJoint(radioulnar_r);
 	model->addBody(hand_l);         model->addJoint(radius_hand_l);
 	model->addBody(hand_r);         model->addJoint(radius_hand_r);
+
 	/// Contact elements
 	/// Parameters
 	osim_double_adouble radiusSphere_s1 = 0.03232;
@@ -496,6 +470,8 @@ int F_generic(const T** arg, T** res) {
 	osim_double_adouble offset = 0;
 	Vec3 locSphere_1_r(-0.00042152, -0.01, -0.0049972);
 	Vec3 locSphere_2_r(0.06, -0.01, 0.020001);
+	//Vec3 locSphere_3_r(0.165, -0.01, 0.021183);
+	//Vec3 locSphere_4_r(0.165, -0.01, -0.01);
 	Vec3 locSphere_3_r(0.0567, -0.0456, 0.020730);
 	Vec3 locSphere_4_r(0.0567, -0.0456, -0.01);
 	Vec3 locSphere_5_r(0.053154, -0.01, -0.0034173);
@@ -568,7 +544,7 @@ int F_generic(const T** arg, T** res) {
 	std::vector<T> u(arg[1], arg[1] + NU);
 
 	// States and controls
-	T ua[ndof + 2]; /// joint accelerations (Qdotdots) - controls
+	T ua[ndof + 2]; /// joint accelerations (Qdotdots) - controls (+2 because of locked joints)
 	Vector QsUs(NX + 4); /// joint positions (Qs) and velocities (Us) - states
 
 						 // Assign inputs to model variables
@@ -580,7 +556,7 @@ int F_generic(const T** arg, T** res) {
 	QsUs[NX + 2] = 1.51;
 	QsUs[NX + 3] = 0;
 	/// Controls
-	T ut[ndof + 2];
+	T ut[ndof + 2]; //(+2 because of locked joints), -2 because of torque actuators
 	for (int i = 0; i < ndof; ++i) ut[i] = u[i];
 	/// pro_sup dofs are locked so Qdotdots are hard coded (0)
 	/// Need to have a temporary vector to add 0s to the vector before
@@ -687,12 +663,8 @@ int F_generic(const T** arg, T** res) {
 	Vec3 ExoTorque_r = Vec3(0);
 	ExoTorque_l[2] = u[ndof];
 	ExoTorque_r[2] = u[ndof + 1];
-	ExoActuation(*model, *tibia_l, *calcn_l, *state, ExoTorque_l, appliedBodyForces);
-	ExoActuation(*model, *tibia_r, *calcn_r, *state, ExoTorque_r, appliedBodyForces);
-	
-	/// get exoskeleton motor velocity
-	osim_double_adouble ExoVel_l = ExoAngularVelocity(*model, *tibia_l, *calcn_l, *state, ExoTorque_l);
-	osim_double_adouble ExoVel_r = ExoAngularVelocity(*model, *tibia_r, *calcn_r, *state, ExoTorque_r);
+	ExoActuation(*model, *tibia_l, *metatarsi_l, *state, ExoTorque_l, appliedBodyForces);
+	ExoActuation(*model, *tibia_r, *metatarsi_r, *state, ExoTorque_r, appliedBodyForces);
 
 	/// Calculate residual forces
 	Vector residualMobilityForces(ndofr);
@@ -712,42 +684,123 @@ int F_generic(const T** arg, T** res) {
 	Vec3 tibia_or_r = tibia_r->getPositionInGround(*state);
 	Vec3 toes_or_l = toes_l->getPositionInGround(*state);
 	Vec3 toes_or_r = toes_r->getPositionInGround(*state);
+	Vec3 metatarsi_or_l = metatarsi_l->getPositionInGround(*state);
+	Vec3 metatarsi_or_r = metatarsi_r->getPositionInGround(*state);
 
+	// Extract ground reaction forces
+	SpatialVec GRF_r = GRF_1_r + GRF_2_r + GRF_3_r + GRF_4_r + GRF_5_r + GRF_6_r;
+	SpatialVec GRF_l = GRF_1_l + GRF_2_l + GRF_3_l + GRF_4_l + GRF_5_l + GRF_6_l;
+
+	// Computation Forces and moment in ground
+	SpatialVec GRF_calcn_l = GRF_1_l + GRF_2_l;
+	SpatialVec GRF_metatarsi_l = GRF_3_l + GRF_4_l;
+	SpatialVec GRF_toes_l = GRF_5_l + GRF_6_l;
+
+	SpatialVec GRF_calcn_r = GRF_1_r + GRF_2_r;
+	SpatialVec GRF_metatarsi_r = GRF_3_r + GRF_4_r;
+	SpatialVec GRF_toes_r = GRF_5_r + GRF_6_r;
+
+	/// Expresss contact wrenches in ground
+	Vec3 Torque_ground_calcn_l = GRF_calcn_l[0] + cross(calcn_or_l, GRF_calcn_l[1]);
+	Vec3 Torque_ground_metatarsi_l = GRF_metatarsi_l[0] + cross(metatarsi_or_l, GRF_metatarsi_l[1]);
+	Vec3 Torque_ground_toes_l = GRF_toes_l[0] + cross(toes_or_l, GRF_toes_l[1]);
+	Vec3 Torque_ground_calcn_r = GRF_calcn_r[0] + cross(calcn_or_r, GRF_calcn_r[1]);
+	Vec3 Torque_ground_metatarsi_r = GRF_metatarsi_r[0] + cross(metatarsi_or_r, GRF_metatarsi_r[1]);
+	Vec3 Torque_ground_toes_r = GRF_toes_r[0] + cross(toes_or_r, GRF_toes_r[1]);
+
+	Vec3 TorqueLeft = Torque_ground_calcn_l + Torque_ground_metatarsi_l + Torque_ground_toes_l;
+	Vec3 TorqueRight = Torque_ground_calcn_r + Torque_ground_metatarsi_r + Torque_ground_toes_r;
+	
 	// Residual forces in OpenSim order
 	T res_os[ndofr];
 	/// OpenSim and Simbody have different state orders so we need to adjust
 	auto indicesSimbodyInOS = getIndicesSimbodyInOS(*model);
 	for (int i = 0; i < ndofr; ++i) res_os[i] =
 		value<T>(residualMobilityForces[indicesSimbodyInOS[i]]);
+
 	// Extract results
 	int nc = 3;
-	/// Residual forces
-	/// We do want to extract the pro_sup torques (last two -> till NU)
+
+	/// Residual forces (0-32)
 	for (int i = 0; i < ndof; ++i) res[0][i] = res_os[i];
-	/// Joint origins
-	res[0][ndof] = value<T>(calcn_or_r[0]);   /// calcn_or_r_x
-	res[0][ndof + 1] = value<T>(calcn_or_r[2]);   /// calcn_or_r_z
-	res[0][ndof + 2] = value<T>(calcn_or_l[0]);   /// calcn_or_l_x
-	res[0][ndof + 3] = value<T>(calcn_or_l[2]);   /// calcn_or_l_x
-	res[0][ndof + 4] = value<T>(femur_or_r[0]);   /// femur_or_r_x
-	res[0][ndof + 5] = value<T>(femur_or_r[2]);   /// femur_or_r_z
-	res[0][ndof + 6] = value<T>(femur_or_l[0]);   /// femur_or_l_x
-	res[0][ndof + 7] = value<T>(femur_or_l[2]);   /// femur_or_l_z
-	res[0][ndof + 8] = value<T>(hand_or_r[0]);    /// hand_or_r_x
-	res[0][ndof + 9] = value<T>(hand_or_r[2]);    /// hand_or_r_z
-	res[0][ndof + 10] = value<T>(hand_or_l[0]);   /// hand_or_l_x
-	res[0][ndof + 11] = value<T>(hand_or_l[2]);   /// hand_or_l_z
-	res[0][ndof + 12] = value<T>(tibia_or_r[0]);  /// tibia_or_r_x
-	res[0][ndof + 13] = value<T>(tibia_or_r[2]);  /// tibia_or_r_z
-	res[0][ndof + 14] = value<T>(tibia_or_l[0]);  /// tibia_or_l_x
-	res[0][ndof + 15] = value<T>(tibia_or_l[2]);  /// tibia_or_l_z
-	res[0][ndof + 16] = value<T>(toes_or_r[0]);  /// tibia_or_r_x
-	res[0][ndof + 17] = value<T>(toes_or_r[2]);  /// tibia_or_r_z
-	res[0][ndof + 18] = value<T>(toes_or_l[0]);  /// tibia_or_l_x
-	res[0][ndof + 19] = value<T>(toes_or_l[2]);  /// tibia_or_l_z
-	/// Exoskeleton motor velocities
-	res[0][ndof + 20] = value<T>(ExoVel_r);
-	res[0][ndof + 21] = value<T>(ExoVel_l);
+
+	/// ground reaction forces (33-38)
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof] = value<T>(GRF_r[1][i]);       /// GRF_r
+	}
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc] = value<T>(GRF_l[1][i]);  /// GRF_l
+	}
+
+	/// Joint origins - calcaneus (39-44)
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 2] = value<T>(calcn_or_r[i]);
+	}
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 3] = value<T>(calcn_or_l[i]);
+	}
+
+	/// Joint origins - femur (45-50)
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 4] = value<T>(femur_or_r[i]);
+	}
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 5] = value<T>(femur_or_l[i]);
+	}
+
+	/// Joint origins - hand (51-56)
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 6] = value<T>(hand_or_r[i]);
+	}
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 7] = value<T>(hand_or_l[i]);
+	}
+
+	/// Joint origins tibia (57-62)
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 8] = value<T>(tibia_or_r[i]);
+	}
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 9] = value<T>(tibia_or_l[i]);
+	}
+
+	/// Joint origins toes (62-68)
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 10] = value<T>(toes_or_r[i]);
+	}
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 11] = value<T>(toes_or_l[i]);
+	}
+
+	/// GRF torques (69-74)
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 12] = value<T>(TorqueRight[i]);
+	}
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 13] = value<T>(TorqueLeft[i]);
+	}
+
+	/// separate GRF
+	/// GRF_r (75-83)
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 14] = value<T>(GRF_calcn_r[1][i]);
+	}
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 15] = value<T>(GRF_metatarsi_r[1][i]);
+	}
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 16] = value<T>(GRF_toes_r[1][i]);
+	}
+	/// GRF_l (84-93)
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 17] = value<T>(GRF_calcn_l[1][i]);
+	}
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 18] = value<T>(GRF_metatarsi_l[1][i]);
+	}
+	for (int i = 0; i < nc; ++i) {
+		res[0][i + ndof + nc * 19] = value<T>(GRF_toes_l[1][i]);
+	}
 
 	return 0;
 

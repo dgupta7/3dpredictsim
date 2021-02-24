@@ -13,12 +13,12 @@ addpath([pathRepo '/Musclemodel']);
 addpath([pathRepo '/Polynomials']);
 
 %% Manual settings
-kTMT = [500 800 1000]; % 250 2000
+kTMT = [500 800 1000 1500]; % 250 2000
 dTMT = [0 0.5]; % 0.2
 
 exo = [[0; 0], [1; 0], [1; 1]]';
 
-cWL = [0.01,0.02,0.03];
+cWL = [0.02,0.03, 0.04];
 
 fst=1;
 for ik=1:length(kTMT)
