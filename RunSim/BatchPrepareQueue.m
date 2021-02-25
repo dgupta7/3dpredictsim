@@ -38,7 +38,7 @@ S.Windlass = 1;
 S.cWL = cWL(iw);           % relative change in foot arch length at mtp 20° dorsiflexion
 
 % assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 1;    % 0: musc height = cst, 1: pennation angle = cst
+S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 
 % exo
 S.ExoBool       = exo(ie,1);
