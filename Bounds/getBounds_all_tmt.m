@@ -458,10 +458,10 @@ bounds.tf.upper = 1;
 
 %% Ideal Assistance
 if T_max_ankle_exo ~= 0
-    scaling.T_exo_ankle = max(abs(T_max_ankle_exo,T_min_ankle_exo));
+    scaling.T_exo_ankle = max(abs([T_max_ankle_exo,T_min_ankle_exo]));
     
-    bounds.T_exo_ankle.upper = T_max_ankle_exo/scaling.T_exo_ankle;
-    bounds.T_exo_ankle.lower = T_min_ankle_exo/scaling.T_exo_ankle;
+    bounds.T_exo_ankle.upper = -T_min_ankle_exo/scaling.T_exo_ankle;
+    bounds.T_exo_ankle.lower = -T_max_ankle_exo/scaling.T_exo_ankle;
 
 else
     scaling.T_exo_ankle = 1;

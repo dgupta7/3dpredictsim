@@ -893,8 +893,9 @@ if exist(ResultsFile,'file')
    
     %% Exo assistance
     
-    axes('parent', tab12);
+%     axes('parent', tab12);
     if isfield(R,'w_RotVel_exo') && ~isempty(R.w_RotVel_exo)
+        axes('parent', tab12);
         
         T_mean = mean(R.T_exo(:,2));
         subplot(2,2,1)
@@ -902,8 +903,8 @@ if exist(ResultsFile,'file')
         plot(R.T_exo(:,2),'-','Color',Cs)
         line(get(gca, 'xlim'),[1,1]*T_mean,'color',Cs,'LineStyle','--')
         if R.S.T_max_ankle_exo > 0
-            line(get(gca, 'xlim'),[1,1]*R.S.T_max_ankle_exo,'color',Cs,'LineStyle',':')
-            line(get(gca, 'xlim'),[1,1]*R.S.T_min_ankle_exo,'color',Cs,'LineStyle',':')
+            line(get(gca, 'xlim'),-[1,1]*R.S.T_max_ankle_exo,'color',Cs,'LineStyle',':')
+            line(get(gca, 'xlim'),-[1,1]*R.S.T_min_ankle_exo,'color',Cs,'LineStyle',':')
         end
         ylabel('Exo Moment [Nm]')
         xlabel('% stride')

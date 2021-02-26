@@ -15,7 +15,7 @@ addpath([pwd,'/MuscleModel']);
 addpath([pwd,'/Debug']);
 addpath([pwd '/VariousFunctions']);
 AddCasadiPaths();
-DataFolders = {'batch_windlass'};
+DataFolders = {'running'};
 
 
 S.OverWrite = 0;

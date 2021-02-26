@@ -97,7 +97,7 @@ grid on
 for j=1:i
     plot(q1*180/pi,M_f(:,j),'color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) ' full'])
 end
-legend('Location','best')
+legend
 xlabel('tmt angle')
 ylabel('tmt moment')
 title('Effect WL on moment')
@@ -181,20 +181,18 @@ end
 
 figure(f2)
 for j=1:i
-    plot(q1*180/pi,M_f_lin(:,j),'--','color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) ' lin'])
+    plot(q1*180/pi,M_f_lin(:,j),'--','color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) ' full'])
 end
 
 dc1 = (c1-c1_lin)./c1;
-M_rel = (M_f-M_f_lin)./M_f;
-
 figure
 hold on
 grid on
 for j=1:i
-    plot(q1*180/pi,M_rel(:,j),'--','color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi)])
+    plot(q1*180/pi,dc1(:,j),'--','color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi)])
 end
-xlabel('tmt angle (°)')
-ylabel('relative linearization error tmt moment')
+
+
 
 cw(1,w) = cWL;
 cw(2,w) = cWLq;
@@ -203,7 +201,7 @@ cw(4,w) = cWLh;
 
 end
 
-%% influence of cWL on other linearization parameters
+%%
 if w>1
     
     figure

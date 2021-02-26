@@ -13,7 +13,7 @@ addpath([pathRepo '/Musclemodel']);
 addpath([pathRepo '/Polynomials']);
 
 %% Manual settings
-slv = 1;                % run solver
+slv = 0;                % run solver
 pp = 1;                 % postproces
 plot = 0;               % plot solution
 batchQueue = 0;         % save settings to run later
@@ -53,15 +53,15 @@ S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque pr
 S.ExoImplementation = 'TorqueTibiaCalcn';
 
 % Ideal assistance
-ia = 0;
-% S.T_max_ankle_exo = 30;
-% S.T_min_ankle_exo = 0;
-% S.P_max_ankle_exo = 50;
+ia = 1;
+S.T_max_ankle_exo = 30;
+S.T_min_ankle_exo = 0;
+S.P_max_ankle_exo = 50;
 
 % output folder
-S.ResultsFolder = 'batch_windlass';
+S.ResultsFolder = 'debug'; % 'batch_windlass'
 suffixCasName = '';
-suffixName = '';
+suffixName = '_v2';
 
 % Folder with default functions
 S.subject            = 's1_Poggensee';
@@ -81,9 +81,9 @@ end
 %% Automated settings
 
 % Ideal assistance
-% if ia
-%     S.ExoController = 'Ideal Assistance';
-% end
+if ia
+    S.ExoController = 'Ideal Assistance';
+end
 
 % select folder with polynomials
 S.PolyFolder = 's1_Poggensee';

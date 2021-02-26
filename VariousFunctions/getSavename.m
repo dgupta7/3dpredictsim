@@ -92,7 +92,10 @@ if isfield(S,'ExoBool') && ~isempty(S.ExoBool)
                     if strcmp(S.ExoController,'Ideal Assistance')
                         savenameparts{end+1} = ['IA'];
                         if isfield(S,'T_max_ankle_exo') && ~isempty(S.T_max_ankle_exo)
-                            savenameparts{end} = [savenameparts{end} 'T' num2str(S.T_max_ankle_exo)];
+                            savenameparts{end} = [savenameparts{end} 'Tx' num2str(S.T_max_ankle_exo)];
+                        end
+                        if isfield(S,'T_min_ankle_exo') && ~isempty(S.T_max_ankle_exo)
+                            savenameparts{end} = [savenameparts{end} 'Tn' num2str(S.T_min_ankle_exo)];
                         end
                         if isfield(S,'P_max_ankle_exo') && ~isempty(S.P_max_ankle_exo)
                             savenameparts{end} = [savenameparts{end} 'P' num2str(S.P_max_ankle_exo)];
