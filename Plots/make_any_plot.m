@@ -22,7 +22,7 @@ ResultsFolder = {'batch_windlass'}; % 'tmt_lin' 'debug' 'debug_batch' 'running'
 % ResultsFolder = {'batch_tmt_lin'};
 
 % experimental data to plot as reference
-reference_data = 'none'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
+reference_data = 'norm'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
 
 
 % tarsometatarsal joint
@@ -89,8 +89,8 @@ else
 end
 
 % ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\tmt_lin\Pog_s1_tmtL_bCst_ig24_v3_pp.mat';
-ref{3} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\batch_tmt_lin\Pog_s1_tmt_bCst_d05_k1000_ig24_pp.mat';
-ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\batch_windlass\Pog_s1_tmt_bCst_d05_k1000_WL30_ig24_pp.mat';
+% ref{3} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\batch_tmt_lin\Pog_s1_tmt_bCst_d05_k1000_ig24_pp.mat';
+% ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\batch_windlass\Pog_s1_tmt_bCst_d05_k1000_WL30_ig24_pp.mat';
 
 % ref = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_act_pp.mat',...
 %        'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pas_pp.mat',...

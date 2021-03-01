@@ -12,7 +12,7 @@ if exist(ResultsFile,'file')
     
     
     if ~isfield(R,'CrossCorrelation') || isempty(R.CrossCorrelation)
-        if strcmp(R.S.subject,'Fal_s1')
+        if strcmp(R.S.subject,'Fal_s1') || strcmp(R.S.subject,'subject1')
             pathData = 'D:\school\WTK\thesis\model\3dpredictsim\Data\Fal_s1.mat';
         else
             % load data Pog_s1 from struct saved during ...\Analyze_ExoData\Batch\BatchScript_LatexReport.m

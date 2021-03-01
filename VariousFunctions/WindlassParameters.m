@@ -20,8 +20,8 @@ kTMT_li = 1.5/(pi/180)/5; %same as mtp, stiffness of ligaments and soft tissue n
 
 % weight factors to change cWL
 % ws = [0.8:0.05:1.25];
-ws = 1;
-% ws = [0.005,0.01,0.02,0.04]/0.03;
+% ws = 1;
+ws = [0.005,0.01,0.02,0.04]/0.03;
 
 for w=1:length(ws)
 

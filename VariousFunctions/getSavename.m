@@ -4,20 +4,25 @@ savenameparts = {};
 casfuncfolparts = {};
 not = {};
 
-if isfield(S,'subject') && ~isempty(S.subject) && strcmp(S.subject,'s1_Poggensee')
-    savenameparts{end+1} = 'Pog_s1';
-    casfuncfolparts{end+1} = 'casadi_s1Pog';
+if isfield(S,'subject') && ~isempty(S.subject)
+    if strcmp(S.subject,'s1_Poggensee')
+        savenameparts{end+1} = 'Pog_s1';
+        casfuncfolparts{end+1} = 'casadi_s1Pog';
+    elseif strcmp(S.subject,'subject1')
+        savenameparts{end+1} = 'Fal_s1';
+        casfuncfolparts{end+1} = 'casadi_s1Fal';
+    end
 end
 if isfield(S,'tmt') && ~isempty(S.tmt)
     if S.tmt
         savenameparts{end+1} = ['tmt'];
         casfuncfolparts{end+1} = ['tmt'];
-        if S.tmt_locked
-            savenameparts{end} = [savenameparts{end} 'L'];
-            casfuncfolparts{end} = [casfuncfolparts{end} 'L'];
-        else
-            not{end+1} ='not_tmtL';
-        end
+%         if S.tmt_locked
+%             savenameparts{end} = [savenameparts{end} 'L'];
+%             casfuncfolparts{end} = [casfuncfolparts{end} 'L'];
+%         else
+%             not{end+1} ='not_tmtL';
+%         end
     else
         not{end+1} ='not_tmt';
     end

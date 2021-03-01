@@ -20,8 +20,12 @@ if strcmp(subject,'s1_Poggensee')
     cWLh = -0.0364;
     L0 = 0.1628; % unloaded foot arch length (m)
     H0 = 0.0374; % unloaded foot arch height (m)
-else
-    
+elseif strcmp(subject,'subject1')
+    cWLq = -12.3342;
+    cWLl = 0.2293;
+    cWLh = -0.0364;
+    L0 = 0.1628; % unloaded foot arch length (m)
+    H0 = 0.0374; % unloaded foot arch height (m)
 end
 
 % Get values resulting from Windlass mechanism, assuming infinitely stiff

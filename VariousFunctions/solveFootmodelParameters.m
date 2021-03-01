@@ -13,10 +13,18 @@ close all
 clc
 
 %% parameters from old model
-m_cmf_0 = 0.9688202167589921;
-I_cmf_0 = [0.000906321, 0.00252475, 0.00265422]';
+% Pog s1
+% m_cmf_0 = 0.9688202167589921;
+% I_cmf_0 = [0.000906321, 0.00252475, 0.00265422]';
+% com_cmf_0 = [0.0913924, 0.0274177, 0]';
+% mtp_0 = [0.163409678774199 -0.00182784875586352 0.000987038328166303]';   % in calcn ref
+% Fal s1
+m_cmf_0 = 0.938544584985273;
+I_cmf_0 = [0.000877997854457612, 0.00244585116598906, 0.00257127943091158]';
 com_cmf_0 = [0.0913924, 0.0274177, 0]';
-mtp_0 = [0.163409678774199 -0.00182784875586352 0.000987038328166303]';   % in calcn ref
+mtp_0 = [0.163409678774199, -0.00182784875586352, 0.000987038328166303]';   % in calcn ref
+
+
 % derived params
 mtp_02com_0 = com_cmf_0 - mtp_0;
 
@@ -87,18 +95,18 @@ optim_options = optimset('Display','off');
     end
     
 %% results for right foot
-% format long
-mc = x(1);
-mf = x(2);
-COMc = x(3:5);
-COMf = x(6:8);
-MTJ = x(9:11);
-Ic = x(12:14);
-MTPJ = mtp_0-MTJ;
+format long
+mc = x(1)
+mf = x(2)
+COMc = x(3:5)
+COMf = x(6:8)
+MTJ = x(9:11)
+Ic = x(12:14)
+MTPJ = mtp_0-MTJ
 
 
-disp('           I0                  Ic                  If')
-disp([I_cmf_0 Ic If])
+% disp('           I0                  Ic                  If')
+% disp([I_cmf_0 Ic If])
 
 %% plot results in calcaneus ref frame
 % This is the ref frame attached to the calcn in both the old model and the
@@ -228,169 +236,4 @@ d2 = acos(h2/norm(b));
 tmt2 = (c2+d2)*180/pi;
 
 tmt_2 = tmt2 - tmt0
-
-%% Windlass mechanism
-% close all
-clc
-
-
-a = norm(a);    % calcn length
-b = norm(b);    % metatarsi length
-phi0 = tmt0*pi/180;    % tmt vector angle
-g0 = phi0;      % tmt vector angle inf stiff
-
-q1 = [-15:1:15]*pi/180;
-q2 = [-20:10:30]*pi/180;
-
-L0 = sqrt(a^2 + b^2 - 2*a*b*cos(phi0));
-H0 = h0;
-
-% ws = [0.8:0.1:1.3];
-ws = 1;
-
-for w=1:length(ws)
-
-cWL = 0.03/0.97 * ws(w);
-l0 = (1-cWL*(q2*180/pi)/20)*L0;
-
-g = acos( (a^2 + b^2 - l0.^2)/(2*a*b) );
-
-q1_0 = g-g0;
-
-cWL_l = nanmean(q1_0./q2); % linearly dependent on cWL
-
-figure
-plot(q2*180/pi,q1_0*180/pi)
-grid on
-hold on
-plot(q2*180/pi,cWL_l*q2*180/pi,'--')
-xlabel('mtp angle')
-ylabel('tmt angle (k = inf)')
-
-
-kTMT = 1000;
-
-for i=1:length(q2)
-   M_lin(:,i) = kTMT*(q1(:) - q1_0(i));
-   M_lin_lin(:,i) = kTMT*(q1(:) - q2(i)*cWL_l);
-   M_l(:,i) = kTMT*(q1(:) - q2(i)*cWL*(-12.35));
-end
-
-colr = hsv(i);
-
-figure
-hold on
-grid on
-for j=1:i
-    plot(q1*180/pi,M_lin(:,j),'color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) ' nonl'])
-    plot(q1*180/pi,M_lin_lin(:,j),'--','color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) ' WL qs lin'])
-    plot(q1*180/pi,M_l(:,j),':','color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) ' WL qs lin smpl'])
-end
-legend
-xlabel('tmt angle')
-ylabel('tmt moment')
-title('effect WL on \Delta q1 (k=cst)')
-
-
-phi = phi0 + q1;
-L = sqrt(a^2 + b^2 - 2*a*b*cos(phi));
-h = a*b./L.*sin(phi);
-
-% figure
-% plot(q1,h)
-
-k0 = 7.1079e+05;
-
-for i=1:length(q2)
-   F(:,i) = k0*L0/l0(i)*(L(:)-l0(i));
-   M(:,i) = F(:,i).*h(:);
-   k_nl(1,i) = nanmean( M(:,i)./((q1(:) - q1_0(i))) );
-end
-
-cWLk = nanmean( (k_nl(q2~=0)-k_nl(q2==0))./(q2(q2~=0)) );
-k_l = kTMT+q2*cWLk;
-
-figure
-plot(q2*180/pi,k_nl)
-hold on
-grid on
-plot(q2*180/pi,k_l)
-xlabel('tmt angle')
-ylabel('tmt k')
-title('effect WL on k')
-
-figure
-hold on
-grid on
-for j=1:i
-   plot(q1*180/pi,k_nl(:,j)*h,'color',colr(j,:),'DisplayName',num2str(q2(j)*180/pi))
-end
-xlabel('tmt angle')
-ylabel('tmt k*h')
-title('effect WL on k and moment arm')
-
-
-for i=1:length(q2)
-   M_l(:,i) = k_l(i)*(q1(:) - q2(i)*cWL_l);
-end
-
-colr = hsv(i);
-
-figure
-hold on
-grid on
-for j=1:i
-    plot(q1*180/pi,M(:,j),'color',colr(j,:),'DisplayName',num2str(q2(j)*180/pi))
-    plot(q1*180/pi,M_l(:,j),'--','color',colr(j,:),'DisplayName',num2str(q2(j)*180/pi))
-end
-legend
-xlabel('tmt angle')
-ylabel('tmt moment')
-title('effect WL on \Delta q1 and k')
-
-% energy
-
-for i=1:length(q2)
-   E_p(:,i) = k_l(i)*(q1(:) - q2(i)*cWL_l).^2/2;
-end
-
-figure
-hold on
-grid on
-for j=1:i
-    plot(q1*180/pi,E_p(:,j),'color',colr(j,:),'DisplayName',num2str(q2(j)*180/pi))
-%     plot(q1,M_l(:,j),'--','color',colr(j,:),'DisplayName',num2str(q2(j)))
-end
-legend
-xlabel('tmt angle')
-ylabel('tmt E_p')
-title('effect WL on \Delta q1 and k')
-
-
-cw(1,w) = cWL;
-cw(2,w) = cWL_l;
-cw(3,w) = cWLk;
-
-end
-
-%%
-if w>1
-    figure
-    subplot(311)
-    plot(ws,cw(1,:))
-    subplot(312)
-    plot(ws,cw(2,:))
-    subplot(313)
-    plot(ws,cw(3,:))
-
-
-    nanmean(cw(1,:)./ws);
-    nanmean(cw(2,:)./ws);
-    nanmean(cw(3,:)./ws);
-
-    figure
-    plot(ws,cw(2,:)./cw(1,:))
-
-    nanmean(cw(2,:)./cw(1,:))
-end
 

@@ -14,9 +14,9 @@ addpath([pathRepo '/Polynomials']);
 
 %% Manual settings
 slv = 0;                % run solver
-pp = 1;                 % postproces
+pp = 0;                 % postproces
 plot = 0;               % plot solution
-batchQueue = 0;         % save settings to run later
+batchQueue = 1;         % save settings to run later
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed 1.25
@@ -43,8 +43,8 @@ S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsifl
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
 
 % exo
-S.ExoBool       = 1;    % 1: is wearing exo
-S.ExoScale      = 1;    % scale factor of exoskeleton assistance profile 
+S.ExoBool       = 0;    % 1: is wearing exo
+S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
                         % 0: no assistance (passive) 1: nominal assistance (active)
                         
 S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque profile
@@ -53,18 +53,19 @@ S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque pr
 S.ExoImplementation = 'TorqueTibiaCalcn';
 
 % Ideal assistance
-ia = 1;
-S.T_max_ankle_exo = 30;
-S.T_min_ankle_exo = 0;
-S.P_max_ankle_exo = 50;
+ia = 0;
+% S.T_max_ankle_exo = 30;
+% S.T_min_ankle_exo = 0;
+% S.P_max_ankle_exo = 50;
 
 % output folder
-S.ResultsFolder = 'debug'; % 'batch_windlass'
+S.ResultsFolder = 'batch_windlass'; % 'batch_windlass' 'standing'
 suffixCasName = '';
-suffixName = '_v2';
+suffixName = '';
 
 % Folder with default functions
-S.subject            = 's1_Poggensee';
+S.subject            = 'subject1';
+% S.subject            = 's1_Poggensee';
 
 % initial guess based on simulations without exoskeletons
 S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
@@ -86,7 +87,7 @@ if ia
 end
 
 % select folder with polynomials
-S.PolyFolder = 's1_Poggensee';
+S.PolyFolder = S.subject;
 
 % external function
 if S.tmt == 0
@@ -99,8 +100,13 @@ if S.tmt == 0
     
 elseif S.tmt ==1
     if S.ExoBool == 0
-        S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt_v3.dll';        % external function
-        S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp_v3.dll';     % external function for post-processing
+        if strcmp(S.subject,'s1_Poggensee')
+            S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt_v3.dll';
+            S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp_v3.dll';
+        elseif strcmp(S.subject,'subject1')
+            S.ExternalFunc  = 'PredSim_3D_Fal_s1_tmt_v1.dll';
+            S.ExternalFunc2 = 'PredSim_3D_Fal_s1_tmt_pp_v1.dll';
+        end
     else
         if strcmp(S.ExoImplementation,'TorqueTibiaCalcn')            
             S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_TTC_v3.dll';
@@ -193,6 +199,10 @@ if plot
     PlotResults_3DSim_tmt(fullfile(pathResults,[S.savename '_pp.mat']),[1 0 0],savename,h);
 end
 
+%%
 
+% addpath([pathRepo '/StaticStanding']);
+% % f_StaticStanding_Gait92(S);
+% f_SimFoot1(S)
 
 
