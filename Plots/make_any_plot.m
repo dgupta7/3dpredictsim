@@ -11,18 +11,19 @@ addpath([pathRepo '/PassiveMoments']);
 % Folder will be filtered to only plot results that satisfy all chosen
 % settings. Put an entry in comment to not use it to filter.
 
-plot_default = 0;
+plot_default = 1;
 plot_validation = 1;
 
 % folder to filter from
 
-ResultsFolder = {'batch_windlass'}; % 'tmt_lin' 'debug' 'debug_batch' 'running'
+% ResultsFolder = {'batch_windlass','batch_tmt_lin'}; % 'tmt_lin' 'debug' 'debug_batch' 'running'
+ResultsFolder = {'batch_windlass'};
 % ResultsFolder = {'running'};
 % ResultsFolder = {'debug'};
 % ResultsFolder = {'batch_tmt_lin'};
 
 % experimental data to plot as reference
-reference_data = 'norm'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
+reference_data = 'none'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
 
 
 % tarsometatarsal joint
@@ -36,7 +37,11 @@ S.Windlass = 1;
 % S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsiflexion
 
 % assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
+% S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
+
+% Test subject
+% S.subject            = 'subject1';
+S.subject            = 's1_Poggensee';
 
 % exo
 S.ExoBool       = 0;    % 1: is wearing exo
@@ -67,8 +72,9 @@ end
 
 [~,~,criteria] = getSavename(S);
 
-criteria{end+1} = 'not_WL10';
-% criteria{end+1} = 'v2';
+% criteria{end+1} = 'not_v1';
+% criteria{end+1} = 'not_Fal_s1';
+% criteria{end+1} = 'Fal_s1';
 
 %%
 
@@ -85,12 +91,20 @@ if isfield(S,'ExoBool') && ~isempty(S.ExoBool) && S.ExoBool == 1
         ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pas_pp.mat';
     end
 else
-    ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pp.mat';
+    if isfield(S,'subject') && strcmp(S.subject,'subject1')
+        ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Fal_s1_bCst_ig24_v2_pp.mat';
+    elseif isfield(S,'subject') && strcmp(S.subject,'s1_Poggensee')
+        ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pp.mat';
+    else
+        ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Fal_s1_bCst_ig24_v2_pp.mat';
+        ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pp.mat';
+    end
 end
 
 % ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\tmt_lin\Pog_s1_tmtL_bCst_ig24_v3_pp.mat';
 % ref{3} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\batch_tmt_lin\Pog_s1_tmt_bCst_d05_k1000_ig24_pp.mat';
 % ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\batch_windlass\Pog_s1_tmt_bCst_d05_k1000_WL30_ig24_pp.mat';
+
 
 % ref = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_act_pp.mat',...
 %        'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pas_pp.mat',...

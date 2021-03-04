@@ -59,7 +59,9 @@ if exist(ResultsFile,'file')
         xParamLab = varargin{3};
     end
     
-    
+    if strcmp(R.S.subject,'subject1')
+        subject = 'Fal_s1';
+    end
     
     % determine if the model has tmt joint
     has_no_tmt = ~isfield(R.S,'tmt') || isempty(R.S.tmt) || R.S.tmt == 0;
@@ -150,7 +152,7 @@ if exist(ResultsFile,'file')
     if boolFirst && md
         pc_name = getenv('COMPUTERNAME');
         if strcmp(pc_name,'MSI')
-            if strcmp(R.S.subject,'Fal_s1') || strcmp(R.S.subject,'subject1')
+            if strcmp(subject,'Fal_s1')
                 load('D:\school\WTK\thesis\model\3dpredictsim\Data\Fal_s1.mat','Dat');
             else
                 % load data Pog_s1 from struct saved during ...\Analyze_ExoData\Batch\BatchScript_LatexReport.m
@@ -847,11 +849,11 @@ if exist(ResultsFile,'file')
 
         subplot(2,4,6)
         hold on
-        line(get(gca, 'xlim'),[1,1]*R.body_mass*9.81,'color','k','LineStyle','-')
-        plot(x,F_PF,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+        plot(x,F_PF/(R.body_mass*9.81),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+%         line(get(gca, 'xlim'),[1,1]*R.body_mass*9.81,'color','k','LineStyle','-')
         title('Plantar fascia force')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        ylabel('Force (N)','Fontsize',label_fontsize);
+        ylabel('Force (N/BW)','Fontsize',label_fontsize);
 
         subplot(2,4,3)
         hold on

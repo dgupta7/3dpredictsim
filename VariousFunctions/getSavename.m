@@ -91,6 +91,8 @@ if isfield(S,'ExoBool') && ~isempty(S.ExoBool)
                         savenameparts{end+1} = ['TTC'];
                     elseif strcmp(S.ExoImplementation,'TorqueTibiaMetatarsi')
                         savenameparts{end+1} = ['TTM'];
+                    elseif strcmp(S.ExoImplementation,'TorqueTibiaCalcnMetatarsi')
+                        savenameparts{end+1} = ['TTCM'];
                     end
                 end
                 if isfield(S,'ExoController') && ~isempty(S.ExoController) 

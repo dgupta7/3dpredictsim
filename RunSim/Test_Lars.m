@@ -11,12 +11,14 @@ addpath([pathRepo '/Plots']);
 addpath([pathRepo '/CasADiFunctions']);
 addpath([pathRepo '/Musclemodel']);
 addpath([pathRepo '/Polynomials']);
+addpath([pathRepo '/Debug']);
+AddCasadiPaths();
 
 %% Manual settings
 slv = 0;                % run solver
-pp = 0;                 % postproces
+pp = 1;                 % postproces
 plot = 0;               % plot solution
-batchQueue = 1;         % save settings to run later
+batchQueue = 0;         % save settings to run later
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed 1.25
@@ -25,7 +27,7 @@ S.NThreads  = 6;        % number of threads for parallel computing
 % S.max_iter  = 10;    % maximum number of iterations
 
 % tarsometatarsal joint
-S.tmt = 1;              % 1: use a model with tmt joint
+S.tmt = 0;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
 % linear spring
 S.kTMT = 1000;          % (Nm/rad) stiffness of tmt joint 
@@ -36,7 +38,7 @@ S.k1TMT = 800;
 S.k2TMT = 1;
 S.t1TMT = 0.5;
 % windlass mechanism
-S.Windlass = 1;
+S.Windlass = 0;
 S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsiflexion
 
 % assumption to simplify Hill-type muscle model
@@ -49,8 +51,9 @@ S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile
                         
 S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque profile
 
-% S.ExoImplementation = 'TorqueTibiaMetatarsi';
-S.ExoImplementation = 'TorqueTibiaCalcn';
+% S.ExoImplementation = 'TorqueTibiaCalcn';
+% S.ExoImplementation = 'TorqueTibiaCalcnMetatarsi';
+S.ExoImplementation = 'TorqueTibiaMetatarsi';
 
 % Ideal assistance
 ia = 0;
@@ -59,9 +62,9 @@ ia = 0;
 % S.P_max_ankle_exo = 50;
 
 % output folder
-S.ResultsFolder = 'batch_windlass'; % 'batch_windlass' 'standing'
+S.ResultsFolder = 'MuscleModel'; % 'batch_windlass' 'standing'
 suffixCasName = '';
-suffixName = '';
+suffixName = '_v2';
 
 % Folder with default functions
 S.subject            = 'subject1';
@@ -91,18 +94,25 @@ S.PolyFolder = S.subject;
 
 % external function
 if S.tmt == 0
-    if S.ExoBool == 0
-        S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';        % external function
-        S.ExternalFunc2 = 'PredSim_3D_Pog_s1_mtp_pp.dll';     % external function for post-processing
-    else
-        S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjoint mtp
+    if strcmp(S.subject,'s1_Poggensee')
+        if S.ExoBool == 0
+            S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';        % external function
+            S.ExternalFunc2 = 'PredSim_3D_Pog_s1_mtp_pp.dll';     % external function for post-processing
+        else
+            S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjoint mtp
+        end
+    elseif strcmp(S.subject,'subject1')
+        if S.ExoBool == 0
+            S.ExternalFunc  = 'ID_Subject1.dll';
+            S.ExternalFunc2 = 'Analyse_Subject1_pp.dll';
+        end
     end
-    
 elseif S.tmt ==1
     if S.ExoBool == 0
         if strcmp(S.subject,'s1_Poggensee')
             S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt_v3.dll';
             S.ExternalFunc2 = 'PredSim_3D_Pog_s1_tmt_pp_v3.dll';
+            
         elseif strcmp(S.subject,'subject1')
             S.ExternalFunc  = 'PredSim_3D_Fal_s1_tmt_v1.dll';
             S.ExternalFunc2 = 'PredSim_3D_Fal_s1_tmt_pp_v1.dll';
@@ -112,9 +122,13 @@ elseif S.tmt ==1
             S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_TTC_v3.dll';
             S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_TTC_pp_v3.dll';
             
-        elseif strcmp(S.ExoImplementation,'TorqueTibiaMetatarsi')
+        elseif strcmp(S.ExoImplementation,'TorqueTibiaCalcnMetatarsi')
             S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_TTCM_v1.dll';
             S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_TTCM_pp_v1.dll';
+            
+        elseif strcmp(S.ExoImplementation,'TorqueTibiaMetatarsi')
+            S.ExternalFunc  = 'SimExo_3D_Pog_s1_tmt_TTM_v1.dll';
+            S.ExternalFunc2  = 'SimExo_3D_Pog_s1_tmt_TTM_pp_v1.dll';
         end
     end
     

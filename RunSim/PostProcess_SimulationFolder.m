@@ -15,7 +15,7 @@ addpath([pwd,'/MuscleModel']);
 addpath([pwd,'/Debug']);
 addpath([pwd '/VariousFunctions']);
 AddCasadiPaths();
-DataFolders = {'running'};
+DataFolders = {'MuscleModel'};
 
 
 S.OverWrite = 0;
