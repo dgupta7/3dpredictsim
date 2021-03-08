@@ -20,12 +20,26 @@ cd(pathExternalFunctions)
 F  = external('F','Foot_v6.dll');
 cd(pathmain);
 
+%% CasADi functions
+% We create several CasADi functions for later use
+pathCasADiFunctions = [pathRepo,'/CasADiFunctions'];
+PathDefaultFunc = fullfile(pathCasADiFunctions,S.CasadiFunc_Folders);
+f_PassiveMoments = Function.load(fullfile(PathDefaultFunc,'f_PassiveMoments'));
+f_passiveWLTorques = Function.load(fullfile(PathDefaultFunc,'f_passiveWLTorques'));
+
+%% passive moments parameters
+% copied from CreateCasADidiFunctions_all_tmt.m
+k_pass.ankle = [-2.03 38.11 0.18 -12.12]';
+theta.pass.ankle = [-0.74 0.52]';
+k_pass.subt = [-60.21 16.32 60.21 -16.32]';
+theta.pass.subt = [-0.65 0.65]';
+
 %% Indices external function
 % External function: F
 % Joint torques.
-jointfi.tibia.rx = 1;
-jointfi.tibia.ry = 2;
-jointfi.tibia.rz = 3;
+jointfi.tibia.rz = 1;
+jointfi.tibia.rx = 2;
+jointfi.tibia.ry = 3;
 jointfi.tibia.tx = 4;
 jointfi.tibia.ty = 5;
 jointfi.tibia.tz = 6;
@@ -44,60 +58,34 @@ jointfi.toes_or = 23:25;
 jointfi.calcn_GRF = 26:28;
 jointfi.metatarsi_GRF = 29:31;
 
-%% CasADi functions
-% We create several CasADi functions for later use
-pathCasADiFunctions = [pathRepo,'/CasADiFunctions'];
-PathDefaultFunc = fullfile(pathCasADiFunctions,S.CasadiFunc_Folders);
-f_AllPassiveTorques = Function.load(fullfile(PathDefaultFunc,'f_AllPassiveTorques'));
-
-%% Build simplified passive torque function
-% Indices of passive torques casadi function
+%% Get Boundaries
+load('D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst.mat','setup');
 jointi = getJointi_tmt();
-residualsi = jointi.pelvis.tilt:jointi.elb.r; % all
-nqall = length(residualsi); % all
 
-Qs_p = SX.sym('QS_pass',4);
-Qs_nsc = SX.sym('Qs_nsc',nqall);
-Qs_nsc(:) = 0;
-Qdots_nsc = zeros(nqall,1);
-
-Qs_nsc(jointi.ankle.r) = Qs_p(1);
-Qs_nsc(jointi.subt.r) = Qs_p(2);
-Qs_nsc(jointi.tmt.r) = Qs_p(3);
-Qs_nsc(jointi.mtp.r) = Qs_p(4);
-
-% Get passive joint torques
-Tau_passj_all = full(f_AllPassiveTorques(Qs_nsc(:,1),Qdots_nsc(:,1)));
-Tau_p = [Tau_passj_all(10),Tau_passj_all(12),Tau_passj_all(14)];
-
-
-f_getPassT_Foot = Function('f_getPassT_Foot',{Qs_p},{Tau_p});
-
+bounds_qs =  [[-30,0]*pi/180; % tibia rz
+                    [0.2,0.6]; % tibia ty
+                    [setup.bounds.Qs.lower(jointi.ankle.r), setup.bounds.Qs.upper(jointi.ankle.r)]*setup.scaling.Qs(jointi.ankle.r); % ankle
+                    [setup.bounds.Qs.lower(jointi.subt.r), setup.bounds.Qs.upper(jointi.subt.r)]*setup.scaling.Qs(jointi.subt.r); % subt
+                    [-15,15]*pi/180]; % tmt
 
 
 %% Build system to solve
 
 % variables
-vars = MX.sym('vars',5);
-Q_ankle = vars(1);
-Q_subt = vars(2);
-Q_tmt = vars(3);
-Q_tib_rz = vars(4);
-Q_tib_ty = vars(5);
+Q_tib_rz = MX.sym('Q_tib_rz',1);
+Q_tib_ty = MX.sym('Q_tib_ty',1);
+Q_ankle = MX.sym('Q_ankle',1);
+Q_subt = MX.sym('Q_subt',1);
+Q_tmt = MX.sym('Q_tmt',1);
 
-% Q_ankle = MX.sym('Q',1);
-% Q_subt = MX.sym('Q',1);
-% Q_tmt = MX.sym('Q',1);
-% Q_tib_rz = MX.sym('Q',1);
-% Q_tib_ty = MX.sym('Q',1);
-
-% inputs
+% parameters
 Q_mtp = MX.sym('Q_mtp',1);
 F_tib_y = MX.sym('F_tib_y ',1);
 
-% Get passive torques from previously made function
-Qs_pass = [Q_ankle,Q_subt,Q_tmt,Q_mtp]; 
-Tau_pass = f_getPassT_Foot(Qs_pass);
+% Get passive torques
+Tau_pass_ankle = f_PassiveMoments(k_pass.ankle,theta.pass.ankle,Q_ankle,0);
+Tau_pass_subt= f_PassiveMoments(k_pass.subt,theta.pass.subt,Q_subt,0);
+Tau_pass_tmt = f_passiveWLTorques(Q_tmt,0,Q_mtp);
 
 % evaluate dynamics
 qs = MX.sym('qs',nq);
@@ -108,32 +96,45 @@ qs(jointfi.ankle.r) = Q_ankle;
 qs(jointfi.subt.r) = Q_subt;
 qs(jointfi.tmt.r) = Q_tmt;
 qs(jointfi.mtp.r) = Q_mtp;
-A = zeros(nq,1);
 qsqdots = MX.sym('qsqdots',nq*2);
 qsqdots(:) = 0;
 qsqdots(1:2:end,:) = qs;
+A = MX.sym('qdds',nq);
+A(:) = 0;
+F0 = MX.sym('F0',1);
+F0(:) = 0;
 
-[Tj] = F([qsqdots(:,1);A(:,1);0]);
+[Tj] = F([qsqdots(:,1);A(:,1);F0]);
+% Tj = zeros(31,1);
 
 % positions
 % toes_or_sx = Tj(jointi.toes_or);
-metatarsi_or_sx = Tj(jointfi.metatarsi_or);
-calcn_or_sx = Tj(jointfi.calcn_or);
+% metatarsi_or_sx = Tj(jointfi.metatarsi_or);
+% calcn_or_sx = Tj(jointfi.calcn_or);
 % talus_or_sx = Tj(jointi.talus_or);
-tibia_or_sx = Tj(jointfi.tibia_or);
+% tibia_or_sx = Tj(jointfi.tibia_or);
 
 % make function
-f1 = (metatarsi_or_sx(2)+calcn_or_sx(2))/2 - tibia_or_sx(2); % position of knee
-f2 = Tj(jointfi.tibia.ty,1)+ F_tib_y; % vertical force on knee
-f3 = Tj(jointfi.ankle.r,1) - Tau_pass(1); % ankle
-f4 = Tj(jointfi.subt.r,1) - Tau_pass(2); % subt
-f5 = Tj(jointfi.tmt.r,1) - Tau_pass(3); % tmt
+% f1 = metatarsi_or_sx(1) - tibia_or_sx(1); % position of knee
+f1 = Tj(jointfi.metatarsi_or) - Tj(jointfi.tibia_or);
+f2 = Tj(jointfi.tibia.ty,1) + F_tib_y; % vertical force on knee
+f3 = Tj(jointfi.ankle.r,1) - Tau_pass_ankle;
+f4 = Tj(jointfi.subt.r,1) - Tau_pass_subt;
+f5 = Tj(jointfi.tmt.r,1) - Tau_pass_tmt;
 
-fs = Function('fs',{vars,Q_mtp,F_tib_y},{[f1;f2;f3;f4;f5]});
+% f1 = 0;
+% f2 = 0;
+% f3 = 0;
+% f4 = 0;
+% f5 = 0;
 
+% ff2 = f1^2 + f2^2 + f3^2 + f4^2 + f5^2;
 
-% G = rootfinder('G','newton',fs);
-% disp(G)
+f_foot = Function('f_foot',{[Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt],Q_mtp,F_tib_y},{[f1;f2;f3;f4;f5]});
+% f_foot = Function('f_foot',{[Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt],Q_mtp,F_tib_y},{ff2});
+
+% f_foot_sol = rootfinder('f_foot_sol','newton',f_foot);
+% disp(f_foot_sol)
 
 
 %%
@@ -181,37 +182,61 @@ l0_fa = zeros(n_mtp,n_tib);
 h0_fa = zeros(n_mtp,n_tib);
 q_tmt_0 = zeros(n_mtp,n_tib);
 
-%%
+%% make solver
+opti = casadi.Opti();
+qs_opti = opti.variable(5,1);
+% opti.subject_to(bounds_qs(:,1) <= qs_opti(:,1));
+% opti.subject_to(qs_opti(:,1) <= bounds_qs(:,2));
+% qmtp = opti.parameter();
+% Ftib = opti.parameter();
+qmtp = 0;
+Ftib = 0;
+[fsi] = f_foot(qs_opti,qmtp,Ftib);
+opti.subject_to(fsi == 0);
+% opti.minimize(fsi(1,1)^2 + fsi(2,1)^2 + fsi(3,1)^2 + fsi(4,1)^2 + fsi(5,1)^2);
+% opti.minimize(fsi);
+opti.solver('ipopt');
 
+        
+        
 for i=1:n_mtp
-%     vars_init = zeros(nq-1,1);
-%     vars_init(jointfi.tibia.ty) = 0.4;
-    vars_init = [0;0;0;0;0.4];
+%     vars_init = zeros(5,1);
+%     vars_init(2) = 0.451;
+    vars_init = [-10*pi/180;0.45;10*pi/180;0;0];
     for j=1:n_tib
         %% solve the static situation
-%         [x,fval,~]=fsolve('f_Foot',vars_init,optim_options,F,PassT_Foot,jointfi,Qs_mtp(i),Fs_tib(j));
-%         [x] = G(vars_init,Qs_mtp(i),Fs_tib(j));
+        opti.set_initial(qs_opti,vars_init);
+        opti.set_value(qmtp, Qs_mtp(i));
+        opti.set_value(Ftib, Fs_tib(j))
+        
+        sol = opti.solve();
+        x = sol.value(qs_opti);
 
-        x_MX = MX.sym('x',5,1);
-        [fsi] = fs(x_MX,Qs_mtp(i),Fs_tib(j));
-        cost = fsi(1)^2 + fsi(2)^2 + fsi(3)^2 + fsi(4)^2 + fsi(5)^2;
-        constr = fsi(1);
-        nlp = struct('x', x_MX, 'f', cost, 'g', constr);
-        solver = nlpsol('solver', 'ipopt', nlp);
-        res = solver('x0' , vars_init, 'lbg',0,'ubg',0);
-        x = full(res);
-
-        vars_init = x; %use solution as ig for next (higher) force
+%     prob = struct('f', opti.f, 'x', opti.x, 'g',opti.g );
+%     solver = nlpsol('solver', 'ipopt',prob);
+%     lbx = bounds_qs(:,1);
+%     ubx = bounds_qs(:,2);
+%     lbg = zeros(5,1);
+%     ubg = zeros(5,1);
+%     sol = solver('x0',guess,'lbx',lbx,'ubx',ubx,'lbg',lbg,'ubg',ubg); 
+%     x = full(sol.x);
+    
+%         vars_init = x; % use solution as ig for next (higher) force
+        
         %% postprocess results
         % get states
-        Qs(i,j,1:9) = x;
-        Qs(i,j,10) = Qs_mtp(i);
+        Qs(i,j,jointfi.tibia.rz) = x(1);
+        Qs(i,j,jointfi.tibia.ty) = x(2);
+        Qs(i,j,jointfi.ankle.r) = x(3);
+        Qs(i,j,jointfi.subt.r) = x(4);
+        Qs(i,j,jointfi.tmt.r) = x(5);
+        Qs(i,j,jointfi.mtp.r) = Qs_mtp(i);
 
         QsQdots(i,j,1:2:end) = Qs(i,j,:);
         QsQdots(i,j,2:2:end) = Qdots(i,j,:);
-
+        
         % call external function
-        [T_res] = full(F([vertcat(squeeze(QsQdots(i,j,:)));vertcat(squeeze(Qddots(i,j,:)));Fs_tib(j)]));
+        [T_res] = full(F([vertcat(squeeze(QsQdots(i,j,:)));vertcat(squeeze(Qddots(i,j,:)));0]));
         
         % get GRF
         GRF_calcn(i,j,:) = T_res(jointfi.calcn_GRF);
@@ -270,12 +295,12 @@ R.calcn_or = calcn_or;
 R.talus_or = talus_or;
 R.tibia_or = tibia_or;
 
-OutFolder = fullfile(pathRepo,'Results',S.ResultsFolder);
-FilenameAnalysis = fullfile(OutFolder,[S.savename '_pp.mat']);
-save(FilenameAnalysis,'R');
+% OutFolder = fullfile(pathRepo,'Results',S.ResultsFolder);
+% FilenameAnalysis = fullfile(OutFolder,[S.savename '_pp.mat']);
+% save(FilenameAnalysis,'R');
 
 
-%%
+
 PlotResults_FootSim(R)
 
 

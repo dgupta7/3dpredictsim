@@ -14,15 +14,15 @@ clc
 
 %% parameters from old model
 % Pog s1
-% m_cmf_0 = 0.9688202167589921;
-% I_cmf_0 = [0.000906321, 0.00252475, 0.00265422]';
-% com_cmf_0 = [0.0913924, 0.0274177, 0]';
-% mtp_0 = [0.163409678774199 -0.00182784875586352 0.000987038328166303]';   % in calcn ref
-% Fal s1
-m_cmf_0 = 0.938544584985273;
-I_cmf_0 = [0.000877997854457612, 0.00244585116598906, 0.00257127943091158]';
+m_cmf_0 = 0.9688202167589921;
+I_cmf_0 = [0.000906321, 0.00252475, 0.00265422]';
 com_cmf_0 = [0.0913924, 0.0274177, 0]';
-mtp_0 = [0.163409678774199, -0.00182784875586352, 0.000987038328166303]';   % in calcn ref
+mtp_0 = [0.163409678774199 -0.00182784875586352 0.000987038328166303]';   % in calcn ref
+% Fal s1
+% m_cmf_0 = 0.938544584985273;
+% I_cmf_0 = [0.000877997854457612, 0.00244585116598906, 0.00257127943091158]';
+% com_cmf_0 = [0.0913924, 0.0274177, 0]';
+% mtp_0 = [0.163409678774199, -0.00182784875586352, 0.000987038328166303]';   % in calcn ref
 
 
 % derived params
@@ -202,7 +202,45 @@ plot(locSphere_4_r(1),-locSphere_4_r(3),'*c')
 plot(mtp_0(1)+locSphere_5_r(1),-(mtp_0(3)+locSphere_5_r(3)),'*c')
 plot(mtp_0(1)+locSphere_6_r(1),-(mtp_0(3)+locSphere_6_r(3)),'*c')
 
+%% plot 2
+figure
+subplot(2,1,1)
+hold on
+grid on
 
+plot(mtp_0(1),mtp_0(2),'or')
+plot(MTJ(1),MTJ(2),'or')
+% plot(c2COMf(1),c2COMf(2),'xr')
+% plot(COMc(1),COMc(2),'xr')
+
+plot(0,0,'or')
+title('side view (sagittal plane)')
+
+plot(locSphere_1_r(1),locSphere_1_r(2),'*c')
+plot(locSphere_2_r(1),locSphere_2_r(2),'*c')
+plot(locSphere_3_r(1),locSphere_3_r(2),'*c')
+plot(locSphere_4_r(1),locSphere_4_r(2),'*c')
+plot(mtp_0(1)+locSphere_5_r(1),mtp_0(2)+locSphere_5_r(2),'*c')
+plot(mtp_0(1)+locSphere_6_r(1),mtp_0(2)+locSphere_6_r(2),'*c')
+
+subplot(2,1,2)
+hold on
+grid on
+
+plot(mtp_0(1),-mtp_0(3),'or')
+plot(MTJ(1),-MTJ(3),'or')
+% plot(c2COMf(1),-c2COMf(3),'xr')
+% plot(COMc(1),-COMc(3),'xr')
+
+plot(0,0,'or')
+title('top view (right foot)')
+
+plot(locSphere_1_r(1),-locSphere_1_r(3),'*c')
+plot(locSphere_2_r(1),-locSphere_2_r(3),'*c')
+plot(locSphere_3_r(1),-locSphere_3_r(3),'*c')
+plot(locSphere_4_r(1),-locSphere_4_r(3),'*c')
+plot(mtp_0(1)+locSphere_5_r(1),-(mtp_0(3)+locSphere_5_r(3)),'*c')
+plot(mtp_0(1)+locSphere_6_r(1),-(mtp_0(3)+locSphere_6_r(3)),'*c')
 
 %% relating vectors to foot arch compression
 % based on DOI: 10.1038/srep19403
@@ -226,7 +264,7 @@ d1 = acos(h1/norm(b));
 
 tmt1 = (c1+d1)*180/pi;
 
-tmt_bound = tmt1 - tmt0
+tmt_bound = tmt1 - tmt0;
 % So 15° bound is sensible
 
 h2 = h0*0.87; 
@@ -235,5 +273,5 @@ d2 = acos(h2/norm(b));
 
 tmt2 = (c2+d2)*180/pi;
 
-tmt_2 = tmt2 - tmt0
+tmt_2 = tmt2 - tmt0;
 

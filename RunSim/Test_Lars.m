@@ -16,7 +16,7 @@ AddCasadiPaths();
 
 %% Manual settings
 slv = 0;                % run solver
-pp = 1;                 % postproces
+pp = 0;                 % postproces
 plot = 0;               % plot solution
 batchQueue = 0;         % save settings to run later
 
@@ -24,10 +24,10 @@ batchQueue = 0;         % save settings to run later
 S.v_tgt     = 1.25;     % average speed 1.25
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 6;        % number of threads for parallel computing
-% S.max_iter  = 10;    % maximum number of iterations
+S.max_iter  = 10;    % maximum number of iterations
 
 % tarsometatarsal joint
-S.tmt = 0;              % 1: use a model with tmt joint
+S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
 % linear spring
 S.kTMT = 1000;          % (Nm/rad) stiffness of tmt joint 
@@ -38,7 +38,7 @@ S.k1TMT = 800;
 S.k2TMT = 1;
 S.t1TMT = 0.5;
 % windlass mechanism
-S.Windlass = 0;
+S.Windlass = 1;
 S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsiflexion
 
 % assumption to simplify Hill-type muscle model
@@ -62,13 +62,13 @@ ia = 0;
 % S.P_max_ankle_exo = 50;
 
 % output folder
-S.ResultsFolder = 'MuscleModel'; % 'batch_windlass' 'standing'
+S.ResultsFolder = 'batch_tmt_lin'; % 'batch_windlass' 'standing' 'MuscleModel' 'batch_tmt_lin'
 suffixCasName = '';
-suffixName = '_v2';
+suffixName = '';
 
 % Folder with default functions
-S.subject            = 'subject1';
-% S.subject            = 's1_Poggensee';
+% S.subject            = 'subject1';
+S.subject            = 's1_Poggensee';
 
 % initial guess based on simulations without exoskeletons
 S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
@@ -215,8 +215,10 @@ end
 
 %%
 
-% addpath([pathRepo '/StaticStanding']);
+addpath([pathRepo '/FootModel']);
 % % f_StaticStanding_Gait92(S);
-% f_SimFoot1(S)
+% f_SimFoot2(S)
+% f_PredSim_Foot(S);
+
 
 
