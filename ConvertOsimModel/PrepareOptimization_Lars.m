@@ -21,7 +21,7 @@ S.ModelPath = fullfile(MainPath,'OpenSimModel','Subject1_Poggensee.osim');
 S.CasadiFunc_Folders = 'debug_notmt'; %'Casadi_s1Pog_tmt_d05_k800'; 
 % path to Cpp file used in the optimization
 % S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','PredSim_3D_Fal_s1_tmt_pp_v1.cpp'); 
-S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','Foot_v8.cpp'); 
+S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','Foot_3D_Pog_s1_mtj_v3.cpp'); 
  % path to Cpp file for post processing
 % S.CppFile_pp = fullfile(MainPath,'ExternalFunctions','CppFiles','SimExo_3D_Pog_s1_tmt_pp_v4.cpp');    
 % Number of input arguments in the cpp file

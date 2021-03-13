@@ -1,4 +1,4 @@
-function [M, varargout] = getPassiveTmtjMomentWindlass(q_tmt,qdot_tmt,q_mtp,kTMT_li,kTMT_PF,dTMT,subject,cWL)
+function [M, varargout] = getPassiveTmtjMomentWindlass(q_tmt,qdot_tmt,q_mtp,varargin)
 % This function returns the passive moment around the tarsometatarsal joint
 % q_tmt: angle of tmt joint (rad)
 % q_mtp: angle of mtp joint(rad)
@@ -11,6 +11,22 @@ function [M, varargout] = getPassiveTmtjMomentWindlass(q_tmt,qdot_tmt,q_mtp,kTMT
 % cWL: relation between mtp angle and foot arch length
 %           (see doi.org/10.1098/rsif.2018.0270)
 
+% Get input parameters
+if length(varargin)==5
+    % when passed separately
+    kTMT_li = varargin{1};
+    kTMT_PF = varargin{2};
+    dTMT = varargin{3};
+    subject = varargin{4};
+    cWL = varargin{5};
+elseif length(varargin)==1
+    % from struct with settings
+    kTMT_li = S.kMT_li;
+    kTMT_PF = S.kMT_PF;
+    dTMT = S.dMT;
+    subject = S.subject;
+    cWL = S.cWL;
+end
 
 % Get subject-specific constants, derived from foot geometry 
 % (see \VariousFunctions\WindlassParameters.m)

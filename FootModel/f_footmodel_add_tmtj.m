@@ -1,4 +1,8 @@
 function F = footmodel(vars,m0,I0,COM0,m_calcn,m_midfoot,m_forefoot,tarsometatarsal2com_cm,com_forefoot,If,sf)
+% This function discribes the relations between a foot model consisting or
+% a calcaneus and toes, and a footmodel consisting of a calcaneus,
+% metatarsi and toes.
+
 % variables:
 mc  = vars(1);
 mf  = vars(2);

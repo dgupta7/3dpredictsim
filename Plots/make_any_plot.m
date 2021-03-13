@@ -12,7 +12,7 @@ addpath([pathRepo '/PassiveMoments']);
 % settings. Put an entry in comment to not use it to filter.
 
 plot_default = 1;
-plot_validation = 1;
+plot_validation = 0;
 
 % folder to filter from
 

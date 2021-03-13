@@ -3,19 +3,32 @@ clear all
 close all
 clc
 
-a = 0.1140;    % calcn length
-b = 0.0666;    % metatarsi length
-phi0 = 2.2114;    % tmt vector angle
+% a = 0.1140;    % calcn length
+% b = 0.0666;    % metatarsi length
+% phi0 = 2.2114;    % tmt vector angle
+% H0 = 0.0374;
+
+% a = 0.1126;
+% b = 0.1047;
+% phi0 = 1.6798;
+% H0 = 0.0724;
+
+a = 0.08207;
+b = 0.089638;
+phi0 = 2.493499;
+H0 = 0.027280;
+
 g0 = phi0;      % tmt vector angle inf stiff
 
-q1 = [-45:0.2:45]'*pi/180; % possible tmt angles
+% q1 = [-15:0.2:15]'*pi/180; % possible tmt angles
+q1 = [-20:0.2:20]'*pi/180; % possible mtj angles
 q2 = [-30:30:30]'*pi/180; % possible mtp angles
 
 colr = hsv(length(q2));
 L0 = sqrt(a^2 + b^2 - 2*a*b*cos(phi0));
-H0 = 0.0374;
 
-kTMT_l = 1000;
+
+kTMT_l = 500;
 kTMT_li = 1.5/(pi/180)/5; %same as mtp, stiffness of ligaments and soft tissue not including PF
 
 % weight factors to change cWL
@@ -99,54 +112,54 @@ end
 % grid on
 % axis equal
 
-% f2=figure;
-% hold on
-% grid on
-% for j=1:i
-%     plot(q1*180/pi,M_f(:,j),'color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) '°'])
-% end
-% leg=legend('Location','best');
-% xlabel('tmt angle (°)')
-% ylabel('tmt moment (Nm)')
-% title('Windlass mechanism')
-% title(leg,'mtp angle')
+f2=figure;
+hold on
+grid on
+for j=1:i
+    plot(q1*180/pi,M_f(:,j),'color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) '°'])
+end
+leg=legend('Location','best');
+xlabel('tmt angle (°)')
+ylabel('tmt moment (Nm)')
+title('Windlass mechanism')
+title(leg,'mtp angle')
 
-% figure;
-% hold on
-% grid on
-% for j=1:i
-%     plot(q1*180/pi,M_f2(:,j),'color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) '°'])
-% end
-% leg=legend('Location','best');
-% xlabel('tmt angle (°)')
-% ylabel('tmt moment (Nm)')
-% title('Windlass mechanism (k2)')
-% title(leg,'mtp angle')
+figure;
+hold on
+grid on
+for j=1:i
+    plot(q1*180/pi,M_f2(:,j),'color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) '°'])
+end
+leg=legend('Location','best');
+xlabel('tmt angle (°)')
+ylabel('tmt moment (Nm)')
+title('Windlass mechanism (k2)')
+title(leg,'mtp angle')
 
-% figure;
-% hold on
-% grid on
-% for j=1:i
-%     plot((q1(:)-q1_0(j))*180/pi,k_rot(:,j),'color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) '°'])
-%     plot((q1(:)-q1_0(j))*180/pi,k_rot2(:,j),'--','color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) '°'])
-% end
-% leg=legend('Location','best');
-% xlabel('tmt angle change from load(°)')
-% ylabel('k (Nm/rad)')
-% title('torsion stiffness')
-% title(leg,'mtp angle')
+figure;
+hold on
+grid on
+for j=1:i
+    plot((q1(:)-q1_0(j))*180/pi,k_rot(:,j),'color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) '°'])
+    plot((q1(:)-q1_0(j))*180/pi,k_rot2(:,j),'--','color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) '°'])
+end
+leg=legend('Location','best');
+xlabel('tmt angle change from load(°)')
+ylabel('k (Nm/rad)')
+title('torsion stiffness')
+title(leg,'mtp angle')
 
 
-% f3=figure;
-% hold on
-% grid on
-% for j=1:i
-%     plot((q1-q1_0(j))*180/pi,dl(:,j),'color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) ' full'])
-% end
-% legend
-% ylabel('\Delta l')
-% xlabel('\Delta q1')
-% title('Effect WL on l')
+f3=figure;
+hold on
+grid on
+for j=1:i
+    plot((q1-q1_0(j))*180/pi,dl(:,j),'color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) ' full'])
+end
+legend
+ylabel('\Delta l')
+xlabel('\Delta q1')
+title('Effect WL on l')
 
 
 %% Approximations
@@ -158,58 +171,58 @@ q1_0_lin = cWL*cWLq*q2;
 % cWLq = nanmean(q1_0./(q2));
 % q1_0_lin = cWLq*q2;
 
-% figure
-% plot(q2*180/pi,q1_0*180/pi)
-% hold on
-% grid on
-% plot(q2*180/pi,q1_0_lin*180/pi,'--')
-% xlabel('mtp angle (°)')
-% ylabel('tmt angle inf stiff (°)')
+figure
+plot(q2*180/pi,q1_0*180/pi)
+hold on
+grid on
+plot(q2*180/pi,q1_0_lin*180/pi,'--')
+xlabel('mtp angle (°)')
+ylabel('tmt angle inf stiff (°)')
 
 % l
 cWLl = nanmean((l/L0-1)./q1);
 % cWLl = 0.2293;
 l_lin = L0*(1 + cWLl*(q1+cos(q1)-1) );
 
-% figure
-% plot(q1*180/pi,l/L0)
-% hold on
-% grid on
-% plot(q1*180/pi,l_lin/L0,'--')
-% xlabel('tmt angle (°)')
-% ylabel('normalized arch length (-)')
+figure
+plot(q1*180/pi,l/L0)
+hold on
+grid on
+plot(q1*180/pi,l_lin/L0,'--')
+xlabel('tmt angle (°)')
+ylabel('normalized arch length (-)')
 
 % h
 cWLh = nanmean((h(q1~=0)-H0)./(q1(q1~=0)));
 % cWLh = -0.0364;
 h_lin = cWLh*q1+H0;
 
-% figure
-% plot(q1*180/pi,h/H0)
-% hold on
-% grid on
-% plot(q1*180/pi,h_lin/H0,'--')
-% xlabel('tmt angle (°)')
-% ylabel('normalized arch height (-)')
+figure
+plot(q1*180/pi,h/H0)
+hold on
+grid on
+plot(q1*180/pi,h_lin/H0,'--')
+xlabel('tmt angle (°)')
+ylabel('normalized arch height (-)')
 
-% figure
-% plot(q1*180/pi,h*1e3)
-% hold on
-% grid on
-% plot(q1*180/pi,h_lin*1e3,'--')
-% xlabel('tmt angle (°)')
-% ylabel('h (mm)')
-% title('arch height')
+figure
+plot(q1*180/pi,h*1e3)
+hold on
+grid on
+plot(q1*180/pi,h_lin*1e3,'--')
+xlabel('tmt angle (°)')
+ylabel('h (mm)')
+title('arch height')
 
 % dl
 for i=1:length(q2)
     dl_lin(:,i) = l_lin(:)-l0(i);
 end
 
-% figure(f3)
-% for j=1:i
-%     plot((q1-q1_0_lin(j))*180/pi,dl_lin(:,j),'--','color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) ' q1,l lin'])
-% end
+figure(f3)
+for j=1:i
+    plot((q1-q1_0_lin(j))*180/pi,dl_lin(:,j),'--','color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) ' q1,l lin'])
+end
 
 
 % lin tmt
@@ -223,22 +236,22 @@ for i=1:length(q2)
     c1_lin(:,i) = dl_pos_lin(:,i).*h_lin(:);
 end
 
-% figure(f2)
-% for j=1:i
-%     plot(q1*180/pi,M_f_lin(:,j),'--','color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) ' lin'])
-% end
+figure(f2)
+for j=1:i
+    plot(q1*180/pi,M_f_lin(:,j),'--','color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi) ' lin'])
+end
 
 dc1 = (c1-c1_lin)./c1;
 M_rel = (M_f-M_f_lin)./M_f;
 
-% figure
-% hold on
-% grid on
-% for j=1:i
-%     plot(q1*180/pi,M_rel(:,j),'--','color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi)])
-% end
-% xlabel('tmt angle (°)')
-% ylabel('relative linearization error tmt moment')
+figure
+hold on
+grid on
+for j=1:i
+    plot(q1*180/pi,M_rel(:,j),'--','color',colr(j,:),'DisplayName',[num2str(q2(j)*180/pi)])
+end
+xlabel('tmt angle (°)')
+ylabel('relative linearization error tmt moment')
 
 
 %
