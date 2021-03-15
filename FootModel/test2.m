@@ -8,6 +8,17 @@ clc
 tmtj = 0;
 mtj = ~tmtj;
 
+% mtp angles to be considered
+Qs_mtp = [-30:15:30]*pi/180;
+% vertical forces on knee
+% Fs_tib = [0:200:1000];
+
+% Qs_mtp = [0]*pi/180;
+Fs_tib = [10,20];
+
+n_mtp = length(Qs_mtp);
+n_tib = length(Fs_tib);
+
 %% Load external functions
 import casadi.*
 % The external function performs inverse dynamics through the
@@ -23,8 +34,9 @@ cd(pathExternalFunctions)
 if tmtj
     F  = external('F','Foot_v8.dll'); 
 elseif mtj
-%     F  = external('F','Foot_3D_Pog_s1_mtj_v2.dll');
-    F  = external('F','Foot_3D_Pog_s1_mtj_v3.dll');
+%     F  = external('F','Foot_3D_Pog_s1_mtj_v2.dll'); % dynamic scaling
+%     F  = external('F','Foot_3D_Pog_s1_mtj_v3.dll'); % geometry scaling
+    F  = external('F','Foot_3D_Pog_s1_mtj_v4.dll'); % geo, m_tib = 0
 end
 
 cd(pathmain);
@@ -58,7 +70,7 @@ k_pass.subt = [-60.21 16.32 60.21 -16.32]';
 theta.pass.subt = [-0.65 0.65]';
 
 % Windlass parameters
-kTMT_li = 200;%1.5/(pi/180)/5;
+kTMT_li = 10; %1.5/(pi/180)/5;
 kTMT_PF = S.kTMT;
 dTMT = S.dTMT;
 cWL = S.cWL;
@@ -68,7 +80,7 @@ qin1     = SX.sym('qin_pass1',1);
 qin2     = SX.sym('qin_pass2',1);
 qdotin1  = SX.sym('qdotin_pass1',1);
 
-passWLTorques_mtj = getPassiveMtjMomentWindlass(qin1,qdotin1,qin2,kTMT_li,kTMT_PF,dTMT,S.subject,cWL);
+passWLTorques_mtj = getPassiveMtjMomentWindlass_v2(qin1,qdotin1,qin2,kTMT_li,kTMT_PF,dTMT,S.subject,cWL);
 f_passiveWLTorques_mtj = Function('f_passiveWLTorques_mtj',{qin1,qdotin1,qin2}, ...
     {passWLTorques_mtj},{'qin1','qdotin1','qin2'},{'passWLTorques'});
 
@@ -133,8 +145,8 @@ tensions = getSpecificTensions(muscleNamesFoot);
 load('D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst.mat','setup');
 jointi = getJointi();
 
-bounds_qs = [[-10,10]*pi/180; % tibia rx
-             [-30,0]*pi/180; % tibia rz
+bounds_qs = [[-2,2]*pi/180; % tibia rx
+             [-15,-0]*pi/180; % tibia rz
              [0.2,0.6]; % tibia ty
              [setup.bounds.Qs.lower(jointi.ankle.r), setup.bounds.Qs.upper(jointi.ankle.r)]...
               *setup.scaling.Qs(jointi.ankle.r); % ankle
@@ -248,29 +260,20 @@ T_subt_r        = f_T10(MAj.subt.r,Ft_subt_r);
 f4 = Tj(jointfi.subt.r,1) - (T_subt_r + Tau_pass_subt);
 % Tmt torque
 f5 = Tj(jointfi.tmt.r,1) - Tau_pass_tmt;
+f7 = Tj(jointfi.calcn_or(1),1) + 0.07;
 % Hill difference
 fh = Hilldiff;
 
-ff = [f1;f2;f3;f4;f5;f6;fh;];
+% ff = [f1;f2;f3;f4;f5;f6;fh;];
+ff = [f2;f3;f4;f5;f7;fh;];
 
 % objective
-fo = Tj(jointfi.calcn_or(2),1) - Tj(jointfi.toes_or(2),1);
+fo = Tj(jointfi.calcn_or(2),1) - Tj(jointfi.toes_or(2),1) - 0.01;
 
 
 f_foot = Function('f_foot',{[Q_tib_rx;Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt;FT_tilde],Q_mtp,F_tib_y},{fo,ff});
 
 %%
-% mtp angles to be considered
-Qs_mtp = [-30:10:30]*pi/180;
-% vertical forces on knee
-% Fs_tib = [0:200:1000];
-
-% Qs_mtp = [0]*pi/180;
-Fs_tib = [0,10,50,100];
-
-n_mtp = length(Qs_mtp);
-n_tib = length(Fs_tib);
-
 % Declare arrays for postprocessing results
 Qs = zeros(n_mtp,n_tib,nq);
 Qdots = zeros(n_mtp,n_tib,nq);
@@ -312,7 +315,7 @@ Ftib = opti.parameter();
 [obj,constr] = f_foot([qs_opti;FTtilde_opti],qmtp,Ftib);
 opti.subject_to(constr == 0);
 
-% opti.minimize(obj^2);
+opti.minimize(obj^2);
 
 % solver options
 options.ipopt.hessian_approximation = 'limited-memory';
@@ -326,7 +329,7 @@ temp = [];
 
 %% run solver        
 for i=1:n_mtp
-    qs_init = [0;-10*pi/180;0.45;10*pi/180;0;0]./scale_qs;
+    qs_init = [0;-0*pi/180;0.45;10*pi/180;0;-0.35*Qs_mtp(i)]./scale_qs;
     FTs_init = zeros(NMf,1);
     
     for j=1:n_tib
@@ -397,7 +400,7 @@ for i=1:n_mtp
                         kTMT_li,kTMT_PF,dTMT,S.subject,cWL);
             elseif mtj
                 [Mi, M_PFi,F_PFi,~,~,li,l0i,L0,hi,h0i,H0,q_tmt_0i] = ...
-                        getPassiveMtjMomentWindlass(Qs(i,j,jointfi.tmt.r),0,Qs(i,j,jointfi.mtp.r),...
+                        getPassiveMtjMomentWindlass_v2(Qs(i,j,jointfi.tmt.r),0,Qs(i,j,jointfi.mtp.r),...
                         kTMT_li,kTMT_PF,dTMT,S.subject,cWL);
             end
             M(i,j) = Mi;

@@ -109,7 +109,7 @@ grid on
 plot(m2j(1,:),m2j(2,:),'ob')
 plot(m2c(1,:),m2c(2,:),'xb')
 plot(m2.t.cmfCOM(1),m2.t.cmfCOM(2),'*b')
-plot(m2st(1,:),m2st(2,:),'--b')
+% plot(m2st(1,:),m2st(2,:),'--b')
 
 plot(m2js(1,:),m2js(2,:),'ok')
 plot(m2js(1,:),m2js(2,:),'.k')
@@ -118,7 +118,7 @@ plot(m2.t.cmfCOM_s(1),m2.t.cmfCOM_s(2),'*k')
 
 plot(m0j(1,:),m0j(2,:),'og')
 plot(m0c(1,:),m0c(2,:),'xg')
-plot(m0st(1,:),m0st(2,:),'--g')
+% plot(m0st(1,:),m0st(2,:),'--g')
 
 plot(m11j(1,:),m11j(2,:),'or')
 plot(m11c(1,:),m11c(2,:),'xr')
@@ -133,7 +133,7 @@ grid on
 plot(m2j(1,:),m2j(3,:),'ob')
 plot(m2c(1,:),m2c(3,:),'xb')
 plot(m2.t.cmfCOM(1),m2.t.cmfCOM(3),'*b')
-plot(m2st(1,:),m2st(3,:),'--b')
+% plot(m2st(1,:),m2st(3,:),'--b')
 
 plot(m2js(1,:),m2js(3,:),'ok')
 plot(m2js(1,:),m2js(3,:),'.k')
@@ -142,7 +142,7 @@ plot(m2.t.cmfCOM_s(1),m2.t.cmfCOM_s(3),'*k')
 
 plot(m0j(1,:),m0j(3,:),'og')
 plot(m0c(1,:),m0c(3,:),'xg')
-plot(m0st(1,:),m0st(3,:),'--g')
+% plot(m0st(1,:),m0st(3,:),'--g')
 
 plot(m11j(1,:),m11j(3,:),'or')
 plot(m11c(1,:),m11c(3,:),'xr')
@@ -153,83 +153,83 @@ axis equal
 %% relating vectors to foot arch compression
 % based on DOI: 10.1038/srep19403
 
-a = m11.c.mtj(1:2);
-b = m11.mf.mtpj(1:2);
-
-l_0 = norm(a+b);
-h0 = -b(2); 
-% Difference in y-coordinate between calcn origin and m1a.f.mtpj 
-% results in 1° difference, so it is omitted.
-
-c0 = acos(h0/norm(a));
-d0 = acos(h0/norm(b));
-
-mt0 = (c0+d0)*180/pi;
-
-h1 = h0*0.8; 
-c1 = acos(h1/norm(a));
-d1 = acos(h1/norm(b));
-
-mt1 = (c1+d1)*180/pi;
-
-mt_bound = mt1 - mt0;
-% So 15° bound is sensible
-
-h2 = h0*0.87; 
-c2 = acos(h2/norm(a));
-d2 = acos(h2/norm(b));
-
-mt2 = (c2+d2)*180/pi;
+% a = m11.c.mtj(1:2);
+% b = m11.mf.mtpj(1:2);
+% 
+% l_0 = norm(a+b);
+% h0 = -b(2); 
+% % Difference in y-coordinate between calcn origin and m1a.f.mtpj 
+% % results in 1° difference, so it is omitted.
+% 
+% c0 = acos(h0/norm(a));
+% d0 = acos(h0/norm(b));
+% 
+% mt0 = (c0+d0)*180/pi;
+% 
+% h1 = h0*0.8; 
+% c1 = acos(h1/norm(a));
+% d1 = acos(h1/norm(b));
+% 
+% mt1 = (c1+d1)*180/pi;
+% 
+% mt_bound = mt1 - mt0;
+% % So 15° bound is sensible
+% 
+% h2 = h0*0.87; 
+% c2 = acos(h2/norm(a));
+% d2 = acos(h2/norm(b));
+% 
+% mt2 = (c2+d2)*180/pi;
 
 mt_2 = mt2 - mt0;
 
 %% subtalar joint axis orientation
 % original
-alpha_st = atan(m0.c.subt_st(2)/m0.c.subt_st(1))*180/pi;
-beta_st = atan(-m0.c.subt_st(3)/m0.c.subt_st(1))*180/pi;
-
-incl1 = alpha_st*pi/180;
-dev1 = beta_st*pi/180;
-
-R1 = [cos(incl1),-sin(incl1),0;
-     sin(incl1),cos(incl1),0;
-     0,0,1];
-R2 = [cos(dev1),0,sin(dev1);
-     0,1,0;
-     -sin(dev1),0,cos(dev1)];
-
-st_subt1 = R2*R1*[1;0;0]
-
-m0.c.subt_st;
-
-% doi:10.1136/bjsm.2010.080119
-incl2 = 42*pi/180; % +-16
-dev2 = 11*pi/180; % +-23
-
-R1 = [cos(incl2),-sin(incl2),0;
-     sin(incl2),cos(incl2),0;
-     0,0,1];
-R2 = [cos(dev2),0,sin(dev2);
-     0,1,0;
-     -sin(dev2),0,cos(dev2)];
-
-st_subt2 = R2*R1*[1;0;0]
-norm(st_subt2);
-
-% doi:10.1016/j.jbiomech.2012.01.011
-incl3 = 45.5*pi/180; % std 3.4
-dev3 = 5*pi/180; % std3.8
-
-
-R1 = [cos(incl3),-sin(incl3),0;
-     sin(incl3),cos(incl3),0;
-     0,0,1];
-R2 = [cos(dev3),0,sin(dev3);
-     0,1,0;
-     -sin(dev3),0,cos(dev3)];
-
-st_subt3 = R2*R1*[1;0;0]
-norm(st_subt3);
+% alpha_st = atan(m0.c.subt_st(2)/m0.c.subt_st(1))*180/pi;
+% beta_st = atan(-m0.c.subt_st(3)/m0.c.subt_st(1))*180/pi;
+% 
+% incl1 = alpha_st*pi/180;
+% dev1 = beta_st*pi/180;
+% 
+% R1 = [cos(incl1),-sin(incl1),0;
+%      sin(incl1),cos(incl1),0;
+%      0,0,1];
+% R2 = [cos(dev1),0,sin(dev1);
+%      0,1,0;
+%      -sin(dev1),0,cos(dev1)];
+% 
+% st_subt1 = R2*R1*[1;0;0]
+% 
+% m0.c.subt_st;
+% 
+% % doi:10.1136/bjsm.2010.080119
+% incl2 = 42*pi/180; % +-16
+% dev2 = 11*pi/180; % +-23
+% 
+% R1 = [cos(incl2),-sin(incl2),0;
+%      sin(incl2),cos(incl2),0;
+%      0,0,1];
+% R2 = [cos(dev2),0,sin(dev2);
+%      0,1,0;
+%      -sin(dev2),0,cos(dev2)];
+% 
+% st_subt2 = R2*R1*[1;0;0]
+% norm(st_subt2);
+% 
+% % doi:10.1016/j.jbiomech.2012.01.011
+% incl3 = 45.5*pi/180; % std 3.4
+% dev3 = 5*pi/180; % std3.8
+% 
+% 
+% R1 = [cos(incl3),-sin(incl3),0;
+%      sin(incl3),cos(incl3),0;
+%      0,0,1];
+% R2 = [cos(dev3),0,sin(dev3);
+%      0,1,0;
+%      -sin(dev3),0,cos(dev3)];
+% 
+% st_subt3 = R2*R1*[1;0;0]
+% norm(st_subt3);
 
 
 
