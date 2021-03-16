@@ -49,6 +49,7 @@ diff = m0.t.mtpj(2) - m2.t.mtpj(2);
 m11.t.subt = m0.t.subt;
 m11.t.subt(2) = m11.t.subt(2) - diff;
 m11.t.mtj = m2.t.mtj.*sf;
+m11.t.mtj(2) = m11.t.mtj(2) + 0.01; %small change
 m11.t.mtpj = m0.t.mtpj;
 m11.t.mtpj(2) = m11.t.mtpj(2) - diff;
 
@@ -56,8 +57,9 @@ m11.c.mtj = m11.t.mtj - m11.t.subt;
 m11.mf.mtpj = m11.t.mtpj - m11.t.mtj;
 
 m11.t.cCOM = m2.t.cCOM.*sf;
-m11.t.cCOM(2) = m11.t.cCOM(2) + 0.01;
+m11.t.cCOM(2) = m11.t.cCOM(2) + 0.01 +0.01; %small change
 m11.t.mfCOM = (m2.t.mCOM*m2.m.m + m2.t.fCOM*m2.f.m)/(m2.m.m+m2.f.m).*sf;
+m11.t.mfCOM(2) = m11.t.mfCOM(2) +0.01; %small change
 m11.t.cmfCOM = m0.t.cmfCOM;
 m11.t.cmfCOM(2) = m2.t.cmfCOM_s(2);
 
@@ -153,33 +155,33 @@ axis equal
 %% relating vectors to foot arch compression
 % based on DOI: 10.1038/srep19403
 
-% a = m11.c.mtj(1:2);
-% b = m11.mf.mtpj(1:2);
-% 
-% l_0 = norm(a+b);
-% h0 = -b(2); 
-% % Difference in y-coordinate between calcn origin and m1a.f.mtpj 
-% % results in 1° difference, so it is omitted.
-% 
-% c0 = acos(h0/norm(a));
-% d0 = acos(h0/norm(b));
-% 
-% mt0 = (c0+d0)*180/pi;
-% 
-% h1 = h0*0.8; 
-% c1 = acos(h1/norm(a));
-% d1 = acos(h1/norm(b));
-% 
-% mt1 = (c1+d1)*180/pi;
-% 
-% mt_bound = mt1 - mt0;
-% % So 15° bound is sensible
-% 
-% h2 = h0*0.87; 
-% c2 = acos(h2/norm(a));
-% d2 = acos(h2/norm(b));
-% 
-% mt2 = (c2+d2)*180/pi;
+a = m11.c.mtj(1:2);
+b = m11.mf.mtpj(1:2);
+
+l_0 = norm(a+b);
+h0 = -b(2); 
+% Difference in y-coordinate between calcn origin and m1a.f.mtpj 
+% results in 1° difference, so it is omitted.
+
+c0 = acos(h0/norm(a));
+d0 = acos(h0/norm(b));
+
+mt0 = (c0+d0)*180/pi;
+
+h1 = h0*0.8; 
+c1 = acos(h1/norm(a));
+d1 = acos(h1/norm(b));
+
+mt1 = (c1+d1)*180/pi;
+
+mt_bound = mt1 - mt0;
+% So 15° bound is sensible
+
+h2 = h0*0.87; 
+c2 = acos(h2/norm(a));
+d2 = acos(h2/norm(b));
+
+mt2 = (c2+d2)*180/pi;
 
 mt_2 = mt2 - mt0;
 

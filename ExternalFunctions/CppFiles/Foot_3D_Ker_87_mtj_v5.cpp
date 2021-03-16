@@ -173,8 +173,8 @@ int F_generic(const T** arg, T** res) {
 	subtalar_r = new CustomJoint("subtalar_r", *talus_r, Vec3(-0.044572100000000003, -0.05145, 0.0072382799999999997), Vec3(0), *calcn_r, Vec3(0), Vec3(0), st_subtalar_r); // 1 dof
 	midtarsal_r = new PinJoint("midtarsal_r", *calcn_r, Vec3(0.078023, 0.025452, -0.0068103), Vec3(0), *central_foot_r, Vec3(0), Vec3(0)); // 1 dof
 	mtp_r = new PinJoint("mtp_r", *central_foot_r, Vec3(0.0853859, -0.02728, 0.00779737), Vec3(0), *toes_r, Vec3(0), Vec3(0)); // 1 dof
-	ground_heel = new CustomJoint("ground_heel", model->getGround(), Vec3(0), Vec3(0), *calcn_r, Vec3(0.06, -0.01, 0.012), Vec3(0), st_ground_heel); // 6 dof
-	ground_forefoot = new CustomJoint("ground_forefoot", model->getGround(), Vec3(0), Vec3(0), *central_foot_r, Vec3(0.086976, -0.035452,  0.012), Vec3(0), st_ground_forefoot); // 6 dof
+	ground_heel = new CustomJoint("ground_heel", *calcn_r, Vec3(0.06, -0.01, 0.012), Vec3(0), model->getGround(), Vec3(0), Vec3(0), st_ground_heel); // 6 dof
+	ground_forefoot = new CustomJoint("ground_forefoot", *central_foot_r, Vec3(0.086976, -0.035452,  0.012), Vec3(0), model->getGround(), Vec3(0), Vec3(0), st_ground_forefoot); // 6 dof
 
 	/// Add bodies and joints to model
 	model->addBody(tibia_r);		model->addJoint(ground_tibia);

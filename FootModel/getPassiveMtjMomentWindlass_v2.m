@@ -50,25 +50,16 @@ l = sqrt(a^2 + b^2 - 2*a*b*cos(phi));
 h = a*b./l.*sin(phi);
 
 % Get linear PF stiffness
-% Simplification, but order of magnitude of k is similar to
-% doi:10.1016/j.clinbiomech.2004.06.002
-% q1 = (-5:1:5)*pi/180; % use small range for tmt angle
-% l1 = L0*(1 + cWLl*(q1+cos(q1)-1) );
-% h1 = cWLh*q1 + H0;
-% k_PF = nanmean(kMT_PF*q1./(h1.*(l1-L0)));
-
 k_PF = 7.1994e+05*kMT_PF/1000;
-dl_0 = 2e-3;
+dl_0 = L0/100; %
 
-% % Get PF slack length out of the force offset
-% stiffness(:,1) = (0:5:1000)/1000; %lengths
-% stiffness(:,2) = PF_stiffness(k_PF,stiffness(:,1),dl_0);
-% l_s = l_0 - interp1(stiffness(:,2),stiffness(:,1),F_PF_0);
+
 
 % Calculate moments
 dl_PF = (l-l_0); % PF elongation
-F_PF = k_PF*dl_PF;
-% F_PF = k_PF*(dl_PF - dl_0*tanh(dl_PF/dl_0));
+% F_PF = k_PF*dl_PF; % linear stiffness
+F_PF = k_PF*(dl_PF - dl_0*tanh(dl_PF/dl_0)); % stiffening
+
 F_PF = F_PF.*( tanh(F_PF)+1 )/2; % >=0
 M_PF = F_PF*h; % moment from PF elongation
 
@@ -82,8 +73,4 @@ M = -(M_PF + M_li + M_d);
 if nargout > 1
     varargout = {M_PF,F_PF,M_li,M_d,l,l_0,L0,h,h_0,H0,q_mt_0};
 end
-
-%     function force = PF_stiffness(k,dl,dl_stiff)
-%        force = k*(dl - dl_stiff*tanh(dl/dl_stiff));
-%     end
 end

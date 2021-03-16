@@ -9,12 +9,12 @@ tmtj = 0;
 mtj = ~tmtj;
 
 % mtp angles to be considered
-Qs_mtp = [-30:15:30]*pi/180;
+Qs_mtp = [-45:15:45]*pi/180;
 % vertical forces on knee
 % Fs_tib = [0:200:1000];
 
 % Qs_mtp = [0]*pi/180;
-Fs_tib = [10,20];
+Fs_tib = [0,10,20];
 
 n_mtp = length(Qs_mtp);
 n_tib = length(Fs_tib);
