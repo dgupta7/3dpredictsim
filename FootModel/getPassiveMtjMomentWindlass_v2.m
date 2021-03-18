@@ -1,4 +1,4 @@
-function [M, varargout] = getPassiveMtjMomentWindlass_v2(q_mt,qdot_mt,q_mtp,kMT_li,kMT_PF,dMT,subject,cWL)
+function [M, varargout] = getPassiveMtjMomentWindlass_v2(q_mt,qdot_mt,q_mtp,varargin)
 % This function returns the passive moment around the tarsometatarsal joint
 % q_mt: angle of midtarsal joint (rad)
 % q_mtp: angle of mtp joint(rad)
@@ -11,6 +11,52 @@ function [M, varargout] = getPassiveMtjMomentWindlass_v2(q_mt,qdot_mt,q_mtp,kMT_
 % cWL: relation between mtp angle and foot arch length
 %           (see doi.org/10.1098/rsif.2018.0270)
 
+%% Get default parameters
+% a = 0.08207;
+% b = 0.089638;
+% phi0 = 2.493499;
+% H0 = 0.027280;
+
+a = 0.0857;
+b = 0.0932;
+phi0 = 2.2799;
+H0 = 0.0373;
+
+R_mtth = 0.02; % radius of the metatarsal head
+l_toe = 0.015; % distance from metatarsal head to PF attachment point at toe
+
+% The reference position of the mtj (used for calculating the torque) is
+% given by: a + b * q_mtp
+q_mt_0_a = 10*pi/180;
+q_mt_0_b = -0;
+
+
+%% Get specific parameters
+if isempty(varargin)
+    f_PF_stiffness = @(le) 5.9706e+05*(le-0.17); % linear with default values
+else
+    f_PF_stiffness = varargin{1};
+end
+
+kMT_li = 0;
+dMT = 0;
+cWL = 0.2;
+
+if length(varargin)==5
+    % when passed separately
+    kMT_li = varargin{2};
+    dMT = varargin{3};
+    subject = varargin{4};
+    cWL = varargin{5};
+    
+elseif length(varargin)==2
+    % from struct with settings
+    S = varargin{2};
+    kMT_li = S.kTMT_li;
+    dMT = S.dTMT;
+    subject = S.subject;
+    cWL = S.cWL;
+end
 
 % Get subject-specific constants, derived from foot geometry (projected on
 % sagittal plane)
@@ -27,50 +73,45 @@ function [M, varargout] = getPassiveMtjMomentWindlass_v2(q_mt,qdot_mt,q_mtp,kMT_
 %     phi0 = 1.6798;
 % end
 
-a = 0.08207;
-b = 0.089638;
-phi0 = 2.493499;
-H0 = 0.027280;
+%% Geometry Windlass mechanism
+% zero load
+L0_fa = sqrt(a^2 + b^2 - 2*a*b*cos(phi0)); % foot arch length for mtp angle 0
+l_0_fa = (1-cWL*(q_mtp*180/pi)/20)*L0_fa; % foot arch length
+h_0_fa = a*b./l_0_fa*sin(phi0);
+q_mt_0 = acos( (a^2 + b^2 - l_0_fa.^2)/(2*a*b) ) - phi0;
 
-L0 = sqrt(a^2 + b^2 - 2*a*b*cos(phi0));
-
-% Get values resulting from Windlass mechanism, assuming infinitely stiff
-% PF and no influence from other soft tissue.
-l_0 = (1-cWL*(q_mtp*180/pi)/20)*L0; % foot arch length
-h_0 = a*b./l_0*sin(phi0);
-q_mt_0 = acos( (a^2 + b^2 - l_0.^2)/(2*a*b) ) - phi0;
-
-% % In this "0" situation, plantar fascia force is in equilibrium with forces
-% % resulting from other elastic tissue.
-% F_PF_0 = q_mt_0*kMT_li/h_0; % force offset
-
-% Get foot arch dimensions from mtj angle
+% based on midtarsal joint angle
 phi = phi0 + q_mt;
-l = sqrt(a^2 + b^2 - 2*a*b*cos(phi));
-h = a*b./l.*sin(phi);
+l_fa = sqrt(a^2 + b^2 - 2*a*b*cos(phi));
+h = a*b./l_fa.*sin(phi);
 
-% Get linear PF stiffness
-k_PF = 7.1994e+05*kMT_PF/1000;
-dl_0 = L0/100; %
+% Plantar fascia length
+l = l_fa + R_mtth*q_mtp + l_toe;
 
+%% Torques
+% plantar fascia
+if nargout == 1
+    F_PF = f_PF_stiffness(l); % when building passive torques function
+else
+    F_PF = full(f_PF_stiffness(l)); % when post-processing
+end
+M_PF = F_PF*h;
 
+% other elastic structures
+q0 = q_mt_0_a + q_mt_0_b*q_mtp;
+M_li = (q_mt - q0)*kMT_li;
 
-% Calculate moments
-dl_PF = (l-l_0); % PF elongation
-% F_PF = k_PF*dl_PF; % linear stiffness
-F_PF = k_PF*(dl_PF - dl_0*tanh(dl_PF/dl_0)); % stiffening
+% viscous damping
+M_d = dMT*qdot_mt;
 
-F_PF = F_PF.*( tanh(F_PF)+1 )/2; % >=0
-M_PF = F_PF*h; % moment from PF elongation
-
-M_li = kMT_li*q_mt; % moment from ligament elongation
-M_d = dMT*qdot_mt; % moment from viscous friction
-
-% Total passive moment
+%% Total passive moment
 M = -(M_PF + M_li + M_d);
 
 % Return some more outputs if the function is called from postprocessing
-if nargout > 1
-    varargout = {M_PF,F_PF,M_li,M_d,l,l_0,L0,h,h_0,H0,q_mt_0};
+if nargout == 2
+    varargout = {q_mt_0};
+elseif nargout > 2
+    varargout = {M_PF,F_PF,M_li,M_d,l,l_fa,l_0_fa,L0_fa,h,h_0_fa,H0,q_mt_0};
 end
+
 end

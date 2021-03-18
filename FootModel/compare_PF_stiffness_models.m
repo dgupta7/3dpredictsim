@@ -2,7 +2,7 @@ clear
 clc
 
 cWL = 0.020;
-R = 0.015;
+R = 0.02;
 ls = 0.17;
 l_toe = 0.015;
 
@@ -48,7 +48,7 @@ L0 = sqrt(a^2 + b^2 - 2*a*b*cos(phi0));
 qt = [-45:5:45];
 ni = length(qt);
 
-lz = linspace(1,1.06,1000);
+lz = linspace(1,1.13,1000);
 l = lz*ls;
 ni = length(l);
 
@@ -75,6 +75,9 @@ for i=1:ni
     A(i) = A0*(1-Pr*(lz(i)-1)).^2;
     F(5,i) = sgm(i)*A(i);
     F_ply(i) = F(5,i).*( tanh(F(5,i))+1 )/2;
+    
+    F(6,i) = 1e4*exp(l(i)-ls);
+    F_exp(i) = F(6,i).*( tanh(F(6,i))+1 )/2;
 
 %     q0(i) = q0_0 - qt(i)/qf *pi/180;
 %     M_li(i) = (q_mt_0(i)-q0(i))*kMT_li;
@@ -111,10 +114,11 @@ plot(lz,F_tnh,'DisplayName','hypoelastic (tanh)')
 plot(lz,F_he,'DisplayName','hyper elastic')
 plot(lz,F_qdr,'DisplayName','hypoelastic (k \Deltal^2)')
 plot(lz,F_ply,'DisplayName','hypoelastic (5e O)')
+plot(lz,F_exp,'DisplayName','hypoelastic (exp)')
 legend('Location','best')
 xlabel('l/l_s (-)')
 ylabel('PF force (N)')
-ylim([0,5000])
+% ylim([0,5000])
 
 % figure
 % hold on

@@ -1,23 +1,41 @@
 
+% Assuming the knee is bent 90°
+
 clearvars -except 'S'
 AddCasadiPaths();
 
-%% Default settings
+%% Settings
 S = GetDefaultSettings(S);
 clc
 tmtj = 0;
 mtj = ~tmtj;
 
 % mtp angles to be considered
-Qs_mtp = [-45:15:45]*pi/180;
+% Qs_mtp = [-45:15:45]*pi/180;
+% Qs_mtp = [-30:30:30]*pi/180;
 % vertical forces on knee
-% Fs_tib = [0:200:1000];
+Fs_tib = [20,100:100:1000];
 
-% Qs_mtp = [0]*pi/180;
-Fs_tib = [0,10,20];
+Qs_mtp = [0]*pi/180;
+% Fs_tib = [20];
 
 n_mtp = length(Qs_mtp);
 n_tib = length(Fs_tib);
+
+% Windlass parameters
+S.kTMT_li = 100; %1.5/(pi/180)/5;
+S.kTMT_PF = 500;
+S.dTMT = 0;
+S.cWL = 0.025;
+
+% PF_stiffness = 'linear';
+% PF_stiffness = 'hypoelastic_tanh';
+% PF_stiffness = 'hypoelastic_sqr';
+% PF_stiffness = 'hypoelastic_poly5';
+PF_stiffness = 'hyperelastic_MR5';
+
+%% Get PF model
+f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(PF_stiffness);
 
 %% Load external functions
 import casadi.*
@@ -36,7 +54,8 @@ if tmtj
 elseif mtj
 %     F  = external('F','Foot_3D_Pog_s1_mtj_v2.dll'); % dynamic scaling
 %     F  = external('F','Foot_3D_Pog_s1_mtj_v3.dll'); % geometry scaling
-    F  = external('F','Foot_3D_Pog_s1_mtj_v4.dll'); % geo, m_tib = 0
+%     F  = external('F','Foot_3D_Pog_s1_mtj_v4.dll'); % geo, m_tib = 0
+    F  = external('F','Foot_3D_Pog_s1_mtj_v6.dll'); % geo with higher arch, m_tib = 0
 end
 
 cd(pathmain);
@@ -52,16 +71,6 @@ f_forceEquilibrium_FtildeState_all_tendon = Function.load(fullfile(PathDefaultFu
 f_lMT_vMT_dM = Function.load(fullfile(PathDefaultFunc,'f_lMT_vMT_dM'));
 f_T12 = Function.load(fullfile(PathDefaultFunc,'f_T12'));
 
-% Create a new function (since it doesn't exist for the full model)
-% Function for 10 elements
-ma_temp10 = SX.sym('ma_temp10',10);
-ft_temp10 = SX.sym('ft_temp10',10);
-J_sptemp10 = 0;
-for i=1:length(ma_temp10)
-    J_sptemp10 = J_sptemp10 + ma_temp10(i,1)*ft_temp10(i,1);
-end
-f_T10 = Function('f_T10',{ma_temp10,ft_temp10},{J_sptemp10});
-
 %% passive moments parameters
 % copied from CreateCasADidiFunctions_all_tmt.m
 k_pass.ankle = [-2.03 38.11 0.18 -12.12]';
@@ -69,18 +78,12 @@ theta.pass.ankle = [-0.74 0.52]';
 k_pass.subt = [-60.21 16.32 60.21 -16.32]';
 theta.pass.subt = [-0.65 0.65]';
 
-% Windlass parameters
-kTMT_li = 10; %1.5/(pi/180)/5;
-kTMT_PF = S.kTMT;
-dTMT = S.dTMT;
-cWL = S.cWL;
-
 % Create casadifunction for midtarsal joint windlass torque
 qin1     = SX.sym('qin_pass1',1);
 qin2     = SX.sym('qin_pass2',1);
 qdotin1  = SX.sym('qdotin_pass1',1);
 
-passWLTorques_mtj = getPassiveMtjMomentWindlass_v2(qin1,qdotin1,qin2,kTMT_li,kTMT_PF,dTMT,S.subject,cWL);
+passWLTorques_mtj = getPassiveMtjMomentWindlass_v2(qin1,qdotin1,qin2,f_PF_stiffness,S);
 f_passiveWLTorques_mtj = Function('f_passiveWLTorques_mtj',{qin1,qdotin1,qin2}, ...
     {passWLTorques_mtj},{'qin1','qdotin1','qin2'},{'passWLTorques'});
 
@@ -131,10 +134,8 @@ pathpolynomial = fullfile(pathRepo,'Polynomials',S.PolyFolder); % default locati
 tl = load([pathpolynomial,'/muscle_spanning_joint_INFO.mat']);
 [~,mai] = MomentArmIndices(muscleNames(1:end-3),tl.muscle_spanning_joint_INFO);
 % Muscles in foot
-musif = find( ( tl.muscle_spanning_joint_INFO(:,5)==1 | tl.muscle_spanning_joint_INFO(:,6)==1 | ...
-    tl.muscle_spanning_joint_INFO(:,7)==1 ) & tl.muscle_spanning_joint_INFO(:,4)==0 );
-% musif = find(tl.muscle_spanning_joint_INFO(:,5)==1 | tl.muscle_spanning_joint_INFO(:,6)==1 | ...
-%     tl.muscle_spanning_joint_INFO(:,7)==1);
+musif = find(tl.muscle_spanning_joint_INFO(:,5)==1 | tl.muscle_spanning_joint_INFO(:,6)==1 | ...
+    tl.muscle_spanning_joint_INFO(:,7)==1);
 NMf = length(musif);
 for i=1:NMf
     muscleNamesFoot{i} = muscleNames{musif(i)};
@@ -195,7 +196,7 @@ qin_r(4) = -pi/2; % knee flex
 qin_r(5) = Q_ankle;
 qin_r(6) = Q_subt;
 qin_r(7) = Q_mtp;
-qdotin_r   = MX.zeros(10,1);
+qdotin_r = MX.zeros(10,1);
 [lMTj_r,vMTj_r,MAj_r] = f_lMT_vMT_dM(qin_r,qdotin_r);
     
 lMT_r = lMTj_r(musif);
@@ -226,8 +227,8 @@ end
 
 % Do not use mai 1 and 2, since they correspond with muscles also spanning
 % the knee.
-MAj.ankle.r      =  MAj_r(mai(5).mus.l(3:end)',5);
-MAj.subt.r       =  MAj_r(mai(6).mus.l(3:end)',6);
+MAj.ankle.r      =  MAj_r(mai(5).mus.l(1:end)',5);
+MAj.subt.r       =  MAj_r(mai(6).mus.l(1:end)',6);
 
 % evaluate dynamics
 qs = MX.zeros(nq,1);
@@ -252,26 +253,33 @@ f6 = Tj(jointfi.metatarsi_or(3),1) - Tj(jointfi.tibia_or(3),1);
 f2 = Tj(jointfi.tibia.ty,1) + F_tib_y;
 % Ankle torque
 Ft_ankle_r      = FT(:);
-T_ankle_r       = f_T10(MAj.ankle.r,Ft_ankle_r);
+T_ankle_r       = f_T12(MAj.ankle.r,Ft_ankle_r);
 f3 = Tj(jointfi.ankle.r,1) - (T_ankle_r + Tau_pass_ankle);
 % Subtalar torque
 Ft_subt_r       = FT(:);
-T_subt_r        = f_T10(MAj.subt.r,Ft_subt_r);
+T_subt_r        = f_T12(MAj.subt.r,Ft_subt_r);
 f4 = Tj(jointfi.subt.r,1) - (T_subt_r + Tau_pass_subt);
 % Tmt torque
 f5 = Tj(jointfi.tmt.r,1) - Tau_pass_tmt;
-f7 = Tj(jointfi.calcn_or(1),1) + 0.07;
+% Calcaneus position
+f7 = Tj(jointfi.calcn_or(1),1) + 0.07; % alternative to f1
 % Hill difference
 fh = Hilldiff;
 
+% Equality constraints
 % ff = [f1;f2;f3;f4;f5;f6;fh;];
-ff = [f2;f3;f4;f5;f7;fh;];
+ff = [f1;f2;f3;f4;f5;fh;];
 
-% objective
-fo = Tj(jointfi.calcn_or(2),1) - Tj(jointfi.toes_or(2),1) - 0.01;
+% Objective
+fo = (Tj(jointfi.calcn_or(2),1) - Tj(jointfi.toes_or(2),1) - 0.01)^2; % square to get positive value
 
-
+% Define function to return constraints and objective
 f_foot = Function('f_foot',{[Q_tib_rx;Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt;FT_tilde],Q_mtp,F_tib_y},{fo,ff});
+
+% Define function to return forces and torques for post-processing
+f_foot_pp = Function('f_foot_pp',{[Q_tib_rx;Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt;FT_tilde],Q_mtp,F_tib_y},...
+    {FT,T_ankle_r,Tau_pass_ankle,T_subt_r,Tau_pass_subt});
+
 
 %%
 % Declare arrays for postprocessing results
@@ -290,13 +298,24 @@ l_fa_ext = zeros(n_mtp,n_tib);
 h_fa_ext = zeros(n_mtp,n_tib);
 M = zeros(n_mtp,n_tib);
 M_PF = zeros(n_mtp,n_tib);
+M_li = zeros(n_mtp,n_tib);
 F_PF = zeros(n_mtp,n_tib);
+l_PF = zeros(n_mtp,n_tib);
 l_fa = zeros(n_mtp,n_tib);
 h_fa = zeros(n_mtp,n_tib);
 l0_fa = zeros(n_mtp,n_tib);
 h0_fa = zeros(n_mtp,n_tib);
 q_tmt_0 = zeros(n_mtp,n_tib);
 failed = zeros(n_mtp,n_tib);
+T_ankle = zeros(n_mtp,n_tib);
+tau_ankle = zeros(n_mtp,n_tib);
+T_subt = zeros(n_mtp,n_tib);
+tau_subt = zeros(n_mtp,n_tib);
+T_ankle_ext = zeros(n_mtp,n_tib);
+T_subt_ext = zeros(n_mtp,n_tib);
+for i=1:NMf
+    F_tendon.(muscleNamesFoot{i}) = zeros(n_mtp,n_tib);
+end
 
 %% make solver
 opti = casadi.Opti();
@@ -315,7 +334,7 @@ Ftib = opti.parameter();
 [obj,constr] = f_foot([qs_opti;FTtilde_opti],qmtp,Ftib);
 opti.subject_to(constr == 0);
 
-opti.minimize(obj^2);
+opti.minimize(obj);
 
 % solver options
 options.ipopt.hessian_approximation = 'limited-memory';
@@ -327,9 +346,21 @@ opti.solver('ipopt', options);
      
 temp = [];
 
+
 %% run solver        
 for i=1:n_mtp
-    qs_init = [0;-0*pi/180;0.45;10*pi/180;0;-0.35*Qs_mtp(i)]./scale_qs;
+    % get initial guess
+%     if tmtj
+%         [~,~,~,~,~,~,~,~,~,~,~,q_tmt_0i] = ...
+%                 getPassiveTmtjMomentWindlass(0,0,Qs(i,j,jointfi.mtp.r),...
+%                 kTMT_li,kTMT_PF,dTMT,S.subject,cWL);
+%     elseif mtj
+%         [~,q_mt_init] = getPassiveMtjMomentWindlass_v2(0,0,Qs_mtp(i),kTMT_li,kTMT_PF,dTMT,S.subject,cWL);
+%     end
+    
+    q_mt_init = 0;
+    
+    qs_init = [0;-0*pi/180;0.45;10*pi/180;0;q_mt_init]./scale_qs;
     FTs_init = zeros(NMf,1);
     
     for j=1:n_tib
@@ -368,8 +399,22 @@ for i=1:n_mtp
             QsQdots(i,j,1:2:end) = Qs(i,j,:);
             QsQdots(i,j,2:2:end) = Qdots(i,j,:);
 
+            % call post-processing function
+            [Fm,Ta,ta,Ts,ts] = f_foot_pp([qs_sol./scale_qs;FTs_sol./scale_FTs],Qs_mtp(i),Fs_tib(j));
+            for ii=1:NMf
+                F_tendon.(muscleNamesFoot{ii})(i,j) = full(Fm(ii));
+            end
+            T_ankle(i,j) = full(Ta);
+            tau_ankle(i,j) = full(ta);
+            T_subt(i,j) = full(Ts);
+            tau_subt(i,j) = full(ts);
+            
+            
             % call external function
             [T_res] = full(F([vertcat(squeeze(QsQdots(i,j,:)));vertcat(squeeze(Qddots(i,j,:)))]));
+            
+            T_ankle_ext(i,j) = T_res(jointfi.ankle.r);
+            T_subt_ext(i,j) = T_res(jointfi.subt.r);
 
             % ground reaction forces
             GRF_calcn(i,j,:) = T_res(jointfi.calcn_GRF);
@@ -395,22 +440,25 @@ for i=1:n_mtp
 
             % call windlass function
             if tmtj
-                [Mi, M_PFi,F_PFi,~,~,li,l0i,L0,hi,h0i,H0,q_tmt_0i] = ...
+                [Mi, M_PFi,F_PFi,M_lii,~,li,l0i,L0,hi,h0i,H0,q_tmt_0i] = ...
                         getPassiveTmtjMomentWindlass(Qs(i,j,jointfi.tmt.r),0,Qs(i,j,jointfi.mtp.r),...
                         kTMT_li,kTMT_PF,dTMT,S.subject,cWL);
             elseif mtj
-                [Mi, M_PFi,F_PFi,~,~,li,l0i,L0,hi,h0i,H0,q_tmt_0i] = ...
+                [Mi, M_PFi,F_PFi,M_lii,~,lpfi,li,l0i,L0,hi,h0i,H0,q_tmt_0i] = ...
                         getPassiveMtjMomentWindlass_v2(Qs(i,j,jointfi.tmt.r),0,Qs(i,j,jointfi.mtp.r),...
-                        kTMT_li,kTMT_PF,dTMT,S.subject,cWL);
+                        f_PF_stiffness,S);
             end
             M(i,j) = Mi;
             M_PF(i,j) = M_PFi;
+            M_li(i,j) = M_lii;
+            l_PF(i,j) = lpfi;
             l_fa(i,j) = li;
             h_fa(i,j) = hi;
             F_PF(i,j) = F_PFi;
             l0_fa(i,j) = l0i;
             h0_fa(i,j) = h0i;
             q_tmt_0(i,j) = q_tmt_0i;
+
 
         catch
             failed(i,j) = 1;
@@ -432,7 +480,9 @@ R.GRF_calcn = GRF_calcn;
 R.GRF_metatarsi = GRF_metatarsi;
 R.M_WL = M;
 R.M_PF = M_PF;
+R.M_li = M_li;
 R.F_PF = F_PF;
+R.l_PF = l_PF;
 R.l_fa = l_fa;
 R.l_fa_ext = l_fa_ext;
 R.l0_fa = l0_fa;
@@ -448,6 +498,14 @@ R.calcn_or = calcn_or;
 R.talus_or = talus_or;
 R.tibia_or = tibia_or;
 R.failed = failed;
+R.FT = F_tendon;
+R.T_ankle.muscle = T_ankle;
+R.T_ankle.pass = tau_ankle;
+R.T_ankle.ext = T_ankle_ext;
+R.T_subt.muscle = T_subt;
+R.T_subt.pass = tau_subt;
+R.T_subt.ext = T_subt_ext;
+
 
 % OutFolder = fullfile(pathRepo,'Results',S.ResultsFolder);
 % FilenameAnalysis = fullfile(OutFolder,[S.savename '_pp.mat']);

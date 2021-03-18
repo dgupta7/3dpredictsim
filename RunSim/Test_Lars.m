@@ -216,9 +216,8 @@ end
 %%
 
 addpath([pathRepo '/FootModel']);
-% % f_StaticStanding_Gait92(S);
-% f_SimFoot2(S)
-% f_PredSim_Foot(S);
+f_staticFootCompression_v1;
+
 
 
 

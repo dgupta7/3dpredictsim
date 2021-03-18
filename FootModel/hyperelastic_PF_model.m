@@ -3,9 +3,32 @@
 % An, KN: Material properties of the plantar aponeurosis. Foot Ankle Int 15(10): 557 – 560, 1994.
 
 
-lz = linspace(1,1.2,1000);
-ls = 0.16;
+lz = linspace(1,1.3,1000);
+ls = 0.17;
 l = lz*ls;
+
+
+%Mooney-Rivlin Calculator
+%Parameters are defined
+c10=-222.1;
+c01=290.97;
+c20=-1.1257;
+c11=4.7267;
+c02=79.602;
+%Paramters defined as variables, stretch defined as variable x
+syms x %c10 c01 c20 c11 c02
+% First and Second Invariants Defined
+y=((x^2)+(2/x));
+z=((2*x)+(x^-2));
+%Strain Energy Defined
+f1=((c10*(y-3))+(c01*(z-3))+(c11*(y-3)*(z-3))+((c20*((y-3)^2)))+((c02*((z-3)^2))));
+%Derivative Taken
+sigma=x*diff(f1);
+%sigma@x= sigma(x) for any x value
+f_sigma = matlabFunction(sigma);
+
+sg = feval(f_sigma,lz);
+sg_e = sg./lz;
 
 c10 = -222.1;
 c01 = 290.97;
@@ -18,23 +41,42 @@ for i=1:length(lz)
     I1 = lz(i)^2 + 2*lz(i)^(-1);
     I2 = lz(i)^(-2) + 2*lz(i);
 
-    W_N = [c10*(I1-3)^1*(I2-3)^0;
-           c01*(I1-3)^0*(I2-3)^1;
-           c20*(I1-3)^2*(I2-3)^0;
-           c11*(I1-3)^1*(I2-3)^1;
-           c02*(I1-3)^0*(I2-3)^2];
-    W(i) = sum(W_N);
+    W(i) = c10*(I1-3) + c01*(I2-3) + c20*(I1-3)^2 + c11*(I1-3)*(I2-3) + c02*(I2-3)^2;
+    
+%     sig(i) = c10*(2*lz(i)-2/lz(i)^2) + c01*(2-2/lz(i)^3) + 4*c20*(lz(i)^3+1-2/lz(i)^3) +...
+%         2*c11*(3*lz(i)^2-1+1/lz(i)-1/lz(i)^3-2/lz(i)^4) + 4*c02*(2*lz(i)-1/lz(i)^2-1/lz(i)^5);
+
+%     sig1(i) = c10 + 2*c20*(I1-3) + c11*(I2-3);
+%     sig2(i) = c01 + c11*(I1-3) + 2*c02*(I2-3);
+
+    
 end
+
+
+
 
 
 dW = (W(2:end) - W(1:end-1))./(lz(2:end) - lz(1:end-1));
 dW = [0,dW];
-sigma = lz.*dW;
-s = dW;
-F = s * 290;
+s = dW; % engineering stress
+T = lz.*dW; % Cauchy stress
+
+
+% F = s * 290;
+F = T * 290;
+
 
 dl = l-ls;
 k = F./dl;
+
+%%
+
+figure
+hold on
+plot(lz,sg)
+plot(lz,sg_e,':')
+plot(lz,s,'--')
+plot(lz,T,'-.')
 
 %%
 % figure
@@ -78,13 +120,13 @@ A = A0*(1-Pr*(lz-1)).^2;
 
 F = sgm.*A;
 
-figure
-plot(lz,F)
-hold on
-plot(lz,sgm*A0)
-% plot(lz,7e5*(l-ls))
-xlabel('l/ls')
-ylabel('F')
+% figure
+% plot(lz,F)
+% hold on
+% plot(lz,sgm*A0)
+% % plot(lz,7e5*(l-ls))
+% xlabel('l/ls')
+% ylabel('F')
 
 E = sgm./(lz-1);
 

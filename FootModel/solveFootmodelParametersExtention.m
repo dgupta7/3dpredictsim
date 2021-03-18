@@ -1,3 +1,8 @@
+% Extention of solveFootModelParameters, run it to get the inputs needed here
+% This script derives the skeletal and contact model parameters for a foot
+% with midtarsal joint in a more arbitrary way. The goal is to make the
+% foot arch dimensions more consistent with values found in literature.
+
 
 % model 0 dof
 m0.t.mtpj = m0.t.subt + m0.cmf.mtpj;

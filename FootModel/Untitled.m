@@ -6,9 +6,12 @@
 % full(res)
 % full(res(18:end))
 
-[res2] = f_foot([qs_sol./scale_qs;FTs_sol./scale_FTs],0,0);
+[res2,tm1,tm2,tm3,tm4] = f_foot_pp([qs_sol./scale_qs;FTs_sol./scale_FTs],0,0);
 full(res2)
-
+full(tm1)
+full(tm2)
+full(tm3)
+full(tm4)
 
 
 %%
