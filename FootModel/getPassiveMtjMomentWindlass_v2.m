@@ -12,22 +12,22 @@ function [M, varargout] = getPassiveMtjMomentWindlass_v2(q_mt,qdot_mt,q_mtp,vara
 %           (see doi.org/10.1098/rsif.2018.0270)
 
 %% Get default parameters
-% a = 0.08207;
-% b = 0.089638;
-% phi0 = 2.493499;
-% H0 = 0.027280;
+a = 0.08207;
+b = 0.089638;
+phi0 = 2.493499;
+H0 = 0.027280;
 
-a = 0.0857;
-b = 0.0932;
-phi0 = 2.2799;
-H0 = 0.0373;
+% a = 0.0857;
+% b = 0.0932;
+% phi0 = 2.2799;
+% H0 = 0.0373;
 
-R_mtth = 0.02; % radius of the metatarsal head
-l_toe = 0.015; % distance from metatarsal head to PF attachment point at toe
+R_mtth = 0.01; % radius of the metatarsal head
+l_toe = 0.01; % distance from metatarsal head to PF attachment point at toe
 
 % The reference position of the mtj (used for calculating the torque) is
 % given by: a + b * q_mtp
-q_mt_0_a = 10*pi/180;
+q_mt_0_a = 0*pi/180;
 q_mt_0_b = -0;
 
 

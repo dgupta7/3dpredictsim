@@ -1,5 +1,5 @@
-% Find the parameters for a new foot model (right foot), such that it is equivalent to
-% the old footmodel, and to a more detailed footmodel.
+% Find the parameters for a new foot model (right foot), such that it is dynamically 
+% equivalent to the old footmodel, and to a more detailed footmodel.
 % Every joint is taken at its default angle of 0°. This means that the 0°
 % angle of the newly introduced m2.m.tmtj joint corresponds to its
 % rigid position in the old model.
@@ -14,6 +14,7 @@
 %   m2 = detailed reference model (2 dof)
 %   m1a = original model with tmt joint added in (1 dof)
 %   m1b = original model with midtarsal joint added in (1 dof)
+%   m1c = model with midtarsal joint (1 dof), deviates from original
 % 2) Body or reference frame
 %   gnd = ground reference frame
 %   c = calcaneus
@@ -35,8 +36,8 @@ close all
 clc
 
 %%
-add_tmtj = 1;
-add_mtj = 1;
+add_tmtj = 0;
+add_mtj = 0;
 
 %% parameters from original model
 % Pog s1
@@ -395,6 +396,7 @@ if add_mtj
     plot(m0.cmf.mtpj(1)+locSphere_5_r(1),m0.cmf.mtpj(3)+locSphere_5_r(3),'*c')
     plot(m0.cmf.mtpj(1)+locSphere_6_r(1),m0.cmf.mtpj(3)+locSphere_6_r(3),'*c')
 
+
     %% relating vectors to foot arch compression
     % based on DOI: 10.1038/srep19403
 
@@ -439,3 +441,298 @@ end
 % 
 % res = f_footmodel_add_mtj(vars,m0.cmf.m,m0.cmf.I,m0.cmf.COM,m2.c.m,m2.m.m,m2.f.m,m2.gnd.mtj2mfCOM,m2.gnd.mtj2cCOM,m1b.c.I,sf);
 % res'
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+% This part derives the skeletal and contact model parameters for a foot
+% with midtarsal joint in a more arbitrary way. The goal is to make the
+% foot arch dimensions more consistent with values found in literature.
+
+
+% model 0 dof
+m0.t.mtpj = m0.t.subt + m0.cmf.mtpj;
+m0.t.cmfCOM = m0.t.subt + m0.cmf.COM;
+
+m0.t.cmfI = Steiner(-m0.t.cmfCOM,m0.cmf.I,m0.cmf.m);
+
+m0.c.subt_st = [0.78717961, 0.60474746, -0.12094949]';
+m0.t.subt_st = m0.t.subt + m0.c.subt_st/10;
+
+m0j = [[0;0;0],m0.t.subt,m0.t.mtpj];
+m0c = m0.t.cmfCOM;
+m0st = [m0.t.subt,m0.t.subt_st];
+
+
+% model 2 dof
+m2.t.mtj = m2.t.subt + m2.c.mtj;
+m2.t.tmtj = m2.t.mtj + m2.m.tmtj;
+m2.t.mtpj = m2.t.tmtj + m2.f.mtpj;
+
+m2.c.subt_st = [-0.63276, -0.588866, 0.502838]';
+m2.t.subt_st = m2.t.subt + m2.c.subt_st/10;
+
+m2.t.cCOM = m2.t.subt + m2.c.COM;
+m2.t.mCOM = m2.t.mtj + m2.m.COM;
+m2.t.fCOM = m2.t.tmtj + m2.f.COM;
+
+m2.t.cmfCOM = (m2.t.cCOM*m2.c.m + m2.t.mCOM*m2.m.m + m2.t.fCOM*m2.f.m)/(m2.c.m+m2.m.m+m2.f.m);
+
+m_sf = m0.cmf.m/(m2.c.m+m2.m.m+m2.f.m);
+
+m2j = [[0;0;0],m2.t.subt,m2.t.mtj,m2.t.tmtj,m2.t.mtpj];
+m2c = [m2.t.cCOM,m2.t.mCOM,m2.t.fCOM];
+m2st = [m2.t.subt,m2.t.subt_st];
+
+sf = m0.gnd.talus2mtpj./m2.gnd.talus2mtpj;
+sf(2) = 1;
+
+m2js(1,:) = m2j(1,:)*sf(1);
+m2js(2,:) = m2j(2,:)*sf(2);
+m2js(3,:) = m2j(3,:)*sf(3);
+m2cs(1,:) = m2c(1,:)*sf(1);
+m2cs(2,:) = m2c(2,:)*sf(2);
+m2cs(3,:) = m2c(3,:)*sf(3);
+m2.t.cmfCOM_s = m2.t.cmfCOM.*sf;
+
+% model 1 with mtj:
+diff = m0.t.mtpj(2) - m2.t.mtpj(2);
+m1c.t.subt = m0.t.subt;
+m1c.t.subt(2) = m1c.t.subt(2) - diff;
+m1c.t.mtj = m2.t.mtj.*sf;
+m1c.t.mtj(2) = m1c.t.mtj(2);
+m1c.t.mtpj = m0.t.mtpj;
+m1c.t.mtpj(2) = m1c.t.mtpj(2) - diff;
+
+m1c.c.mtj = m1c.t.mtj - m1c.t.subt;
+m1c.mf.mtpj = m1c.t.mtpj - m1c.t.mtj;
+
+m1c.t.cCOM = m2.t.cCOM.*sf;
+m1c.t.cCOM(2) = m1c.t.cCOM(2) + 0.01;
+m1c.t.mfCOM = (m2.t.mCOM*m2.m.m + m2.t.fCOM*m2.f.m)/(m2.m.m+m2.f.m).*sf;
+m1c.t.mfCOM(2) = m1c.t.mfCOM(2);
+m1c.t.cmfCOM = m0.t.cmfCOM;
+m1c.t.cmfCOM(2) = m2.t.cmfCOM_s(2);
+
+m1c.c.m = m2.c.m*m_sf;
+m1c.mf.m = (m2.m.m+m2.f.m)*m_sf;
+
+m1c.c.COM = m1c.t.cCOM - m1c.t.subt;
+m1c.mf.COM = m1c.t.mfCOM - m1c.t.mtj;
+
+m1c_j = [[0;0;0],m1c.t.subt,m1c.t.mtj,m1c.t.mtpj];
+m1c_c = [m1c.t.cCOM,m1c.t.mfCOM];
+
+Icx = 0.08842e-3;     %kg m^2 /kg (normalised with cmf mass)
+Icy = 0.1807e-3;
+Icz = 0.2077e-3;
+m1c.c.I = [Icx; Icy; Icz]*m0.cmf.m;
+
+m1c.t.cI = Steiner(-m1c.t.cCOM,m1c.c.I,m1c.c.m);
+
+m1c.mf.I = [0;0;0]; %initialise
+m1c.t.mfI = Steiner(-m1c.t.mfCOM,m1c.mf.I,m1c.mf.m);
+
+m0.t.cmfI = Steiner(-m1c.t.cmfCOM,m0.cmf.I,m0.cmf.m);
+
+I_res = m0.t.cmfI - (m1c.t.cI + m1c.t.mfI); % resultant error is I_mf value to satisfy
+m1c.mf.I = I_res;
+
+locSphere_3_r_new = locSphere_3_r - m1c.c.mtj';
+locSphere_4_r_new = locSphere_4_r - m1c.c.mtj';
+
+m1c.mf.ls3 = locSphere_3_r_new';
+m1c.mf.ls4 = locSphere_4_r_new';
+
+m1c.t.ls1 = m1c.t.subt + locSphere_1_r';
+m1c.t.ls2 = m1c.t.subt + locSphere_2_r';
+m1c.t.ls3 = m1c.t.mtj + m1c.mf.ls3;
+m1c.t.ls4 = m1c.t.mtj + m1c.mf.ls4;
+m1c.t.ls5 = m1c.t.mtpj + locSphere_5_r';
+m1c.t.ls6 = m1c.t.mtpj + locSphere_6_r';
+
+locSps = [m1c.t.ls1,m1c.t.ls2,m1c.t.ls3,m1c.t.ls4,m1c.t.ls5,m1c.t.ls6];
+
+figure
+subplot(2,1,1)
+hold on
+grid on
+
+plot(m2j(1,:),m2j(2,:),'ob')
+plot(m2c(1,:),m2c(2,:),'xb')
+plot(m2.t.cmfCOM(1),m2.t.cmfCOM(2),'*b')
+% plot(m2st(1,:),m2st(2,:),'--b')
+
+plot(m2js(1,:),m2js(2,:),'ok')
+plot(m2js(1,:),m2js(2,:),'.k')
+plot(m2cs(1,:),m2cs(2,:),'xk')
+plot(m2.t.cmfCOM_s(1),m2.t.cmfCOM_s(2),'*k')
+
+plot(m0j(1,:),m0j(2,:),'og')
+plot(m0c(1,:),m0c(2,:),'xg')
+% plot(m0st(1,:),m0st(2,:),'--g')
+
+plot(m1c_j(1,:),m1c_j(2,:),'or')
+plot(m1c_c(1,:),m1c_c(2,:),'xr')
+
+plot(locSps(1,:),locSps(2,:),'*c')
+axis equal
+
+subplot(2,1,2)
+hold on
+grid on
+
+plot(m2j(1,:),m2j(3,:),'ob')
+plot(m2c(1,:),m2c(3,:),'xb')
+plot(m2.t.cmfCOM(1),m2.t.cmfCOM(3),'*b')
+% plot(m2st(1,:),m2st(3,:),'--b')
+
+plot(m2js(1,:),m2js(3,:),'ok')
+plot(m2js(1,:),m2js(3,:),'.k')
+plot(m2cs(1,:),m2cs(3,:),'xk')
+plot(m2.t.cmfCOM_s(1),m2.t.cmfCOM_s(3),'*k')
+
+plot(m0j(1,:),m0j(3,:),'og')
+plot(m0c(1,:),m0c(3,:),'xg')
+% plot(m0st(1,:),m0st(3,:),'--g')
+
+plot(m1c_j(1,:),m1c_j(3,:),'or')
+plot(m1c_c(1,:),m1c_c(3,:),'xr')
+
+plot(locSps(1,:),locSps(3,:),'*c')
+axis equal
+
+%% relating vectors to foot arch compression
+% based on DOI: 10.1038/srep19403
+
+a = m1c.c.mtj(1:2);
+b = m1c.mf.mtpj(1:2);
+
+l_0 = norm(a+b);
+h0 = -b(2); 
+% Difference in y-coordinate between calcn origin and m1a.f.mtpj 
+% results in 1° difference, so it is omitted.
+
+c0 = acos(h0/norm(a));
+d0 = acos(h0/norm(b));
+
+mt0 = (c0+d0)*180/pi;
+
+h1 = h0*0.8; 
+c1 = acos(h1/norm(a));
+d1 = acos(h1/norm(b));
+
+mt1 = (c1+d1)*180/pi;
+
+mt_bound = mt1 - mt0;
+% So 15° bound is sensible
+
+h2 = h0*0.87; 
+c2 = acos(h2/norm(a));
+d2 = acos(h2/norm(b));
+
+mt2 = (c2+d2)*180/pi;
+
+mt_2 = mt2 - mt0;
+
+%% subtalar joint axis orientation
+% original
+alpha_st = atan(m0.c.subt_st(2)/m0.c.subt_st(1))*180/pi;
+beta_st = atan(-m0.c.subt_st(3)/m0.c.subt_st(1))*180/pi;
+
+incl1 = alpha_st*pi/180;
+dev1 = beta_st*pi/180;
+
+R1 = [cos(incl1),-sin(incl1),0;
+     sin(incl1),cos(incl1),0;
+     0,0,1];
+R2 = [cos(dev1),0,sin(dev1);
+     0,1,0;
+     -sin(dev1),0,cos(dev1)];
+
+st_subt1 = R2*R1*[1;0;0]
+
+m0.c.subt_st;
+
+% doi:10.1136/bjsm.2010.080119
+incl2 = 42*pi/180; % +-16
+dev2 = 11*pi/180; % +-23
+
+R1 = [cos(incl2),-sin(incl2),0;
+     sin(incl2),cos(incl2),0;
+     0,0,1];
+R2 = [cos(dev2),0,sin(dev2);
+     0,1,0;
+     -sin(dev2),0,cos(dev2)];
+
+st_subt2 = R2*R1*[1;0;0]
+norm(st_subt2);
+
+% doi:10.1016/j.jbiomech.2012.01.011
+incl3 = 45.5*pi/180; % std 3.4
+dev3 = 5*pi/180; % std3.8
+
+
+R1 = [cos(incl3),-sin(incl3),0;
+     sin(incl3),cos(incl3),0;
+     0,0,1];
+R2 = [cos(dev3),0,sin(dev3);
+     0,1,0;
+     -sin(dev3),0,cos(dev3)];
+
+st_subt3 = R2*R1*[1;0;0]
+norm(st_subt3);
+
+
+%%
+subt1 = [m1c.t.subt, m1c.t.subt + st_subt1/10];
+subt2 = [m1c.t.subt, m1c.t.subt + st_subt2/10];
+subt3 = [m1c.t.subt, m1c.t.subt + st_subt3/10];
+
+% axis has to pas through x and z of talus origin
+offset2z = -interp1(subt2(1,:),subt2(3,:),0);
+subt2(3,:) = subt2(3,:) + offset2z;
+
+% axis has to pas through talus origin
+offset3z = -interp1(subt3(1,:),subt3(3,:),0);
+subt3(3,:) = subt3(3,:) + offset3z;
+
+offset3y = -interp1(subt3(1,:),subt3(2,:),0);
+subt3(2,:) = subt3(2,:) + offset3y;
+
+figure
+subplot(2,1,1)
+hold on
+grid on
+
+plot(m1c_j(1,:),m1c_j(2,:),'or')
+plot(m1c_c(1,:),m1c_c(2,:),'xr')
+plot(subt1(1,:),subt1(2,:))
+plot(subt2(1,:),subt2(2,:))
+plot(subt3(1,:),subt3(2,:))
+
+plot(locSps(1,:),locSps(2,:),'*c')
+axis equal
+
+subplot(2,1,2)
+hold on
+grid on
+
+plot(m1c_j(1,:),m1c_j(3,:),'or')
+plot(m1c_c(1,:),m1c_c(3,:),'xr')
+plot(subt1(1,:),subt1(3,:))
+plot(subt2(1,:),subt2(3,:))
+plot(subt3(1,:),subt3(3,:))
+
+plot(locSps(1,:),locSps(3,:),'*c')
+axis equal
+
+
+
+%%
+function I_new = Steiner(vec1,I_com,mass)
+    I_new = I_com + mass*(vec1'*vec1*eye(3) - vec1*vec1')*ones(3,1);
+
+end
+
+

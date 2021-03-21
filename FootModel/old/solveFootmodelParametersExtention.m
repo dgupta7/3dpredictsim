@@ -54,7 +54,7 @@ diff = m0.t.mtpj(2) - m2.t.mtpj(2);
 m11.t.subt = m0.t.subt;
 m11.t.subt(2) = m11.t.subt(2) - diff;
 m11.t.mtj = m2.t.mtj.*sf;
-m11.t.mtj(2) = m11.t.mtj(2) + 0.01; %small change
+m11.t.mtj(2) = m11.t.mtj(2);
 m11.t.mtpj = m0.t.mtpj;
 m11.t.mtpj(2) = m11.t.mtpj(2) - diff;
 
@@ -62,9 +62,9 @@ m11.c.mtj = m11.t.mtj - m11.t.subt;
 m11.mf.mtpj = m11.t.mtpj - m11.t.mtj;
 
 m11.t.cCOM = m2.t.cCOM.*sf;
-m11.t.cCOM(2) = m11.t.cCOM(2) + 0.01 +0.01; %small change
+m11.t.cCOM(2) = m11.t.cCOM(2) + 0.01;
 m11.t.mfCOM = (m2.t.mCOM*m2.m.m + m2.t.fCOM*m2.f.m)/(m2.m.m+m2.f.m).*sf;
-m11.t.mfCOM(2) = m11.t.mfCOM(2) +0.01; %small change
+m11.t.mfCOM(2) = m11.t.mfCOM(2);
 m11.t.cmfCOM = m0.t.cmfCOM;
 m11.t.cmfCOM(2) = m2.t.cmfCOM_s(2);
 
@@ -192,51 +192,51 @@ mt_2 = mt2 - mt0;
 
 %% subtalar joint axis orientation
 % original
-% alpha_st = atan(m0.c.subt_st(2)/m0.c.subt_st(1))*180/pi;
-% beta_st = atan(-m0.c.subt_st(3)/m0.c.subt_st(1))*180/pi;
-% 
-% incl1 = alpha_st*pi/180;
-% dev1 = beta_st*pi/180;
-% 
-% R1 = [cos(incl1),-sin(incl1),0;
-%      sin(incl1),cos(incl1),0;
-%      0,0,1];
-% R2 = [cos(dev1),0,sin(dev1);
-%      0,1,0;
-%      -sin(dev1),0,cos(dev1)];
-% 
-% st_subt1 = R2*R1*[1;0;0]
-% 
-% m0.c.subt_st;
-% 
-% % doi:10.1136/bjsm.2010.080119
-% incl2 = 42*pi/180; % +-16
-% dev2 = 11*pi/180; % +-23
-% 
-% R1 = [cos(incl2),-sin(incl2),0;
-%      sin(incl2),cos(incl2),0;
-%      0,0,1];
-% R2 = [cos(dev2),0,sin(dev2);
-%      0,1,0;
-%      -sin(dev2),0,cos(dev2)];
-% 
-% st_subt2 = R2*R1*[1;0;0]
-% norm(st_subt2);
-% 
-% % doi:10.1016/j.jbiomech.2012.01.011
-% incl3 = 45.5*pi/180; % std 3.4
-% dev3 = 5*pi/180; % std3.8
-% 
-% 
-% R1 = [cos(incl3),-sin(incl3),0;
-%      sin(incl3),cos(incl3),0;
-%      0,0,1];
-% R2 = [cos(dev3),0,sin(dev3);
-%      0,1,0;
-%      -sin(dev3),0,cos(dev3)];
-% 
-% st_subt3 = R2*R1*[1;0;0]
-% norm(st_subt3);
+alpha_st = atan(m0.c.subt_st(2)/m0.c.subt_st(1))*180/pi;
+beta_st = atan(-m0.c.subt_st(3)/m0.c.subt_st(1))*180/pi;
+
+incl1 = alpha_st*pi/180;
+dev1 = beta_st*pi/180;
+
+R1 = [cos(incl1),-sin(incl1),0;
+     sin(incl1),cos(incl1),0;
+     0,0,1];
+R2 = [cos(dev1),0,sin(dev1);
+     0,1,0;
+     -sin(dev1),0,cos(dev1)];
+
+st_subt1 = R2*R1*[1;0;0]
+
+m0.c.subt_st;
+
+% doi:10.1136/bjsm.2010.080119
+incl2 = 42*pi/180; % +-16
+dev2 = 11*pi/180; % +-23
+
+R1 = [cos(incl2),-sin(incl2),0;
+     sin(incl2),cos(incl2),0;
+     0,0,1];
+R2 = [cos(dev2),0,sin(dev2);
+     0,1,0;
+     -sin(dev2),0,cos(dev2)];
+
+st_subt2 = R2*R1*[1;0;0]
+norm(st_subt2);
+
+% doi:10.1016/j.jbiomech.2012.01.011
+incl3 = 45.5*pi/180; % std 3.4
+dev3 = 5*pi/180; % std3.8
+
+
+R1 = [cos(incl3),-sin(incl3),0;
+     sin(incl3),cos(incl3),0;
+     0,0,1];
+R2 = [cos(dev3),0,sin(dev3);
+     0,1,0;
+     -sin(dev3),0,cos(dev3)];
+
+st_subt3 = R2*R1*[1;0;0]
+norm(st_subt3);
 
 
 

@@ -12,19 +12,24 @@ addpath([pathRepo '/CasADiFunctions']);
 addpath([pathRepo '/Musclemodel']);
 addpath([pathRepo '/Polynomials']);
 addpath([pathRepo '/Debug']);
+addpath([pathRepo '/FootModel']);
 AddCasadiPaths();
 
 %% Manual settings
+% Full body gait simulation
 slv = 0;                % run solver
 pp = 0;                 % postproces
 plot = 0;               % plot solution
 batchQueue = 0;         % save settings to run later
+% Static foot compression simulation
+foot_in_vivo = 1;       % load on knee
+foot_cadavric = 0;      % load on cut off tibia
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed 1.25
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 6;        % number of threads for parallel computing
-S.max_iter  = 10;    % maximum number of iterations
+% S.max_iter  = 10;       % maximum number of iterations (comment -> 10000)
 
 % tarsometatarsal joint
 S.tmt = 1;              % 1: use a model with tmt joint
@@ -62,7 +67,7 @@ ia = 0;
 % S.P_max_ankle_exo = 50;
 
 % output folder
-S.ResultsFolder = 'batch_tmt_lin'; % 'batch_windlass' 'standing' 'MuscleModel' 'batch_tmt_lin'
+S.ResultsFolder = 'FootModel'; % 'batch_windlass' 'standing' 'MuscleModel' 'batch_tmt_lin'
 suffixCasName = '';
 suffixName = '';
 
@@ -215,9 +220,11 @@ end
 
 %%
 
-addpath([pathRepo '/FootModel']);
-f_staticFootCompression_v1;
-
+if foot_in_vivo
+    f_staticFootCompression_v2;
+elseif foot_cadavric
+    f_staticFootCompression_v3;
+end
 
 
 

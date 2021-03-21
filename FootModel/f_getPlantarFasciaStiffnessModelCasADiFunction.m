@@ -21,7 +21,7 @@ E = 350; % Young's modulus (N/mm^2)
 A0 = 290; % initial cross-section (mm^2)
 ls = 0.17; % slack length (m)
 k1 = E*A0/ls; % spring constant (N/m)
-k2 = 5e7; % spring constant (N/m^2)
+k2 = 4e7; % spring constant (N/m^2)
 dl_0 = ls/100*1; % toe-in length
 
 %% 2) Check for possible non-default parameter inputs
@@ -48,14 +48,17 @@ if length(varargin) >= 2 && mod(length(varargin),2) == 0
 end
 
 %% 3) Calculate force 
+dl_1 = l-ls;
+dl = dl_1*( tanh(dl_1*1e3)+1 )/2; % l >= ls
+
 if strcmp(modelType,'linear')
-    F_PF = k1*(l-ls);
+    F_PF = k1*dl;
     
 elseif strcmp(modelType,'hypoelastic_tanh')
     F_PF = k1*((l-ls) - dl_0*tanh((l-ls)/dl_0));
     
 elseif strcmp(modelType,'hypoelastic_sqr')
-    F_PF = k2*(l-ls)^2;
+    F_PF = k2*dl^2;
     
 elseif strcmp(modelType,'hypoelastic_poly5')
     % 5th order polynomial approximation
@@ -92,6 +95,25 @@ elseif strcmp(modelType,'hyperelastic_MR5')
     sigma_e = ls*jacobian(W,l); % engineering stress
     F_PF = sigma_e*A0;
     
+elseif strcmp(modelType,'toein_gaussian')
+    % data from DOI: 10.3390/app11041517
+    e_0 = 0.025; % nominal strain at 0 stress when extrapolating linear region (-)
+    sigma_0 = 1.8; % nominal strain at e_0 (MPa)
+%     E = 36.4843; % Young's coefficient of linear region (MPa)
+        % This is very low. Maybe cannot use data from one area of PF to
+        % represent total E?
+    % method from https://doi.org/10.1016/j.jbiomech.2017.10.037
+    mu = -ls*e_0;
+    F0 = sigma_0*A0;
+    k = E*A0/ls;
+    std = sqrt(2*pi)*F0/k;
+    x = l - ls;
+    z = (x+mu)/(sqrt(2)*std);
+    zi = linspace(0,z,200)';
+    d_erf = exp(-zi.^2);
+    erf = 2/sqrt(pi)* sum(d_erf(2:end)*z)/200;
+    F_PF = k*std/sqrt(2*pi)*exp(-(x+mu).^2/(2*std^2)) + k*(x+mu)/2 .*(erf+1);
+        
 end
 
 F = F_PF.*( tanh(F_PF)+1 )/2; % F >= 0

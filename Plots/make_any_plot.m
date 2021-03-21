@@ -11,8 +11,9 @@ addpath([pathRepo '/PassiveMoments']);
 % Folder will be filtered to only plot results that satisfy all chosen
 % settings. Put an entry in comment to not use it to filter.
 
-plot_default = 1;
+plot_default = 0;
 plot_validation = 0;
+plot_foot = 1;
 
 % folder to filter from
 
@@ -117,18 +118,20 @@ end
 filteredResultsWithRef = {filteredResults{:}, ref{:}};
 
 %%
-pl = 0;
-if plot_validation
-    if plot_default
-        pl=2;
-    else
-        pl = 1;
+if plot_validation || plot_default
+    pl = 0;
+    if plot_validation
+        if plot_default
+            pl=2;
+        else
+            pl = 1;
+        end
     end
-end
-Plot3D(filteredResultsWithRef,reference_data,pl)
-% Plot3D(filteredResults,reference_data,pl)
-% Plot3D(ref,reference_data,pl)
+    Plot3D(filteredResultsWithRef,reference_data,pl)
+    % Plot3D(filteredResults,reference_data,pl)
+    % Plot3D(ref,reference_data,pl)
 
+end
 
 %% Relative effect COT and stride frequency
 % DataFile = 'D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat';
@@ -141,36 +144,39 @@ Plot3D(filteredResultsWithRef,reference_data,pl)
 % ValidationPlots_CotSpatiotemp(filteredResults,ReferenceFiles,DataFile);
 
 
+%% Static foot model
+
+if plot_foot
+    resultFiles = {
+%         'Foot_3D_Pog_s1_mtj_v3_linear_Q-30_30_F0_700.mat';...
+%         'Foot_3D_Pog_s1_mtj_subt3_v1_linear_Q-30_30_F0_700.mat';...
+%         'Foot_3D_Pog_s1_mtj_subt2_v1_linear_Q-30_30_F0_700.mat';...
+%         'Foot_3D_Pog_s1_mtj_v3_hypoelastic_tanh_Q-30_30_F0_700.mat';...
+%         'Foot_3D_Pog_s1_mtj_v3_hypoelastic_sqr_Q-30_30_F0_700.mat';...
+%         'Foot_3D_Pog_s1_mtj_v3_hypoelastic_poly5_Q-30_30_F0_700.mat';...
+%         'Foot_3D_Pog_s1_mtj_v3_hyperelastic_MR5_Q-30_30_F0_700.mat';...
+        'Foot_3D_Pog_s1_mtj_subt1_v2_linear_Q-30_30_F0_4000.mat';...
+        'Foot_3D_Pog_s1_mtj_subt1_v2_hypoelastic_tanh_Q-30_30_F0_4000.mat';...
+        'Foot_3D_Pog_s1_mtj_subt1_v2_hypoelastic_sqr_Q-30_30_F0_4000.mat';...
+        'Foot_3D_Pog_s1_mtj_subt1_v2_hypoelastic_poly5_Q-30_30_F0_4000.mat';...
+        'Foot_3D_Pog_s1_mtj_subt1_v2_hyperelastic_MR5_Q-30_30_F0_4000.mat'
+        };
+    
+    OutFolder = fullfile(pathRepo,'Results','FootModel');
+    
+    nrf = numel(resultFiles);
+    CsV = hsv(nrf);
+    for i=1:nrf
+        Outname = fullfile(OutFolder,resultFiles{i});
+        load(Outname,'R');
+        if i==1
+            h = PlotResults_FootSim(R,CsV(i,:));
+        else
+            PlotResults_FootSim(R,CsV(i,:),h);
+        end
+    end
+end
 
 
 
 
-
-%% old/temp stuff
-
-
-% Plot3D_pwd_separate(pathResult); % plot default figures for entire resultsfolder
-
-%%
-% if plot_comp
-%     ResultsFile1 = fullfile(pathResults,'Pog_s1_tmt_bCst_d02_k800_ig24_pp.mat');
-%     ResultsFile2 = fullfile(pathResults,'Pog_s1_tmt_bCst_d02_k1000_ig24_pp.mat');
-% 
-%     % plot default figures
-%     hh1 = figure();
-%     set(hh1,'Position',[82         151        1497         827]);
-%     PlotResults_3DSim_tmt(ResultsFile1,[1 0 0],'k800',hh1);
-%     PlotResults_3DSim_tmt(ResultsFile2,[0 0 1],'k1000',hh1);
-%     
-%     % Compare kinematics and kinetics any number of results to the measurementdata
-%     ValidationPlots(pathData,ResultsFile1,ResultsFile2);
-% 
-%     % Compare muscles for 2 results
-% %     PlotResultsComparison_3DSim(ResultsFile1,ResultsFile2);
-% 
-% end
-% 
-% if timing
-%     ResultsFile = fullfile(pathResults,'Pog_s1_tmt_bCst_d02_k800_ig24_pp.mat');
-%     Plot_tmt_mtp(ResultsFile)
-% end

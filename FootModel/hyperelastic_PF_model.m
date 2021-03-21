@@ -134,3 +134,63 @@ E = sgm./(lz-1);
 % plot(lz(2:end),E(2:end))
 % xlabel('l/ls')
 % ylabel('E')
+
+
+%% Plantar fascia stiffness model
+
+% data from DOI: 10.3390/app11041517
+% method from https://doi.org/10.1016/j.jbiomech.2017.10.037
+
+
+Es = [11.82, 10.52, 10.70, 14.02, 13.85, 9.72, 8.78, 14.43, 8.42, 9.87, 18.7, 10.28, 6.75, 9.99, 13.17];
+sigma = mean(Es)*0.08; % mean stress at 8% strain
+e_0 = 0.055;
+sigma_0 = 0.40;
+
+E = (sigma)/(0.08-e_0);
+
+% initial dimentions
+ls = 0.17;
+A0 = 290;
+
+% parameter identification
+mu = -ls*e_0;
+F0 = sigma_0*A0;
+k = E*A0/ls;
+std = sqrt(2*pi)*F0/k;
+
+
+x = linspace(-2,20,100)'*1e-3;
+
+z = (x+mu)/(sqrt(2)*std);
+
+
+d_erf = @(t) exp(-t.^2);
+% d_erf_1 = exp(-z.^2);
+
+for i=1:length(x)
+   erf(i,1) = 2/sqrt(pi)* integral(d_erf,0,z(i));
+   
+   zi = linspace(0,z(i),200)';
+   d_erf_i = exp(-zi.^2);
+   erf(i,2) = 2/sqrt(pi)* trapz(d_erf_i)*z(i)/200;
+end
+
+% figure
+% plot(z,erf)
+
+
+F1 = k*std/sqrt(2*pi)*exp(-(x+mu).^2/(2*std^2));
+F2 = k*(x+mu)/2 .*(erf+1);
+F = F1+F2;
+
+% figure
+% plot(x,F1)
+% hold on
+% plot(x,F2)
+% plot(x,F)
+
+figure
+plot((x/ls),F/A0)
+xlim([0,0.1])
+ylim([0,5])
