@@ -1,4 +1,9 @@
 function [] = f_PredSim_Gait92_tmt(S)
+% This is an adaptation to f_PredSim_Gait92, to include the tarsometatarsal
+% joint. 
+% When simulating with a model without tarsometatarsal joint, but with
+% midtarsal joint, this is still the function to be used. (But with the
+% appropriate external and casadifunctions.)
 
 %% Adding the casadi path seems to be needed to run processes in batch
 AddCasadiPaths();
@@ -178,7 +183,7 @@ joints_no_tmt = {'pelvis_tilt','pelvis_list','pelvis_rotation','pelvis_tx',...
     'elbow_flex_l','elbow_flex_r'};
 
 Qs_walk          = getIK(IKfile_bounds,joints);
-[bounds,scaling] = getBounds_all_tmt(Qs_walk,NMuscle,nq,jointi,S.v_tgt);
+[bounds,scaling] = getBounds_all_tmt(Qs_walk,NMuscle,nq,jointi,S.v_tgt,S.mtj);
 
 % adapt bounds based on user input
 bounds = AdaptBounds(bounds,S,mai);

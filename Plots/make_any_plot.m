@@ -21,20 +21,21 @@ plot_foot = 1;
 % ResultsFolder = {'batch_windlass'};
 % ResultsFolder = {'running'};
 % ResultsFolder = {'debug'};
-ResultsFolder = {'batch_tmt_lin'};
+% ResultsFolder = {'batch_tmt_lin'};
+ResultsFolder = {'test_WL_v2'};
 
 % experimental data to plot as reference
 reference_data = 'norm'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
 
 
 % tarsometatarsal joint
-S.tmt = 1;              % 1: use a model with tmt joint
-S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
+% S.tmt = 1;              % 1: use a model with tmt joint
+% S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
 % S.kTMT = 1000;           % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
-S.dTMT = 0.5;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
+% S.dTMT = 0.5;             % [0 0.2 0.5] (Nms/rad) damping of tmt joint
 
 
-S.Windlass = 0;
+S.Windlass = 1;
 % S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsiflexion
 
 % assumption to simplify Hill-type muscle model
@@ -104,7 +105,9 @@ end
 
 % ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\tmt_lin\Pog_s1_tmtL_bCst_ig24_v3_pp.mat';
 % ref{3} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\batch_tmt_lin\Pog_s1_tmt_bCst_d05_k1000_ig24_pp.mat';
-% ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\batch_windlass\Pog_s1_tmt_bCst_d05_k1000_WL30_ig24_pp.mat';
+ref{2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\batch_windlass\Pog_s1_tmt_bCst_d05_k1000_WL30_ig24_pp.mat';
+ref{3} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\batch_windlass\Pog_s1_tmt_bCst_d05_k500_WL30_ig24_pp.mat';
+ref{4} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\batch_windlass\Pog_s1_tmt_bCst_d05_k500_WL20_ig24_pp.mat';
 
 
 % ref = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_act_pp.mat',...
@@ -148,18 +151,13 @@ end
 
 if plot_foot
     resultFiles = {
-%         'Foot_3D_Pog_s1_mtj_v3_linear_Q-30_30_F0_700.mat';...
-%         'Foot_3D_Pog_s1_mtj_subt3_v1_linear_Q-30_30_F0_700.mat';...
-%         'Foot_3D_Pog_s1_mtj_subt2_v1_linear_Q-30_30_F0_700.mat';...
-%         'Foot_3D_Pog_s1_mtj_v3_hypoelastic_tanh_Q-30_30_F0_700.mat';...
-%         'Foot_3D_Pog_s1_mtj_v3_hypoelastic_sqr_Q-30_30_F0_700.mat';...
-%         'Foot_3D_Pog_s1_mtj_v3_hypoelastic_poly5_Q-30_30_F0_700.mat';...
-%         'Foot_3D_Pog_s1_mtj_v3_hyperelastic_MR5_Q-30_30_F0_700.mat';...
-        'Foot_3D_Pog_s1_mtj_subt1_v2_linear_Q-30_30_F0_4000.mat';...
-        'Foot_3D_Pog_s1_mtj_subt1_v2_hypoelastic_tanh_Q-30_30_F0_4000.mat';...
-        'Foot_3D_Pog_s1_mtj_subt1_v2_hypoelastic_sqr_Q-30_30_F0_4000.mat';...
-        'Foot_3D_Pog_s1_mtj_subt1_v2_hypoelastic_poly5_Q-30_30_F0_4000.mat';...
-        'Foot_3D_Pog_s1_mtj_subt1_v2_hyperelastic_MR5_Q-30_30_F0_4000.mat'
+        'Foot_3D_Fal_s1_mtj_subt1_v1_linear_Q-30_30_F0_4000.mat';...
+        'Foot_3D_Fal_s1_mtj_subt1_v1_tanh_Q-30_30_F0_4000.mat';...
+        'Foot_3D_Fal_s1_mtj_subt1_v1_sqr_Q-30_30_F0_4000.mat';...
+        'Foot_3D_Fal_s1_mtj_subt1_v1_Gefen2001_Q-30_30_F0_4000.mat';...
+        'Foot_3D_Fal_s1_mtj_subt1_v1_Cheng2008_Q-30_30_F0_4000.mat';...
+        'Foot_3D_Fal_s1_mtj_subt1_v1_Barrett2018_Q-30_30_F0_4000.mat';...
+        'Foot_3D_Fal_s1_mtj_subt1_v1_exp_Q-30_30_F0_4000.mat'
         };
     
     OutFolder = fullfile(pathRepo,'Results','FootModel');

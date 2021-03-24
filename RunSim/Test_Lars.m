@@ -1,5 +1,5 @@
 clear all
-close all
+% close all
 clc
 
 %% Paths
@@ -35,7 +35,7 @@ S.NThreads  = 6;        % number of threads for parallel computing
 S.tmt = 1;              % 1: use a model with tmt joint
 S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
 % linear spring
-S.kTMT = 800;          % (Nm/rad) stiffness of tmt joint 
+S.kTMT = 1000;          % (Nm/rad) stiffness of tmt joint 
 S.dTMT = 0.5;             % (Nms/rad) damping of tmt joint
 % nonlinear spring tmt
 S.TMT_linear = 1;
@@ -44,7 +44,10 @@ S.k2TMT = 1;
 S.t1TMT = 0.5;
 % windlass mechanism
 S.Windlass = 1;
-S.cWL = 0.02;           % relative change in foot arch length at mtp 20° dorsiflexion
+S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsiflexion
+
+S.mtj = 0;
+S.PF_stiffness = 'exp'; %'linear''tanh''sqr''Gefen2001''Cheng2008''Barrett2018''exp'
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
@@ -67,13 +70,13 @@ ia = 0;
 % S.P_max_ankle_exo = 50;
 
 % output folder
-S.ResultsFolder = 'FootModel'; % 'batch_windlass' 'standing' 'MuscleModel' 'batch_tmt_lin'
+S.ResultsFolder = 'test_WL_v2'; % 'batch_windlass' 'standing' 'MuscleModel' 'batch_tmt_lin'
 suffixCasName = '';
 suffixName = '';
 
 % Folder with default functions
-% S.subject            = 'subject1';
-S.subject            = 's1_Poggensee';
+S.subject            = 'subject1';
+% S.subject            = 's1_Poggensee';
 
 % initial guess based on simulations without exoskeletons
 S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
@@ -98,7 +101,7 @@ end
 S.PolyFolder = S.subject;
 
 % external function
-if S.tmt == 0
+if S.tmt == 0 && S.mtj == 0
     if strcmp(S.subject,'s1_Poggensee')
         if S.ExoBool == 0
             S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';        % external function
@@ -112,7 +115,19 @@ if S.tmt == 0
             S.ExternalFunc2 = 'Analyse_Subject1_pp.dll';
         end
     end
-elseif S.tmt ==1
+    
+elseif S.mtj == 1
+    if S.ExoBool == 0
+        if strcmp(S.subject,'s1_Poggensee')
+            S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtj_v3.dll';
+            S.ExternalFunc2 = 'PredSim_3D_Pog_s1_mtj_pp_v3.dll';
+        elseif strcmp(S.subject,'subject1')
+            S.ExternalFunc  = 'PredSim_3D_Fal_s1_mtj_v1.dll';
+            S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v1.dll';
+        end
+    end
+    
+elseif S.tmt == 1
     if S.ExoBool == 0
         if strcmp(S.subject,'s1_Poggensee')
             S.ExternalFunc  = 'PredSim_3D_Pog_s1_tmt_v3.dll';
@@ -170,7 +185,7 @@ end
 
 %% Run
 
-if S.tmt == 0
+if S.tmt == 0 && S.mtj == 0
     if batchQueue
         batchQ.(S.savename).PredSim = 'f_PredSim_Gait92';
         batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92';
@@ -181,7 +196,7 @@ if S.tmt == 0
     if pp           % post-proces simulation results
     f_LoadSim_Gait92(S.ResultsFolder,S.savename);
     end
-elseif S.tmt == 1
+else
     if ia
         if batchQueue
             batchQ.(S.savename).PredSim = 'f_PredSim_Gait92_tmt_ia';

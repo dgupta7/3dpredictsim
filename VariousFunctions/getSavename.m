@@ -35,40 +35,45 @@ else
     casfuncfolparts{end+1} = ['MuscModel_alphaCst'];
 end
 nr = numel(savenameparts);
-if isfield(S,'tmt') && ~isempty(S.tmt)
-    if S.tmt && isfield(S,'dTMT') && ~isempty(S.dTMT) && ~S.tmt_locked
-        savenameparts{end+1} = ['d0' num2str(S.dTMT*10)];
-        casfuncfolparts{end+1} = ['d0' num2str(S.dTMT*10)];
-    end
-    if isfield(S,'TMT_linear') && ~isempty(S.TMT_linear) && ~S.TMT_linear
-        if S.tmt && isfield(S,'k1TMT') && ~isempty(S.k1TMT) && ~S.tmt_locked
-            savenameparts{end+1} = ['k' num2str(S.k1TMT)];
-            casfuncfolparts{end+1} = ['k' num2str(S.k1TMT)];
+if isfield(S,'mtj') && ~isempty(S.mtj) && S.mtj
+    savenameparts{end+1} = ['PF_' S.PF_stiffness];
+    casfuncfolparts{end+1} = ['PF_' S.PF_stiffness];
+else
+    if isfield(S,'tmt') && ~isempty(S.tmt)
+        if S.tmt && isfield(S,'dTMT') && ~isempty(S.dTMT) && ~S.tmt_locked
+            savenameparts{end+1} = ['d0' num2str(S.dTMT*10)];
+            casfuncfolparts{end+1} = ['d0' num2str(S.dTMT*10)];
         end
-        if S.tmt && isfield(S,'k2TMT') && ~isempty(S.k2TMT) && ~S.tmt_locked
-            savenameparts{end+1} = ['kc' num2str(S.k2TMT)];
-            casfuncfolparts{end+1} = ['kc' num2str(S.k2TMT)];
-        end
-        if S.tmt && isfield(S,'t1TMT') && ~isempty(S.t1TMT) && ~S.tmt_locked
-            savenameparts{end+1} = ['t' num2str(S.t1TMT*10)];
-            casfuncfolparts{end+1} = ['t' num2str(S.t1TMT*10)];
-        end
-    else
-        if S.tmt && isfield(S,'kTMT') && ~isempty(S.kTMT) && ~S.tmt_locked
-            savenameparts{end+1} = ['k' num2str(S.kTMT)];
-            casfuncfolparts{end+1} = ['k' num2str(S.kTMT)];
-        end
-    end
-    if isfield(S,'Windlass') && ~isempty(S.Windlass) 
-        if S.Windlass
-            savenameparts{end+1} = ['WL'];
-            casfuncfolparts{end+1} = ['WL'];
-            if isfield(S,'cWL') && ~isempty(S.cWL)
-                savenameparts{end} = [savenameparts{end} num2str(S.cWL*1000)];
-                casfuncfolparts{end} = [casfuncfolparts{end} num2str(S.cWL*1000)];
+        if isfield(S,'TMT_linear') && ~isempty(S.TMT_linear) && ~S.TMT_linear
+            if S.tmt && isfield(S,'k1TMT') && ~isempty(S.k1TMT) && ~S.tmt_locked
+                savenameparts{end+1} = ['k' num2str(S.k1TMT)];
+                casfuncfolparts{end+1} = ['k' num2str(S.k1TMT)];
+            end
+            if S.tmt && isfield(S,'k2TMT') && ~isempty(S.k2TMT) && ~S.tmt_locked
+                savenameparts{end+1} = ['kc' num2str(S.k2TMT)];
+                casfuncfolparts{end+1} = ['kc' num2str(S.k2TMT)];
+            end
+            if S.tmt && isfield(S,'t1TMT') && ~isempty(S.t1TMT) && ~S.tmt_locked
+                savenameparts{end+1} = ['t' num2str(S.t1TMT*10)];
+                casfuncfolparts{end+1} = ['t' num2str(S.t1TMT*10)];
             end
         else
-            not{end+1} = 'not_WL';
+            if S.tmt && isfield(S,'kTMT') && ~isempty(S.kTMT) && ~S.tmt_locked
+                savenameparts{end+1} = ['k' num2str(S.kTMT)];
+                casfuncfolparts{end+1} = ['k' num2str(S.kTMT)];
+            end
+        end
+        if isfield(S,'Windlass') && ~isempty(S.Windlass) 
+            if S.Windlass
+                savenameparts{end+1} = ['WL'];
+                casfuncfolparts{end+1} = ['WL'];
+                if isfield(S,'cWL') && ~isempty(S.cWL)
+                    savenameparts{end} = [savenameparts{end} num2str(S.cWL*1000)];
+                    casfuncfolparts{end} = [casfuncfolparts{end} num2str(S.cWL*1000)];
+                end
+            else
+                not{end+1} = 'not_WL';
+            end
         end
     end
 end

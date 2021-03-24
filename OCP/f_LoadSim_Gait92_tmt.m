@@ -163,6 +163,18 @@ if strcmp(ExoImplementation,'IdealAnkle') || strcmp(ExoImplementation,'Nuckols20
     calcOrall.l     = 43:45;
     calcOrall.all   = [calcOrall.r,calcOrall.l];
     NcalcOrall      = length(calcOrall.all);
+    
+    if F1.nnz_out > 45
+        % separate GRF
+        GRFi.calcn.r = 46:48;
+        GRFi.metatarsi.r = 49:51;
+        GRFi.toes.r = 52:54;
+        GRFi.calcn.l = 55:57;
+        GRFi.metatarsi.l = 58:60;
+        GRFi.toes.l = 61:63;
+        GRFi.separate = GRFi.calcn.r(1):GRFi.toes.l(end);
+        GRF_separate_labels = {'calcn_r','metatarsi_r','toes_r','calcn_l','metatarsi_l','toes_l'};
+    end
 end
 % adapt indexes GRF in Nuckols simulations
 if strcmp(ExoImplementation,'Nuckols2019')
@@ -584,7 +596,9 @@ for i = 1:N
     Tau_passk_opt_all(i,:) = full(f_AllPassiveTorques(q_opt_unsc_all.rad(i+1,:),qdot_opt_unsc_all.rad(i+1,:)));
 end
 GRFk_opt = Foutk_opt(:,GRFi.all);
-
+if F1.nnz_out > 45
+    GRFk_separate_opt = Foutk_opt(:,GRFi.separate);
+end
 
 
 %% Joint torques and ground reaction forces at collocation points
@@ -922,6 +936,23 @@ GRFs_opt = GRFs_opt./(body_weight/100);
 if strcmp(HS1,'l')
     GRFs_opt(:,[4:6,1:3]) = GRFs_opt(:,:);
     GRFs_opt(:,[3,6]) = -GRFs_opt(:,[3,6]);
+end
+
+% Separate GRF
+if exist('GRFk_separate_opt','var')
+    GRFs_sep_opt = zeros(N*2,18);
+    GRFs_sep_opt(1:N-IC1i_c+1,:) = GRFk_separate_opt(IC1i_c:end,1:18);
+    GRFs_sep_opt(N-IC1i_c+2:N-IC1i_c+1+N,:) = GRFk_separate_opt(1:end,[10:18,1:9]);
+    GRFs_sep_opt(N-IC1i_c+2:N-IC1i_c+1+N,[3,6,9,12,15,18]) = ...
+        -GRFs_sep_opt(N-IC1i_c+2:N-IC1i_c+1+N,[3,6,9,12,15,18]);
+    GRFs_sep_opt(N-IC1i_c+2+N:2*N,:) = GRFk_separate_opt(1:IC1i_c-1,1:18);
+    GRFs_sep_opt = GRFs_sep_opt./(body_weight/100);
+    % If the first heel strike was on the left foot then we invert so that
+    % we always start with the right foot, for analysis purpose
+    if strcmp(HS1,'l')
+        GRFs_sep_opt(:,[10:18,1:9]) = GRFs_sep_opt(:,:);
+        GRFs_sep_opt(:,[3,6,9,12,15,18]) = -GRFs_sep_opt(:,[3,6,9,12,15,18]);
+    end
 end
 
 % Joint torques
@@ -1404,6 +1435,33 @@ if strcmp(ExoImplementation,'Nuckols2019')
     
 end
 
+%% Analyse windlass mechanism
+if S.mtj && S.Windlass
+    f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(S.PF_stiffness);
+    M_PF = zeros(length(Qs_GC),1);
+    F_PF = zeros(length(Qs_GC),1);
+    l_fa = zeros(length(Qs_GC),1);
+    h_fa = zeros(length(Qs_GC),1);
+
+    for i=1:length(Qs_GC)
+        [~, M_PFi,F_PFi,~,~,~,li,~,L0,hi,~,H0,~] = getPassiveMtjMomentWindlass_v2...
+            (Qs_GC(i,jointi.tmt.r)*pi/180,Qdots_GC(i,jointi.tmt.r)*pi/180,...
+            Qs_GC(i,jointi.mtp.r)*pi/180,f_PF_stiffness);
+        M_PF(i) = M_PFi;
+        l_fa(i) = li;
+        h_fa(i) = hi;
+        F_PF(i) = F_PFi;
+    end
+         
+    windlass.M_PF = M_PF;
+    windlass.F_PF = F_PF;
+    windlass.l_fa = l_fa;
+    windlass.h_fa = h_fa;
+    windlass.L0 = L0;
+    windlass.H0 = H0;
+end
+   
+
 %% Save results
 % Structure Results_all
 R.t_step    = tgrid;
@@ -1414,6 +1472,9 @@ R.Qs        = Qs_GC;
 R.Qdots     = Qdots_GC;
 R.Qddots    = Qdotdots_GC;
 R.GRFs      = GRFs_opt;
+if exist('GRFs_sep_opt','var')
+    R.GRFs_separate = GRFs_sep_opt;
+end
 R.Ts        = Ts_opt;
 R.Tid       = Ts_opt.*body_mass;
 R.a         = Acts_GC;
@@ -1463,6 +1524,10 @@ end
 if F1.nnz_out == 73
     R.COPL = COPL;
     R.COPR = COPR; 
+end
+
+if exist('windlass','var')
+    R.windlass = windlass;
 end
 
 % nuckols 2019 results

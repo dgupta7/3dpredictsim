@@ -65,6 +65,9 @@ if exist(ResultsFile,'file')
     
     % determine if the model has tmt joint
     has_no_tmt = ~isfield(R.S,'tmt') || isempty(R.S.tmt) || R.S.tmt == 0;
+    has_no_mtj = ~isfield(R.S,'mtj') || isempty(R.S.mtj) || R.S.mtj == 0;
+    
+    has_no_tmt = has_no_tmt && has_no_mtj;
     
     boolFirst = 1;
     
@@ -777,8 +780,13 @@ if exist(ResultsFile,'file')
     has_tmt_unlocked =  isfield(R.S,'tmt_locked') && ~isempty(R.S.tmt_locked) && ~R.S.tmt_locked;
     has_WL = isfield(R.S,'Windlass') && ~isempty(R.S.Windlass) && R.S.Windlass ~= 0;
     
-    if has_tmt && has_tmt_unlocked && has_WL
+    has_mtj = isfield(R.S,'mtj') && ~isempty(R.S.mtj) && R.S.mtj;
+    
+    
+    if has_tmt && has_tmt_unlocked && has_WL || has_mtj
         axes('parent', tab11);
+        
+        x = 1:(100-1)/(size(R.Qs,1)-1):100;
         
         itmt = find(strcmp(R.colheaders.joints,'tmt_angle_r'));
         imtp = find(strcmp(R.colheaders.joints,'mtp_angle_r'));
@@ -787,49 +795,76 @@ if exist(ResultsFile,'file')
         qdot_tmt = R.Qdots(:,itmt);
         q_mtp = R.Qs(:,imtp);
 
-        kTMT_li = 1.5/(pi/180)/5;
-        kTMT_PF = R.S.kTMT;
-        dTMT = R.S.dTMT;
-        cWL = R.S.cWL;
+        if isfield(R,'windlass') && ~isempty(R.windlass)
+            M_PF = R.windlass.M_PF;
+            F_PF = R.windlass.F_PF;
+            l_fa = R.windlass.l_fa;
+            h_fa = R.windlass.h_fa;
+            L0 = R.windlass.L0;
+            H0 = R.windlass.H0;
+            
+        else
+            kTMT_li = 1.5/(pi/180)/5;
+            kTMT_PF = R.S.kTMT;
+            dTMT = R.S.dTMT;
+            cWL = R.S.cWL;
 
-        x = 1:(100-1)/(size(R.Qs,1)-1):100;
-        
-        M = zeros(length(x),1);
-        M_PF = zeros(length(x),1);
-        F_PF = zeros(length(x),1);
-        l_fa = zeros(length(x),1);
-        h_fa = zeros(length(x),1);
-        l0_fa = zeros(length(x),1);
-        h0_fa = zeros(length(x),1);
-        q_tmt_0 = zeros(length(x),1);
+            M_PF = zeros(length(x),1);
+            F_PF = zeros(length(x),1);
+            l_fa = zeros(length(x),1);
+            h_fa = zeros(length(x),1);
 
-        for i=1:length(R.Qs)
-            [Mi, M_PFi,F_PFi,~,~,li,l0i,L0,hi,h0i,H0,q_tmt_0i] = ...
-            getPassiveTmtjMomentWindlass(q_tmt(i)*pi/180,qdot_tmt(i)*pi/180,q_mtp(i)*pi/180,kTMT_li,kTMT_PF,dTMT,R.S.subject,cWL);
+            if has_mtj
+                f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(R.S.PF_stiffness);
+            end
 
-            M(i) = Mi;
-            M_PF(i) = M_PFi;
-            l_fa(i) = li;
-            h_fa(i) = hi;
-            F_PF(i) = F_PFi;
-            l0_fa(i) = l0i;
-            h0_fa(i) = h0i;
-            q_tmt_0(i) = q_tmt_0i*180/pi;
+            for i=1:length(R.Qs)
+                if has_mtj
+                    [~, M_PFi,F_PFi,~,~,~,li,~,L0,hi,~,H0,~] = ...
+                        getPassiveMtjMomentWindlass_v2(q_tmt(i)*pi/180,qdot_tmt(i)*pi/180,...
+                        q_mtp(i)*pi/180,f_PF_stiffness);
+
+                else
+                    [~, M_PFi,F_PFi,~,~,li,~,L0,hi,~,H0,~] = ...
+                        getPassiveTmtjMomentWindlass(q_tmt(i)*pi/180,qdot_tmt(i)*pi/180,...
+                        q_mtp(i)*pi/180,kTMT_li,kTMT_PF,dTMT,R.S.subject,cWL);
+                    M_PFi = -M_PFi;
+                end
+
+                M_PF(i) = M_PFi;
+                l_fa(i) = li;
+                h_fa(i) = hi;
+                F_PF(i) = F_PFi;
+            end
         end
 
         
         set(0,'defaultTextInterpreter','none');
         
-        subplot(2,4,1)
+        subplot(2,3,1)
         hold on
-        p1=plot(x,q_tmt,'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
-        p2=plot(x,q_tmt_0,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Windlass');
-        legend([p1,p2],'location','best')
+        plot(x,q_tmt,'color',Cs,'linewidth',line_linewidth)
         title('tmt angle')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Angle (°)','Fontsize',label_fontsize);
+        
+        subplot(2,3,2)
+        hold on
+        p1=plot(x,R.Tid(:,itmt),'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
+        p2=plot(x,M_PF,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Plantar fascia');
+        legend([p1,p2],'location','best')
+        title('tmt torque')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('Torque (Nm)','Fontsize',label_fontsize);
 
-        subplot(2,4,5)
+        subplot(2,3,3)
+        hold on
+        plot(x,l_fa/L0,'color',Cs,'linewidth',line_linewidth)
+        title('Foot arch length')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('relative length (-)','Fontsize',label_fontsize);
+        
+        subplot(2,3,4)
         hold on
         plot(x,q_mtp,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
         title('mtp angle')
@@ -838,58 +873,21 @@ if exist(ResultsFile,'file')
         lh = legend('location','best');
         lh.Interpreter = 'none';
 
-        subplot(2,4,2)
-        hold on
-        p1=plot(x,R.Tid(:,itmt),'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
-        p2=plot(x,-M_PF,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Plantar fascia');
-        legend([p1,p2],'location','best')
-        title('tmt torque')
-        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        ylabel('Torque (Nm)','Fontsize',label_fontsize);
-
-        subplot(2,4,6)
+        subplot(2,3,5)
         hold on
         plot(x,F_PF/(R.body_mass*9.81),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-%         line(get(gca, 'xlim'),[1,1]*R.body_mass*9.81,'color','k','LineStyle','-')
         title('Plantar fascia force')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        ylabel('Force (N/BW)','Fontsize',label_fontsize);
-
-        subplot(2,4,3)
+        ylabel('Force/BW (-)','Fontsize',label_fontsize);
+        
+        subplot(2,3,6)
         hold on
-        p1=plot(x,l_fa/L0,'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
-        p2=plot(x,l0_fa/L0,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Windlass');
-        legend([p1,p2],'location','best')
-        title('Foot arch length')
-        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        ylabel('relative length (-)','Fontsize',label_fontsize);
-
-        subplot(2,4,7)
-        hold on
-        p1=plot(x,h_fa/H0,'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
-        p2=plot(x,h0_fa/H0,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Windlass');
-        legend([p1,p2],'location','best')
+        plot(x,h_fa/H0,'color',Cs,'linewidth',line_linewidth)
         title('Foot arch height')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('relative height (-)','Fontsize',label_fontsize);
 
-        
-        k_tmt = M./(q_tmt*pi/180);
-        W_tmt(:) = ( q_tmt(:)-q_tmt(1) )*pi/180 .* M(:);
-        
-        subplot(2,4,4)
-        hold on
-        plot(q_mtp,k_tmt,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName)
-        title('tmt stiffness')
-        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        ylabel('k (Nm/rad)','Fontsize',label_fontsize);
 
-        subplot(2,4,8)
-        hold on
-        plot(x,W_tmt,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName)
-        title('tmt work')
-        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        ylabel('W (J)','Fontsize',label_fontsize);
       
     end
    

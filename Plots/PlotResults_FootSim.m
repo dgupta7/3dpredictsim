@@ -16,13 +16,15 @@ if length(varargin) >= 2
     tab1 = h.Parent.Children(1).Children(1).Children(1);
     tab2 = h.Parent.Children(1).Children(1).Children(2);
     tab3 = h.Parent.Children(1).Children(1).Children(3);
+    tab4 = h.Parent.Children(1).Children(1).Children(4);
 else
     h = figure('Position',[82,151,1497,827]);
     h.Name = 'FootModel_Results';
     hTabGroup = uitabgroup;
     tab1 = uitab(hTabGroup, 'Title', 'Unloaded');
-    tab2 = uitab(hTabGroup, 'Title', 'Load effects');
-    tab3 = uitab(hTabGroup, 'Title', 'Arch stiffness');
+    tab2 = uitab(hTabGroup, 'Title', 'Load effects 1');
+    tab3 = uitab(hTabGroup, 'Title', 'Load effects 2');
+    tab4 = uitab(hTabGroup, 'Title', 'Arch stiffness');
 end
 
 % return figure handle if wanted
@@ -39,7 +41,7 @@ subplot(3,3,1)
 plot(R.Qs_mtp*180/pi,R.l_fa(:,1)*1000,'color',CsV)
 hold on
 xlabel('mtp angle (°)')
-ylabel('arch length(mm)')
+ylabel('arch length (mm)')
 title('Foot arch length')
 % if length(R.Qs_mtp)>1 && min(R.Qs_mtp)*180/pi<-29
 %     l0 = interp1(R.Qs_mtp*180/pi,R.l_fa(:,1),-29);
@@ -50,14 +52,14 @@ subplot(3,3,2)
 hold on
 plot(R.Qs_mtp*180/pi,R.h_fa(:,1)*1000,'color',CsV)
 xlabel('mtp angle (°)')
-ylabel('arch height(mm)')
+ylabel('arch height (mm)')
 title('Foot arch height')
 
 subplot(3,3,4)
 hold on
 plot(R.Qs_mtp*180/pi,R.l_PF(:,1)*1000,'color',CsV)
 xlabel('mtp angle (°)')
-ylabel('PF length(mm)')
+ylabel('PF length (mm)')
 title('Plantar fascia length')
 
 subplot(3,3,5)
@@ -65,24 +67,25 @@ hold on
 plot(R.Qs_mtp*180/pi,R.M_li(:,1),'color',CsV)
 xlabel('mtp angle (°)')
 ylabel('Torque (Nm)')
-title('other passive torques')
+title('mt torque (except PF)')
 
 subplot(3,3,6)
 hold on
-plot(R.Qs_mtp*180/pi,R.Qs(:,1,R.jointfi.tmt.r)*180/pi,'color',CsV)
+plot(R.Qs_mtp*180/pi,R.Qs(:,1,R.jointfi.tmt.r)*180/pi,'color',CsV,'DisplayName',R.PF_stiffness)
 xlabel('mtp angle (°)')
 ylabel('mt angle (°)')
 title('Midtarsal joint angle')
-
+lg12 = legend('Location','northeast');
+lg12.Interpreter = 'none';
+title(lg12,'PF stiffness model')
 
 subplot(3,3,7)
 hold on
-plot(R.Qs_mtp*180/pi,R.F_PF(:,1),'color',CsV,'DisplayName',R.PF_stiffness)
+plot(R.Qs_mtp*180/pi,R.F_PF(:,1),'color',CsV)
 xlabel('mtp angle (°)')
 ylabel('F PF (N)')
 title('Plantar fascia force')
-lg = legend('Location','best');
-lg.Interpreter = 'none';
+
 
 subplot(3,3,8)
 hold on
@@ -99,8 +102,8 @@ plot(R.Qs_mtp*180/pi,R.GRF_metatarsi(:,1,2),'-.v','color',CsV)
 xlabel('mtp angle (°)')
 ylabel('GRF_y (N)')
 title('vertical GRF')
-legend('calcaneus','metatarsi','Location','best')
-legend('Location','best')
+lg13=legend('calcaneus','metatarsi','Location','northeast');
+
 
 
 subplot(3,3,3)
@@ -118,9 +121,20 @@ title('sagittal plane (right)')
 xlabel('x')
 ylabel('y')
 axis equal
-ylim([0,0.2])
-legend('Location','best')
+ylim([0.02,0.15])
+lg11=legend('Location','northeast');
 
+lhPos = lg11.Position;
+lhPos(1) = lhPos(1)+0.1;
+set(lg11,'position',lhPos);
+
+lhPos = lg12.Position;
+lhPos(1) = lhPos(1)+0.1;
+set(lg12,'position',lhPos);
+
+lhPos = lg13.Position;
+lhPos(1) = lhPos(1)+0.1;
+set(lg13,'position',lhPos);
 
 %%
 
@@ -130,69 +144,30 @@ for i=1:n_mtp
     js = find(R.failed(i,:)==0);
     Fs_tib = R.Fs_tib(js);
     
-    
-    
-    subplot(3,3,1)
+    subplot(2,2,1)
     hold on
     plot(Fs_tib,R.l_fa(i,js)*1000,mrk{i},'Color',CsV)
-%     plot(Fs_tib,R.l_fa_ext(i,js)*1000,'Color',CsV(i,:))
     xlabel('tibia force (N)')
-    ylabel('arch length(mm)')
+    ylabel('arch length (mm)')
     title('Foot arch length (sagittal)')
 
-    subplot(3,3,2)
+    subplot(2,2,2)
     hold on
-    plot(Fs_tib,R.h_fa(i,js)*1000,mrk{i},'Color',CsV,'DisplayName','Windlass model');
-%     plot(Fs_tib,R.h_fa_ext(i,js)*1000,'Color',CsV(i,:),'DisplayName','External func');
+    plot(Fs_tib,R.h_fa(i,js)*1000,mrk{i},'Color',CsV,...
+        'DisplayName',[num2str(R.Qs_mtp(i)*180/pi) '°, ' R.PF_stiffness])
     xlabel('tibia force (N)')
     ylabel('arch height (mm)')
     title('Foot arch height (sagittal)')
-    
+    lg02=legend('Location','northeast');
 
-    subplot(3,3,3)
+    subplot(2,2,3)
     hold on
     plot(Fs_tib,R.l_PF(i,js)*1000,mrk{i},'Color',CsV)
     xlabel('tibia force (N)')
-    ylabel('PF length(mm)')
+    ylabel('PF length (mm)')
     title('Plantar fascia length (sagittal)')
     
-    subplot(3,3,4)
-    hold on
-    plot(Fs_tib,R.Qs(i,js,R.jointfi.subt.r)*180/pi,mrk{i},'Color',CsV)
-    xlabel('tibia force (N)')
-    ylabel('subt angle (°)')
-    title('subtalar')
-    
-    subplot(3,3,5)
-    hold on
-    plot(Fs_tib,R.Qs(i,js,R.jointfi.ankle.r)*180/pi,mrk{i},'Color',CsV)
-    xlabel('tibia force (N)')
-    ylabel('ankle angle (°)')
-    title('ankle')
-
-    subplot(3,3,6)
-    hold on
-    plot(Fs_tib,R.Qs(i,js,R.jointfi.tmt.r)*180/pi,mrk{i},'Color',CsV,'DisplayName',['mtp: ' num2str(R.Qs_mtp(i)*180/pi) '°'])
-    xlabel('tibia force (N)')
-    ylabel('tmt angle (°)')
-    lg02=legend('Location','northeast');
-    title('tmt')
-    
-    subplot(3,3,7)
-    hold on
-    plot(Fs_tib,R.GRF_calcn(i,js,2),mrk{i},'Color',CsV)
-    xlabel('tibia force (N)')
-    ylabel('GRF_y calcn (N)')
-    title('vertical GRF')
-
-    subplot(3,3,8)
-    hold on
-    plot(Fs_tib,R.GRF_metatarsi(i,js,2),mrk{i},'Color',CsV)
-    xlabel('tibia force (N)')
-    ylabel('GRF_y metatarsi (N)')
-    title('vertical GRF')
-    
-    subplot(3,3,9)
+    subplot(2,2,4)
     hold on
     plot(Fs_tib,R.F_PF(i,js),mrk{i},'Color',CsV)
     xlabel('tibia force (N)')
@@ -201,16 +176,94 @@ for i=1:n_mtp
 
 end
 
-title(lg02,'colour code')
+title(lg02,'mtp, PF model')
 lhPos = lg02.Position;
 lhPos(1) = lhPos(1)+0.1;
 set(lg02,'position',lhPos);
-
-
-
+lg02.Interpreter = 'none';
 
 %%
-axes('parent', tab3);
+for i=1:n_mtp
+    axes('parent', tab3);
+    
+    js = find(R.failed(i,:)==0);
+    Fs_tib = R.Fs_tib(js);
+
+    subplot(3,3,1)
+    hold on
+    plot(Fs_tib,R.Qs(i,js,R.jointfi.ankle.r)*180/pi,mrk{i},'Color',CsV)
+    xlabel('tibia force (N)')
+    ylabel('angle (°)')
+    title('ankle angle')
+
+    subplot(3,3,2)
+    hold on
+    plot(Fs_tib,R.Qs(i,js,R.jointfi.subt.r)*180/pi,mrk{i},'Color',CsV)
+    xlabel('tibia force (N)')
+    ylabel('angle (°)')
+    title('subtalar angle')
+    
+    subplot(3,3,3)
+    hold on
+    plot(Fs_tib,R.Qs(i,js,R.jointfi.tmt.r)*180/pi,mrk{i},'Color',CsV,...
+        'DisplayName',[num2str(R.Qs_mtp(i)*180/pi) '°, ' R.PF_stiffness])
+    xlabel('tibia force (N)')
+    ylabel('angle (°)')
+    lg02=legend('Location','northeast');
+    title('midtarsal angle')
+    
+    subplot(3,3,4)
+    hold on
+    plot(Fs_tib,R.T_ankle.ext(i,js),mrk{i},'Color',CsV)
+    xlabel('tibia force (N)')
+    ylabel('torque (Nm)')
+    title('ankle torque')
+
+    subplot(3,3,5)
+    hold on
+    plot(Fs_tib,R.T_subt.ext(i,js),mrk{i},'Color',CsV)
+    xlabel('tibia force (N)')
+    ylabel('torque (Nm)')
+    title('subtalar torque')
+    
+    subplot(3,3,6)
+    hold on
+    plot(Fs_tib,R.M_li(i,js),mrk{i},'Color',CsV)
+    xlabel('tibia force (N)')
+    ylabel('torque (Nm)')
+    title('midtarsal torque(except PF)')
+
+    subplot(3,3,7)
+    hold on
+    plot(Fs_tib,R.GRF_calcn(i,js,2),mrk{i},'Color',CsV)
+    xlabel('tibia force (N)')
+    ylabel('GRF_y (N)')
+    title('vertical GRF calcaneus')
+
+    subplot(3,3,8)
+    hold on
+    plot(Fs_tib,R.GRF_metatarsi(i,js,2),mrk{i},'Color',CsV)
+    xlabel('tibia force (N)')
+    ylabel('GRF_y (N)')
+    title('vertical GRF metatarsi')
+    
+    subplot(3,3,9)
+    hold on
+    plot(Fs_tib,R.M_PF(i,js),mrk{i},'Color',CsV)
+    xlabel('tibia force (N)')
+    ylabel('torque (Nm)')
+    title('midtarsal torque (PF)')
+    
+end
+
+title(lg02,'mtp, PF model')
+lhPos = lg02.Position;
+lhPos(1) = lhPos(1)+0.1;
+set(lg02,'position',lhPos);
+lg02.Interpreter = 'none';
+
+%%
+axes('parent', tab4);
 
 j = find(R.Qs_mtp(:)==0);
 
@@ -221,19 +274,21 @@ l_fa = R.l_fa(j,js);
 subplot(1,3,1)
 plot((l_fa-l_fa(1))*1000,Fs_tib/1000,'color',CsV,'DisplayName',R.PF_stiffness)
 hold on
+grid on
 xlabel('horizontal elongation (mm)')
 ylabel('vertical force (kN)')
-title({'arch stiffness','as defined by Ker et al, 1987'})
-lg = legend('Location','best');
-lg.Interpreter = 'none';
+title({'Foot arch stiffness','as defined by Ker et al, 1987'})
+lg12 = legend('Location','southeast');
+lg12.Interpreter = 'none';
 
 h_fa = R.h_fa(j,js);
 subplot(1,3,2)
 plot((h_fa(1)-h_fa)*1000,Fs_tib/1000,'color',CsV)
 hold on
+grid on
 xlabel('vertical displacement (mm)')
 ylabel('vertical force (kN)')
-title({'arch stiffness','as defined by Stearne et al, 2016'})
+title({'Foot arch stiffness','as defined by Stearne et al, 2016'})
 
 
 for i=1:n_mtp
@@ -254,9 +309,9 @@ for i=1:n_mtp
     plot(ac_rel(:),F_ac{i}/BW,mrk{i},'color',CsV,'DisplayName',['mtp: ' num2str(R.Qs_mtp(i)*180/pi) '°'])
 end
 xlabel('arch compression (-)')
-ylabel('vertical force /BW (-)')
-title({'arch stiffness','as defined by Welte et al, 2018'})
-leg = legend('Location','best');
+ylabel('vertical force / body weight (-)')
+title({'Foot arch stiffness','as defined by Welte et al, 2018'})
+leg = legend('Location','southeast');
 title(leg,'mtp angle')
 xlim([0,1])
 

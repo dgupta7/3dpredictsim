@@ -129,26 +129,21 @@ ylabel('PF force (N)')
 
 l = linspace(0.17,0.19,1000);
 ls = 0.17;
-PF_stiffness = {'linear','hypoelastic_tanh','hypoelastic_sqr','hypoelastic_poly5','hyperelastic_MR5','toein_gaussian'};
+PF_stiffness = {'linear','tanh','sqr','exp','Gefen2001','Cheng2008','Barrett2018'};
 
-for i=1:6
+dl = (l-ls)*1000;
+figure
+hold on
+for i=1:7
     f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(PF_stiffness{i});
     for j=1:1000
         F_PF(i,j) = full(f_PF_stiffness(l(j)));
     end
+    plot(dl,F_PF(i,:),'DisplayName',PF_stiffness{i})
 end
 
-dl = (l-ls)*1000;
-figure
-plot(dl,F_PF(1,:),'DisplayName','linear elastic')
-hold on
-plot(dl,F_PF(2,:),'DisplayName','hypoelastic (tanh)')
-plot(dl,F_PF(3,:),'DisplayName','hypoelastic (k \Deltal^2)')
-plot(dl,F_PF(4,:),'DisplayName','hypoelastic (5e O)')
-plot(dl,F_PF(5,:),'DisplayName','hyperelastic')
-plot(dl,F_PF(6,:),'DisplayName','toe-in gaussian')
 legend('Location','best')
-xlabel('\Deltal (mm)')
+xlabel('\Delta l (mm)')
 ylabel('PF force (N)')
 % ylim([0,2000])
 % xlim([0,10])

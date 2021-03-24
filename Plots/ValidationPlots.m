@@ -149,11 +149,12 @@ if exist(ResultsFile,'file')
     
     has_tmt_unlocked =  isfield(R.S,'tmt') && ~isempty(R.S.tmt) && R.S.tmt && isfield(R.S,'tmt_locked') && ~isempty(R.S.tmt_locked) && ~R.S.tmt_locked;
     has_WL = isfield(R.S,'Windlass') && ~isempty(R.S.Windlass) && R.S.Windlass ~= 0;
+    has_mtj = isfield(R.S,'mtj') && ~isempty(R.S.mtj) && R.S.mtj;
     
     % ankle and soleus
     axes('parent', tab4);
 
-    if has_tmt_unlocked
+    if has_tmt_unlocked || has_mtj
         if has_WL
             mrk = 'o';
         else
@@ -176,7 +177,7 @@ if exist(ResultsFile,'file')
         subplot(4,5,i)
         hold on
         grid on
-        if has_tmt_unlocked
+        if has_tmt_unlocked || has_mtj
             plot(xpar(i),ypar(i),mrk,'Color',Cs,'DisplayName',LegName)
         else
             line(get(gca, 'xlim'),[1,1]*ypar(i),'color',Cs,'DisplayName',LegName)
@@ -221,7 +222,7 @@ if exist(ResultsFile,'file')
     % knee and hip
     axes('parent', tab5);
     
-    if has_tmt_unlocked
+    if has_tmt_unlocked || has_mtj
         if has_WL
             mrk = 'o';
         else
@@ -246,7 +247,7 @@ if exist(ResultsFile,'file')
         subplot(4,6,i)
         hold on
         grid on
-        if has_tmt_unlocked
+        if has_tmt_unlocked || has_mtj
             plot(xpar(tmp1),ypar(tmp2,iis(tmp3)),mrk,'Color',Cs,'DisplayName',LegName)
         else
             line(get(gca, 'xlim'),[1,1]*ypar(tmp2,iis(tmp3)),'color',Cs,'DisplayName',LegName)

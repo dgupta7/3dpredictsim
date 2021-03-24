@@ -14,28 +14,30 @@ mtj = ~tmtj;
 % Qs_mtp = [-45:15:45]*pi/180;
 Qs_mtp = [-30:30:30]*pi/180;
 % vertical forces on knee
-Fs_tib = [0:100:750,1000:250:4000];
+Fs_tib = [0:50:300,350:100:750,1000:250:4000];
 % Fs_tib = [0:100:1000];
 
 % Qs_mtp = [0]*pi/180;
-% Fs_tib = [0];
+% Fs_tib = [-40,05,25,160,320];
 
 n_mtp = length(Qs_mtp);
 n_tib = length(Fs_tib);
 
 % Windlass parameters
-S.kTMT_li = 0;
+S.kTMT_li = 5;
 S.kTMT_PF = 500;
 S.dTMT = 0;
 S.cWL = 0.025;
-ls = 0.17;
+ls = 0.172;
 
+% PF_stiffness = S.PF_stiffness;
 % PF_stiffness = 'linear';
-% PF_stiffness = 'hypoelastic_tanh';
-% PF_stiffness = 'hypoelastic_sqr';
-% PF_stiffness = 'hypoelastic_poly5';
-% PF_stiffness = 'hyperelastic_MR5';
-PF_stiffness = 'toein_gaussian';
+% PF_stiffness = 'tanh';
+% PF_stiffness = 'sqr';
+PF_stiffness = 'Gefen2001';
+% PF_stiffness = 'Cheng2008';
+% PF_stiffness = 'Barrett2018';
+% PF_stiffness = 'exp';
 
 subtR = 1; % reduce subtalar mobility
 
@@ -53,8 +55,15 @@ elseif mtj
 %     ext_name = 'F','Foot_3D_Pog_s1_mtj_v6'; % geo with higher arch, m_tib = 0
 %     ext_name = 'Foot_3D_Pog_s1_mtj_subt2_v1'; % geo, other subt ax
 %     ext_name = 'Foot_3D_Pog_s1_mtj_subt3_v1'; % geo, other subt ax
-    ext_name = 'Foot_3D_Pog_s1_mtj_subt1_v2'; % geometry scaling stiff*1000
+%     ext_name = 'Foot_3D_Pog_s1_mtj_subt1_v2'; % geometry scaling stiff*1000
+%     ext_name = 'Foot_3D_Pog_s1_mtj_subt1_higherArch_v1'; %m_tib = 0, stiff*1000
+%     ext_name = 'Foot_3D_Pog_s1_mtj_subt1_higherArch_v2'; %stiff*1000
 
+    if strcmp(S.subject,'s1_Poggensee')
+        ext_name = 'Foot_3D_Pog_s1_mtj_subt1_v3';
+    elseif strcmp(S.subject,'subject1')
+        ext_name = 'Foot_3D_Fal_s1_mtj_subt1_v1';
+    end
 
     
     savename = [ext_name '_' PF_stiffness];
@@ -201,6 +210,8 @@ else
     bounds_FTs = [zeros(NMf,1),ones(NMf,1)];
     scale_FTs = 5*ones(NMf,1);
 
+    bounds_scaled = bounds_qs.*scale_qs;
+    
     %% Build system to solve
 
     % variables
@@ -322,8 +333,14 @@ else
     % Objective
     fo1 = (Tj(jointfi.calcn_or(2),1) - Tj(jointfi.toes_or(2),1) - 0.01)^2; % square to get positive value
     fo2 = f5^2 + f6^2;
+%     fo1 = (Tj(jointfi.calcn_GRF(2))+0.01)^(-2) * (1+tanh(Tj(jointfi.metatarsi_GRF(2))-50));
+    
     fo = fo1 + fo2;
 
+
+
+
+                
     % Define function to return constraints and objective
     f_foot = Function('f_foot',{[Q_tib_rx;Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt;FT_tilde],Q_mtp,F_tib_y},{fo,ff});
 
@@ -390,7 +407,6 @@ else
     % solver options
     options.ipopt.hessian_approximation = 'limited-memory';
     options.ipopt.mu_strategy           = 'adaptive';
-    % options.ipopt.max_iter              = S.max_iter;
     options.ipopt.linear_solver         = S.linear_solver;
     options.ipopt.tol                   = 1*10^(-S.tol_ipopt);
     opti.solver('ipopt', options);
@@ -401,17 +417,7 @@ else
     %% run solver        
     for i=1:n_mtp
         % get initial guess
-    %     if tmtj
-    %         [~,~,~,~,~,~,~,~,~,~,~,q_tmt_0i] = ...
-    %                 getPassiveTmtjMomentWindlass(0,0,Qs(i,j,jointfi.mtp.r),...
-    %                 kTMT_li,kTMT_PF,dTMT,S.subject,cWL);
-    %     elseif mtj
-    %         [~,q_mt_init] = getPassiveMtjMomentWindlass_v2(0,0,Qs_mtp(i),kTMT_li,kTMT_PF,dTMT,S.subject,cWL);
-    %     end
-
-        q_mt_init = 0;
-
-        qs_init = [0;0;0.45;0;0;q_mt_init]./scale_qs;
+        qs_init = [0;0;0.45;0;0;0]./scale_qs;
         FTs_init = zeros(NMf,1);
 
         for j=1:n_tib
@@ -498,7 +504,7 @@ else
                     [Mi, M_PFi,F_PFi,M_lii,~,lpfi,li,l0i,L0,hi,h0i,H0,q_tmt_0i] = ...
                             getPassiveMtjMomentWindlass_v2(Qs(i,j,jointfi.tmt.r),0,Qs(i,j,jointfi.mtp.r),...
                             f_PF_stiffness,S);
-                    if lpfi<ls; lpfi=ls; end
+%                     if lpfi<ls; lpfi=ls; end
                     l_PF(i,j) = lpfi;
                 end
                 M(i,j) = Mi;
@@ -514,7 +520,6 @@ else
 
             catch
                 failed(i,j) = 1;
-                disp('Computer says nooo');
             end
 
         end

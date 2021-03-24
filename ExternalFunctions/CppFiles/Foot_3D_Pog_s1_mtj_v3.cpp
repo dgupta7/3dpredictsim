@@ -168,7 +168,7 @@ int F_generic(const T** arg, T** res) {
 	Vec3 locSphere_4_r(0.086976, -0.035452,  -0.00318967);
 	//Vec3 locSphere_5_r(0.053154, -0.01, -0.0034173);
 	//Vec3 locSphere_6_r(1.7381e-06, -0.01, 0.022294);
-	/// Right foot contact shere specifications
+	/// Right foot contact sphere specifications
 	HC_1_r = new HuntCrossleyForce_smooth("sphere_1_r", "calcn_r", locSphere_1_r, radiusSphere_s1,
 		stiffness, dissipation, staticFriction, dynamicFriction, viscousFriction, transitionVelocity, normal, offset);
 	HC_2_r = new HuntCrossleyForce_smooth("sphere_2_r", "calcn_r", locSphere_2_r, radiusSphere_s2,

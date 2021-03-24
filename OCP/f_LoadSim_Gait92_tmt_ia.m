@@ -167,6 +167,18 @@ if strcmp(ExoImplementation,'IdealAnkle') || strcmp(ExoImplementation,'Nuckols20
     calcOrall.l     = 43:45;
     calcOrall.all   = [calcOrall.r,calcOrall.l];
     NcalcOrall      = length(calcOrall.all);
+    
+    if F1.nnz_out > 45
+        % separate GRF
+        GRFi.calcn.r = 46:48;
+        GRFi.metatarsi.r = 49:51;
+        GRFi.toes.r = 52:54;
+        GRFi.calcn.l = 55:57;
+        GRFi.metatarsi.l = 58:60;
+        GRFi.toes.l = 61:63;
+        GRFi.separate = GRFi.calcn.r(1):GRFi.toes.l(end);
+        GRF_separate_labels = {'calcn_r','metatarsi_r','toes_r','calcn_l','metatarsi_l','toes_l'};
+    end
 end
 % adapt indexes GRF in Nuckols simulations
 if strcmp(ExoImplementation,'Nuckols2019')

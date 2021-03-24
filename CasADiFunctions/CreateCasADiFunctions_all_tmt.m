@@ -59,6 +59,7 @@ end
 
 if isfield(S,'Windlass') && ~isempty(S.Windlass)
     WL = S.Windlass;
+        
     if isfield(S,'cWL') && ~isempty(S.cWL)
         cWL = S.cWL;
     else
@@ -66,6 +67,13 @@ if isfield(S,'Windlass') && ~isempty(S.Windlass)
     end
 else
     WL = 0;
+end
+
+if isfield(S,'mtj') && ~isempty(S.mtj)
+    mtj = S.mtj;
+    tmt = 0; % ccan't have both (yet?)
+else
+    mtj = 0;
 end
 
 nq.leg = 10; % #joints needed for polynomials
@@ -117,7 +125,7 @@ shift = getShift(aTendon);
 % jointi.elb.l        = 30;
 % jointi.elb.r        = 31;
 
-if tmt == 1
+if tmt == 1 || mtj == 1
     jointi = getJointi_tmt();
 else
     jointi = getJointi();
@@ -470,7 +478,7 @@ passTanhTorques = -stiff1 * (qin - theta1 * tanh(qin/(stiff2*theta1)) ) - damp *
 f_passiveTanhTorques = Function('f_passiveTanhTorques',{stiff1,stiff2,theta1,damp,qin,qdotin}, ...
     {passTanhTorques},{'stiff1','stiff2','theta1','damp','qin','qdotin'},{'passTanhTorques'});
 
-%% Passive torque with Windlass mechanism
+%% Passive torque with simplistic Windlass mechanism
 % stiff1	= SX.sym('stiff1',1);
 % stiff2	= SX.sym('stiff2',1);
 % damp1	= SX.sym('damp1',1);
@@ -486,7 +494,19 @@ passWLTorques = getPassiveTmtjMomentWindlass(qin1,qdotin1,qin2,kTMT_li,kTMT,dTMT
 f_passiveWLTorques = Function('f_passiveWLTorques',{qin1,qdotin1,qin2}, ...
     {passWLTorques},{'qin1','qdotin1','qin2'},{'passWLTorques'});
 
+%% Passive torque with better Windlass mechanism
+if mtj
+    qin1     = SX.sym('qin_pass1',1);
+    qin2     = SX.sym('qin_pass2',1);
+    qdotin1  = SX.sym('qdotin_pass1',1);
 
+    f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(S.PF_stiffness);
+
+    passWLTorques_mtj = getPassiveMtjMomentWindlass_v2(qin1,qdotin1,qin2,f_PF_stiffness);
+    
+    f_passiveWLTorques_mtj = Function('f_passiveWLTorques_mtj',{qin1,qdotin1,qin2}, ...
+        {passWLTorques_mtj},{'qin1','qdotin1','qin2'},{'passWLTorques'});
+end
 %% Metabolic energy models
 act_SX          = SX.sym('act_SX',NMuscle,1); % Muscle activations
 exc_SX          = SX.sym('exc_SX',NMuscle,1); % Muscle excitations
@@ -654,15 +674,20 @@ Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
 if tmt
     if tmt_linear
         % Assume linear stiffness (according to DOI: 10.1109/ROBIO.2011.6181517)
-        if WL ~=1
+        if WL == 0
             Tau_passj.tmt.l = f_passiveTATorques(kTMT, dTMT, ...
                 Q_SX(jointi.tmt.l), Qdot_SX(jointi.tmt.l));
             Tau_passj.tmt.r = f_passiveTATorques(kTMT, dTMT, ...
                 Q_SX(jointi.tmt.r), Qdot_SX(jointi.tmt.r));
-        else
+        elseif WL == 1
             Tau_passj.tmt.l = f_passiveWLTorques(Q_SX(jointi.tmt.l), ...
                 Qdot_SX(jointi.tmt.l),Q_SX(jointi.mtp.l));
             Tau_passj.tmt.r = f_passiveWLTorques(Q_SX(jointi.tmt.r), ...
+                Qdot_SX(jointi.tmt.r),Q_SX(jointi.mtp.r));
+        elseif WL == 2
+            Tau_passj.tmt.l = f_passiveWLTorques_mtj(Q_SX(jointi.tmt.l), ...
+                Qdot_SX(jointi.tmt.l),Q_SX(jointi.mtp.l));
+            Tau_passj.tmt.r = f_passiveWLTorques_mtj(Q_SX(jointi.tmt.r), ...
                 Qdot_SX(jointi.tmt.r),Q_SX(jointi.mtp.r));
         end
     else
@@ -677,6 +702,21 @@ if tmt
         Tau_passj.knee.l,Tau_passj.knee.r,Tau_passj.ankle.l,...
         Tau_passj.ankle.r,Tau_passj.subt.l,Tau_passj.subt.r,...
         Tau_passj.tmt.l,Tau_passj.tmt.r,...
+        Tau_passj.mtp.all,Tau_passj.trunk.ext,Tau_passj.trunk.ben,...
+        Tau_passj.trunk.rot,Tau_passj.arm]';
+elseif mtj
+    if WL == 1
+        Tau_passj.mtj.l = f_passiveWLTorques_mtj(Q_SX(jointi.tmt.l), ...
+            Qdot_SX(jointi.tmt.l),Q_SX(jointi.mtp.l));
+        Tau_passj.mtj.r = f_passiveWLTorques_mtj(Q_SX(jointi.tmt.r), ...
+            Qdot_SX(jointi.tmt.r),Q_SX(jointi.mtp.r));
+    end
+    Tau_passj_all = [Tau_passj.hip.flex.l,Tau_passj.hip.flex.r,...
+        Tau_passj.hip.add.l,Tau_passj.hip.add.r,...
+        Tau_passj.hip.rot.l,Tau_passj.hip.rot.r,...
+        Tau_passj.knee.l,Tau_passj.knee.r,Tau_passj.ankle.l,...
+        Tau_passj.ankle.r,Tau_passj.subt.l,Tau_passj.subt.r,...
+        Tau_passj.mtj.l,Tau_passj.mtj.r,...
         Tau_passj.mtp.all,Tau_passj.trunk.ext,Tau_passj.trunk.ben,...
         Tau_passj.trunk.rot,Tau_passj.arm]';
 else

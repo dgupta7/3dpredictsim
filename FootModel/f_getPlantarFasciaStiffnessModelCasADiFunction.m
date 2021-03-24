@@ -54,13 +54,13 @@ dl = dl_1*( tanh(dl_1*1e3)+1 )/2; % l >= ls
 if strcmp(modelType,'linear')
     F_PF = k1*dl;
     
-elseif strcmp(modelType,'hypoelastic_tanh')
+elseif strcmp(modelType,'tanh')
     F_PF = k1*((l-ls) - dl_0*tanh((l-ls)/dl_0));
     
-elseif strcmp(modelType,'hypoelastic_sqr')
+elseif strcmp(modelType,'sqr')
     F_PF = k2*dl^2;
     
-elseif strcmp(modelType,'hypoelastic_poly5')
+elseif strcmp(modelType,'Gefen2001')
     % 5th order polynomial approximation
     % https://doi.org/10.1016/S0021-9290(01)00242-1
     a1 = -488737.9;
@@ -75,7 +75,7 @@ elseif strcmp(modelType,'hypoelastic_poly5')
     A = A0*(1-Pr*(lambda-1))^2; % actual cross-section
     F_PF = sigma*A;
     
-elseif strcmp(modelType,'hyperelastic_MR5')
+elseif strcmp(modelType,'Cheng2008')
     % Mooney-Rivlin model with 5 parameters (2nd order)
     % DOI: 10.3113/FAI.2008.0845
     % https://digitalcommons.unf.edu/etd/740
@@ -95,7 +95,7 @@ elseif strcmp(modelType,'hyperelastic_MR5')
     sigma_e = ls*jacobian(W,l); % engineering stress
     F_PF = sigma_e*A0;
     
-elseif strcmp(modelType,'toein_gaussian')
+elseif strcmp(modelType,'Barrett2018') || strcmp(modelType,'toein_gaussian')
     % data from DOI: 10.3390/app11041517
     e_0 = 0.025; % nominal strain at 0 stress when extrapolating linear region (-)
     sigma_0 = 1.8; % nominal strain at e_0 (MPa)
@@ -113,14 +113,20 @@ elseif strcmp(modelType,'toein_gaussian')
     d_erf = exp(-zi.^2);
     erf = 2/sqrt(pi)* sum(d_erf(2:end)*z)/200;
     F_PF = k*std/sqrt(2*pi)*exp(-(x+mu).^2/(2*std^2)) + k*(x+mu)/2 .*(erf+1);
-        
+    
+elseif strcmp(modelType,'exp')
+    k1 = 5000;
+    k2 = 120;
+    th = 0.01;
+    F_PF = k1*(exp(k2*(l-ls-th)) - exp(-k2*th)); % offset term to get 0 force at 0 elongation
 end
 
 F = F_PF.*( tanh(F_PF)+1 )/2; % F >= 0
 
+l_PF = ls + dl;
 
 %% 4) Build function
-f_PF_stiffness = Function('f_PF_stiffness',{l},{F},{'l'},{'F'});
+f_PF_stiffness = Function('f_PF_stiffness',{l},{F,l_PF},{'l'},{'F','l_PF'});
 
 
 

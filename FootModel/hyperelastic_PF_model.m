@@ -144,10 +144,12 @@ E = sgm./(lz-1);
 
 Es = [11.82, 10.52, 10.70, 14.02, 13.85, 9.72, 8.78, 14.43, 8.42, 9.87, 18.7, 10.28, 6.75, 9.99, 13.17];
 sigma = mean(Es)*0.08; % mean stress at 8% strain
-e_0 = 0.055;
-sigma_0 = 0.40;
+e_0 = 0.05;
+sigma_0 = 0.3;
 
-E = (sigma)/(0.08-e_0);
+% E = (sigma)/(0.08-e_0);
+% E = (1.3-sigma)/(0.10-0.08);
+E = (1.5-sigma)/(0.10-0.08);
 
 % initial dimentions
 ls = 0.17;
@@ -194,3 +196,11 @@ figure
 plot((x/ls),F/A0)
 xlim([0,0.1])
 ylim([0,5])
+grid on
+
+figure
+plot((x/ls),F/A0)
+xlim([0,0.12])
+ylim([0,1.4])
+grid on
+

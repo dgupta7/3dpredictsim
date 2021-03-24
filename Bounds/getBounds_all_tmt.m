@@ -9,14 +9,20 @@
 %
 function [bounds,scaling] = getBounds_all_tmt(Qs,NMuscle,nq,jointi,v_tgt,varargin)
 
-if length(varargin) == 2
+if length(varargin) >= 2
     T_max_ankle_exo = varargin{1};
     T_min_ankle_exo = varargin{2};
 else
     T_max_ankle_exo = 0;
     T_min_ankle_exo = 0;
 end
-    
+if length(varargin) == 1
+    midtarsal = varargin{1};
+elseif length(varargin) == 3
+    midtarsal = varargin{3};
+else
+    midtarsal = 0;
+end
 
 %% Spline approximation of Qs to get Qdots and Qdotdots
 Qs_spline.data = zeros(size(Qs.allfilt));
@@ -146,10 +152,15 @@ bounds.Qs.lower(jointi.mtp.l) = -0.5;
 bounds.Qs.upper(jointi.mtp.r) = 1.05;
 bounds.Qs.lower(jointi.mtp.r) = -0.5;
 % Tmt
-bounds.Qs.upper(jointi.tmt.l) = 15*pi/180;
-bounds.Qs.lower(jointi.tmt.l) = -15*pi/180;
-bounds.Qs.upper(jointi.tmt.r) = 15*pi/180;
-bounds.Qs.lower(jointi.tmt.r) = -15*pi/180;
+if midtarsal == 1
+    tmt_bound = 20;
+else
+    tmt_bound = 15;
+end
+bounds.Qs.upper(jointi.tmt.l) = tmt_bound*pi/180;
+bounds.Qs.lower(jointi.tmt.l) = -tmt_bound*pi/180;
+bounds.Qs.upper(jointi.tmt.r) = tmt_bound*pi/180;
+bounds.Qs.lower(jointi.tmt.r) = -tmt_bound*pi/180;
 % Elbow
 bounds.Qs.lower(jointi.elb.l) = 0;
 bounds.Qs.lower(jointi.elb.r) = 0;

@@ -230,19 +230,19 @@ end
 
 % default IK file to determine bounds
 if ~isfield(S,'IKfile_Bounds')
-    if S.tmt == 0
-        S.IKfile_Bounds = 'OpenSimModel\IK_Bounds_Default.mat';
-    else
+    if S.tmt || S.mtj
         S.IKfile_Bounds = 'OpenSimModel\IK_Bounds_Default_tmt.mat';
+    else
+        S.IKfile_Bounds = 'OpenSimModel\IK_Bounds_Default.mat';
     end
 end
 
 % default IK file for initial guess (when used data-informed guess)
 if ~isfield(S,'S.IKfile_guess')
-    if S.tmt == 0
-        S.IKfile_guess = 'OpenSimModel\IK_Guess_Default.mat';
-    else
+    if S.tmt || S.mtj
         S.IKfile_guess = 'OpenSimModel\IK_Guess_Default_tmt.mat';
+    else
+        S.IKfile_guess = 'OpenSimModel\IK_Guess_Default.mat';
     end
 end
 

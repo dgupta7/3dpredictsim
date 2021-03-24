@@ -41,18 +41,18 @@ add_mtj = 0;
 
 %% parameters from original model
 % Pog s1
-m0.cmf.m = 0.9688202167589921;
-m0.cmf.I = [0.000906321, 0.00252475, 0.00265422]';
-m0.cmf.COM = [0.0913924, 0.0274177, 0]';
-m0.cmf.mtpj = [0.163409678774199 -0.00182784875586352 0.000987038328166303]';   % in calcn ref
-m0.t.subt = [-0.044572, -0.038339, 0.00723828]';
-
-% % Fal s1
-% m0.cmf.m = 0.938544584985273;
-% m0.cmf.I = [0.000877997854457612, 0.00244585116598906, 0.00257127943091158]';
+% m0.cmf.m = 0.9688202167589921;
+% m0.cmf.I = [0.000906321, 0.00252475, 0.00265422]';
 % m0.cmf.COM = [0.0913924, 0.0274177, 0]';
-% m0.cmf.mtpj = [0.163409678774199, -0.00182784875586352, 0.000987038328166303]';   % in calcn ref
+% m0.cmf.mtpj = [0.163409678774199 -0.00182784875586352 0.000987038328166303]';   % in calcn ref
+% m0.t.subt = [-0.044572, -0.038339, 0.00723828]';
 
+% Fal s1
+m0.cmf.m = 0.938544584985273;
+m0.cmf.I = [0.000877997854457612, 0.00244585116598906, 0.00257127943091158]';
+m0.cmf.COM = [0.0913924, 0.0274177, 0]';
+m0.cmf.mtpj = [0.163409678774199, -0.00182784875586352, 0.000987038328166303]';   % in calcn ref
+m0.t.subt = [-0.044572, -0.038339, 0.00723828]';
 
 % location of contact spheres
 % on calcn:
@@ -602,16 +602,59 @@ plot(m1c_c(1,:),m1c_c(3,:),'xr')
 plot(locSps(1,:),locSps(3,:),'*c')
 axis equal
 
+%% Get source code lines
+N = 5; % amount of decimals
+
+disp(['calcn_l = new OpenSim::Body("calcn_l", ' num2str(m1c.c.m,N)...
+', Vec3(' num2str(m1c.c.COM(1),N) ', ' num2str(m1c.c.COM(2),N) ', ' num2str(-m1c.c.COM(3),N)...
+    '), Inertia(' num2str(m1c.c.I(1),N) ', ' num2str(m1c.c.I(2),N) ', ' num2str(m1c.c.I(3),N) ', 0, 0, 0));']);
+disp(['calcn_r = new OpenSim::Body("calcn_r", ' num2str(m1c.c.m,N)...
+', Vec3(' num2str(m1c.c.COM(1),N) ', ' num2str(m1c.c.COM(2),N) ', ' num2str(m1c.c.COM(3),N)...
+    '), Inertia(' num2str(m1c.c.I(1),N) ', ' num2str(m1c.c.I(2),N) ', ' num2str(m1c.c.I(3),N) ', 0, 0, 0));']);
+
+disp(['metatarsi_l = new OpenSim::Body("metatarsi_l", ' num2str(m1c.mf.m,N)...
+    ', Vec3(' num2str(m1c.mf.COM(1),N) ', ' num2str(m1c.mf.COM(2),N) ', ' num2str(-m1c.mf.COM(3),N)...
+    '), Inertia(' num2str(m1c.mf.I(1),N) ', ' num2str(m1c.mf.I(2),N) ', ' num2str(m1c.mf.I(3),N) ', 0, 0, 0));']);
+disp(['metatarsi_r = new OpenSim::Body("metatarsi_r", ' num2str(m1c.mf.m,N)...
+    ', Vec3(' num2str(m1c.mf.COM(1),N) ', ' num2str(m1c.mf.COM(2),N) ', ' num2str(m1c.mf.COM(3),N)...
+    '), Inertia(' num2str(m1c.mf.I(1),N) ', ' num2str(m1c.mf.I(2),N) ', ' num2str(m1c.mf.I(3),N) ', 0, 0, 0));']);
+
+disp(['subtalar_l = new CustomJoint("subtalar_l", *talus_l, Vec3('...
+    num2str(m1c.t.subt(1),N) ', ' num2str(m1c.t.subt(2),N) ', ' num2str(-m1c.t.subt(3),N)...
+    '), Vec3(0), *calcn_l, Vec3(0), Vec3(0), st_subtalar_l);']);
+disp(['subtalar_r = new CustomJoint("subtalar_r", *talus_r, Vec3('...
+    num2str(m1c.t.subt(1),N) ', ' num2str(m1c.t.subt(2),N) ', ' num2str(m1c.t.subt(3),N)...
+    '), Vec3(0), *calcn_r, Vec3(0), Vec3(0), st_subtalar_r);']);
+
+disp(['midtarsal_l = new PinJoint("midtarsal_l", *calcn_l, Vec3('...
+    num2str(m1c.c.mtj(1),N) ', ' num2str(m1c.c.mtj(2),N) ', ' num2str(-m1c.c.mtj(3),N)...
+    '), Vec3(0), *metatarsi_l, Vec3(0), Vec3(0));']);
+disp(['midtarsal_r = new PinJoint("midtarsal_r", *calcn_r, Vec3('...
+    num2str(m1c.c.mtj(1),N) ', ' num2str(m1c.c.mtj(2),N) ', ' num2str(m1c.c.mtj(3),N)...
+    '), Vec3(0), *metatarsi_r, Vec3(0), Vec3(0));']);
+
+disp(['mtp_l = new PinJoint("mtp_l", *metatarsi_l, Vec3('...
+    num2str(m1c.mf.mtpj(1),N) ', ' num2str(m1c.mf.mtpj(2),N) ', ' num2str(-m1c.mf.mtpj(3),N)...
+    '), Vec3(0), *toes_l, Vec3(0), Vec3(0));']);
+disp(['mtp_r = new PinJoint("mtp_r", *metatarsi_r, Vec3('...
+    num2str(m1c.mf.mtpj(1),N) ', ' num2str(m1c.mf.mtpj(2),N) ', ' num2str(m1c.mf.mtpj(3),N)...
+    '), Vec3(0), *toes_r, Vec3(0), Vec3(0));']);
+
+
+disp(['Vec3 locSphere_3_r(' num2str(m1c.mf.ls3(1)) ', ' num2str(m1c.mf.ls3(2)) ', ' num2str(m1c.mf.ls3(3)) ');']);
+disp(['Vec3 locSphere_4_r(' num2str(m1c.mf.ls4(1)) ', ' num2str(m1c.mf.ls4(2)) ', ' num2str(m1c.mf.ls4(3)) ');']);
+
+
+
 %% relating vectors to foot arch compression
 % based on DOI: 10.1038/srep19403
 
 a = m1c.c.mtj(1:2);
+% a(1) = a(1) - 0.01;
 b = m1c.mf.mtpj(1:2);
 
 l_0 = norm(a+b);
-h0 = -b(2); 
-% Difference in y-coordinate between calcn origin and m1a.f.mtpj 
-% results in 1° difference, so it is omitted.
+h0 = -b(2);
 
 c0 = acos(h0/norm(a));
 d0 = acos(h0/norm(b));
@@ -625,7 +668,6 @@ d1 = acos(h1/norm(b));
 mt1 = (c1+d1)*180/pi;
 
 mt_bound = mt1 - mt0;
-% So 15° bound is sensible
 
 h2 = h0*0.87; 
 c2 = acos(h2/norm(a));
@@ -634,6 +676,12 @@ d2 = acos(h2/norm(b));
 mt2 = (c2+d2)*180/pi;
 
 mt_2 = mt2 - mt0;
+
+disp(['a = ' num2str(norm(a))]);
+disp(['b = ' num2str(norm(b))]);
+disp(['phi0 = ' num2str(mt0*pi/180)]);
+disp(['H0 = ' num2str(h0)]);
+
 
 %% subtalar joint axis orientation
 % original
@@ -650,7 +698,7 @@ R2 = [cos(dev1),0,sin(dev1);
      0,1,0;
      -sin(dev1),0,cos(dev1)];
 
-st_subt1 = R2*R1*[1;0;0]
+st_subt1 = R2*R1*[1;0;0];
 
 m0.c.subt_st;
 
@@ -665,7 +713,7 @@ R2 = [cos(dev2),0,sin(dev2);
      0,1,0;
      -sin(dev2),0,cos(dev2)];
 
-st_subt2 = R2*R1*[1;0;0]
+st_subt2 = R2*R1*[1;0;0];
 norm(st_subt2);
 
 % doi:10.1016/j.jbiomech.2012.01.011
@@ -680,7 +728,7 @@ R2 = [cos(dev3),0,sin(dev3);
      0,1,0;
      -sin(dev3),0,cos(dev3)];
 
-st_subt3 = R2*R1*[1;0;0]
+st_subt3 = R2*R1*[1;0;0];
 norm(st_subt3);
 
 
