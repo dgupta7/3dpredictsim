@@ -18,8 +18,10 @@ l = SX.sym('l');
 
 %% 1) Default parameters
 E = 350; % Young's modulus (N/mm^2)
-A0 = 290; % initial cross-section (mm^2)
-ls = 0.17; % slack length (m)
+% A0 = 290; % initial cross-section (mm^2)
+A0 = 58.6; % initial cross-section (mm^2)
+nu = 0.4; % Poisson ratio
+ls = 0.16; % slack length (m)
 k1 = E*A0/ls; % spring constant (N/m)
 k2 = 4e7; % spring constant (N/m^2)
 dl_0 = ls/100*1; % toe-in length
@@ -48,17 +50,28 @@ if length(varargin) >= 2 && mod(length(varargin),2) == 0
 end
 
 %% 3) Calculate force 
-dl_1 = l-ls;
-dl = dl_1*( tanh(dl_1*1e3)+1 )/2; % l >= ls
+% intermediate variables
+cf = (tanh((l-1.0005*ls)/ls*1e4)+1)/2; 
+dl_1 = l-ls; % elongation
+dl = dl_1*cf; % positive elongation
+lambda = l/ls; % stretch ratio
+A = A0*lambda^(-nu*2); % actual cross-section
 
+% stiffness models
 if strcmp(modelType,'linear')
     F_PF = k1*dl;
     
 elseif strcmp(modelType,'tanh')
-    F_PF = k1*((l-ls) - dl_0*tanh((l-ls)/dl_0));
+    F_PF = k1*(dl - dl_0*tanh(dl/dl_0));
     
 elseif strcmp(modelType,'sqr')
     F_PF = k2*dl^2;
+    
+elseif strcmp(modelType,'exp')
+    k_1 = 5000;
+    k_2 = 120;
+    th = 0.01;
+    F_PF = k_1*(exp(k_2*(l-ls-th)) - exp(-k_2*th)); % offset term to get 0 force at 0 elongation
     
 elseif strcmp(modelType,'Gefen2001')
     % 5th order polynomial approximation
@@ -69,11 +82,8 @@ elseif strcmp(modelType,'Gefen2001')
     a4 = 6206986.7;
     a5 = -3354935.1;
     a6 = 724755.5;
-    Pr = 0.4; % Poisson ratio
-    lambda = l/ls; % stretch ratio
-    sigma = a1*lambda^5 + a2*lambda^4 + a3*lambda^3 + a4*lambda^2 + a5*lambda + a6; % stress
-    A = A0*(1-Pr*(lambda-1))^2; % actual cross-section
-    F_PF = sigma*A;
+    sigma = a1*lambda^5 + a2*lambda^4 + a3*lambda^3 + a4*lambda^2 + a5*lambda + a6 -0.100; % stress
+    F_PF = sigma*A; % correction term, to make F=0 for l=ls
     
 elseif strcmp(modelType,'Cheng2008')
     % Mooney-Rivlin model with 5 parameters (2nd order)
@@ -96,12 +106,10 @@ elseif strcmp(modelType,'Cheng2008')
     F_PF = sigma_e*A0;
     
 elseif strcmp(modelType,'Barrett2018') || strcmp(modelType,'toein_gaussian')
-    % data from DOI: 10.3390/app11041517
-    e_0 = 0.025; % nominal strain at 0 stress when extrapolating linear region (-)
-    sigma_0 = 1.8; % nominal strain at e_0 (MPa)
-%     E = 36.4843; % Young's coefficient of linear region (MPa)
-        % This is very low. Maybe cannot use data from one area of PF to
-        % represent total E?
+    % data from DOI 10.1007/s00276-011-0873-z
+    e_0 = 0.03; % nominal strain at 0 stress when extrapolating linear region (-)
+    sigma_0 = 0.5; % nominal strain at e_0 (MPa)
+    E = 72;
     % method from https://doi.org/10.1016/j.jbiomech.2017.10.037
     mu = -ls*e_0;
     F0 = sigma_0*A0;
@@ -109,24 +117,27 @@ elseif strcmp(modelType,'Barrett2018') || strcmp(modelType,'toein_gaussian')
     std = sqrt(2*pi)*F0/k;
     x = l - ls;
     z = (x+mu)/(sqrt(2)*std);
-    zi = linspace(0,z,200)';
+    zi = linspace(0,z,500)';
     d_erf = exp(-zi.^2);
-    erf = 2/sqrt(pi)* sum(d_erf(2:end)*z)/200;
+    erf = 2/sqrt(pi)* sum(d_erf(2:end)*z)/500;
     F_PF = k*std/sqrt(2*pi)*exp(-(x+mu).^2/(2*std^2)) + k*(x+mu)/2 .*(erf+1);
     
-elseif strcmp(modelType,'exp')
-    k1 = 5000;
-    k2 = 120;
-    th = 0.01;
-    F_PF = k1*(exp(k2*(l-ls-th)) - exp(-k2*th)); % offset term to get 0 force at 0 elongation
+elseif strcmp(modelType,'Natali2010')
+    % https://doi.org/10.3109/03008200903389127
+    mu = 14.449; % (MPa)
+%     mu = 0;
+    k = 254.02; % (MPa)
+    alpha = 10.397; % (-)
+    sigma = mu*(lambda^2 - 1/lambda) + k/(2*alpha) *(exp(alpha*(lambda^2-1))-1)*lambda^2; % Cauchy stress
+    F_PF = sigma*A;
+    
 end
 
-F = F_PF.*( tanh(F_PF)+1 )/2; % F >= 0
+F = F_PF*cf; % F >= 0
 
-l_PF = ls + dl;
 
 %% 4) Build function
-f_PF_stiffness = Function('f_PF_stiffness',{l},{F,l_PF},{'l'},{'F','l_PF'});
+f_PF_stiffness = Function('f_PF_stiffness',{l},{F},{'l'},{'F'});
 
 
 

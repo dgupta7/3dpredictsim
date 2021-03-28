@@ -1,14 +1,16 @@
+function [] = f_staticFootCompression_v2(S)
 
-% Assuming the knee is bent 90°
-
-clearvars -except 'S'
+% clearvars -except 'S'
 AddCasadiPaths();
 
 %% Settings
 S = GetDefaultSettings(S);
 clc
+
 tmtj = 0;
 mtj = ~tmtj;
+
+plot_result = 1;
 
 % mtp angles to be considered
 % Qs_mtp = [-45:15:45]*pi/180;
@@ -18,26 +20,31 @@ Fs_tib = [0:50:300,350:100:750,1000:250:4000];
 % Fs_tib = [0:100:1000];
 
 % Qs_mtp = [0]*pi/180;
-% Fs_tib = [-40,05,25,160,320];
+% Fs_tib = [0];
 
 n_mtp = length(Qs_mtp);
 n_tib = length(Fs_tib);
 
 % Windlass parameters
-S.kTMT_li = 5;
+S.kTMT_li = 10;
 S.kTMT_PF = 500;
 S.dTMT = 0;
 S.cWL = 0.025;
-ls = 0.172;
 
-% PF_stiffness = S.PF_stiffness;
+bounds_mtj = [-90,35]*pi/180;
+S.bounds_mtj = bounds_mtj';
+
+% Plantar fascia stiffness model
+PF_stiffness = S.PF_stiffness;
 % PF_stiffness = 'linear';
 % PF_stiffness = 'tanh';
 % PF_stiffness = 'sqr';
-PF_stiffness = 'Gefen2001';
+% PF_stiffness = 'exp';
+% PF_stiffness = 'Gefen2001';
 % PF_stiffness = 'Cheng2008';
 % PF_stiffness = 'Barrett2018';
-% PF_stiffness = 'exp';
+% PF_stiffness = 'Natali2010';
+
 
 subtR = 1; % reduce subtalar mobility
 
@@ -51,8 +58,8 @@ if tmtj
 elseif mtj
 %     ext_name = 'Foot_3D_Pog_s1_mtj_v2'; % dynamic scaling
 %     ext_name = 'Foot_3D_Pog_s1_mtj_v3'; % geometry scaling
-%     ext_name = 'F','Foot_3D_Pog_s1_mtj_v4'; % geo, m_tib = 0
-%     ext_name = 'F','Foot_3D_Pog_s1_mtj_v6'; % geo with higher arch, m_tib = 0
+%     ext_name = 'Foot_3D_Pog_s1_mtj_v4'; % geo, m_tib = 0
+%     ext_name = 'Foot_3D_Pog_s1_mtj_v6'; % geo with higher arch, m_tib = 0
 %     ext_name = 'Foot_3D_Pog_s1_mtj_subt2_v1'; % geo, other subt ax
 %     ext_name = 'Foot_3D_Pog_s1_mtj_subt3_v1'; % geo, other subt ax
 %     ext_name = 'Foot_3D_Pog_s1_mtj_subt1_v2'; % geometry scaling stiff*1000
@@ -61,8 +68,11 @@ elseif mtj
 
     if strcmp(S.subject,'s1_Poggensee')
         ext_name = 'Foot_3D_Pog_s1_mtj_subt1_v3';
+        
     elseif strcmp(S.subject,'subject1')
         ext_name = 'Foot_3D_Fal_s1_mtj_subt1_v1';
+%         ext_name = 'Foot_3D_Fal_s1_mtj_subt2_v1';
+%         ext_name = 'Foot_3D_Fal_s1_mtj_subt3_v1';
     end
 
     
@@ -197,7 +207,7 @@ else
                   *setup.scaling.Qs(jointi.ankle.r); % ankle
                  [setup.bounds.Qs.lower(jointi.subt.r), setup.bounds.Qs.upper(jointi.subt.r)]...
                   *setup.scaling.Qs(jointi.subt.r); % subt
-                 [-20,20]*pi/180]; % tmt
+                 bounds_mtj]; % tmt
 
     bounds_qs(5,:) = bounds_qs(5,:)/subtR;
 
@@ -336,11 +346,7 @@ else
 %     fo1 = (Tj(jointfi.calcn_GRF(2))+0.01)^(-2) * (1+tanh(Tj(jointfi.metatarsi_GRF(2))-50));
     
     fo = fo1 + fo2;
-
-
-
-
-                
+            
     % Define function to return constraints and objective
     f_foot = Function('f_foot',{[Q_tib_rx;Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt;FT_tilde],Q_mtp,F_tib_y},{fo,ff});
 
@@ -564,14 +570,18 @@ else
     R.T_subt.ext = T_subt_ext;
     R.PF_stiffness = PF_stiffness;
 
-%     save(Outname,'R');
+    save(Outname,'R');
     
-    disp([savename '.mat']);
+    disp('Saved as:')
+    [savename '.mat']
     
     
 end
 
 %%
+if plot_result
+    PlotResults_FootSim(R)
+end
 
-PlotResults_FootSim(R)
 
+end

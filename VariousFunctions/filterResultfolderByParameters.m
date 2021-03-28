@@ -20,6 +20,10 @@ for k=1:numel(dpaths)
             Names{ct,1} = OutName;
             Names{ct,2} = filename(1:end-7);
             ct= ct+1;
+        elseif strcmp(filename(1:5),'Foot_')
+            Names{ct,1} = OutName;
+            Names{ct,2} = filename(1:end-4);
+            ct= ct+1;
         end
     end
 

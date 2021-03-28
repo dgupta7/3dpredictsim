@@ -64,6 +64,12 @@ locSphere_4_r=[0.165, -0.01, -0.01];
 locSphere_5_r=[0.053154, -0.01, -0.0034173];
 locSphere_6_r=[1.7381e-06, -0.01, 0.022294];
 
+rS1 = 0.03232;
+rS2 = 0.03232;
+rS3 = 0.023374;
+rS4 = 0.020508;
+rS5 = 0.016244;
+rS6 = 0.018414;
     
 % derived params
 m0.gnd.mtpj2cmfCOM = m0.cmf.COM - m0.cmf.mtpj;
@@ -472,6 +478,11 @@ m2.t.mtpj = m2.t.tmtj + m2.f.mtpj;
 m2.c.subt_st = [-0.63276, -0.588866, 0.502838]';
 m2.t.subt_st = m2.t.subt + m2.c.subt_st/10;
 
+m2.c.PF = [-0.028; -0.037; -0.002];
+m2.f.PF = [0.062; -0.016; -0.006];
+m2.t.PF(:,1) = m2.t.subt + m2.c.PF;
+m2.t.PF(:,2) = m2.t.tmtj + m2.f.PF;
+
 m2.t.cCOM = m2.t.subt + m2.c.COM;
 m2.t.mCOM = m2.t.mtj + m2.m.COM;
 m2.t.fCOM = m2.t.tmtj + m2.f.COM;
@@ -494,6 +505,7 @@ m2cs(1,:) = m2c(1,:)*sf(1);
 m2cs(2,:) = m2c(2,:)*sf(2);
 m2cs(3,:) = m2c(3,:)*sf(3);
 m2.t.cmfCOM_s = m2.t.cmfCOM.*sf;
+
 
 % model 1 with mtj:
 diff = m0.t.mtpj(2) - m2.t.mtpj(2);
@@ -519,6 +531,11 @@ m1c.mf.m = (m2.m.m+m2.f.m)*m_sf;
 
 m1c.c.COM = m1c.t.cCOM - m1c.t.subt;
 m1c.mf.COM = m1c.t.mfCOM - m1c.t.mtj;
+
+m1c.t.PF(:,1) = m2.t.PF(:,1).*sf;
+m1c.t.PF(:,2) = m2.t.PF(:,2).*sf;
+m1c.c.PF = m1c.t.PF(:,1) - m1c.t.subt;
+m1c.mf.PF = m1c.t.PF(:,1) - m1c.t.mtj;
 
 m1c_j = [[0;0;0],m1c.t.subt,m1c.t.mtj,m1c.t.mtpj];
 m1c_c = [m1c.t.cCOM,m1c.t.mfCOM];
@@ -552,9 +569,11 @@ m1c.t.ls5 = m1c.t.mtpj + locSphere_5_r';
 m1c.t.ls6 = m1c.t.mtpj + locSphere_6_r';
 
 locSps = [m1c.t.ls1,m1c.t.ls2,m1c.t.ls3,m1c.t.ls4,m1c.t.ls5,m1c.t.ls6];
+radSps = [rS1,rS2,rS3,rS4,rS5,rS6];
 
 figure
 subplot(2,1,1)
+viscircles(locSps(1:2,:)',radSps(:),'Color','c');
 hold on
 grid on
 
@@ -562,6 +581,7 @@ plot(m2j(1,:),m2j(2,:),'ob')
 plot(m2c(1,:),m2c(2,:),'xb')
 plot(m2.t.cmfCOM(1),m2.t.cmfCOM(2),'*b')
 % plot(m2st(1,:),m2st(2,:),'--b')
+plot(m2.t.PF(1,:),m2.t.PF(2,:),'b')
 
 plot(m2js(1,:),m2js(2,:),'ok')
 plot(m2js(1,:),m2js(2,:),'.k')
@@ -574,11 +594,15 @@ plot(m0c(1,:),m0c(2,:),'xg')
 
 plot(m1c_j(1,:),m1c_j(2,:),'or')
 plot(m1c_c(1,:),m1c_c(2,:),'xr')
+plot(m1c.t.PF(1,:),m1c.t.PF(2,:),'-dr')
 
-plot(locSps(1,:),locSps(2,:),'*c')
 axis equal
+title('Right foot side view')
+xlabel('x')
+ylabel('y')
 
 subplot(2,1,2)
+viscircles(locSps([1,3],:)',radSps(:),'Color','c');
 hold on
 grid on
 
@@ -586,6 +610,7 @@ plot(m2j(1,:),m2j(3,:),'ob')
 plot(m2c(1,:),m2c(3,:),'xb')
 plot(m2.t.cmfCOM(1),m2.t.cmfCOM(3),'*b')
 % plot(m2st(1,:),m2st(3,:),'--b')
+plot(m2.t.PF(1,:),m2.t.PF(3,:),'b')
 
 plot(m2js(1,:),m2js(3,:),'ok')
 plot(m2js(1,:),m2js(3,:),'.k')
@@ -598,9 +623,12 @@ plot(m0c(1,:),m0c(3,:),'xg')
 
 plot(m1c_j(1,:),m1c_j(3,:),'or')
 plot(m1c_c(1,:),m1c_c(3,:),'xr')
+plot(m1c.t.PF(1,:),m1c.t.PF(3,:),'-dr')
 
-plot(locSps(1,:),locSps(3,:),'*c')
 axis equal
+title('Right foot bottom view')
+xlabel('x')
+ylabel('z')
 
 %% Get source code lines
 N = 5; % amount of decimals
@@ -647,11 +675,10 @@ disp(['Vec3 locSphere_4_r(' num2str(m1c.mf.ls4(1)) ', ' num2str(m1c.mf.ls4(2)) '
 
 
 %% relating vectors to foot arch compression
-% based on DOI: 10.1038/srep19403
 
 a = m1c.c.mtj(1:2);
-% a(1) = a(1) - 0.01;
 b = m1c.mf.mtpj(1:2);
+
 
 l_0 = norm(a+b);
 h0 = -b(2);
@@ -659,29 +686,33 @@ h0 = -b(2);
 c0 = acos(h0/norm(a));
 d0 = acos(h0/norm(b));
 
-mt0 = (c0+d0)*180/pi;
+beta0 = (c0+d0)*180/pi;
 
-h1 = h0*0.8; 
-c1 = acos(h1/norm(a));
-d1 = acos(h1/norm(b));
+disp(['calcn2mtj = ' num2str(norm(a)) ';']);
+disp(['mtj2mtpj = ' num2str(norm(b)) ';']);
+disp(['beta0 = ' num2str(beta0*pi/180) ';']);
 
-mt1 = (c1+d1)*180/pi;
 
-mt_bound = mt1 - mt0;
+%% relating vectors to windlass geometry in neutral position
+% 3D
+vec_a = m1c.t.mtj - m1c.t.PF(:,1); % calcaneal insertion of PF to mtj
+vec_b = m1c.t.PF(:,2) - m1c.t.mtj; % mtj to PF "connection" to metatarsi
+vec_c = vec_a + vec_b; % PF
 
-h2 = h0*0.87; 
-c2 = acos(h2/norm(a));
-d2 = acos(h2/norm(b));
+vec_ap = dot(vec_a,vec_c)/dot(vec_c,vec_c)*vec_c; % orthogonal projection of a onto c
+vec_an = vec_a - vec_ap; % component of a that is normal to c 
 
-mt2 = (c2+d2)*180/pi;
+% parallel to sagittal plane (xy)
+l_PF_fa = norm(vec_c(1:2)); % length of PF spanning foot arch
+MA_PF = abs(norm(vec_an(1:2))); % moment arm of PF force onto mtj
 
-mt_2 = mt2 - mt0;
+a_PF = norm(vec_a(1:2));
+b_PF = norm(vec_b(1:2));
+phi0 = acos( (l_PF_fa^2 - a_PF^2 - b_PF^2)/(-2*a_PF*b_PF) );
 
-disp(['a = ' num2str(norm(a))]);
-disp(['b = ' num2str(norm(b))]);
-disp(['phi0 = ' num2str(mt0*pi/180)]);
-disp(['H0 = ' num2str(h0)]);
-
+disp(['calcnPF2mtj = ' num2str(a_PF) ';']);
+disp(['mtj2mttPF = ' num2str(b_PF) ';']);
+disp(['phi0 = ' num2str(phi0) ';']);
 
 %% subtalar joint axis orientation
 % original

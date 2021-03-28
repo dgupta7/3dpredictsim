@@ -1,5 +1,5 @@
 clear all
-% close all
+close all
 clc
 
 %% Paths
@@ -22,8 +22,8 @@ pp = 0;                 % postproces
 plot = 0;               % plot solution
 batchQueue = 0;         % save settings to run later
 % Static foot compression simulation
-foot_in_vivo = 1;       % load on knee
-foot_cadavric = 0;      % load on cut off tibia
+foot_standing = 1;      % load on knee
+foot_hanging = 0;       % knee position fixed, tibia and foot hanging freely
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed 1.25
@@ -47,7 +47,7 @@ S.Windlass = 1;
 S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsiflexion
 
 S.mtj = 0;
-S.PF_stiffness = 'exp'; %'linear''tanh''sqr''Gefen2001''Cheng2008''Barrett2018''exp'
+S.PF_stiffness = 'Gefen2001'; %'linear''tanh''sqr''exp''Gefen2001''Cheng2008''Barrett2018''Natali2010'
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
@@ -121,6 +121,7 @@ elseif S.mtj == 1
         if strcmp(S.subject,'s1_Poggensee')
             S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtj_v3.dll';
             S.ExternalFunc2 = 'PredSim_3D_Pog_s1_mtj_pp_v3.dll';
+            
         elseif strcmp(S.subject,'subject1')
             S.ExternalFunc  = 'PredSim_3D_Fal_s1_mtj_v1.dll';
             S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v1.dll';
@@ -233,12 +234,24 @@ if plot
     PlotResults_3DSim_tmt(fullfile(pathResults,[S.savename '_pp.mat']),[1 0 0],savename,h);
 end
 
-%%
 
-if foot_in_vivo
-    f_staticFootCompression_v2;
-elseif foot_cadavric
-    f_staticFootCompression_v3;
+%% Static model of foot
+
+% PF_stiffness = {'linear','tanh','sqr','exp','Gefen2001','Cheng2008','Barrett2018','Natali2010'};
+% PF_stiffness = {'linear','Gefen2001','Cheng2008','Barrett2018','Natali2010'};
+PF_stiffness = {'Gefen2001'};
+
+if foot_standing
+    for i=1:numel(PF_stiffness)
+        S.PF_stiffness = PF_stiffness{i};
+        f_staticFootCompression_v2(S);
+    end
+    
+elseif foot_hanging
+    for i=1:numel(PF_stiffness)
+        S.PF_stiffness = PF_stiffness{i};
+        f_staticFootHanging(S);
+    end
 end
 
 

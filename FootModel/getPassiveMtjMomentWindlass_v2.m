@@ -22,8 +22,8 @@ H0 = 0.027280;
 % phi0 = 2.2799;
 % H0 = 0.0373;
 
-R_mtth = 0.01; % radius of the metatarsal head
-l_toe = 0.01; % distance from metatarsal head to PF attachment point at toe
+R_mtth = 7.5e-3; % radius of the metatarsal head
+l_toe = 0; % distance from metatarsal head to PF attachment point at toe
 
 % The reference position of the mtj (used for calculating the torque) is
 % given by: a + b * q_mtp
@@ -41,6 +41,7 @@ end
 kMT_li = 0;
 dMT = 0;
 cWL = 0.3;
+bounds_mtj = [-20;20]*pi/180;
 
 if length(varargin)==5
     % when passed separately
@@ -56,6 +57,7 @@ elseif length(varargin)==2
     dMT = S.dTMT;
     subject = S.subject;
     cWL = S.cWL;
+    bounds_mtj = S.bounds_mtj;
 end
 
 % Get subject-specific constants, derived from foot geometry (projected on
@@ -90,22 +92,23 @@ l = l_fa + R_mtth*q_mtp + l_toe;
 
 %% Torques
 % plantar fascia
-[F_PF,l_PF] = f_PF_stiffness(l);
+F_PF = f_PF_stiffness(l);
 
 if nargout > 1
     % convert SX to double when called from post-processing
     F_PF = full(F_PF);
-    l = full(l_PF);
 end
 M_PF = -F_PF*h;
 
 % other elastic structures
 q0 = q_mt_0_a + q_mt_0_b*q_mtp; % neutral position
 M_li = -(q_mt - q0)*kMT_li; % elastic moment
+% M_li = 0;
 
 % joint stiffens close to limit positions
-k_pass.mtj = [-1 20 1 -20]';
-theta.pass.mtj = [-0.20 0.20]';
+% k_pass.mtj = [-30 10 5 -5]';
+k_pass.mtj = [-30 5 5 -3]';
+theta.pass.mtj = [-0.75;1]*bounds_mtj(2);
 tau_pass = k_pass.mtj(1,1)*exp(k_pass.mtj(2,1)*(q_mt-theta.pass.mtj(2,1))) + ...
     k_pass.mtj(3,1)*exp(k_pass.mtj(4,1)*(q_mt-theta.pass.mtj(1,1)));
 M_li = M_li + tau_pass;

@@ -129,12 +129,13 @@ int F_generic(const T** arg, T** res) {
 	SpatialTransform st_subtalar_r;
 	st_subtalar_r[0].setCoordinateNames(OpenSim::Array<std::string>("subtalar_angle_r", 1, 1));
 	st_subtalar_r[0].setFunction(new LinearFunction());
-	st_subtalar_r[0].setAxis(Vec3(0.78717961, 0.60474746, -0.12094949));
+	st_subtalar_r[0].setAxis(Vec3(0.729491, 0.6691306, -0.1417987));
 	
 	/// Joint specifications
 	ground_tibia = new CustomJoint("ground_tibia", model->getGround(), Vec3(0), Vec3(0), *tibia_r, Vec3(0), Vec3(0), st_ground_tibia);
 	ankle_r = new CustomJoint("ankle_r", *tibia_r, Vec3(0, -0.41085882914747662, 0), Vec3(0), *talus_r, Vec3(0), Vec3(0), st_ankle_r);
-	subtalar_r = new CustomJoint("subtalar_r", *talus_r, Vec3(-0.044572100000000003, -0.05145, 0.0072382799999999997), Vec3(0), *calcn_r, Vec3(0), Vec3(0), st_subtalar_r);
+	subtalar_r = new CustomJoint("subtalar_r", *talus_r, Vec3(-0.0445721, -0.05145, (0.00723828 + 0.0014256)), Vec3(0), *calcn_r, Vec3(0, 0, 0.0014256), Vec3(0), st_subtalar_r);
+	// axis has to pass through talus y-axis => add offset distances to both parent and child frame, to preserve location of calcaneus origin
 	midtarsal_r = new PinJoint("midtarsal_r", *calcn_r, Vec3(0.078023, 0.025452, -0.0068103), Vec3(0), *central_foot_r, Vec3(0), Vec3(0));
 	mtp_r = new PinJoint("mtp_r", *central_foot_r, Vec3(0.0853859, -0.02728, 0.00779737), Vec3(0), *toes_r, Vec3(0), Vec3(0));
 

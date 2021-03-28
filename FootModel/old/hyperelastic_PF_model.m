@@ -144,16 +144,17 @@ E = sgm./(lz-1);
 
 Es = [11.82, 10.52, 10.70, 14.02, 13.85, 9.72, 8.78, 14.43, 8.42, 9.87, 18.7, 10.28, 6.75, 9.99, 13.17];
 sigma = mean(Es)*0.08; % mean stress at 8% strain
-e_0 = 0.05;
-sigma_0 = 0.3;
+e_0 = 0.03;
+sigma_0 = 0.5;
 
 % E = (sigma)/(0.08-e_0);
 % E = (1.3-sigma)/(0.10-0.08);
-E = (1.5-sigma)/(0.10-0.08);
+% E = (1.5-sigma)/(0.10-0.08);
+E = (9-1.8)/(0.15-0.05);
 
 % initial dimentions
-ls = 0.17;
-A0 = 290;
+ls = 0.16;
+A0 = 58.6;
 
 % parameter identification
 mu = -ls*e_0;
@@ -162,7 +163,7 @@ k = E*A0/ls;
 std = sqrt(2*pi)*F0/k;
 
 
-x = linspace(-2,20,100)'*1e-3;
+x = linspace(-2,30,100)'*1e-3;
 
 z = (x+mu)/(sqrt(2)*std);
 
@@ -170,12 +171,13 @@ z = (x+mu)/(sqrt(2)*std);
 d_erf = @(t) exp(-t.^2);
 % d_erf_1 = exp(-z.^2);
 
+N = 500;
 for i=1:length(x)
    erf(i,1) = 2/sqrt(pi)* integral(d_erf,0,z(i));
    
-   zi = linspace(0,z(i),200)';
+   zi = linspace(0,z(i),N)';
    d_erf_i = exp(-zi.^2);
-   erf(i,2) = 2/sqrt(pi)* trapz(d_erf_i)*z(i)/200;
+   erf(i,2) = 2/sqrt(pi)* trapz(d_erf_i)*z(i)/N;
 end
 
 % figure
@@ -194,13 +196,13 @@ F = F1+F2;
 
 figure
 plot((x/ls),F/A0)
-xlim([0,0.1])
-ylim([0,5])
-grid on
-
-figure
-plot((x/ls),F/A0)
-xlim([0,0.12])
-ylim([0,1.4])
-grid on
+% xlim([0,0.1])
+% ylim([0,5])
+% grid on
+% 
+% figure
+% plot((x/ls),F/A0)
+% xlim([0,0.12])
+% ylim([0,1.4])
+% grid on
 
