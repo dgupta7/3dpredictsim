@@ -244,7 +244,8 @@ PF_stiffness = {'Gefen2001'};
 if foot_standing
     for i=1:numel(PF_stiffness)
         S.PF_stiffness = PF_stiffness{i};
-        f_staticFootCompression_v2(S);
+%         f_staticFootCompression_v2(S);
+        f_staticFootCompression_v4(S);
     end
     
 elseif foot_hanging

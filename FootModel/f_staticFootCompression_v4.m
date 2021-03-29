@@ -7,14 +7,14 @@ AddCasadiPaths();
 S = GetDefaultSettings(S);
 clc
 
-plot_result = 0;
+plot_result = 1;
 
 % mtp angles to be considered
 % Qs_mtp = [-45:15:45]*pi/180;
 Qs_mtp = [-30:30:30]*pi/180;
 % vertical forces on knee
-Fs_tib = [0:50:300,350:100:750,1000:250:4000];
-% Fs_tib = [0:100:1000];
+% Fs_tib = [0:50:300,350:100:750,1000:250:4000];
+Fs_tib = [0:100:1000];
 
 % Qs_mtp = [0]*pi/180;
 % Fs_tib = [-40,05,25,160,320];
@@ -22,11 +22,6 @@ Fs_tib = [0:50:300,350:100:750,1000:250:4000];
 n_mtp = length(Qs_mtp);
 n_tib = length(Fs_tib);
 
-% Windlass parameters
-S.kTMT_li = 5;
-S.kTMT_PF = 500;
-S.dTMT = 0;
-S.cWL = 0.025;
 
 % Plantar fascia stiffness model
 PF_stiffness = S.PF_stiffness;
@@ -315,16 +310,13 @@ else
     ff = [f1;f2;f3;f4;fh;];
 
     % Objective
-%     fo1 = (Tj(jointfi.calcn_or(2),1) - Tj(jointfi.toes_or(2),1) - 0.01)^2; % square to get positive value
+    fo1 = (Tj(jointfi.calcn_or(2),1) - Tj(jointfi.toes_or(2),1) - 0.01)^2; % square to get positive value
     fo2 = f5^2 + f6^2;
-    fo1 = (Tj(jointfi.calcn_GRF(2))+0.01)^(-2) * (1+tanh(Tj(jointfi.metatarsi_GRF(2))-50));
+%     fo1 = (Tj(jointfi.calcn_GRF(2))+0.01)^(-2) * (1+tanh(Tj(jointfi.metatarsi_GRF(2))-50));
     
     fo = fo1 + fo2;
 
-
-
-
-                
+    
     % Define function to return constraints and objective
     f_foot = Function('f_foot',{[Q_tib_rx;Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt;FT_tilde],Q_mtp,F_tib_y},{fo,ff});
 
@@ -415,7 +407,7 @@ else
             opti.set_value(qmtp, Qs_mtp(i));
             opti.set_value(Ftib, Fs_tib(j))
             % solve
-            try
+%             try
                 sol = opti.solve();
                 qs_sol = sol.value(qs_opti).*scale_qs;
                 FTs_sol = sol.value(FTtilde_opti).*scale_FTs;
@@ -497,9 +489,9 @@ else
                 M_mtp(i,j) = M_mtpi;
 
 
-            catch
-                failed(i,j) = 1;
-            end
+%             catch
+%                 failed(i,j) = 1;
+%             end
 
         end
     end
@@ -542,7 +534,7 @@ else
     R.T_subt.ext = T_subt_ext;
     R.PF_stiffness = PF_stiffness;
 
-    save(Outname,'R');
+%     save(Outname,'R');
     
     disp('Saved as:')
     [savename '.mat']

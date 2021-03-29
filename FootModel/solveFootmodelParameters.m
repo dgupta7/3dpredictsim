@@ -86,6 +86,16 @@ m2.c.m = 0.289923030444027;
 m2.m.m = 0.139888239487345;
 m2.f.m = 0.236187108315951;
 m2.t.subt = [0.010347 -0.03163 0.00134647]';
+
+m2.c.PF = [-0.028; -0.037; -0.002];
+m2.f.PF = [0.062; -0.016; -0.006];
+
+m2.c.LPL = [-0.018; -0.028; 0.007];
+m2.m.LPL = [0.002; -0.025; 0.016];
+
+m2.c.SPL = [0.005; -0.013; 0.001];
+m2.m.SPL = [0.004; -0.016; 0.006];
+
 % derived params
 m2.gnd.tmtj2cCOM = -m2.c.mtj - m2.m.tmtj + m2.c.COM;
 m2.gnd.tmtj2mCOM = -m2.m.tmtj + m2.m.COM;
@@ -478,10 +488,14 @@ m2.t.mtpj = m2.t.tmtj + m2.f.mtpj;
 m2.c.subt_st = [-0.63276, -0.588866, 0.502838]';
 m2.t.subt_st = m2.t.subt + m2.c.subt_st/10;
 
-m2.c.PF = [-0.028; -0.037; -0.002];
-m2.f.PF = [0.062; -0.016; -0.006];
 m2.t.PF(:,1) = m2.t.subt + m2.c.PF;
 m2.t.PF(:,2) = m2.t.tmtj + m2.f.PF;
+
+m2.t.LPL(:,1) = m2.t.subt + m2.c.LPL;
+m2.t.LPL(:,2) = m2.t.mtj + m2.m.LPL;
+
+m2.t.SPL(:,1) = m2.t.subt + m2.c.SPL;
+m2.t.SPL(:,2) = m2.t.mtj + m2.m.SPL;
 
 m2.t.cCOM = m2.t.subt + m2.c.COM;
 m2.t.mCOM = m2.t.mtj + m2.m.COM;
@@ -536,6 +550,12 @@ m1c.t.PF(:,1) = m2.t.PF(:,1).*sf;
 m1c.t.PF(:,2) = m2.t.PF(:,2).*sf;
 m1c.c.PF = m1c.t.PF(:,1) - m1c.t.subt;
 m1c.mf.PF = m1c.t.PF(:,1) - m1c.t.mtj;
+
+m1c.t.LPL(:,1) = m2.t.LPL(:,1).*sf;
+m1c.t.LPL(:,2) = m2.t.LPL(:,2).*sf;
+
+m1c.t.SPL(:,1) = m2.t.SPL(:,1).*sf;
+m1c.t.SPL(:,2) = m2.t.SPL(:,2).*sf;
 
 m1c_j = [[0;0;0],m1c.t.subt,m1c.t.mtj,m1c.t.mtpj];
 m1c_c = [m1c.t.cCOM,m1c.t.mfCOM];
@@ -695,8 +715,16 @@ disp(['beta0 = ' num2str(beta0*pi/180) ';']);
 
 %% relating vectors to windlass geometry in neutral position
 % 3D
-vec_a = m1c.t.mtj - m1c.t.PF(:,1); % calcaneal insertion of PF to mtj
-vec_b = m1c.t.PF(:,2) - m1c.t.mtj; % mtj to PF "connection" to metatarsi
+% plantar fascia
+% vec_a = m1c.t.mtj - m1c.t.PF(:,1); % calcaneal insertion of PF to mtj
+% vec_b = m1c.t.PF(:,2) - m1c.t.mtj; % mtj to PF "connection" to metatarsi
+% long plantar ligament
+% vec_a = m1c.t.mtj - m1c.t.LPL(:,1);
+% vec_b = m1c.t.LPL(:,2) - m1c.t.mtj;
+% short plantar ligament
+vec_a = m1c.t.mtj - m1c.t.SPL(:,1);
+vec_b = m1c.t.SPL(:,2) - m1c.t.mtj;
+
 vec_c = vec_a + vec_b; % PF
 
 vec_ap = dot(vec_a,vec_c)/dot(vec_c,vec_c)*vec_c; % orthogonal projection of a onto c
