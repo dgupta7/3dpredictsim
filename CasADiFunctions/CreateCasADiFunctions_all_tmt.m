@@ -15,7 +15,7 @@ AddCasadiPaths();
 import casadi.*
 
 if isfolder(S.CasadiFunc_Folders)
-    error(['Never changes the casadi functions in an existing folder,',...
+    error(['Never change the casadi functions in an existing folder,',...
         'these functions are important to analyse optimization results',...
         '(from the optimal states and controls. Please change the name of',...
         ' the folder with casadifunctions']);
@@ -71,10 +71,17 @@ end
 
 if isfield(S,'mtj') && ~isempty(S.mtj)
     mtj = S.mtj;
-    tmt = 0; % ccan't have both (yet?)
+    tmt = 0; % can't have both (yet?)
 else
     mtj = 0;
 end
+
+if isfield(S,'WL_T_mtp') && ~isempty(S.WL_T_mtp)
+    WL_T_mtp = S.WL_T_mtp;
+else
+    WL_T_mtp = 0;
+end
+
 
 nq.leg = 10; % #joints needed for polynomials
 stiffnessArm = 0;
@@ -499,13 +506,22 @@ if mtj
     qin1     = SX.sym('qin_pass1',1);
     qin2     = SX.sym('qin_pass2',1);
     qdotin1  = SX.sym('qdotin_pass1',1);
+    qdotin2  = SX.sym('qdotin_pass2',1);
+    damp	= SX.sym('damp',1);
 
-    f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(S.PF_stiffness);
+    f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(S.PF_stiffness,'ls',S.PF_slack_length);
 
-    passWLTorques_mtj = getPassiveMtjMomentWindlass_v2(qin1,qdotin1,qin2,f_PF_stiffness);
+%     passWLTorques_mtj = getPassiveMtjMomentWindlass_v2(qin1,qdotin1,qin2,f_PF_stiffness);
+    [passWLTorques_mtj,passWLTorques_mtpj] = getPassiveMtjMomentWindlass_v3(qin1,qdotin1,qin2,f_PF_stiffness);
     
     f_passiveWLTorques_mtj = Function('f_passiveWLTorques_mtj',{qin1,qdotin1,qin2}, ...
         {passWLTorques_mtj},{'qin1','qdotin1','qin2'},{'passWLTorques'});
+    
+    passTorques_mtpj = passWLTorques_mtpj + exp(-2*(qin2+0.2)) -damp * qdotin2;
+    
+    f_passiveWLTorques_mtpj = Function('f_passiveWLTorques_mtpj',{qin1,qdotin1,qin2,qdotin2,damp}, ...
+        {passTorques_mtpj},{'qin1','qdotin1','qin2','qdotin2','damp'},{'passWLTorques'});
+    
 end
 %% Metabolic energy models
 act_SX          = SX.sym('act_SX',NMuscle,1); % Muscle activations
@@ -665,13 +681,14 @@ Tau_passj.arm = [Tau_passj.sh_flex.l, Tau_passj.sh_add.l, ...
     Tau_passj.sh_rot.l, Tau_passj.sh_flex.r, Tau_passj.sh_add.r, ...
     Tau_passj.sh_rot.r, Tau_passj.elb.l, Tau_passj.elb.r];
 
-Tau_passj.mtp.l = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
-    Q_SX(jointi.mtp.l), Qdot_SX(jointi.mtp.l));
-Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
-    Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r));
-Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
 
 if tmt
+    Tau_passj.mtp.l = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
+        Q_SX(jointi.mtp.l), Qdot_SX(jointi.mtp.l));
+    Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
+        Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r));
+    Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
+    
     if tmt_linear
         % Assume linear stiffness (according to DOI: 10.1109/ROBIO.2011.6181517)
         if WL == 0
@@ -683,11 +700,6 @@ if tmt
             Tau_passj.tmt.l = f_passiveWLTorques(Q_SX(jointi.tmt.l), ...
                 Qdot_SX(jointi.tmt.l),Q_SX(jointi.mtp.l));
             Tau_passj.tmt.r = f_passiveWLTorques(Q_SX(jointi.tmt.r), ...
-                Qdot_SX(jointi.tmt.r),Q_SX(jointi.mtp.r));
-        elseif WL == 2
-            Tau_passj.tmt.l = f_passiveWLTorques_mtj(Q_SX(jointi.tmt.l), ...
-                Qdot_SX(jointi.tmt.l),Q_SX(jointi.mtp.l));
-            Tau_passj.tmt.r = f_passiveWLTorques_mtj(Q_SX(jointi.tmt.r), ...
                 Qdot_SX(jointi.tmt.r),Q_SX(jointi.mtp.r));
         end
     else
@@ -710,6 +722,29 @@ elseif mtj
             Qdot_SX(jointi.tmt.l),Q_SX(jointi.mtp.l));
         Tau_passj.mtj.r = f_passiveWLTorques_mtj(Q_SX(jointi.tmt.r), ...
             Qdot_SX(jointi.tmt.r),Q_SX(jointi.mtp.r));
+        
+        if WL_T_mtp
+            Tau_passj.mtp.l = f_passiveWLTorques_mtpj(Q_SX(jointi.tmt.l), ...
+                Qdot_SX(jointi.tmt.l),Q_SX(jointi.mtp.l),Qdot_SX(jointi.mtp.l),...
+                dampingMtp);
+            Tau_passj.mtp.r = f_passiveWLTorques_mtpj(Q_SX(jointi.tmt.r), ...
+                Qdot_SX(jointi.tmt.r),Q_SX(jointi.mtp.r),Qdot_SX(jointi.mtp.r),...
+                dampingMtp);
+            
+        else
+            Tau_passj.mtp.l = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
+                Q_SX(jointi.mtp.l), Qdot_SX(jointi.mtp.l));
+            Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
+                Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r));
+        end
+        Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
+    else
+        Tau_passj.mtp.l = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
+            Q_SX(jointi.mtp.l), Qdot_SX(jointi.mtp.l));
+        Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
+            Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r));
+        Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
+        
     end
     Tau_passj_all = [Tau_passj.hip.flex.l,Tau_passj.hip.flex.r,...
         Tau_passj.hip.add.l,Tau_passj.hip.add.r,...
@@ -720,6 +755,12 @@ elseif mtj
         Tau_passj.mtp.all,Tau_passj.trunk.ext,Tau_passj.trunk.ben,...
         Tau_passj.trunk.rot,Tau_passj.arm]';
 else
+    Tau_passj.mtp.l = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
+        Q_SX(jointi.mtp.l), Qdot_SX(jointi.mtp.l));
+    Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
+        Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r));
+    Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
+    
     Tau_passj_all = [Tau_passj.hip.flex.l,Tau_passj.hip.flex.r,...
         Tau_passj.hip.add.l,Tau_passj.hip.add.r,...
         Tau_passj.hip.rot.l,Tau_passj.hip.rot.r,...

@@ -1,4 +1,4 @@
-close all
+% close all
 clear
 clc
 
@@ -32,7 +32,7 @@ phi0_LPL = 0.96991;
 
 a = calcnLPL2mtj;
 b = mtj2mfLPL;
-L0 = 0.0442/1.01;
+L0 = 0.0442*1.02;
 
 phi = phi0_LPL + q_mt;
 l = sqrt(a^2 + b^2 - 2*a*b.*cos(phi));
@@ -59,8 +59,8 @@ e = (lambda-1)*100;
 
 M_LPL = -F_LPL.*h;
 
-figure
-plot(e,F_LPL)
+% figure
+% plot(e,F_LPL)
 
 %% short plantar ligament
 calcnSPL2mtj = 0.025667;
@@ -69,7 +69,7 @@ phi0_SPL = 1.0104;
 
 a = calcnSPL2mtj;
 b = mtj2mfSPL;
-L0 = 0.0219/1.01;
+L0 = 0.0219*1.02;
 
 phi = phi0_SPL + q_mt;
 l = sqrt(a^2 + b^2 - 2*a*b*cos(phi));
@@ -88,8 +88,8 @@ e = (lambda-1)*100;
 
 M_SPL = -F_SPL.*h;
 
-figure
-plot(e,F_SPL)
+% figure
+% plot(e,F_SPL)
 
 %%
 figure
@@ -100,14 +100,26 @@ hold on
 
 %%
 
-x = linspace(-10,20,500)'*pi/180;
+x = linspace(-20,30,500)'*pi/180;
 
-y = -8*(exp(4.5*(x+0.01))-1);
-y2 = 8*(exp(-15*(x+0.15)));
+c1 = -8;
+c2 = 8;
+c3 = 0.2;
+% y = c1*exp(c2*(x-c3));
 
-plot(x*180/pi,y)
-plot(x*180/pi,y2)
+y = -8*(exp(5*(x))-1);
+
+y2 = 3*(exp(-15*(x+0.1)));
+
+% plot(x*180/pi,y)
+% plot(x*180/pi,y2)
 % plot(x*180/pi,y+y2)
+
+
+
+% figure
+% plot(x,y+y2)
+% xlim([-0.15,0.1])
 
 %%
 
@@ -121,3 +133,16 @@ l_PF_fa = sqrt(calcnPF2mtj^2 + mtj2mttPF^2 - 2*calcnPF2mtj*mtj2mttPF*cos(phi)); 
 MA_PF = calcnPF2mtj*mtj2mttPF/l_PF_fa*sin(phi); % moment arm of PF to mtj
 
 
+%%
+k1 = -90;
+dl_0 = 2*pi/180;
+
+y = k1*((x-2*pi/180) - dl_0*tanh((x-2*pi/180)/dl_0/1.25));
+y2 = (-exp(20*(x-20*pi/180)) + exp(-25*(x+10*pi/180)))/2;
+
+% plot(x*180/pi,y)
+% plot(x*180/pi,y2)
+plot(x*180/pi,y+y2)
+
+
+interp1(x,(y+y2),0)

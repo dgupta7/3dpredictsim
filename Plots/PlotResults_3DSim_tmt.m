@@ -67,7 +67,6 @@ if exist(ResultsFile,'file')
     has_no_tmt = ~isfield(R.S,'tmt') || isempty(R.S.tmt) || R.S.tmt == 0;
     has_no_mtj = ~isfield(R.S,'mtj') || isempty(R.S.mtj) || R.S.mtj == 0;
     
-    has_no_tmt = has_no_tmt && has_no_mtj;
     
     boolFirst = 1;
     
@@ -129,21 +128,21 @@ if exist(ResultsFile,'file')
     if strcmp(subject,'Fal_s1')
         joints_ref = {'pelvis_tilt','pelvis_list','pelvis_rotation',...
             'hip_flexion','hip_adduction','hip_rotation',...
-            'knee_angle','ankle_angle','subtalar_angle','tmt_angle','mtp_angle',...
+            'knee_angle','ankle_angle','subtalar_angle','mtj_angle','tmt_angle','mtp_angle',...
             'lumbar_extension','lumbar_bending','lumbar_rotation',...
             'arm_flex','arm_add','arm_rot','elbow_flex'};
     else
         joints_ref = {'pelvis_tilt','pelvis_list','pelvis_rotation',...
             'hip_flexion_r','hip_adduction_r','hip_rotation_r',...
-            'knee_angle_r','ankle_angle_r','subtalar_angle_r','tmt_angle_r','mtp_angle_r',...
+            'knee_angle_r','ankle_angle_r','subtalar_angle_r','mtj_angle_r','tmt_angle_r','mtp_angle_r',...
             'lumbar_extension','lumbar_bending','lumbar_rotation',...
             'arm_flex_r','arm_add_r','arm_rot_r','elbow_flex_r'};
     end
     joints_tit = {'Pelvis tilt','Pelvis list','Pelvis rotation','Pelvis tx',...
         'Pelvis ty','Pelvis tz','Hip flexion L','Hip adduction L',...
         'Hip rotation L','Hip flexion R','Hip adduction R','Hip rotation R',...
-        'Knee L','Knee R','Ankle L','Ankle R',...
-        'Subtalar L','Subtalar R','TMT L','TMT R','MTP L','MTP R',...
+        'Knee L','Knee R','Ankle L','Ankle R','Subtalar L','Subtalar R',...
+        'Midtarsal L','Midtarsal R','Tarsometatarsal L','Tarsometatarsal R','MTP L','MTP R',...
         'Lumbar extension','Lumbar bending','Lumbar rotation',...
         'Arm flexion L','Arm adduction L','Arm rotation L',...
         'Arm flexion R','Arm adduction R','Arm rotation R',...
@@ -168,18 +167,18 @@ if exist(ResultsFile,'file')
         
     end
     
-    if has_no_tmt
+    if has_no_tmt && has_no_mtj
         idx_Qs = [1,2,3,10,11,12,14,16,18,20,21,22,23,27,28,29,31];
     else
         idx_Qs = [1,2,3,10,11,12,14,16,18,20,22,23,24,25,29,30,31,33];
     end
-    idx_title = [1,2,3,10,11,12,14,16,18,20,22,23,24,25,29,30,31,33];
+    idx_title = [1,2,3,10,11,12,14,16,18,20,22,24,25,26,27,31,32,33,35];
     
     j = 0;
     label_fontsize  = 12;
     line_linewidth  = 0.5;
     for i = 1:length(idx_title)
-        subplot(3,6,i)
+        subplot(3,7,i)
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         % Experimental data
         if  boolFirst == 1 && md
@@ -205,7 +204,8 @@ if exist(ResultsFile,'file')
         % Simulation results
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         hold on;
-        if has_no_tmt && (strcmp(joints_ref{i},'tmt_angle') || strcmp(joints_ref{i},'tmt_angle_r'))
+        if (has_no_tmt && strcmp(joints_tit{idx_title(i)},'Tarsometatarsal R')) || ...
+                (has_no_mtj && strcmp(joints_tit{idx_title(i)},'Midtarsal R'))
             % skip this plot
         else
             j=j+1;
@@ -222,7 +222,7 @@ if exist(ResultsFile,'file')
             set(gca,'Fontsize',label_fontsize);
             title(joints_tit{idx_title(i)},'Fontsize',label_fontsize);
             % Y-axis
-            if i == 1 || i == 7 || i == 13 
+            if i == 1 || i == 8 || i == 15 
                 ylabel('Angle (°)','Fontsize',label_fontsize);
             end
             % X-axis
@@ -241,7 +241,7 @@ if exist(ResultsFile,'file')
         lh=legend('-DynamicLegend','location','east');
         lh.Interpreter = 'none';
         lhPos = lh.Position;
-%         lhPos(1) = lhPos(1)+0.2;
+        lhPos(1) = lhPos(1)+0.25;
         set(lh,'position',lhPos);
     end
     
@@ -251,7 +251,7 @@ if exist(ResultsFile,'file')
     label_fontsize  = 12;
     line_linewidth  = 0.5;
     for i = 1:length(idx_title)
-        subplot(3,6,i)
+        subplot(3,7,i)
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         % Experimental data
         if  boolFirst == 1 && md
@@ -278,7 +278,8 @@ if exist(ResultsFile,'file')
         % Simulation results
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         hold on;
-        if has_no_tmt && (strcmp(joints_ref{i},'tmt_angle') || strcmp(joints_ref{i},'tmt_angle_r'))
+        if (has_no_tmt && strcmp(joints_tit{idx_title(i)},'Tarsometatarsal R')) || ...
+                (has_no_mtj && strcmp(joints_tit{idx_title(i)},'Midtarsal R'))
             % skip this plot
         else
             j=j+1;
@@ -295,7 +296,7 @@ if exist(ResultsFile,'file')
             set(gca,'Fontsize',label_fontsize);
             title(joints_tit{idx_title(i)},'Fontsize',label_fontsize);
             % Y-axis
-            if i == 1 || i == 7 ||i == 13
+            if i == 1 || i == 8 ||i == 15
                 ylabel('Torque (Nm)','Fontsize',label_fontsize);
             end
             % X-axis
@@ -314,7 +315,7 @@ if exist(ResultsFile,'file')
         lh=legend('-DynamicLegend','location','east');
         lh.Interpreter = 'none';
         lhPos = lh.Position;
-%         lhPos(1) = lhPos(1)+0.2;
+        lhPos(1) = lhPos(1)+0.25;
         set(lh,'position',lhPos);
     end
     
@@ -378,7 +379,7 @@ if exist(ResultsFile,'file')
     iSubtalar = strcmp(R.colheaders.joints,'subtalar_angle_r');
     iTmt = strcmp(R.colheaders.joints,'tmt_angle_r');
     
-    subplot(3,3,1)
+    subplot(3,2,1)
     if boolActuation
         plot(R.Exodiff_id(:,iAnkle),'-','Color',Cs); hold on;
     else
@@ -386,34 +387,24 @@ if exist(ResultsFile,'file')
     end
     ylabel('Exo Moment - Ankle [Nm]');  xlabel('% stride');
     
-    subplot(3,3,2);
+    subplot(3,2,2);
     if boolActuation
         plot(R.Exodiff_id(:,iSubtalar),'-','Color',Cs); hold on;
     else
     end
     ylabel('Exo Moment- Subtalar [Nm]'); xlabel('% stride');
     
-    subplot(3,3,3);
-    if boolActuation && ~has_no_tmt
-        plot(R.Exodiff_id(:,iTmt),'-','Color',Cs); hold on;
-    end
-    ylabel('Exo Moment- tmt [Nm]'); xlabel('% stride');
     
-    subplot(3,3,4)
+    subplot(3,2,3)
     plot(R.Tid(:,iAnkle),'-','Color',Cs); hold on;
     ylabel('Ankle moment [Nm]'); xlabel('% stride');
     
-    subplot(3,3,5)
+    subplot(3,2,4)
     plot(R.Tid(:,iSubtalar),'-','Color',Cs); hold on;
     ylabel('Subtalar moment [Nm]'); xlabel('% stride');
     
-    subplot(3,3,6)
-    if ~has_no_tmt
-        plot(R.Tid(:,iTmt),'-','Color',Cs); hold on;
-    end
-    ylabel('Tmt moment [Nm]'); xlabel('% stride');
     
-    subplot(3,3,7)
+    subplot(3,2,5)
     if boolActuation
         plot(R.Tid(:,iAnkle)-R.Exodiff_id(:,iAnkle),'-','Color',Cs); hold on;
     else
@@ -422,25 +413,13 @@ if exist(ResultsFile,'file')
     ylabel('Biological ankle moment [Nm]'); xlabel('% stride');
     title('Left');
     
-    subplot(3,3,8)
+    subplot(3,2,6)
     if boolActuation
         plot(R.Tid(:,iSubtalar)-R.Exodiff_id(:,iSubtalar),'-','Color',Cs,'DisplayName',LegName); hold on;
     else
         plot(R.Tid(:,iSubtalar),'-','Color',Cs,'DisplayName',LegName); hold on;
     end
     ylabel('Biological subtalar moment [Nm]'); xlabel('% stride');
-    title('Left');
-    
-    
-    subplot(3,3,9)
-    if ~has_no_tmt
-        if boolActuation
-            plot(R.Tid(:,iTmt)-R.Exodiff_id(:,iTmt),'-','Color',Cs,'DisplayName',LegName); hold on;
-        else
-            plot(R.Tid(:,iTmt),'-','Color',Cs,'DisplayName',LegName); hold on;
-        end
-    end
-    ylabel('Biological tmt moment [Nm]'); xlabel('% stride');
     title('Left');
     
     if boolFirst
@@ -543,21 +522,53 @@ if exist(ResultsFile,'file')
         ylabel('% body weight')
     end
     l.DisplayName = LegName;
-    if boolFirst
-        lh=legend('-DynamicLegend','location','east');
-        lh.Interpreter = 'none';
-    end
+%     if boolFirst
+%         lh=legend('-DynamicLegend','location','east');
+%         lh.Interpreter = 'none';
+%     end
 
     if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
         for i=1:3
-            subplot(2,3,i+3)
+            subplot(2,3,i)
             hold on
-            p1=plot(R.GRFs_separate(:,i),'-','Color',Cs,'DisplayName','calcaneus');
-            p2=plot(R.GRFs_separate(:,i+3),'--','Color',Cs,'DisplayName','midfoot');
+            p1=plot(R.GRFs_separate(:,i),'-.','Color',Cs,'DisplayName','calcaneus');
+            p2=plot(R.GRFs_separate(:,i+3),'--','Color',Cs,'DisplayName','forefoot');
             p3=plot(R.GRFs_separate(:,i+6),':','Color',Cs,'DisplayName','toes');
             title(R.colheaders.GRF{i});
             xlabel('% stride');
             ylabel('% body weight')
+            
+        end
+        if boolFirst
+            lh=legend([l,p1,p2,p3],'location','best');
+            lh.Interpreter = 'none';
+        end
+        
+        for i=1:3
+            % get GRFs
+            GRF1 = R.GRFs_separate(:,i);
+            GRF2 = R.GRFs_separate(:,i+3);
+            GRF3 = R.GRFs_separate(:,i+6);
+            % total
+            GRFt = GRF1 + GRF2 + GRF3;
+            % relative
+            grf1 = GRF1./GRFt*100;
+            grf2 = GRF2./GRFt*100;
+            grf3 = GRF3./GRFt*100;
+            % set to 0 when total is too small
+            grf1(abs(GRFt)<1) = 0;
+            grf2(abs(GRFt)<1) = 0;
+            grf3(abs(GRFt)<1) = 0;
+            
+            subplot(2,3,3+i)
+            hold on
+            p1=plot(x,grf1,'-.','Color',Cs,'DisplayName','calcaneus');
+            p2=plot(x,grf2,'--','Color',Cs,'DisplayName','forefoot');
+            p3=plot(x,grf3,':','Color',Cs,'DisplayName','toes');
+            title(R.colheaders.GRF{i});
+            xlabel('% stride');
+            ylabel('% total GRF')
+            
         end
         if boolFirst
             lh=legend([p1,p2,p3],'location','best');
@@ -788,45 +799,62 @@ if exist(ResultsFile,'file')
         
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         
-        itmt = find(strcmp(R.colheaders.joints,'tmt_angle_r'));
+        if has_mtj
+            imtj = find(strcmp(R.colheaders.joints,'mtj_angle_r'));
+        else
+            imtj = find(strcmp(R.colheaders.joints,'tmt_angle_r'));
+        end
+        
         imtp = find(strcmp(R.colheaders.joints,'mtp_angle_r'));
         
-        q_tmt = R.Qs(:,itmt);
-        qdot_tmt = R.Qdots(:,itmt);
+        q_mtj = R.Qs(:,imtj);
+        qdot_tmt = R.Qdots(:,imtj);
         q_mtp = R.Qs(:,imtp);
 
         if isfield(R,'windlass') && ~isempty(R.windlass)
             M_PF = R.windlass.M_PF;
+            M_li = R.windlass.M_li;
+            M_mtp = R.windlass.M_mtp;
             F_PF = R.windlass.F_PF;
+            l_PF = R.windlass.l_PF;
             l_fa = R.windlass.l_fa;
             h_fa = R.windlass.h_fa;
+            MA_PF = R.windlass.MA_PF;
             L0 = R.windlass.L0;
             H0 = R.windlass.H0;
             
         else
+            % Some earlier versions did not analyse the windlass mechanism
+            % results in f_LoadSim.
             kTMT_li = 1.5/(pi/180)/5;
             kTMT_PF = R.S.kTMT;
             dTMT = R.S.dTMT;
             cWL = R.S.cWL;
 
             M_PF = zeros(length(x),1);
+            M_li = zeros(length(x),1);
+            M_mtp = zeros(length(x),1);
             F_PF = zeros(length(x),1);
+            l_PF = zeros(length(x),1);
             l_fa = zeros(length(x),1);
             h_fa = zeros(length(x),1);
+            MA_PF = zeros(length(x),1);
 
             if has_mtj
+                AddCasadiPaths();
+                import casadi.*
                 f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(R.S.PF_stiffness);
             end
 
             for i=1:length(R.Qs)
                 if has_mtj
                     [~, M_PFi,F_PFi,~,~,~,li,~,L0,hi,~,H0,~] = ...
-                        getPassiveMtjMomentWindlass_v2(q_tmt(i)*pi/180,qdot_tmt(i)*pi/180,...
+                        getPassiveMtjMomentWindlass_v2(q_mtj(i)*pi/180,qdot_tmt(i)*pi/180,...
                         q_mtp(i)*pi/180,f_PF_stiffness);
 
                 else
                     [~, M_PFi,F_PFi,~,~,li,~,L0,hi,~,H0,~] = ...
-                        getPassiveTmtjMomentWindlass(q_tmt(i)*pi/180,qdot_tmt(i)*pi/180,...
+                        getPassiveTmtjMomentWindlass(q_mtj(i)*pi/180,qdot_tmt(i)*pi/180,...
                         q_mtp(i)*pi/180,kTMT_li,kTMT_PF,dTMT,R.S.subject,cWL);
                     M_PFi = -M_PFi;
                 end
@@ -841,30 +869,14 @@ if exist(ResultsFile,'file')
         
         set(0,'defaultTextInterpreter','none');
         
-        subplot(2,3,1)
+        subplot(2,4,1)
         hold on
-        plot(x,q_tmt,'color',Cs,'linewidth',line_linewidth)
-        title('tmt angle')
+        plot(x,q_mtj,'color',Cs,'linewidth',line_linewidth)
+        title('Midtarsal angle')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Angle (°)','Fontsize',label_fontsize);
         
-        subplot(2,3,2)
-        hold on
-        p1=plot(x,R.Tid(:,itmt),'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
-        p2=plot(x,M_PF,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Plantar fascia');
-        legend([p1,p2],'location','best')
-        title('tmt torque')
-        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        ylabel('Torque (Nm)','Fontsize',label_fontsize);
-
-        subplot(2,3,3)
-        hold on
-        plot(x,l_fa/L0,'color',Cs,'linewidth',line_linewidth)
-        title('Foot arch length')
-        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        ylabel('relative length (-)','Fontsize',label_fontsize);
-        
-        subplot(2,3,4)
+        subplot(2,4,2)
         hold on
         plot(x,q_mtp,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
         title('mtp angle')
@@ -873,21 +885,58 @@ if exist(ResultsFile,'file')
         lh = legend('location','best');
         lh.Interpreter = 'none';
 
-        subplot(2,3,5)
+        subplot(2,4,3)
         hold on
-        plot(x,F_PF/(R.body_mass*9.81),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-        title('Plantar fascia force')
+        plot(x,l_fa*1000,'color',Cs,'linewidth',line_linewidth)
+        title('Foot arch length')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        ylabel('Force/BW (-)','Fontsize',label_fontsize);
+        ylabel('Length (mm)','Fontsize',label_fontsize);
         
-        subplot(2,3,6)
+        subplot(2,4,4)
         hold on
-        plot(x,h_fa/H0,'color',Cs,'linewidth',line_linewidth)
+        plot(x,h_fa*1000,'color',Cs,'linewidth',line_linewidth)
         title('Foot arch height')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        ylabel('relative height (-)','Fontsize',label_fontsize);
-
-
+        ylabel('Height (mm)','Fontsize',label_fontsize);
+        
+        subplot(2,4,5)
+        hold on
+        p1=plot(x,R.Tid(:,imtj),'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
+        p2=plot(x,M_PF,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Plantar fascia');
+        legend([p1,p2],'location','best')
+        title('Midtarsal torque')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('Torque (Nm)','Fontsize',label_fontsize);
+        
+        subplot(2,4,6)
+        hold on
+        p1=plot(x,R.Tid(:,imtp),'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
+        p2=plot(x,M_mtp,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Plantar fascia');
+        legend([p1,p2],'location','best')
+        title('Mtp torque')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('Torque (Nm)','Fontsize',label_fontsize);
+        
+        
+        
+        subplot(2,4,7)
+        hold on
+        if isfield(R.S,'PF_slack_length')
+            ls = R.S.PF_slack_length;
+            PF_strain = (l_PF./ls-1)*100;
+            plot(x,PF_strain,'color',Cs,'linewidth',line_linewidth)
+        end
+        title('Plantar fascia strain')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('Nominal strain (%)','Fontsize',label_fontsize);
+        
+        subplot(2,4,8)
+        hold on
+        plot(x,F_PF/(R.body_mass*9.81)*100,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+        title('Plantar fascia force')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('Force/BW (%)','Fontsize',label_fontsize);
+        
       
     end
    

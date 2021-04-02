@@ -19,7 +19,7 @@ l = SX.sym('l');
 %% 1) Default parameters
 E = 350; % Young's modulus (N/mm^2)
 % A0 = 290; % initial cross-section (mm^2)
-A0 = 58.6; % initial cross-section (mm^2)
+A0 = 49.7; % initial cross-section (mm^2)
 nu = 0.4; % Poisson ratio
 ls = 0.135; % slack length (m)
 k1 = E*A0/ls; % spring constant (N/m)
@@ -130,6 +130,10 @@ elseif strcmp(modelType,'Natali2010')
     alpha = 10.397; % (-)
     sigma = mu*(lambda^2 - 1/lambda) + k/(2*alpha) *(exp(alpha*(lambda^2-1))-1)*lambda^2; % Cauchy stress
     F_PF = sigma*A;
+    
+else
+    % plantar fascia fully released
+    F_PF = 0;
     
 end
 

@@ -153,7 +153,7 @@ bounds.Qs.upper(jointi.mtp.r) = 1.05;
 bounds.Qs.lower(jointi.mtp.r) = -0.5;
 % Tmt
 if midtarsal == 1
-    tmt_bound = 20;
+    tmt_bound = 30;
 else
     tmt_bound = 15;
 end

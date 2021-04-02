@@ -6,14 +6,15 @@ clc
 [pathRepo,~,~] = fileparts(pathHere);
 addpath([pathRepo '/VariousFunctions']);
 addpath([pathRepo '/PassiveMoments']);
+addpath([pathRepo '/FootModel']);
 
 %% Settings
 % Folder will be filtered to only plot results that satisfy all chosen
 % settings. Put an entry in comment to not use it to filter.
 
-plot_default = 0;
+plot_default = 1;
 plot_validation = 0;
-plot_foot = 1;
+plot_foot = 0;
 
 standing = 1;
 
@@ -40,7 +41,7 @@ reference_data = 'norm'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
 S.Windlass = 1;
 % S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsiflexion
 
-S.PF_stiffness = 'Gefen2001'; %'linear''tanh''sqr''exp''Gefen2001''Cheng2008''Barrett2018''Natali2010'
+% S.PF_stiffness = 'Gefen2001'; %'linear''tanh''sqr''exp''Gefen2001''Cheng2008''Barrett2018''Natali2010'
 
 Fmax = 4000;
 
@@ -190,6 +191,8 @@ if plot_foot
     if exist('Fmax','var')
         crit{end+1} = ['_' num2str(Fmax)];
     end
+    
+    crit{end+1} = '_WLv3';
     
     OutFolder{1} = fullfile(pathRepo,'Results','FootModel');
     

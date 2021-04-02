@@ -44,10 +44,10 @@ hold on
 xlabel('mtp angle (°)')
 ylabel('arch length (mm)')
 title('Foot arch length')
-if length(R.Qs_mtp)>1 && min(R.Qs_mtp)*180/pi<-29
-    l0 = interp1(R.Qs_mtp*180/pi,R.l_fa(:,1),-29);
-    plot([-30,30],[1,0.95]*l0*1000,'--','color',CsV)
-end
+% if length(R.Qs_mtp)>1 && min(R.Qs_mtp)*180/pi<-29
+%     l0 = interp1(R.Qs_mtp*180/pi,R.l_fa(:,1),-29);
+%     plot([-30,30],[1,0.95]*l0*1000,'--','color',CsV)
+% end
 
 subplot(3,3,2)
 hold on
@@ -261,10 +261,12 @@ j = find(R.Qs_mtp(:)==0);
 
 js = find(R.failed(j,:)==0);
 Fs_tib = R.Fs_tib(js);
-
 l_fa = R.l_fa(j,js);
-subplot(1,3,1)
+h_fa = R.h_fa(j,js);
+
+subplot(3,5,[1,2,6,7])
 plot((l_fa-l_fa(1))*1000,Fs_tib/1000,'color',CsV,'DisplayName',R.PF_stiffness)
+% plot((l_fa-R.L0)*1000,Fs_tib/1000,'color',CsV,'DisplayName',R.PF_stiffness)
 hold on
 grid on
 xlabel('horizontal elongation (mm)')
@@ -273,14 +275,24 @@ title({'Foot arch stiffness','as defined by Ker et al, 1987'})
 lg12 = legend('Location','southeast');
 lg12.Interpreter = 'none';
 
-h_fa = R.h_fa(j,js);
-subplot(1,3,2)
+
+subplot(3,5,[5,10])
 plot((h_fa(1)-h_fa)*1000,Fs_tib/1000,'color',CsV)
+% plot((R.H0-h_fa)*1000,Fs_tib/1000,'color',CsV)
 hold on
 grid on
 xlabel('vertical displacement (mm)')
 ylabel('vertical force (kN)')
 title({'Foot arch stiffness','as defined by Stearne et al, 2016'})
+
+subplot(3,5,15)
+plot((h_fa(1)-h_fa(Fs_tib<=300))*1000,Fs_tib(Fs_tib<=300),'color',CsV)
+% plot((R.H0-h_fa(Fs_tib<=300))*1000,Fs_tib(Fs_tib<=300),'color',CsV)
+hold on
+grid on
+xlabel('vertical displacement (mm)')
+ylabel('vertical force (N)')
+title('Detail view')
 
 
 for i=1:n_mtp
@@ -293,7 +305,7 @@ for i=1:n_mtp
     ac_max(i) = max(ac{i});
 end
 
-subplot(1,3,3)
+subplot(3,5,[3,4,8,9])
 hold on
 grid on
 for i=1:n_mtp

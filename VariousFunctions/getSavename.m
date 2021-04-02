@@ -38,6 +38,26 @@ nr = numel(savenameparts);
 if isfield(S,'mtj') && ~isempty(S.mtj) && S.mtj
     savenameparts{end+1} = ['PF_' S.PF_stiffness];
     casfuncfolparts{end+1} = ['PF_' S.PF_stiffness];
+    if isfield(S,'PF_slack_length') && ~isempty(S.PF_slack_length)
+        savenameparts{end+1} = ['ls' num2str(S.PF_slack_length*1000)];
+        casfuncfolparts{end+1} = ['ls' num2str(S.PF_slack_length*1000)];
+    end
+    if isfield(S,'MT_li_nonl') && ~isempty(S.MT_li_nonl) && S.MT_li_nonl
+        savenameparts{end+1} = 'k_nonl';
+        casfuncfolparts{end+1} = 'k_nonl';
+    else
+        if isfield(S,'kMT_li') && ~isempty(S.kMT_li)
+            savenameparts{end+1} = ['k' num2str(S.kMT_li)];
+            casfuncfolparts{end+1} = ['k' num2str(S.kMT_li)];
+        end
+    end
+    if isfield(S,'WL_T_mtp') && ~isempty(S.WL_T_mtp) && S.WL_T_mtp
+        savenameparts{end+1} = 'Tmtp';
+        casfuncfolparts{end+1} = 'Tmtp';
+    else
+        savenameparts{end+1} = 'kmtp';
+        casfuncfolparts{end+1} = 'kmtp';
+    end
 else
     if isfield(S,'tmt') && ~isempty(S.tmt)
         if S.tmt && isfield(S,'dTMT') && ~isempty(S.dTMT) && ~S.tmt_locked
@@ -71,6 +91,7 @@ else
                     savenameparts{end} = [savenameparts{end} num2str(S.cWL*1000)];
                     casfuncfolparts{end} = [casfuncfolparts{end} num2str(S.cWL*1000)];
                 end
+                    
             else
                 not{end+1} = 'not_WL';
             end

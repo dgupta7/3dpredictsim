@@ -1,3 +1,22 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This script serves as the main file for the changes made in the branch 
+% Thesis_Lars. It allows to specify the settings, solve, post-process and
+% plot a single gait simulation.
+%
+% Alternatively, the specified settings can be saved and added to a batch.
+% Preparing a full batch at once can be done from \BatchPrepareQueue.m
+% instead. To run the batch, run \BatchRunqueue.m
+%
+% This script can also be used to run a static simulation of a single foot.
+% This foot can be hanging in the air supported at the knee, or standing on
+% the ground with a vertical force pushing down on the knee.
+%
+% To plot multiple results on the same figure, use \Plots\make_any_plot.m
+%
+% Author: Lars D'Hondt (March 2021)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 clear all
 close all
 clc
@@ -15,14 +34,14 @@ addpath([pathRepo '/Debug']);
 addpath([pathRepo '/FootModel']);
 AddCasadiPaths();
 
-%% Manual settings
+%% General settings
 % Full body gait simulation
 slv = 0;                % run solver
 pp = 0;                 % postproces
-plot = 0;               % plot solution
+plot = 1;               % plot solution
 batchQueue = 0;         % save settings to run later
-% Static foot compression simulation
-foot_standing = 1;      % load on knee
+% Static foot simulation
+foot_standing = 0;      % load on knee
 foot_hanging = 0;       % knee position fixed, tibia and foot hanging freely
 
 % settings for optimization
@@ -31,12 +50,23 @@ S.N         = 50;       % number of mesh intervals
 S.NThreads  = 6;        % number of threads for parallel computing
 % S.max_iter  = 10;       % maximum number of iterations (comment -> 10000)
 
-% tarsometatarsal joint
-S.tmt = 1;              % 1: use a model with tmt joint
-S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
+% assumption to simplify Hill-type muscle model
+S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
+
+% output folder
+S.ResultsFolder = 'test_WL_v2'; % 'batch_windlass' 'standing' 'MuscleModel' 'batch_tmt_lin'
+suffixCasName = '';         
+suffixName = '';
+
+% Test subject
+S.subject = 'subject1'; % barefoot
+% S.subject = 's1_Poggensee'; % normal shoes, exoskeleton powered on/off
+
+%% Tarsometatarsal joint
+S.tmt = 0;              % 1: use a model with tmt joint
 % linear spring
 S.kTMT = 1000;          % (Nm/rad) stiffness of tmt joint 
-S.dTMT = 0.5;             % (Nms/rad) damping of tmt joint
+S.dTMT = 0.5;           % (Nms/rad) damping of tmt joint
 % nonlinear spring tmt
 S.TMT_linear = 1;
 S.k1TMT = 800;
@@ -46,12 +76,27 @@ S.t1TMT = 0.5;
 S.Windlass = 1;
 S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsiflexion
 
-S.mtj = 0;
-S.PF_stiffness = 'Gefen2001'; %'linear''tanh''sqr''exp''Gefen2001''Cheng2008''Barrett2018''Natali2010'
+%% Midtarsal joint
+% This will always have the windlass mechanism.
+S.mtj = 1;              % 1: use a model with tmt joint (will override tmt)
+% plantar fascia
+S.PF_stiffness = 'Gefen2001'; % stiffness model for the gait simulation
+        % options: 'none''linear''Gefen2001''Cheng2008''Barrett2018''Natali2010'
+S.PF_slack_length = 0.135; % slack length (m)
+% other ligaments (long, short planter ligament, etc)
+S.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
+S.kMT_li = 100;         % angular stiffness in case of linear
 
-% assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
+% PF reaction torque on mtp joint
+S.WL_T_mtp = 0;         % 0: spring mtp, 1: PF reaction on mtp
+    
+% List of stiffness models to use for the STATIC footmodel:
+% PF_stiffness = {'linear','tanh','sqr','exp','Gefen2001','Cheng2008','Barrett2018','Natali2010'};
+PF_stiffness = {'linear','Gefen2001','Cheng2008','Barrett2018','Natali2010','none'};
+% PF_stiffness = {'none','Gefen2001'};
+% PF_stiffness = {'Gefen2001'};
 
+%% Exoskeleton
 % exo
 S.ExoBool       = 0;    % 1: is wearing exo
 S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile 
@@ -59,9 +104,10 @@ S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile
                         
 S.DataSet = 'PoggenSee2020_AFO';            % dataset with exoskeleton torque profile
 
-% S.ExoImplementation = 'TorqueTibiaCalcn';
+% Where the exo torque is transferred to the ankle
+S.ExoImplementation = 'TorqueTibiaCalcn';
 % S.ExoImplementation = 'TorqueTibiaCalcnMetatarsi';
-S.ExoImplementation = 'TorqueTibiaMetatarsi';
+% S.ExoImplementation = 'TorqueTibiaMetatarsi';
 
 % Ideal assistance
 ia = 0;
@@ -69,15 +115,9 @@ ia = 0;
 % S.T_min_ankle_exo = 0;
 % S.P_max_ankle_exo = 50;
 
-% output folder
-S.ResultsFolder = 'test_WL_v2'; % 'batch_windlass' 'standing' 'MuscleModel' 'batch_tmt_lin'
-suffixCasName = '';
-suffixName = '';
 
-% Folder with default functions
-S.subject            = 'subject1';
-% S.subject            = 's1_Poggensee';
 
+%% Initial guess
 % initial guess based on simulations without exoskeletons
 S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
 S.IGmodeID      = 4;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
@@ -91,6 +131,8 @@ end
 
 
 %% Automated settings
+% Change some more settings, based on what was selected above. 
+% No need to change anything below this line to run the code.
 
 % Ideal assistance
 if ia
@@ -104,10 +146,10 @@ S.PolyFolder = S.subject;
 if S.tmt == 0 && S.mtj == 0
     if strcmp(S.subject,'s1_Poggensee')
         if S.ExoBool == 0
-            S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';        % external function
-            S.ExternalFunc2 = 'PredSim_3D_Pog_s1_mtp_pp.dll';     % external function for post-processing
+            S.ExternalFunc  = 'PredSim_3D_Pog_s1_mtp.dll';
+            S.ExternalFunc2 = 'PredSim_3D_Pog_s1_mtp_pp.dll';
         else
-            S.ExternalFunc  = 'SimExo_3D_talus_out.dll';        % this one is with the pinjoint mtp
+            S.ExternalFunc  = 'SimExo_3D_talus_out.dll';
         end
     elseif strcmp(S.subject,'subject1')
         if S.ExoBool == 0
@@ -192,10 +234,10 @@ if S.tmt == 0 && S.mtj == 0
         batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92';
     end
     if slv        % run the optimization
-    f_PredSim_Gait92(S);
+        f_PredSim_Gait92(S);
     end
     if pp           % post-proces simulation results
-    f_LoadSim_Gait92(S.ResultsFolder,S.savename);
+        f_LoadSim_Gait92(S.ResultsFolder,S.savename);
     end
 else
     if ia
@@ -227,7 +269,7 @@ if batchQueue
     save([pathRepo '/Results/batchQ.mat'],'batchQ');
 end
 
-%%
+%% Plot
 if plot
     h = figure();
     set(h,'Position',[82 151 1497 827]);
@@ -236,22 +278,18 @@ end
 
 
 %% Static model of foot
-
-% PF_stiffness = {'linear','tanh','sqr','exp','Gefen2001','Cheng2008','Barrett2018','Natali2010'};
-% PF_stiffness = {'linear','Gefen2001','Cheng2008','Barrett2018','Natali2010'};
-PF_stiffness = {'Gefen2001'};
-
 if foot_standing
     for i=1:numel(PF_stiffness)
         S.PF_stiffness = PF_stiffness{i};
 %         f_staticFootCompression_v2(S);
         f_staticFootCompression_v4(S);
     end
-    
-elseif foot_hanging
+end
+if foot_hanging
     for i=1:numel(PF_stiffness)
         S.PF_stiffness = PF_stiffness{i};
-        f_staticFootHanging(S);
+%         f_staticFootHanging(S);
+        f_staticFootHanging_v2(S);
     end
 end
 

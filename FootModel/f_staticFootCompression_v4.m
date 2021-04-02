@@ -7,17 +7,19 @@ AddCasadiPaths();
 S = GetDefaultSettings(S);
 clc
 
-plot_result = 1;
+plot_result = 0;
+save_result = 1;
 
 % mtp angles to be considered
 % Qs_mtp = [-45:15:45]*pi/180;
 Qs_mtp = [-30:30:30]*pi/180;
 % vertical forces on knee
 % Fs_tib = [0:50:300,350:100:750,1000:250:4000];
-Fs_tib = [0:100:1000];
+% Fs_tib = [0:100:1000];
+Fs_tib = [0:50:300,400:100:1000,1250:250:4000];
 
 % Qs_mtp = [0]*pi/180;
-% Fs_tib = [-40,05,25,160,320];
+% Fs_tib = [0];
 
 n_mtp = length(Qs_mtp);
 n_tib = length(Fs_tib);
@@ -25,15 +27,6 @@ n_tib = length(Fs_tib);
 
 % Plantar fascia stiffness model
 PF_stiffness = S.PF_stiffness;
-% PF_stiffness = 'linear';
-% PF_stiffness = 'tanh';
-% PF_stiffness = 'sqr';
-% PF_stiffness = 'exp';
-% PF_stiffness = 'Gefen2001';
-% PF_stiffness = 'Cheng2008';
-% PF_stiffness = 'Barrett2018';
-% PF_stiffness = 'Natali2010';
-
 
 subtR = 1; % reduce subtalar mobility
 
@@ -46,14 +39,14 @@ if strcmp(S.subject,'s1_Poggensee')
 
 elseif strcmp(S.subject,'subject1')
     ext_name = 'Foot_3D_Fal_s1_mtj_subt1_v1';
-%         ext_name = 'Foot_3D_Fal_s1_mtj_subt2_v1';
-%         ext_name = 'Foot_3D_Fal_s1_mtj_subt3_v1';
+%     ext_name = 'Foot_3D_Fal_s1_mtj_subt2_v1';
+%     ext_name = 'Foot_3D_Fal_s1_mtj_subt3_v1';
 end
 
 savename = [ext_name '_' PF_stiffness];
 
 savename = [savename '_Q' num2str(Qs_mtp(1)*180/pi) '_' num2str(Qs_mtp(end)*180/pi)...
-    '_F' num2str(Fs_tib(1)) '_' num2str(Fs_tib(end))];
+    '_F' num2str(Fs_tib(1)) '_' num2str(Fs_tib(end)) '_WLv3'];
 
 pathmain        = pwd;
 [pathRepo,~,~]  = fileparts(pathmain);
@@ -71,7 +64,7 @@ if (exist(Outname,'file') == 2) && (overwrite == 0)
 else
 
     %% Get PF model
-    f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(PF_stiffness);
+    f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(PF_stiffness,'ls',S.PF_slack_length);
 
     %% Load external functions
     import casadi.*
@@ -109,7 +102,7 @@ else
     qin2     = SX.sym('qin_pass2',1);
     qdotin1  = SX.sym('qdotin_pass1',1);
 
-    [passWLTorques_mtj,~] = getPassiveMtjMomentWindlass_v3(qin1,qdotin1,qin2,f_PF_stiffness,S);
+    [passWLTorques_mtj,~] = getPassiveMtjMomentWindlass_v3(qin1,qdotin1,qin2,f_PF_stiffness);
     f_passiveWLTorques_mtj = Function('f_passiveWLTorques_mtj',{qin1,qdotin1,qin2}, ...
         {passWLTorques_mtj},{'qin1','qdotin1','qin2'},{'passWLTorques'});
 
@@ -193,6 +186,11 @@ else
     scale_FTs = 5*ones(NMf,1);
 
     bounds_scaled = bounds_qs.*scale_qs;
+    
+    %% Get some information about neutral position
+    [~,~,~,~,~,~,~,~,~,H0_fa,L0_fa] = ...
+                getPassiveMtjMomentWindlass_v3(0,0,0,f_PF_stiffness);
+
     
     %% Build system to solve
 
@@ -407,7 +405,7 @@ else
             opti.set_value(qmtp, Qs_mtp(i));
             opti.set_value(Ftib, Fs_tib(j))
             % solve
-%             try
+            try
                 sol = opti.solve();
                 qs_sol = sol.value(qs_opti).*scale_qs;
                 FTs_sol = sol.value(FTtilde_opti).*scale_FTs;
@@ -475,7 +473,7 @@ else
                 % call windlass function
                 [M_mtji,M_mtpi, M_PFi,M_lii,~,F_PFi,l_PFi,MA_PFi,l_PF_fai,h_fai,l_fai] = ...
                         getPassiveMtjMomentWindlass_v3(Qs(i,j,jointfi.tmt.r),0,Qs(i,j,jointfi.mtp.r),...
-                        f_PF_stiffness,S);
+                        f_PF_stiffness);
 
                 M(i,j) = M_mtji;
                 M_PF(i,j) = M_PFi;
@@ -489,9 +487,9 @@ else
                 M_mtp(i,j) = M_mtpi;
 
 
-%             catch
-%                 failed(i,j) = 1;
-%             end
+            catch
+                failed(i,j) = 1;
+            end
 
         end
     end
@@ -512,10 +510,12 @@ else
     R.F_PF = F_PF;
     R.l_PF = l_PF;
     R.l_fa = l_fa;
+    R.L0 = L0_fa;
     R.l_fa_ext = l_fa_ext;
     R.l_PF_fa = l_PF_fa;
     R.M_mtp = M_mtp;
     R.h_fa = h_fa;
+    R.H0 = H0_fa;
     R.h_fa_ext = h_fa_ext;
     R.MA_PF = MA_PF;
     R.Q_tmt_0 = q_tmt_0;
@@ -534,10 +534,11 @@ else
     R.T_subt.ext = T_subt_ext;
     R.PF_stiffness = PF_stiffness;
 
-%     save(Outname,'R');
-    
-    disp('Saved as:')
-    [savename '.mat']
+    if save_result
+        save(Outname,'R');
+        disp('Saved as:')
+        [savename '.mat']
+    end
     
     
 end

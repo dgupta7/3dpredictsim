@@ -1,10 +1,14 @@
-function [M_mtj, M_mtpj, varargout] = getPassiveMtjMomentWindlass_v3(q_mt,qdot_mt,q_mtp,varargin)
-% This function returns the passive moment around the tarsometatarsal joint
-% q_mt: angle of midtarsal joint (rad)
-% q_mtp: angle of mtp joint(rad)
-% qdot_mt: angular velocity of midtarsal joint (rad/s)
-% kMT_li: angular stiffness of mt joint, from other ligaments (Nm/rad)
-% dMT: angular viscous friction of tmt joint (Nms/rad)
+function [M_mtj, M_mtpj, varargout] = getPassiveMtjMomentWindlass_v3(q_mt,qdot_mt,q_mtp,f_PF_stiffness,varargin)
+% This function returns total the passive moment around the tarsometatarsal
+% joint, and the extra passive moment around the mtp joint caused be the
+% plantar fascia.
+% Input arguments:
+%   q_mt: angle of midtarsal joint (rad)
+%   q_mtp: angle of mtp joint(rad)
+%   qdot_mt: angular velocity of midtarsal joint (rad/s)
+%   f_PF_stiffness: function that takes the plantar fascia length, and
+%                   returns the force.
+%   varargin: possibility to pass the settings struct S
 % 
 % Author: Lars D'Hondt (March 2021)
 
@@ -21,33 +25,19 @@ phi0 = 2.1274;
 
 
 %% Default parameters
-
 R_mtth = 7.5e-3; % radius of the metatarsal head
 l_toe = 0; % distance from metatarsal head to PF attachment point at toe
-
+nl = 1; % use nonlinear ligament stiffness
+kMT_li = 90; % linear stiffness
 
 %% Get specific parameters
 if isempty(varargin)
-    f_PF_stiffness = @(le) 0*le; % linear with default values
+    dMT = 0; 
 else
-    f_PF_stiffness = varargin{1};
+    dMT = S.dTMT;
+    nl = S.MT_li_nonl;
+    kMT_li = S.kMT_li;
 end
-
-dMT = 0;
-
-
-% if length(varargin)==5
-%     % when passed separately
-%     kMT_li = varargin{2};
-%     dMT = varargin{3};
-%     
-% elseif length(varargin)==2
-%     % from struct with settings
-%     S = varargin{2};
-%     kMT_li = S.kTMT_li;
-%     dMT = S.dTMT;
-%     
-% end
 
 
 %% Geometry Windlass mechanism
@@ -70,7 +60,16 @@ end
 M_PF = -F_PF*MA_PF;
 
 % other elastic structures
-M_li = -8*(exp(4.5*(q_mt+0.01))-1) + 8*exp(-15*(q_mt+0.15));
+if nl
+    k1 = 90;
+    dl_0 = 3*pi/180;
+    dq_0 = 2*pi/180;
+    M_li = -k1*( (q_mt-dq_0) - dl_0*tanh((q_mt-dq_0)/dl_0/1.2)) +... % toe-in and linear part
+            (-exp(20*(q_mt-20*pi/180)) + exp(-25*(q_mt+10*pi/180)))/2; % stiffening at the end
+    
+else
+    M_li = -kMT_li*q_mt;
+end
 
 % viscous damping
 M_d = -dMT*qdot_mt;
