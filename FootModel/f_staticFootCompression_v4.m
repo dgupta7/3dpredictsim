@@ -1,22 +1,23 @@
 function [] = f_staticFootCompression_v4(S)
 
-% clearvars -except 'S'
+
 AddCasadiPaths();
 
 %% Settings
 S = GetDefaultSettings(S);
 clc
 
-plot_result = 0;
-save_result = 1;
+plot_result = 1;
+save_result = 0;
+overwrite = 1;
 
 % mtp angles to be considered
 % Qs_mtp = [-45:15:45]*pi/180;
 Qs_mtp = [-30:30:30]*pi/180;
 % vertical forces on knee
 % Fs_tib = [0:50:300,350:100:750,1000:250:4000];
-% Fs_tib = [0:100:1000];
-Fs_tib = [0:50:300,400:100:1000,1250:250:4000];
+Fs_tib = [0:50:1000];
+% Fs_tib = [0:50:300,400:100:1000,1250:250:4000];
 
 % Qs_mtp = [0]*pi/180;
 % Fs_tib = [0];
@@ -24,13 +25,10 @@ Fs_tib = [0:50:300,400:100:1000,1250:250:4000];
 n_mtp = length(Qs_mtp);
 n_tib = length(Fs_tib);
 
-
 % Plantar fascia stiffness model
 PF_stiffness = S.PF_stiffness;
 
 subtR = 1; % reduce subtalar mobility
-
-overwrite = 1;
 
 %% Build savename
 % name of external function
@@ -46,7 +44,7 @@ end
 savename = [ext_name '_' PF_stiffness];
 
 savename = [savename '_Q' num2str(Qs_mtp(1)*180/pi) '_' num2str(Qs_mtp(end)*180/pi)...
-    '_F' num2str(Fs_tib(1)) '_' num2str(Fs_tib(end)) '_WLv3'];
+    '_F' num2str(Fs_tib(1)) '_' num2str(Fs_tib(end)) '_WLv3' '_ls' num2str(S.PF_slack_length*1000)];
 
 pathmain        = pwd;
 [pathRepo,~,~]  = fileparts(pathmain);
@@ -102,7 +100,7 @@ else
     qin2     = SX.sym('qin_pass2',1);
     qdotin1  = SX.sym('qdotin_pass1',1);
 
-    [passWLTorques_mtj,~] = getPassiveMtjMomentWindlass_v3(qin1,qdotin1,qin2,f_PF_stiffness);
+    [passWLTorques_mtj,~] = getPassiveMtjMomentWindlass_v3(qin1,qdotin1,qin2,f_PF_stiffness,S);
     f_passiveWLTorques_mtj = Function('f_passiveWLTorques_mtj',{qin1,qdotin1,qin2}, ...
         {passWLTorques_mtj},{'qin1','qdotin1','qin2'},{'passWLTorques'});
 
@@ -172,7 +170,7 @@ else
                   *setup.scaling.Qs(jointi.ankle.r); % ankle
                  [setup.bounds.Qs.lower(jointi.subt.r), setup.bounds.Qs.upper(jointi.subt.r)]...
                   *setup.scaling.Qs(jointi.subt.r); % subt
-                 [-90,37]*pi/180]; % tmt
+                 [-40,37]*pi/180]; % tmt
 
     bounds_qs(5,:) = bounds_qs(5,:)/subtR;
 
@@ -295,22 +293,16 @@ else
     f5 = Tj(jointfi.metatarsi_or(1),1);
     f6 = Tj(jointfi.metatarsi_or(3),1);
 
-%     f5 = Tj(jointfi.talus_or(1),1);
-%     f6 = Tj(jointfi.talus_or(3),1);
-
-%     f2 = Tj(jointfi.calcn_or(3),1) - Tj(jointfi.toes_or(3),1);
-
     % Hill difference
     fh = Hilldiff;
 
     % Equality constraints
-    % ff = [f1;f2;f3;f4;f5;f6;fh;];
     ff = [f1;f2;f3;f4;fh;];
 
     % Objective
     fo1 = (Tj(jointfi.calcn_or(2),1) - Tj(jointfi.toes_or(2),1) - 0.01)^2; % square to get positive value
     fo2 = f5^2 + f6^2;
-%     fo1 = (Tj(jointfi.calcn_GRF(2))+0.01)^(-2) * (1+tanh(Tj(jointfi.metatarsi_GRF(2))-50));
+
     
     fo = fo1 + fo2;
 
@@ -473,7 +465,7 @@ else
                 % call windlass function
                 [M_mtji,M_mtpi, M_PFi,M_lii,~,F_PFi,l_PFi,MA_PFi,l_PF_fai,h_fai,l_fai] = ...
                         getPassiveMtjMomentWindlass_v3(Qs(i,j,jointfi.tmt.r),0,Qs(i,j,jointfi.mtp.r),...
-                        f_PF_stiffness);
+                        f_PF_stiffness,S);
 
                 M(i,j) = M_mtji;
                 M_PF(i,j) = M_PFi;

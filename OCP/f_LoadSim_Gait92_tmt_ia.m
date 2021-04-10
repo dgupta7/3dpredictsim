@@ -261,6 +261,16 @@ f_AllPassiveTorques = Function.load('f_AllPassiveTorques');
 fgetMetabolicEnergySmooth2004all = Function.load('fgetMetabolicEnergySmooth2004all');
 cd(pathmain);
 
+
+%% file with mass of muscles
+MassFile = fullfile(PathDefaultFunc,'MassM.mat');
+if exist(MassFile,'file')
+   MuscleMass = load(MassFile);
+else
+    MassFile = fullfile(pathCasADiFunctions,'MassM.mat');
+    MuscleMass =load(MassFile);
+end
+
 %% load the metalbolic energy equations
 PathDefaultFunc = fullfile(pathCasADiFunctions,'EnergyModels');
 cd(PathDefaultFunc);
@@ -343,15 +353,6 @@ tensions = [tension;tension];
 pctst = getSlowTwitchRatios(muscleNames(1:end-3));
 pctsts = [pctst;pctst];
 
-
-%% file with mass of muscles
-MassFile = fullfile(PathDefaultFunc,'MassM.mat');
-if exist(MassFile,'file')
-   MuscleMass = load(MassFile);
-else
-    MassFile = fullfile(pathCasADiFunctions,'MassM.mat');
-    MuscleMass =load(MassFile);
-end
 
 %% Joints
 joints = {'pelvis_tilt','pelvis_list','pelvis_rotation','pelvis_tx',...

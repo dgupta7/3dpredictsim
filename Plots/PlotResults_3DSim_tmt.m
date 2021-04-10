@@ -86,6 +86,9 @@ if exist(ResultsFile,'file')
             tab10 = h.Parent.Children(1).Children(1).Children(10);
             tab11 = h.Parent.Children(1).Children(1).Children(11);
             tab12 = h.Parent.Children(1).Children(1).Children(12);
+            tab13 = h.Parent.Children(1).Children(1).Children(13);
+            tab14 = h.Parent.Children(1).Children(1).Children(14);
+            tab15 = h.Parent.Children(1).Children(1).Children(15);
             boolFirst = 0;
         else
             h = varargin{1};
@@ -99,9 +102,13 @@ if exist(ResultsFile,'file')
             tab7 = uitab(hTabGroup, 'Title', 'GRF detailed');
             tab8 = uitab(hTabGroup, 'Title', 'Objective Function');
             tab9 = uitab(hTabGroup, 'Title', 'Ankle detailed');
-            tab10 = uitab(hTabGroup, 'Title', 'SpatioTemporal');
-            tab11 = uitab(hTabGroup, 'Title', 'Windlass');
-            tab12 = uitab(hTabGroup, 'Title', 'Exo assistance');
+            tab10 = uitab(hTabGroup, 'Title', 'Mtp detailed');
+            tab11 = uitab(hTabGroup, 'Title', 'SpatioTemporal');
+            tab12 = uitab(hTabGroup, 'Title', 'Windlass');
+            tab13 = uitab(hTabGroup, 'Title', 'Foot power');
+            tab14 = uitab(hTabGroup, 'Title', 'Foot work');
+            tab15 = uitab(hTabGroup, 'Title', 'Exo assistance');
+            
             h.Name = 'Sim3D_Results';
             set(h,'Color','w');
         end
@@ -118,9 +125,13 @@ if exist(ResultsFile,'file')
         tab7 = uitab(hTabGroup, 'Title', 'GRF detailed');
         tab8 = uitab(hTabGroup, 'Title', 'Objective Function');
         tab9 = uitab(hTabGroup, 'Title', 'Ankle detailed');
-        tab10 = uitab(hTabGroup, 'Title', 'SpatioTemporal');
-        tab11 = uitab(hTabGroup, 'Title', 'Windlass');
-        tab12 = uitab(hTabGroup, 'Title', 'Exo assistance');
+        tab10 = uitab(hTabGroup, 'Title', 'Mtp detailed');
+        tab11 = uitab(hTabGroup, 'Title', 'SpatioTemporal');
+        tab12 = uitab(hTabGroup, 'Title', 'Windlass');
+        tab13 = uitab(hTabGroup, 'Title', 'Foot power');
+        tab14 = uitab(hTabGroup, 'Title', 'Foot work');
+        tab15 = uitab(hTabGroup, 'Title', 'Exo assistance');
+        
         set(h,'Color','w');
     end
     
@@ -238,10 +249,10 @@ if exist(ResultsFile,'file')
     end
     
     if boolFirst
-        lh=legend('-DynamicLegend','location','east');
+        lh=legend('-DynamicLegend','location','west');
         lh.Interpreter = 'none';
         lhPos = lh.Position;
-        lhPos(1) = lhPos(1)+0.25;
+        lhPos(1) = lhPos(1)+0.1;
         set(lh,'position',lhPos);
     end
     
@@ -312,10 +323,10 @@ if exist(ResultsFile,'file')
     end
     
     if boolFirst
-        lh=legend('-DynamicLegend','location','east');
+        lh=legend('-DynamicLegend','location','west');
         lh.Interpreter = 'none';
         lhPos = lh.Position;
-        lhPos(1) = lhPos(1)+0.25;
+        lhPos(1) = lhPos(1)+0.1;
         set(lh,'position',lhPos);
     end
     
@@ -435,8 +446,6 @@ if exist(ResultsFile,'file')
     subplot(5,2,1); hold on;
     plot(R.a(:,iSol),'-','Color',Cs,'DisplayName',LegName);  title('Soleus');
     xlabel('% stride'); ylabel('activity');
-    
-    
     
     subplot(5,2,2); hold on;
     plot(R.a(:,iGas),'-','Color',Cs); title('Gastrocnemius');
@@ -589,8 +598,11 @@ if exist(ResultsFile,'file')
         end
         l.DisplayName = LegName;
         if boolFirst
-            lh=legend('-DynamicLegend','location','east');
+            lh=legend('-DynamicLegend','location','west');
             lh.Interpreter = 'none';
+            lhPos = lh.Position;
+            lhPos(1) = lhPos(1)+0.1;
+            set(lh,'position',lhPos);
         end
     end
     
@@ -698,7 +710,7 @@ if exist(ResultsFile,'file')
     
     %% Spatiotemporal results
     
-    axes('parent', tab10);
+    axes('parent', tab11);
     
     subplot(2,3,1); hold on;
     if boolFirst && md && ~strcmp(subject,'Fal_s1')
@@ -785,7 +797,6 @@ if exist(ResultsFile,'file')
     
     %% Windlass mechanism
     
-%     axes('parent', tab11);
     
     has_tmt = isfield(R.S,'tmt') && ~isempty(R.S.tmt) && R.S.tmt;
     has_tmt_unlocked =  isfield(R.S,'tmt_locked') && ~isempty(R.S.tmt_locked) && ~R.S.tmt_locked;
@@ -793,22 +804,20 @@ if exist(ResultsFile,'file')
     
     has_mtj = isfield(R.S,'mtj') && ~isempty(R.S.mtj) && R.S.mtj;
     
+    imtp = find(strcmp(R.colheaders.joints,'mtp_angle_r'));
+    x = 1:(100-1)/(size(R.Qs,1)-1):100;
     
+    if has_mtj
+        imtj = find(strcmp(R.colheaders.joints,'mtj_angle_r'));
+    else
+        imtj = find(strcmp(R.colheaders.joints,'tmt_angle_r'));
+    end
+        
     if has_tmt && has_tmt_unlocked && has_WL || has_mtj
-        axes('parent', tab11);
-        
-        x = 1:(100-1)/(size(R.Qs,1)-1):100;
-        
-        if has_mtj
-            imtj = find(strcmp(R.colheaders.joints,'mtj_angle_r'));
-        else
-            imtj = find(strcmp(R.colheaders.joints,'tmt_angle_r'));
-        end
-        
-        imtp = find(strcmp(R.colheaders.joints,'mtp_angle_r'));
+        axes('parent', tab12);
         
         q_mtj = R.Qs(:,imtj);
-        qdot_tmt = R.Qdots(:,imtj);
+        qdot_mtj = R.Qdots(:,imtj)*pi/180;
         q_mtp = R.Qs(:,imtp);
 
         if isfield(R,'windlass') && ~isempty(R.windlass)
@@ -849,12 +858,12 @@ if exist(ResultsFile,'file')
             for i=1:length(R.Qs)
                 if has_mtj
                     [~, M_PFi,F_PFi,~,~,~,li,~,L0,hi,~,H0,~] = ...
-                        getPassiveMtjMomentWindlass_v2(q_mtj(i)*pi/180,qdot_tmt(i)*pi/180,...
+                        getPassiveMtjMomentWindlass_v2(q_mtj(i)*pi/180,qdot_mtj(i),...
                         q_mtp(i)*pi/180,f_PF_stiffness);
 
                 else
                     [~, M_PFi,F_PFi,~,~,li,~,L0,hi,~,H0,~] = ...
-                        getPassiveTmtjMomentWindlass(q_mtj(i)*pi/180,qdot_tmt(i)*pi/180,...
+                        getPassiveTmtjMomentWindlass(q_mtj(i)*pi/180,qdot_mtj(i),...
                         q_mtp(i)*pi/180,kTMT_li,kTMT_PF,dTMT,R.S.subject,cWL);
                     M_PFi = -M_PFi;
                 end
@@ -879,7 +888,7 @@ if exist(ResultsFile,'file')
         subplot(2,4,2)
         hold on
         plot(x,q_mtp,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-        title('mtp angle')
+        title('Mtp angle')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Angle (°)','Fontsize',label_fontsize);
         lh = legend('location','best');
@@ -911,8 +920,10 @@ if exist(ResultsFile,'file')
         subplot(2,4,6)
         hold on
         p1=plot(x,R.Tid(:,imtp),'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
-        p2=plot(x,M_mtp,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Plantar fascia');
-        legend([p1,p2],'location','best')
+        if isfield(R.S,'WL_T_mtp') && R.S.WL_T_mtp
+            p2=plot(x,M_mtp,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Plantar fascia');
+            legend([p1,p2],'location','best')
+        end
         title('Mtp torque')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Torque (Nm)','Fontsize',label_fontsize);
@@ -923,8 +934,11 @@ if exist(ResultsFile,'file')
         hold on
         if isfield(R.S,'PF_slack_length')
             ls = R.S.PF_slack_length;
+            dl = l_PF-ls;
             PF_strain = (l_PF./ls-1)*100;
             plot(x,PF_strain,'color',Cs,'linewidth',line_linewidth)
+        else
+            dl = l_PF-0.17;
         end
         title('Plantar fascia strain')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
@@ -937,14 +951,263 @@ if exist(ResultsFile,'file')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Force/BW (%)','Fontsize',label_fontsize);
         
-      
+    
+    
+        %% Windlass (exta tab)
+        
+        W_PF = zeros(length(x),1);
+        W_li = zeros(length(x),1);
+        for ii=2:length(x)
+           W_PF(ii) = trapz(dl(1:ii),-F_PF(1:ii)); % sign convention!
+           W_li(ii) = trapz(q_mtj(1:ii)*pi/180,M_li(1:ii));
+        end
+        W_PF(2:end) = (W_PF(2:end)-W_PF(2))/R.body_mass;
+        W_li(2:end) = (W_li(2:end)-W_li(2))/R.body_mass;
+        
+        dt = R.tf_step*2/length(x);
+        v_PF = zeros(length(x),1);
+        for ii=1:length(x)
+            i2h = mod(ii+1,length(x))+1; % loop around at the end
+            i1h = mod(ii+0,length(x))+1;
+            i0h = mod(ii-1,length(x))+1;
+            v_PF(ii) = -(l_PF(i2h) - 4*l_PF(i1h) + 3*l_PF(i0h))/(2*dt);
+        end
+        P_PF = -v_PF.*F_PF/R.body_mass;
+        P_li = qdot_mtj.*M_li/R.body_mass;
+        
     end
+    
+    W_mtj = zeros(length(x),1);
+    if has_tmt && has_tmt_unlocked || has_mtj
+
+        for ii=2:length(x)
+           W_mtj(ii) = trapz(R.Qs(1:ii,imtj)*pi/180,R.Tid(1:ii,imtj));
+        end
+        W_mtj(2:end) = (W_mtj(2:end)-W_mtj(2))/R.body_mass;        
+        P_mtj = R.Qdots(:,imtj)*pi/180.*R.Tid(:,imtj)/R.body_mass;
+    else
+        P_mtj = W_mtj;
+    end
+    
+    iankle = strcmp(R.colheaders.joints,'ankle_angle_r');
+    isubt = strcmp(R.colheaders.joints,'subtalar_angle_r');
+
+    W_ankle = zeros(length(x),1);
+    W_subt = zeros(length(x),1);
+    W_mtp = zeros(length(x),1);
+    for ii=2:length(x)
+       W_ankle(ii) = trapz(R.Qs(1:ii,iankle)*pi/180,R.Tid(1:ii,iankle));
+       W_subt(ii) = trapz(R.Qs(1:ii,isubt)*pi/180,R.Tid(1:ii,isubt));
+       W_mtp(ii) = trapz(R.Qs(1:ii,imtp)*pi/180,R.Tid(1:ii,imtp));
+    end
+    W_ankle(2:end) = (W_ankle(2:end)-W_ankle(2))/R.body_mass;
+    W_subt(2:end) = (W_subt(2:end)-W_subt(2))/R.body_mass;
+    W_mtp(2:end) = (W_mtp(2:end)-W_mtp(2))/R.body_mass;
+    W_tot = W_mtj + W_ankle + W_subt + W_mtp;
+
+    P_ankle = R.Qdots(:,iankle)*pi/180.*R.Tid(:,iankle)/R.body_mass;
+    P_subt = R.Qdots(:,isubt)*pi/180.*R.Tid(:,isubt)/R.body_mass;
+    P_mtp = R.Qdots(:,imtp)*pi/180.*R.Tid(:,imtp)/R.body_mass;
+    P_tot = P_mtj + P_ankle + P_subt + P_mtp;
+
+    axes('parent', tab14);
+
+    % Work
+    if has_tmt && has_tmt_unlocked || has_mtj
+        subplot(3,3,1)
+        hold on
+        grid on
+        plot(x,W_mtj,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+        ylabel('Work (J/kg)')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        title('Midtarsal')
+
+        if has_WL || has_mtj
+            subplot(3,3,4)
+            hold on
+            grid on
+            plot(x,W_PF,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+            ylabel('Work (J/kg)')
+            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+            title('Plantar fascia')
+
+            subplot(3,3,7)
+            hold on
+            grid on
+            plot(x,W_li,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+            ylabel('Work (J/kg)')
+            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+            title('Other mtj')
+        end
+    end
+    
+    subplot(3,3,2)
+    hold on
+    grid on
+    plot(x,W_ankle,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+    ylabel('Work (J/kg)')
+    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+    title('Ankle')
+
+    subplot(3,3,5)
+    hold on
+    grid on
+    plot(x,W_subt,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+    ylabel('Work (J/kg)')
+    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+    title('Subtalar')
+
+    subplot(3,3,8)
+    hold on
+    grid on
+    plot(x,W_mtp,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+    ylabel('Work (J/kg)')
+    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+    title('Mtp')
+    
+    subplot(3,3,9)
+    hold on
+    grid on
+    plot(x,W_mtp+W_mtj,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+    ylabel('Work (J/kg)')
+    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+    title('Mtp + mtj')
+
+    if boolFirst
+        lh=legend('-DynamicLegend','location','west');
+        lh.Interpreter = 'none';
+        lhPos = lh.Position;
+        lhPos(1) = lhPos(1)+0.1;
+        set(lh,'position',lhPos);
+    end
+
+    subplot(3,3,3)
+    hold on
+    grid on
+    plot(x,W_tot,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+    ylabel('Work (J/kg)')
+    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+    title('Total foot')
+
+
+
+    if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
+
+        subplot(3,3,6)
+        hold on
+        grid on
+        p1=plot(R.GRFs_separate(:,2),'-.','Color',Cs,'DisplayName','calcaneus');
+        p2=plot(R.GRFs_separate(:,2+3),'--','Color',Cs,'DisplayName','forefoot');
+        p3=plot(R.GRFs_separate(:,2+6),':','Color',Cs,'DisplayName','toes');
+        title(R.colheaders.GRF{i});
+        xlabel('% stride');
+        ylabel('% body weight')
+        title('Vertical GRF')
+        lh=legend([p1,p2,p3],'location','best');
+        lh.Interpreter = 'none';
+    end
+
+    axes('parent', tab13);
+    % Power
+    if has_tmt && has_tmt_unlocked || has_mtj
+        subplot(3,3,1)
+        hold on
+        grid on
+        plot(x,P_mtj,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+        ylabel('Power (W/kg)')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        title('Midtarsal')
+
+        if has_WL || has_mtj
+            subplot(3,3,4)
+            hold on
+            grid on
+            plot(x,P_PF,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+            ylabel('Power (W/kg)')
+            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+            title('Plantar fascia')
+
+            subplot(3,3,7)
+            hold on
+            grid on
+            plot(x,P_li,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+            ylabel('Power (W/kg)')
+            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+            title('Other mtj')
+        end
+    end
+    
+    subplot(3,3,2)
+    hold on
+    grid on
+    plot(x,P_ankle,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+    ylabel('Power (W/kg)')
+    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+    title('Ankle')
+
+    subplot(3,3,5)
+    hold on
+    grid on
+    plot(x,P_subt,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+    ylabel('Power (W/kg)')
+    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+    title('Subtalar')
+
+    subplot(3,3,8)
+    hold on
+    grid on
+    plot(x,P_mtp,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+    ylabel('Power (W/kg)')
+    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+    title('Mtp')
+
+    subplot(3,3,9)
+    hold on
+    grid on
+    plot(x,P_mtp+P_mtj,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+    ylabel('Power (W/kg)')
+    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+    title('Mtp + mtj')
+    
+    if boolFirst
+        lh=legend('-DynamicLegend','location','west');
+        lh.Interpreter = 'none';
+        lhPos = lh.Position;
+        lhPos(1) = lhPos(1)+0.1;
+        set(lh,'position',lhPos);
+    end
+
+    subplot(3,3,3)
+    hold on
+    grid on
+    plot(x,P_tot,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+    ylabel('Power (W/kg)')
+    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+    title('Total foot')
+
+    if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
+
+        subplot(3,3,6)
+        hold on
+        grid on
+        p1=plot(R.GRFs_separate(:,2),'-.','Color',Cs,'DisplayName','calcaneus');
+        p2=plot(R.GRFs_separate(:,2+3),'--','Color',Cs,'DisplayName','forefoot');
+        p3=plot(R.GRFs_separate(:,2+6),':','Color',Cs,'DisplayName','toes');
+        title(R.colheaders.GRF{i});
+        xlabel('% stride');
+        ylabel('% body weight')
+        title('Vertical GRF')
+        lh=legend([p1,p2,p3],'location','best');
+        lh.Interpreter = 'none';
+    end
+        
+        
+    
    
     %% Exo assistance
-    
-%     axes('parent', tab12);
+
     if isfield(R,'w_RotVel_exo') && ~isempty(R.w_RotVel_exo)
-        axes('parent', tab12);
+        axes('parent', tab15);
         
         T_mean = mean(R.T_exo(:,2));
         subplot(2,2,1)
@@ -991,6 +1254,61 @@ if exist(ResultsFile,'file')
         xlim([0,3])
     
     end
+    
+    
+    %% Plot mtp muscle energetics
+    axes('parent', tab10);
+    
+    ifd = find(strcmp(R.colheaders.muscles,'flex_dig_r'));
+    ifh = find(strcmp(R.colheaders.muscles,'flex_hal_r'));
+    ied = find(strcmp(R.colheaders.muscles,'ext_dig_r'));
+    ieh = find(strcmp(R.colheaders.muscles,'ext_hal_r'));
+    
+    mVect = {'Flex-dig','Flex-hal','Ext-dig','Ext-hal'};
+    
+    iM = [ifd ifh ied ieh];
+    
+    for i=1:4
+        subplot(5,4,i)
+        hold on
+        plot(R.a(:,iM(i)),'-','Color',Cs);  title(mVect{i});
+        xlabel('% stride'); ylabel('activity');
+        
+        subplot(5,4,i+4)
+        plot(R.MetabB.Etot(:,iM(i)),'-','Color',Cs); hold on;
+        xlabel('% stride'); ylabel('Muscle metab power');
+        
+        subplot(5,4,i+8)
+        plot(R.lMtilde(:,iM(i)),'-','Color',Cs); hold on;
+        xlabel('% stride'); ylabel('Norm fiber length');
+        
+        subplot(5,4,i+12)
+        plot(R.FT(:,iM(i)),'-','Color',Cs); hold on;
+        xlabel('% stride'); ylabel('Norm muscle force');
+        
+    end
+    % plot (biological) joint moments
+    subplot(5,4,17)
+    plot(R.Tid(:,strcmp(R.colheaders.joints,'ankle_angle_r')),'-','Color',Cs); hold on;
+    ylabel('Ankle moment [Nm]'); xlabel('% stride');
+    
+    subplot(5,4,18)
+    plot(R.Tid(:,strcmp(R.colheaders.joints,'ankle_angle_r'))-R.T_exo(:,2),'-','Color',Cs); hold on;
+    ylabel('Muscle ankle [Nm]'); xlabel('% stride');
+    
+    subplot(5,4,19)
+    plot(R.Tid(:,strcmp(R.colheaders.joints,'subtalar_angle_r')),'-','Color',Cs); hold on;
+    ylabel('subtalar moment [Nm]'); xlabel('% stride');
+    
+    subplot(5,4,20)
+    l = plot(R.Tid(:,strcmp(R.colheaders.joints,'mtp_angle_r')),'-','Color',Cs); hold on;
+    ylabel('mtp moment [Nm]'); xlabel('% stride');
+    l.DisplayName = LegName;
+    if boolFirst
+        lh=legend('-DynamicLegend','location','east');
+        lh.Interpreter = 'none';
+    end
+    
     
 else
     warning(['File not found: ' ResultsFile]);

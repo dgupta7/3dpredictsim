@@ -232,6 +232,15 @@ f_AllPassiveTorques = Function.load('f_AllPassiveTorques');
 fgetMetabolicEnergySmooth2004all = Function.load('fgetMetabolicEnergySmooth2004all');
 cd(pathmain);
 
+%% file with mass of muscles
+MassFile = fullfile(PathDefaultFunc,'MassM.mat');
+if exist(MassFile,'file')
+   MuscleMass = load(MassFile);
+else
+    MassFile = fullfile(pathCasADiFunctions,'MassM.mat');
+    MuscleMass =load(MassFile);
+end
+
 %% load the metalbolic energy equations
 PathDefaultFunc = fullfile(pathCasADiFunctions,'EnergyModels');
 cd(PathDefaultFunc);
@@ -288,14 +297,14 @@ end
 MTparameters_m = [MTparameters(:,musi),MTparameters(:,musi)];
 
 % path to the polynomial functions
-if isfield(S,'PolyFolder') && ~isempty(S.PolyFolder)
-    % default location 
-    pathpolynomial = fullfile(pathRepo,'Polynomials',S.PolyFolder);
-else
-    % old version (we still want to be able to process these results)
-    pathpolynomial = fullfile(pathRepo,'Polynomials',S.subject);
-end
-tl = load([pathpolynomial,'/muscle_spanning_joint_INFO_',subject,'_mtp.mat']);
+% if isfield(S,'PolyFolder') && ~isempty(S.PolyFolder)
+%     % default location 
+%     pathpolynomial = fullfile(pathRepo,'Polynomials',S.PolyFolder);
+% else
+%     % old version (we still want to be able to process these results)
+%     pathpolynomial = fullfile(pathRepo,'Polynomials',S.subject);
+% end
+% tl = load([pathpolynomial,'/muscle_spanning_joint_INFO_',subject,'_mtp.mat']);
 % [~,mai] = MomentArmIndices(muscleNames(1:end-3),...
 %     tl.muscle_spanning_joint_INFO(1:end-3,:));
 
@@ -313,16 +322,6 @@ tensions = [tension;tension];
 % (1:end-3), since we do not want to count twice the back muscles
 pctst = getSlowTwitchRatios(muscleNames(1:end-3));
 pctsts = [pctst;pctst];
-
-
-%% file with mass of muscles
-MassFile = fullfile(PathDefaultFunc,'MassM.mat');
-if exist(MassFile,'file')
-   MuscleMass = load(MassFile);
-else
-    MassFile = fullfile(pathCasADiFunctions,'MassM.mat');
-    MuscleMass =load(MassFile);
-end
 
 %% Joints
 joints = {'pelvis_tilt','pelvis_list','pelvis_rotation','pelvis_tx',...
@@ -1495,7 +1494,7 @@ R.info.script = 'f_LoadSim_PoggenSee2020.m';
 % Save data
 OutFolder = fullfile(pathRepo,'Results',S.ResultsFolder);
 FilenameAnalysis = fullfile(OutFolder,[S.savename '_pp.mat']);
-save(FilenameAnalysis,'R');
+% save(FilenameAnalysis,'R');
 
 end
 

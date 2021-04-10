@@ -1,0 +1,395 @@
+if system_dependent('IsDebugMode')==1, dbquit; end
+Test_Lars
+                 v_tgt: 1.2500
+                     N: 50
+              NThreads: 6
+         MuscModelAsmp: 0
+         ResultsFolder: 'test_WL_v2'
+               subject: 'subject1'
+                   tmt: 0
+                  kTMT: 1000
+                  dTMT: 0.5000
+            TMT_linear: 1
+                 k1TMT: 800
+                 k2TMT: 1
+                 t1TMT: 0.5000
+              Windlass: 1
+                   cWL: 0.0300
+                   mtj: 1
+          PF_stiffness: 'Gefen2001'
+       PF_slack_length: 0.1350
+            MT_li_nonl: 1
+                kMT_li: 100
+              WL_T_mtp: 0
+               ExoBool: 0
+              ExoScale: 0
+               DataSet: 'PoggenSee2020_AFO'
+     ExoImplementation: 'TorqueTibiaCalcn'
+                 IGsel: 2
+              IGmodeID: 3
+           ResultsF_ig: 'MuscleModel'
+           savename_ig: 'Fal_s1_bCst_ig24_v2'
+            PolyFolder: 'subject1'
+          ExternalFunc: 'PredSim_3D_Fal_s1_mtj_v1.dll'
+         ExternalFunc2: 'PredSim_3D_Fal_s1_mtj_pp_v1.dll'
+    CasadiFunc_Folders: 'casadi_s1Fal_MuscModel_bCst_PF_Gefen2001_ls135_k_nonl_kmtp'
+              savename: 'Fal_s1_bCst_PF_Gefen2001_ls135_k_nonl_kmtp_ig23'
+         linear_solver: 'mumps'
+             tol_ipopt: 4
+              max_iter: 10000
+          parallelMode: 'thread'
+                  mass: 64
+            IG_PelvisY: 0.9385
+                     W: [1×1 struct]
+                IGcase: 0
+                h_weak: 0
+                 Max_s: 0
+               pf_weak: 0
+                    mE: 0
+                coCont: 0
+                Constr: [1×1 struct]
+                Bounds: [1×1 struct]
+            PercStance: [1×1 struct]
+             Symmetric: 1
+              Periodic: 0
+             ModelName: 'Gait92'
+         IKfile_Bounds: 'OpenSimModel\IK_Bounds_Default_tmt.mat'
+          IKfile_guess: 'OpenSimModel\IK_Guess_Default_tmt.mat'
+         ExoController: 's1 Pog'
+       T_max_ankle_exo: 0
+       T_min_ankle_exo: 0
+       P_max_ankle_exo: 0
+
+if system_dependent('IsDebugMode')==1, dbquit; end
+Test_Lars
+                 v_tgt: 1.2500
+                     N: 50
+              NThreads: 6
+         MuscModelAsmp: 0
+         ResultsFolder: 'test_WL_v2'
+               subject: 'subject1'
+                   tmt: 0
+                  kTMT: 1000
+                  dTMT: 0.5000
+            TMT_linear: 1
+                 k1TMT: 800
+                 k2TMT: 1
+                 t1TMT: 0.5000
+              Windlass: 1
+                   cWL: 0.0300
+                   mtj: 1
+          PF_stiffness: 'Gefen2001'
+       PF_slack_length: 0.1350
+            MT_li_nonl: 1
+                kMT_li: 100
+              WL_T_mtp: 0
+               ExoBool: 0
+              ExoScale: 0
+               DataSet: 'PoggenSee2020_AFO'
+     ExoImplementation: 'TorqueTibiaCalcn'
+                 IGsel: 2
+              IGmodeID: 3
+           ResultsF_ig: 'MuscleModel'
+           savename_ig: 'Fal_s1_bCst_ig24_v2'
+            PolyFolder: 'subject1'
+          ExternalFunc: 'PredSim_3D_Fal_s1_mtj_v1.dll'
+         ExternalFunc2: 'PredSim_3D_Fal_s1_mtj_pp_v1.dll'
+    CasadiFunc_Folders: 'casadi_s1Fal_MuscModel_bCst_PF_Gefen2001_ls135_k_nonl_kmtp'
+              savename: 'Fal_s1_bCst_PF_Gefen2001_ls135_k_nonl_kmtp_ig23'
+         linear_solver: 'mumps'
+             tol_ipopt: 4
+              max_iter: 10000
+          parallelMode: 'thread'
+                  mass: 64
+            IG_PelvisY: 0.9385
+                     W: [1×1 struct]
+                IGcase: 0
+                h_weak: 0
+                 Max_s: 0
+               pf_weak: 0
+                    mE: 0
+                coCont: 0
+                Constr: [1×1 struct]
+                Bounds: [1×1 struct]
+            PercStance: [1×1 struct]
+             Symmetric: 1
+              Periodic: 0
+             ModelName: 'Gait92'
+         IKfile_Bounds: 'OpenSimModel\IK_Bounds_Default_tmt.mat'
+          IKfile_guess: 'OpenSimModel\IK_Guess_Default_tmt.mat'
+         ExoController: 's1 Pog'
+       T_max_ankle_exo: 0
+       T_min_ankle_exo: 0
+       P_max_ankle_exo: 0
+
+strcmp(Qs.colheaders(1,:),'mtp_angle_l')
+
+ans =
+
+  1×32 <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a> array
+
+   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0
+
+strfind(Qs.colheaders(1,:),'mtp_angle_l')
+
+ans =
+
+  1×32 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+  Columns 1 through 8
+
+    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}
+
+  Columns 9 through 16
+
+    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}
+
+  Columns 17 through 24
+
+    {0×0 double}    {0×0 double}    {0×0 double}    {[1]}    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}
+
+  Columns 25 through 32
+
+    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}    {0×0 double}
+
+
+ans =
+
+     2
+
+Conversion to logical from cell is not possible.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Untitled', 'Untitled', 1)" style="font-weight:bold">Untitled</a> (<a href="matlab: opentoline('Untitled',1,0)">line 1</a>)
+if strfind(Qs.colheaders,'mtp_angle_l')
+
+help iscell
+ <strong>iscell</strong> True for cell array.
+    <strong>iscell</strong>(C) returns logical 1 (true) if C is a cell array
+    and logical 0 (false) otherwise.
+ 
+    See also <a href="matlab:help cell">cell</a>, <a href="matlab:help paren">paren</a>, <a href="matlab:help isstruct">isstruct</a>, <a href="matlab:help isnumeric">isnumeric</a>, <a href="matlab:help isobject">isobject</a>, <a href="matlab:help islogical">islogical</a>.
+
+    <a href="matlab:doc iscell">Reference page for iscell</a>
+
+
+ans =
+
+     1
+
+
+ans =
+
+     1
+
+if system_dependent('IsDebugMode')==1, dbquit; end
+Test_Lars
+                 v_tgt: 1.2500
+                     N: 50
+              NThreads: 6
+         MuscModelAsmp: 0
+         ResultsFolder: 'test_WL_v2'
+               subject: 'subject1'
+                   tmt: 0
+                  kTMT: 1000
+                  dTMT: 0.5000
+            TMT_linear: 1
+                 k1TMT: 800
+                 k2TMT: 1
+                 t1TMT: 0.5000
+              Windlass: 1
+                   cWL: 0.0300
+                   mtj: 1
+          PF_stiffness: 'Gefen2001'
+       PF_slack_length: 0.1350
+            MT_li_nonl: 1
+                kMT_li: 100
+              WL_T_mtp: 0
+               ExoBool: 0
+              ExoScale: 0
+               DataSet: 'PoggenSee2020_AFO'
+     ExoImplementation: 'TorqueTibiaCalcn'
+                 IGsel: 2
+              IGmodeID: 3
+           ResultsF_ig: 'MuscleModel'
+           savename_ig: 'Fal_s1_bCst_ig24_v2'
+            PolyFolder: 'subject1'
+          ExternalFunc: 'PredSim_3D_Fal_s1_mtj_v1.dll'
+         ExternalFunc2: 'PredSim_3D_Fal_s1_mtj_pp_v1.dll'
+    CasadiFunc_Folders: 'casadi_s1Fal_MuscModel_bCst_PF_Gefen2001_ls135_k_nonl_kmtp'
+              savename: 'Fal_s1_bCst_PF_Gefen2001_ls135_k_nonl_kmtp_ig23'
+         linear_solver: 'mumps'
+             tol_ipopt: 4
+              max_iter: 10000
+          parallelMode: 'thread'
+                  mass: 64
+            IG_PelvisY: 0.9385
+                     W: [1×1 struct]
+                IGcase: 0
+                h_weak: 0
+                 Max_s: 0
+               pf_weak: 0
+                    mE: 0
+                coCont: 0
+                Constr: [1×1 struct]
+                Bounds: [1×1 struct]
+            PercStance: [1×1 struct]
+             Symmetric: 1
+              Periodic: 0
+             ModelName: 'Gait92'
+         IKfile_Bounds: 'OpenSimModel\IK_Bounds_Default_tmt.mat'
+          IKfile_guess: 'OpenSimModel\IK_Guess_Default_tmt.mat'
+         ExoController: 's1 Pog'
+       T_max_ankle_exo: 0
+       T_min_ankle_exo: 0
+       P_max_ankle_exo: 0
+
+if system_dependent('IsDebugMode')==1, dbquit; end
+Test_Lars
+                 v_tgt: 1.2500
+                     N: 50
+              NThreads: 6
+         MuscModelAsmp: 0
+         ResultsFolder: 'test_WL_v2'
+               subject: 'subject1'
+                   tmt: 0
+                  kTMT: 1000
+                  dTMT: 0.5000
+            TMT_linear: 1
+                 k1TMT: 800
+                 k2TMT: 1
+                 t1TMT: 0.5000
+              Windlass: 1
+                   cWL: 0.0300
+                   mtj: 1
+          PF_stiffness: 'Gefen2001'
+       PF_slack_length: 0.1350
+            MT_li_nonl: 1
+                kMT_li: 100
+              WL_T_mtp: 0
+               ExoBool: 0
+              ExoScale: 0
+               DataSet: 'PoggenSee2020_AFO'
+     ExoImplementation: 'TorqueTibiaCalcn'
+                 IGsel: 2
+              IGmodeID: 3
+           ResultsF_ig: 'MuscleModel'
+           savename_ig: 'Fal_s1_bCst_ig24_v2'
+            PolyFolder: 'subject1'
+          ExternalFunc: 'PredSim_3D_Fal_s1_mtj_v1.dll'
+         ExternalFunc2: 'PredSim_3D_Fal_s1_mtj_pp_v1.dll'
+    CasadiFunc_Folders: 'casadi_s1Fal_MuscModel_bCst_PF_Gefen2001_ls135_k_nonl_kmtp'
+              savename: 'Fal_s1_bCst_PF_Gefen2001_ls135_k_nonl_kmtp_ig23'
+         linear_solver: 'mumps'
+             tol_ipopt: 4
+              max_iter: 10000
+          parallelMode: 'thread'
+                  mass: 64
+            IG_PelvisY: 0.9385
+                     W: [1×1 struct]
+                IGcase: 0
+                h_weak: 0
+                 Max_s: 0
+               pf_weak: 0
+                    mE: 0
+                coCont: 0
+                Constr: [1×1 struct]
+                Bounds: [1×1 struct]
+            PercStance: [1×1 struct]
+             Symmetric: 1
+              Periodic: 0
+             ModelName: 'Gait92'
+         IKfile_Bounds: 'OpenSimModel\IK_Bounds_Default_tmt.mat'
+          IKfile_guess: 'OpenSimModel\IK_Guess_Default_tmt.mat'
+         ExoController: 's1 Pog'
+       T_max_ankle_exo: 0
+       T_min_ankle_exo: 0
+       P_max_ankle_exo: 0
+
+if system_dependent('IsDebugMode')==1, dbquit; end
+compare_PF_stiffness_models
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('casadi.Function/paren', 'D:\software\casadi 3.5.5\+casadi\Function.m', 1771)" style="font-weight:bold">casadi.Function/paren</a> (<a href="matlab: opentoline('D:\software\casadi 3.5.5\+casadi\Function.m',1771,0)">line 1771</a>)
+Too many outputs
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('casadi.Function/subsref', 'D:\software\casadi 3.5.5\+casadi\Function.m', 1751)" style="font-weight:bold">casadi.Function/subsref</a> (<a href="matlab: opentoline('D:\software\casadi 3.5.5\+casadi\Function.m',1751,0)">line 1751</a>)
+        [varargout{1:nargout}]= paren(self, s.subs{:});
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('compare_PF_stiffness_models', 'D:\school\WTK\thesis\model\3dpredictsim\FootModel\compare_PF_stiffness_models.m', 16)" style="font-weight:bold">compare_PF_stiffness_models</a> (<a href="matlab: opentoline('D:\school\WTK\thesis\model\3dpredictsim\FootModel\compare_PF_stiffness_models.m',16,0)">line 16</a>)
+        [F,L] = f_PF_stiffness(l(j));
+} 
+compare_PF_stiffness_models
+{Subscript indices must either be real positive integers or logicals.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('compare_PF_stiffness_models', 'D:\school\WTK\thesis\model\3dpredictsim\FootModel\compare_PF_stiffness_models.m', 18)" style="font-weight:bold">compare_PF_stiffness_models</a> (<a href="matlab: opentoline('D:\school\WTK\thesis\model\3dpredictsim\FootModel\compare_PF_stiffness_models.m',18,0)">line 18</a>)
+    plot((l/ls-1)*100,F_PF(i,:)/A0,'DisplayName',PF_stiffness{i},'color',CsV1(i,:))
+} 
+clear
+compare_PF_stiffness_models
+compare_PF_stiffness_models
+compare_PF_stiffness_models
+compare_PF_stiffness_models
+compare_PF_stiffness_models
+compare_PF_stiffness_models
+make_any_plot
+Test_Lars
+Creating casadifunctions...
+...casadifunctions created
+                 v_tgt: 1.2500
+                     N: 50
+              NThreads: 6
+         MuscModelAsmp: 0
+         ResultsFolder: 'test_WL_v2'
+               subject: 'subject1'
+                   tmt: 0
+                  kTMT: 1000
+                  dTMT: 0.5000
+            TMT_linear: 1
+                 k1TMT: 800
+                 k2TMT: 1
+                 t1TMT: 0.5000
+              Windlass: 1
+                   cWL: 0.0300
+                   mtj: 1
+          PF_stiffness: 'linear'
+       PF_slack_length: 0.1350
+            MT_li_nonl: 1
+                kMT_li: 100
+              WL_T_mtp: 0
+               ExoBool: 0
+              ExoScale: 0
+               DataSet: 'PoggenSee2020_AFO'
+     ExoImplementation: 'TorqueTibiaCalcn'
+                 IGsel: 2
+              IGmodeID: 3
+           ResultsF_ig: 'MuscleModel'
+           savename_ig: 'Fal_s1_bCst_ig24_v2'
+            PolyFolder: 'subject1'
+          ExternalFunc: 'PredSim_3D_Fal_s1_mtj_v1.dll'
+         ExternalFunc2: 'PredSim_3D_Fal_s1_mtj_pp_v1.dll'
+    CasadiFunc_Folders: 'casadi_s1Fal_MuscModel_bCst_PF_linear_ls135_k_nonl_kmtp'
+              savename: 'Fal_s1_bCst_PF_linear_ls135_k_nonl_kmtp_ig23'
+         linear_solver: 'mumps'
+             tol_ipopt: 4
+              max_iter: 10000
+          parallelMode: 'thread'
+                  mass: 64
+            IG_PelvisY: 0.9385
+                     W: [1×1 struct]
+                IGcase: 0
+                h_weak: 0
+                 Max_s: 0
+               pf_weak: 0
+                    mE: 0
+                coCont: 0
+                Constr: [1×1 struct]
+                Bounds: [1×1 struct]
+            PercStance: [1×1 struct]
+             Symmetric: 1
+              Periodic: 0
+             ModelName: 'Gait92'
+         IKfile_Bounds: 'OpenSimModel\IK_Bounds_Default_tmt.mat'
+          IKfile_guess: 'OpenSimModel\IK_Guess_Default_tmt.mat'
+         ExoController: 's1 Pog'
+       T_max_ankle_exo: 0
+       T_min_ankle_exo: 0
+       P_max_ankle_exo: 0
+

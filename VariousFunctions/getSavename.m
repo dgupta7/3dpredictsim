@@ -36,27 +36,50 @@ else
 end
 nr = numel(savenameparts);
 if isfield(S,'mtj') && ~isempty(S.mtj) && S.mtj
-    savenameparts{end+1} = ['PF_' S.PF_stiffness];
-    casfuncfolparts{end+1} = ['PF_' S.PF_stiffness];
+    if isfield(S,'PF_stiffness') && ~isempty(S.PF_stiffness)
+        savenameparts{end+1} = ['PF_' S.PF_stiffness];
+        casfuncfolparts{end+1} = ['PF_' S.PF_stiffness];
+    end
     if isfield(S,'PF_slack_length') && ~isempty(S.PF_slack_length)
         savenameparts{end+1} = ['ls' num2str(S.PF_slack_length*1000)];
         casfuncfolparts{end+1} = ['ls' num2str(S.PF_slack_length*1000)];
     end
-    if isfield(S,'MT_li_nonl') && ~isempty(S.MT_li_nonl) && S.MT_li_nonl
-        savenameparts{end+1} = 'k_nonl';
-        casfuncfolparts{end+1} = 'k_nonl';
-    else
-        if isfield(S,'kMT_li') && ~isempty(S.kMT_li)
+    if isfield(S,'kMT_li') && ~isempty(S.kMT_li)
+        if isfield(S,'MT_li_nonl') && ~isempty(S.MT_li_nonl)
+            if S.MT_li_nonl
+                savenameparts{end+1} = ['k_nonl' num2str(S.kMT_li)];
+                casfuncfolparts{end+1} = ['k_nonl' num2str(S.kMT_li)];
+            else
+                not{end+1} = 'not_k_nonl';
+            end
+        else
             savenameparts{end+1} = ['k' num2str(S.kMT_li)];
             casfuncfolparts{end+1} = ['k' num2str(S.kMT_li)];
         end
+    elseif isfield(S,'MT_li_nonl') && ~isempty(S.MT_li_nonl) 
+        if S.MT_li_nonl
+            not{end+1} = 'k_nonl';
+        else
+            not{end+1} = 'not_k_nonl';
+        end
     end
-    if isfield(S,'WL_T_mtp') && ~isempty(S.WL_T_mtp) && S.WL_T_mtp
-        savenameparts{end+1} = 'Tmtp';
-        casfuncfolparts{end+1} = 'Tmtp';
-    else
-        savenameparts{end+1} = 'kmtp';
-        casfuncfolparts{end+1} = 'kmtp';
+    if isfield(S,'dMT') && ~isempty(S.dMT) && S.dMT~=0
+        savenameparts{end+1} = ['d0' num2str(S.dMT*10)];
+        casfuncfolparts{end+1} = ['d0' num2str(S.dMT*10)];
+    end
+    if isfield(S,'WL_T_mtp') && ~isempty(S.WL_T_mtp) 
+        if S.WL_T_mtp
+            if isfield(S,'Mu_mtp') && ~isempty(S.Mu_mtp) && S.Mu_mtp
+                savenameparts{end+1} = 'Mmtp';
+                casfuncfolparts{end+1} = 'Mmtp';
+            else
+                savenameparts{end+1} = 'Tmtp';
+                casfuncfolparts{end+1} = 'Tmtp';
+            end
+        else
+            savenameparts{end+1} = 'kmtp';
+            casfuncfolparts{end+1} = 'kmtp';
+        end
     end
 else
     if isfield(S,'tmt') && ~isempty(S.tmt)

@@ -222,10 +222,6 @@ if ~isfield(S,'tmt')
     S.tmt = 0;
 end
 
-% tarsometatarsal joint locked?
-if ~isfield(S,'tmt_locked')
-    S.tmt_locked = 0;
-end
 
 
 % default IK file to determine bounds

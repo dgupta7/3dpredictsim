@@ -6,7 +6,7 @@ c3 = 0.1;
 
 syms 'x'
 
-y(x) = c1*exp(c2*(x-c3));
+y(x) = c1*exp(c2*(x*2-c3));
 
 dy(x) = diff(y,x);
 
@@ -24,7 +24,7 @@ xt = [c3-0.1;c3;c3+0.1];
 yt = c1+[-0.1;0;0.1]*k0;
 
 
-figure
+% figure
 plot(xs*180/pi,ys)
 hold on
 plot(xt*180/pi,yt)

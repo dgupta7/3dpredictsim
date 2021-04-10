@@ -247,6 +247,16 @@ f_AllPassiveTorques = Function.load('f_AllPassiveTorques');
 fgetMetabolicEnergySmooth2004all = Function.load('fgetMetabolicEnergySmooth2004all');
 cd(pathmain);
 
+
+%% file with mass of muscles
+MassFile = fullfile(PathDefaultFunc,'MassM.mat');
+if exist(MassFile,'file')
+   MuscleMass = load(MassFile);
+else
+    MassFile = fullfile(pathCasADiFunctions,'MassM.mat');
+    MuscleMass =load(MassFile);
+end
+
 %% load the metalbolic energy equations
 PathDefaultFunc = fullfile(pathCasADiFunctions,'EnergyModels');
 cd(PathDefaultFunc);
@@ -328,16 +338,6 @@ tensions = [tension;tension];
 % (1:end-3), since we do not want to count twice the back muscles
 pctst = getSlowTwitchRatios(muscleNames(1:end-3));
 pctsts = [pctst;pctst];
-
-
-%% file with mass of muscles
-MassFile = fullfile(PathDefaultFunc,'MassM.mat');
-if exist(MassFile,'file')
-   MuscleMass = load(MassFile);
-else
-    MassFile = fullfile(pathCasADiFunctions,'MassM.mat');
-    MuscleMass =load(MassFile);
-end
 
 %% Joints
 if S.mtj
@@ -873,7 +873,18 @@ if ~exist('HS1','var')
         IC1i = phase_tran_tgridi + 1;
         HS1 = 'l';
     end
+    
+    % If heel strike is in between right and left leg, it will not have
+    % found it yet.
+    if isempty(phase_tran_tgridi)
+        phase_tran_tgridi = 1;
+        IC1i = 1;
+        HS1 = 'l';
+    end
 end
+
+
+    
 
 % GRFk_opt is at mesh points starting from k=2, we thus add 1 to IC1i
 % for the states
@@ -1448,7 +1459,7 @@ if strcmp(ExoImplementation,'Nuckols2019')
 end
 
 %% Analyse windlass mechanism
-if S.mtj && S.Windlass
+if S.mtj
     f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(S.PF_stiffness);
     M_PF = zeros(length(Qs_GC),1);
     M_li = zeros(length(Qs_GC),1);
@@ -1471,7 +1482,7 @@ if S.mtj && S.Windlass
         [~,M_mtpi, M_PFi,M_lii,~,F_PFi,l_PFi,MA_PFi,~,h_fai,l_fai] = ...
                 getPassiveMtjMomentWindlass_v3(Qs_GC(i,jointi.tmt.r)*pi/180,...
                 Qdots_GC(i,jointi.tmt.r)*pi/180,...
-                Qs_GC(i,jointi.mtp.r)*pi/180,f_PF_stiffness);
+                Qs_GC(i,jointi.mtp.r)*pi/180,f_PF_stiffness,S);
 
         M_PF(i) = M_PFi;
         M_li(i) = M_lii;

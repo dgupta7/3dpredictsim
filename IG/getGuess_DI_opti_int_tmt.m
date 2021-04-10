@@ -58,8 +58,18 @@ guess.Qs_all.data(:,jointi.subt.r) = Qs_spline.data(:,strcmp(Qs.colheaders(1,:),
 guess.Qs_all.data(:,jointi.tmt.l) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
 guess.Qs_all.data(:,jointi.tmt.r) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
 % Mtp
-guess.Qs_all.data(:,jointi.mtp.l) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
-guess.Qs_all.data(:,jointi.mtp.r) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+has_mtp_l = sum(strcmp(Qs.colheaders(1,:),'mtp_angle_l'));
+if has_mtp_l
+    guess.Qs_all.data(:,jointi.mtp.l) = Qs_spline.data(:,strcmp(Qs.colheaders(1,:),'mtp_angle_l'));
+else
+    guess.Qs_all.data(:,jointi.mtp.l) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+end
+has_mtp_r = sum(strcmp(Qs.colheaders(1,:),'mtp_angle_r'));
+if has_mtp_r
+    guess.Qs_all.data(:,jointi.mtp.r) = Qs_spline.data(:,strcmp(Qs.colheaders(1,:),'mtp_angle_r'));
+else
+    guess.Qs_all.data(:,jointi.mtp.r) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+end
 % Trunk extension
 guess.Qs_all.data(:,jointi.trunk.ext) = Qs_spline.data(:,strcmp(Qs.colheaders(1,:),'lumbar_extension'));
 % Trunk bending
@@ -123,8 +133,16 @@ guess.Qdots_all.data(:,jointi.subt.r) = Qdots_spline.data(:,strcmp(Qs.colheaders
 guess.Qdots_all.data(:,jointi.tmt.l) = zeros(size(guess.Qdots_all.data(:,jointi.subt.l),1),1);
 guess.Qdots_all.data(:,jointi.tmt.r) = zeros(size(guess.Qdots_all.data(:,jointi.subt.l),1),1);
 % Mtp
-guess.Qdots_all.data(:,jointi.mtp.l) = zeros(size(guess.Qdots_all.data(:,jointi.subt.l),1),1);
-guess.Qdots_all.data(:,jointi.mtp.r) = zeros(size(guess.Qdots_all.data(:,jointi.subt.l),1),1);
+if has_mtp_l
+    guess.Qdots_all.data(:,jointi.mtp.l) = Qdots_spline.data(:,strcmp(Qs.colheaders(1,:),'mtp_angle_l'));
+else
+    guess.Qdots_all.data(:,jointi.mtp.l) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+end
+if has_mtp_r
+    guess.Qdots_all.data(:,jointi.mtp.r) = Qdots_spline.data(:,strcmp(Qs.colheaders(1,:),'mtp_angle_r'));
+else
+    guess.Qdots_all.data(:,jointi.mtp.r) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+end
 % Trunk extension
 guess.Qdots_all.data(:,jointi.trunk.ext) = Qdots_spline.data(:,strcmp(Qs.colheaders(1,:),'lumbar_extension'));
 % Trunk bending
@@ -187,8 +205,16 @@ guess.Qdotdots_all.data(:,jointi.subt.r) = Qdotdots_spline.data(:,strcmp(Qs.colh
 guess.Qdotdots_all.data(:,jointi.tmt.l) = zeros(size(guess.Qdotdots_all.data(:,jointi.subt.l),1),1);
 guess.Qdotdots_all.data(:,jointi.tmt.r) = zeros(size(guess.Qdotdots_all.data(:,jointi.subt.l),1),1);
 % Mtp
-guess.Qdotdots_all.data(:,jointi.mtp.l) = zeros(size(guess.Qdotdots_all.data(:,jointi.subt.l),1),1);
-guess.Qdotdots_all.data(:,jointi.mtp.r) = zeros(size(guess.Qdotdots_all.data(:,jointi.subt.l),1),1);
+if has_mtp_l
+    guess.Qdotdots_all.data(:,jointi.mtp.l) = Qdotdots_spline.data(:,strcmp(Qs.colheaders(1,:),'mtp_angle_l'));
+else
+    guess.Qdotdots_all.data(:,jointi.mtp.l) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+end
+if has_mtp_r
+    guess.Qdotdots_all.data(:,jointi.mtp.r) = Qdotdots_spline.data(:,strcmp(Qs.colheaders(1,:),'mtp_angle_r'));
+else
+    guess.Qdotdots_all.data(:,jointi.mtp.r) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+end
 % Trunk extension
 guess.Qdotdots_all.data(:,jointi.trunk.ext) = Qdotdots_spline.data(:,strcmp(Qs.colheaders(1,:),'lumbar_extension'));
 % Trunk bending

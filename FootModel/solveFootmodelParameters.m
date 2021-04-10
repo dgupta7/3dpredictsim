@@ -96,6 +96,12 @@ m2.m.LPL = [0.002; -0.025; 0.016];
 m2.c.SPL = [0.005; -0.013; 0.001];
 m2.m.SPL = [0.004; -0.016; 0.006];
 
+m2.f.ext_dig = [0.06;-0.005;0.011];
+m2.ts.ext_dig = [0.028;0.002;0.009];
+
+m2.f.ext_hal = [0.059;0.003;-0.017];
+m2.ts.ext_hal = [0.033;0;-0.029];
+
 % derived params
 m2.gnd.tmtj2cCOM = -m2.c.mtj - m2.m.tmtj + m2.c.COM;
 m2.gnd.tmtj2mCOM = -m2.m.tmtj + m2.m.COM;
@@ -497,6 +503,12 @@ m2.t.LPL(:,2) = m2.t.mtj + m2.m.LPL;
 m2.t.SPL(:,1) = m2.t.subt + m2.c.SPL;
 m2.t.SPL(:,2) = m2.t.mtj + m2.m.SPL;
 
+m2.t.ext_dig1 = m2.f.ext_dig + m2.t.tmtj;
+m2.t.ext_dig2 = m2.ts.ext_dig + m2.t.mtpj;
+
+m2.t.ext_hal1 = m2.f.ext_hal + m2.t.tmtj;
+m2.t.ext_hal2 = m2.ts.ext_hal + m2.t.mtpj;
+
 m2.t.cCOM = m2.t.subt + m2.c.COM;
 m2.t.mCOM = m2.t.mtj + m2.m.COM;
 m2.t.fCOM = m2.t.tmtj + m2.f.COM;
@@ -556,6 +568,12 @@ m1c.t.LPL(:,2) = m2.t.LPL(:,2).*sf;
 
 m1c.t.SPL(:,1) = m2.t.SPL(:,1).*sf;
 m1c.t.SPL(:,2) = m2.t.SPL(:,2).*sf;
+
+m1c.t.ext_dig1 = m2.t.ext_dig1.*sf;
+m1c.t.ext_dig2 = m2.t.ext_dig2.*sf;
+
+m1c.t.ext_hal1 = m2.t.ext_hal1.*sf;
+m1c.t.ext_hal2 = m2.t.ext_hal2.*sf;
 
 m1c_j = [[0;0;0],m1c.t.subt,m1c.t.mtj,m1c.t.mtpj];
 m1c_c = [m1c.t.cCOM,m1c.t.mfCOM];
@@ -741,6 +759,35 @@ phi0 = acos( (l_PF_fa^2 - a_PF^2 - b_PF^2)/(-2*a_PF*b_PF) );
 disp(['calcnPF2mtj = ' num2str(a_PF) ';']);
 disp(['mtj2mttPF = ' num2str(b_PF) ';']);
 disp(['phi0 = ' num2str(phi0) ';']);
+
+
+%% approximate momentarm for mtp muscles
+% ext_dig_r
+vec_a = m1c.t.mtpj - m1c.t.ext_dig1;
+vec_b = m1c.t.ext_dig2 - m1c.t.mtpj;
+
+a = norm(vec_a(1:2));
+b = norm(vec_b(1:2));
+c = norm(vec_c(1:2));
+alpha = acos( (c^2 - a^2 - b^2)/(-2*a*b) );
+
+disp(['ext_dig2mtpj = ' num2str(a) ';']);
+disp(['mtpj2ext_dig = ' num2str(b) ';']);
+disp(['phi0 = ' num2str(alpha) ';']);
+
+% ext_hal_r
+vec_a = m1c.t.mtpj - m1c.t.ext_hal1;
+vec_b = m1c.t.ext_hal2 - m1c.t.mtpj;
+
+a = norm(vec_a(1:2));
+b = norm(vec_b(1:2));
+c = norm(vec_c(1:2));
+alpha = acos( (c^2 - a^2 - b^2)/(-2*a*b) );
+
+disp(['ext_hal2mtpj = ' num2str(a) ';']);
+disp(['mtpj2ext_hal = ' num2str(b) ';']);
+disp(['phi0 = ' num2str(alpha) ';']);
+
 
 %% subtalar joint axis orientation
 % original

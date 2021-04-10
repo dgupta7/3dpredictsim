@@ -18,7 +18,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clear all
-close all
+% close all
 clc
 
 %% Paths
@@ -38,25 +38,25 @@ AddCasadiPaths();
 % Full body gait simulation
 slv = 0;                % run solver
 pp = 0;                 % postproces
-plot = 1;               % plot solution
+plot = 0;               % plot solution
 batchQueue = 0;         % save settings to run later
 % Static foot simulation
-foot_standing = 0;      % load on knee
+foot_standing = 1;      % load on knee
 foot_hanging = 0;       % knee position fixed, tibia and foot hanging freely
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed 1.25
 S.N         = 50;       % number of mesh intervals
-S.NThreads  = 6;        % number of threads for parallel computing
+S.NThreads  = 8;        % number of threads for parallel computing
 % S.max_iter  = 10;       % maximum number of iterations (comment -> 10000)
-
-% assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
 
 % output folder
 S.ResultsFolder = 'test_WL_v2'; % 'batch_windlass' 'standing' 'MuscleModel' 'batch_tmt_lin'
-suffixCasName = '';         
-suffixName = '';
+suffixCasName = '_v4';         
+suffixName = '_v4';
+
+% assumption to simplify Hill-type muscle model
+S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
 
 % Test subject
 S.subject = 'subject1'; % barefoot
@@ -78,23 +78,33 @@ S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsifl
 
 %% Midtarsal joint
 % This will always have the windlass mechanism.
+% To simulate a case without windlass, set PF stiffness to 'none' and make
+% the torsion spring representing the other ligaments sufficiently stiff,
+% also set mtp to spring.
+
 S.mtj = 1;              % 1: use a model with tmt joint (will override tmt)
 % plantar fascia
 S.PF_stiffness = 'Gefen2001'; % stiffness model for the gait simulation
+% S.PF_stiffness = 'Natali2010';
         % options: 'none''linear''Gefen2001''Cheng2008''Barrett2018''Natali2010'
-S.PF_slack_length = 0.135; % slack length (m)
+S.PF_slack_length = 0.135; % (m) slack length
 % other ligaments (long, short planter ligament, etc)
 S.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
-S.kMT_li = 100;         % angular stiffness in case of linear
+S.kMT_li = 90;          % angular stiffness in case of linear
+S.dMT = 0;              % (Nms/rad) damping
+
+S.sf_PF = 1;
+S.sf_li = 1;
 
 % PF reaction torque on mtp joint
 S.WL_T_mtp = 0;         % 0: spring mtp, 1: PF reaction on mtp
+S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
     
 % List of stiffness models to use for the STATIC footmodel:
-% PF_stiffness = {'linear','tanh','sqr','exp','Gefen2001','Cheng2008','Barrett2018','Natali2010'};
-PF_stiffness = {'linear','Gefen2001','Cheng2008','Barrett2018','Natali2010','none'};
+% PF_stiffness = {S.PF_stiffness};
+% PF_stiffness = {'linear','Gefen2001','Cheng2008','Barrett2018','Natali2010','none'};
 % PF_stiffness = {'none','Gefen2001'};
-% PF_stiffness = {'Gefen2001'};
+PF_stiffness = {'Gefen2001'};
 
 %% Exoskeleton
 % exo
@@ -123,10 +133,14 @@ S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data
 S.IGmodeID      = 4;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
 
 if S.IGmodeID == 4
-S.savename_ig   = 'NoExo';
+    S.savename_ig   = 'NoExo';
 elseif S.IGmodeID == 3
-S.ResultsF_ig   = 'PredSim_adaptations';
-S.savename_ig   = '';
+    S.ResultsF_ig   = 'MuscleModel';
+    if strcmp(S.subject,'s1_Poggensee')
+        S.savename_ig   = 'Pog_s1_bCst_ig24';
+    else
+        S.savename_ig   = 'Fal_s1_bCst_ig24_v2';
+    end
 end
 
 
@@ -202,6 +216,7 @@ end
 S.CasadiFunc_Folders = [casfuncfol suffixCasName];
 S.savename = [savename suffixName];
 
+
 if batchQueue
     if (exist([pathRepo '/Results/batchQ.mat'],'file')==2) 
         load([pathRepo '/Results/batchQ.mat'],'batchQ');
@@ -253,14 +268,27 @@ else
         end
     else
         if batchQueue
-            batchQ.(S.savename).PredSim = 'f_PredSim_Gait92_tmt';
-            batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92_tmt';
+            if S.Mu_mtp
+                batchQ.(S.savename).PredSim = 'f_PredSim_Gait92_tmt_v2';
+                batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92_tmt_v2';
+            else
+                batchQ.(S.savename).PredSim = 'f_PredSim_Gait92_tmt';
+                batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92_tmt';
+            end
         end
         if slv
-            f_PredSim_Gait92_tmt(S);
+            if S.Mu_mtp
+                f_PredSim_Gait92_tmt_v2(S);
+            else
+                f_PredSim_Gait92_tmt(S);
+            end
         end
         if pp
-            f_LoadSim_Gait92_tmt(S.ResultsFolder,S.savename);
+            if S.Mu_mtp
+                f_LoadSim_Gait92_tmt_v2(S.ResultsFolder,S.savename);
+            else
+                f_LoadSim_Gait92_tmt(S.ResultsFolder,S.savename);
+            end
         end
     end
 end

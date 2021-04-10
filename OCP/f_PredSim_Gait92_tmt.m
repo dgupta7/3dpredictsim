@@ -167,8 +167,8 @@ joints = {'pelvis_tilt','pelvis_list','pelvis_rotation','pelvis_tx',...
     'pelvis_ty','pelvis_tz','hip_flexion_l','hip_adduction_l',...
     'hip_rotation_l','hip_flexion_r','hip_adduction_r','hip_rotation_r',...
     'knee_angle_l','knee_angle_r','ankle_angle_l','ankle_angle_r',...
-    'subtalar_angle_l','subtalar_angle_r','tmt_angle_l','tmt_angle_r',...
-    'mtp_angle_l','mtp_angle_r',...
+    'subtalar_angle_l','subtalar_angle_r',...
+    'tmt_angle_l','tmt_angle_r','mtp_angle_l','mtp_angle_r',...
     'lumbar_extension','lumbar_bending','lumbar_rotation','arm_flex_l',...
     'arm_add_l','arm_rot_l','arm_flex_r','arm_add_r','arm_rot_r',...
     'elbow_flex_l','elbow_flex_r'};
@@ -606,21 +606,11 @@ for j=1:d
     % Mtp
     eq_constr{end+1} = Tj(mtpi,1)/scaling.MtpTau - (a_mtpkj(:,j+1) + ...
         (Tau_passj.mtp.all)/scaling.MtpTau);
-    
-    
-    
-    % option to lock the tmt joint
-    if S.tmt_locked == 1
-        eq_constr{end+1} = Qskj(jointi.tmt.r,:)';
-        eq_constr{end+1} = Qskj(jointi.tmt.l,:)';
-        eq_constr{end+1} = Qdotskj(jointi.tmt.r,:)';
-        eq_constr{end+1} = Qdotskj(jointi.tmt.l,:)';
-    else
-        % Tmt, left
-        eq_constr{end+1} = Tj(jointi.tmt.l,1) - Tau_passj.tmt.l;
-        % Tmt, right
-        eq_constr{end+1} = Tj(jointi.tmt.r,1) - Tau_passj.tmt.r;
-    end
+ 
+    % Tmt, left
+    eq_constr{end+1} = Tj(jointi.tmt.l,1) - Tau_passj.tmt.l;
+    % Tmt, right
+    eq_constr{end+1} = Tj(jointi.tmt.r,1) - Tau_passj.tmt.r;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Activation dynamics (implicit formulation)

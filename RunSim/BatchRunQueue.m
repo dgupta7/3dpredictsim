@@ -72,4 +72,4 @@ for i=1:imax
     end  
 end
 
-
+save([pathRepo '/Results/batchQ.mat'],'batchQ');

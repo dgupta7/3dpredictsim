@@ -279,3 +279,97 @@ lhPos = lh.Position;
 %         lhPos(1) = lhPos(1)+0.2;
 set(lh,'position',lhPos);
 
+
+
+
+
+%% presentation Maarten
+
+type = 'Normal';
+figure
+hold on
+joints_ref = {'ankle_angle'};
+        
+joints_tit = {'Pelvis tilt','Pelvis list','Pelvis rotation','Pelvis tx',...
+        'Pelvis ty','Pelvis tz','Hip flexion L','Hip adduction L',...
+        'Hip rotation L','Hip flexion R','Hip adduction R','Hip rotation R',...
+        'Knee L','Knee R','Ankle L','Ankle R',...
+        'Subtalar L','Subtalar R','TMT L','TMT R','MTP L','MTP R',...
+        'Lumbar extension','Lumbar bending','Lumbar rotation',...
+        'Arm flexion L','Arm adduction L','Arm rotation L',...
+        'Arm flexion R','Arm adduction R','Arm rotation R',...
+        'Elbow flexion L','Elbow flexion R'};
+
+load('D:\school\WTK\thesis\model\3dpredictsim\Data\Fal_s1.mat','Dat');
+Qref = Dat.(type).gc;
+load('D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Fal_s1_bCst_ig24_v2_pp.mat','R');
+R1 = R;
+load('D:\school\WTK\thesis\model\3dpredictsim\Results\batch_windlass\Fal_s1_tmt_bCst_d05_k1000_WL30_ig24_pp.mat','R');
+R2 = R;
+
+idx_Qs = [16];
+idx_title = [16];
+
+label_fontsize  = 12;
+line_linewidth  = 2;
+
+x = 1:(100-1)/(size(R1.Qs,1)-1):100;
+% Experimental data
+idx_jref = strcmp(Qref.colheaders,joints_ref{1});
+if sum(idx_jref) == 1
+    meanPlusSTD = (Qref.Qall_mean(:,idx_jref) + 2*Qref.Qall_std(:,idx_jref)).*180/pi;
+    meanMinusSTD = (Qref.Qall_mean(:,idx_jref) - 2*Qref.Qall_std(:,idx_jref)).*180/pi;
+    stepQ = (size(R1.Qs,1)-1)/(size(meanPlusSTD,1)-1);
+    intervalQ = 1:stepQ:size(R1.Qs,1);
+    sampleQ = 1:size(R1.Qs,1);
+    meanPlusSTD = interp1(intervalQ,meanPlusSTD,sampleQ);
+    meanMinusSTD = interp1(intervalQ,meanMinusSTD,sampleQ);
+
+    
+    fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName','Motion Capture');
+    alpha(.25);
+end
+
+% Simulation results
+plot(x,R1.Qs(:,idx_Qs(1)),'linewidth',line_linewidth,'DisplayName','Simulated with 2 dof foot');
+plot(x,R2.Qs(:,idx_Qs(1)),'linewidth',line_linewidth,'DisplayName','Simulated with 3 dof foot');
+
+% Plot settings
+set(gca,'Fontsize',label_fontsize);
+title(joints_tit{idx_title(1)},'Fontsize',label_fontsize);
+ylabel('Angle (°)','Fontsize',label_fontsize);
+xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+legend('Location','best')
+
+
+
+% Plot COT as a function of exo assitance
+load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
+load('D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Fal_s1_bCst_ig24_v2_pp.mat','R');
+R1 = R;
+load('D:\school\WTK\thesis\model\3dpredictsim\Results\batch_windlass\Fal_s1_tmt_bCst_d05_k1000_WL30_ig24_pp.mat','R');
+R2 = R;
+%%
+figure
+hold on;
+% experimental data
+darkgray = [0.5 0.5 0.5];
+lightgray = [0.1 0.1 0.1];
+
+
+
+% simulation results
+plot(0,R1.COT,'.','MarkerSize',30,'DisplayName','Simulated with 2 dof foot');
+plot(0,R2.COT,'.','MarkerSize',30,'DisplayName','Simulated with 3 dof foot');
+
+plot(0,Dat.Normal.COT,'.','MarkerSize',30,'Color',darkgray,'DisplayName','Experimental data');
+
+ylabel('COT');
+xlim([-0.2,1])
+title('Cost of Transport');
+
+lh=legend('-DynamicLegend','location','southeast');
+lh.Interpreter = 'none';
+
+
+
