@@ -5,21 +5,21 @@ AddCasadiPaths();
 
 %% Settings
 S = GetDefaultSettings(S);
-clc
 
 plot_result = 1;
-save_result = 0;
+save_result = 1;
 overwrite = 1;
 
 % mtp angles to be considered
 % Qs_mtp = [-45:15:45]*pi/180;
-Qs_mtp = [-30:30:30]*pi/180;
+% Qs_mtp = [-30:30:30]*pi/180;
 % vertical forces on knee
-% Fs_tib = [0:50:300,350:100:750,1000:250:4000];
 Fs_tib = [0:50:1000];
 % Fs_tib = [0:50:300,400:100:1000,1250:250:4000];
+% Fs_tib = [0:50:300,400:100:1000,1250:250:3000];
+% Fs_tib = [0:50:1000,1100:100:6000];
 
-% Qs_mtp = [0]*pi/180;
+Qs_mtp = [0]*pi/180;
 % Fs_tib = [0];
 
 n_mtp = length(Qs_mtp);
@@ -36,15 +36,18 @@ if strcmp(S.subject,'s1_Poggensee')
     ext_name = 'Foot_3D_Pog_s1_mtj_subt1_v3';
 
 elseif strcmp(S.subject,'subject1')
-    ext_name = 'Foot_3D_Fal_s1_mtj_subt1_v1';
+%     ext_name = 'Foot_3D_Fal_s1_mtj_subt1_v1';
+    ext_name = 'Foot_3D_Fal_s1_mtj_subt1_v5';
 %     ext_name = 'Foot_3D_Fal_s1_mtj_subt2_v1';
 %     ext_name = 'Foot_3D_Fal_s1_mtj_subt3_v1';
 end
 
-savename = [ext_name '_' PF_stiffness];
+savename = [ext_name '_' PF_stiffness '_' S.mtj_stiffness];
 
 savename = [savename '_Q' num2str(Qs_mtp(1)*180/pi) '_' num2str(Qs_mtp(end)*180/pi)...
     '_F' num2str(Fs_tib(1)) '_' num2str(Fs_tib(end)) '_WLv3' '_ls' num2str(S.PF_slack_length*1000)];
+
+legname = ['PF: ' PF_stiffness ', l_s = ' num2str(S.PF_slack_length*1000) '; mtj: ' S.mtj_stiffness];
 
 pathmain        = pwd;
 [pathRepo,~,~]  = fileparts(pathmain);
@@ -59,6 +62,9 @@ Outname = fullfile(OutFolder,[savename '.mat']);
 
 if (exist(Outname,'file') == 2) && (overwrite == 0)
     load(Outname,'R');
+    disp('Loading:')
+    [savename '.mat']
+    
 else
 
     %% Get PF model
@@ -81,7 +87,7 @@ else
     %% CasADi functions
     % We create several CasADi functions for later use
     pathCasADiFunctions = [pathRepo,'/CasADiFunctions'];
-    PathDefaultFunc = fullfile(pathCasADiFunctions,S.CasadiFunc_Folders);
+    PathDefaultFunc = fullfile(pathCasADiFunctions,'casadi_s1Fal_MuscModel_bCst');
     f_PassiveMoments = Function.load(fullfile(PathDefaultFunc,'f_PassiveMoments'));
     f_forceEquilibrium_FtildeState_all_tendon = Function.load(fullfile(PathDefaultFunc,...
         'f_forceEquilibrium_FtildeState_all_tendon'));
@@ -128,6 +134,12 @@ else
     % Ground reaction forces
     jointfi.calcn_GRF = 26:28;
     jointfi.metatarsi_GRF = 29:31;
+    % Ground reaction torques
+    jointfi.GRFT = 32:34;
+    jointfi.calcn_GRFT = 35:37;
+    jointfi.metatarsi_GRFT = 38:40;
+    % Ankle axis in ground
+    jointfi.ankle_axis = 41:43;
 
     %% Muscle information
     % Muscles from one leg and from the back
@@ -160,7 +172,7 @@ else
     tensions = getSpecificTensions(muscleNamesFoot);
 
     %% Get Boundaries
-    load('D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst.mat','setup');
+    load('D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Fal_s1_bCst_ig24_v2.mat','setup');
     jointi = getJointi();
 
     bounds_qs = [[-2,2]*pi/180; % tibia rx
@@ -202,7 +214,7 @@ else
     FT_tilde = MX.sym('FT_tilde',NMf,1);
 
     % parameters
-    Q_mtp = MX.sym('Q_mtp',1);
+    Q_mtp_gnd = MX.sym('Q_mtp',1);
     F_tib_y = MX.sym('F_tib_y ',1);
 
     % unscale
@@ -212,7 +224,7 @@ else
     Q_ankle_nsc = Q_ankle*scale_qs(4);
     Q_subt_nsc = Q_subt*scale_qs(5);
     Q_tmt_nsc = Q_tmt*scale_qs(6);
-    Q_mtp_nsc = Q_mtp;
+    Q_mtp_nsc = Q_mtp_gnd - 0.4751*Q_tmt_nsc; % mtp can move relative to foot
 
     % Get passive torques
     Tau_pass_ankle = f_PassiveMoments(k_pass.ankle,theta.pass.ankle,Q_ankle_nsc,0);
@@ -289,10 +301,6 @@ else
     % Vertical force on knee
     f4 = Tj(jointfi.tibia.ty,1) + F_tib_y;
 
-    % Knee position above navicular bone
-    f5 = Tj(jointfi.metatarsi_or(1),1);
-    f6 = Tj(jointfi.metatarsi_or(3),1);
-
     % Hill difference
     fh = Hilldiff;
 
@@ -301,18 +309,24 @@ else
 
     % Objective
     fo1 = (Tj(jointfi.calcn_or(2),1) - Tj(jointfi.toes_or(2),1) - 0.01)^2; % square to get positive value
-    fo2 = f5^2 + f6^2;
-
+%     fo2 = Tj(jointfi.metatarsi_or(1),1)^2 + Tj(jointfi.metatarsi_or(3),1)^2; % Knee position above navicular bone
+    fo2 = Tj(jointfi.talus_or(1),1)^2 + Tj(jointfi.talus_or(3),1)^2; % Knee position above talus
     
     fo = fo1 + fo2;
-
+    
+    
+%     % knee should be above arch, so on line connecting calcn and toes
+%     % origin in xz-plane
+%     fo_x = (Tj(jointfi.toes_or(1),1) - Tj(jointfi.calcn_or(1),1)) / Tj(jointfi.toes_or(1),1);
+%     fo_z = (Tj(jointfi.toes_or(3),1) - Tj(jointfi.calcn_or(3),1)) / Tj(jointfi.toes_or(3),1);
+%     fo = fo_x - fo_z;
     
     % Define function to return constraints and objective
-    f_foot = Function('f_foot',{[Q_tib_rx;Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt;FT_tilde],Q_mtp,F_tib_y},{fo,ff});
+    f_foot = Function('f_foot',{[Q_tib_rx;Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt;FT_tilde],Q_mtp_gnd,F_tib_y},{fo,ff});
 
     % Define function to return forces and torques for post-processing
-    f_foot_pp = Function('f_foot_pp',{[Q_tib_rx;Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt;FT_tilde],Q_mtp,F_tib_y},...
-        {FT,T_ankle_r,Tau_pass_ankle,T_subt_r,Tau_pass_subt});
+    f_foot_pp = Function('f_foot_pp',{[Q_tib_rx;Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt;FT_tilde],Q_mtp_gnd,F_tib_y},...
+        {FT,T_ankle_r,Tau_pass_ankle,T_subt_r,Tau_pass_subt,Q_mtp_nsc});
 
 
     %%
@@ -351,6 +365,13 @@ else
     for i=1:NMf
         F_tendon.(muscleNamesFoot{i}) = zeros(n_mtp,n_tib);
     end
+    GRT_calcn = zeros(n_mtp,n_tib,3);
+    GRT_metatarsi = zeros(n_mtp,n_tib,3);
+    GRT_total = zeros(n_mtp,n_tib,3);
+    ankle_axis = zeros(n_mtp,n_tib,3);
+    COP_total = zeros(n_mtp,n_tib,3);
+    COP_calcn = zeros(n_mtp,n_tib,3);
+    COP_metatarsi = zeros(n_mtp,n_tib,3);
 
     %% make solver
     opti = casadi.Opti();
@@ -418,13 +439,13 @@ else
                 Qs(i,j,jointfi.ankle.r) = qs_sol(4);
                 Qs(i,j,jointfi.subt.r) = qs_sol(5);
                 Qs(i,j,jointfi.tmt.r) = qs_sol(6);
-                Qs(i,j,jointfi.mtp.r) = Qs_mtp(i);
+                
 
                 QsQdots(i,j,1:2:end) = Qs(i,j,:);
                 QsQdots(i,j,2:2:end) = Qdots(i,j,:);
 
                 % call post-processing function
-                [Fm,Ta,ta,Ts,ts] = f_foot_pp([qs_sol./scale_qs;FTs_sol./scale_FTs],Qs_mtp(i),Fs_tib(j));
+                [Fm,Ta,ta,Ts,ts,q_mtp] = f_foot_pp([qs_sol./scale_qs;FTs_sol./scale_FTs],Qs_mtp(i),Fs_tib(j));
                 for ii=1:NMf
                     F_tendon.(muscleNamesFoot{ii})(i,j) = full(Fm(ii));
                 end
@@ -432,7 +453,7 @@ else
                 tau_ankle(i,j) = full(ta);
                 T_subt(i,j) = full(Ts);
                 tau_subt(i,j) = full(ts);
-
+                Qs(i,j,jointfi.mtp.r) = full(q_mtp);
 
                 % call external function
                 [T_res] = full(F([vertcat(squeeze(QsQdots(i,j,:)));vertcat(squeeze(Qddots(i,j,:)))]));
@@ -443,6 +464,24 @@ else
                 % ground reaction forces
                 GRF_calcn(i,j,:) = T_res(jointfi.calcn_GRF);
                 GRF_metatarsi(i,j,:) = T_res(jointfi.metatarsi_GRF);
+                
+                % ground reaction torques
+                GRT_calcn(i,j,:) = T_res(jointfi.calcn_GRFT);
+                GRT_metatarsi(i,j,:) = T_res(jointfi.metatarsi_GRFT);
+                GRT_total(i,j,:) = T_res(jointfi.GRFT);
+                GRF_tot_y = GRF_calcn(i,j,2)+GRF_metatarsi(i,j,2);
+                if GRF_tot_y>10
+                    COP_total(i,j,1) = GRT_total(i,j,3)/GRF_tot_y;
+                    COP_total(i,j,3) = -GRT_total(i,j,1)/GRF_tot_y;
+                end
+                if GRF_calcn(i,j,2)>10
+                    COP_calcn(i,j,1) = GRT_calcn(i,j,3)/GRF_calcn(i,j,2);
+                    COP_calcn(i,j,3) = -GRT_calcn(i,j,1)/GRF_calcn(i,j,2);
+                end
+                if GRF_metatarsi(i,j,2)>10
+                    COP_metatarsi(i,j,1) = GRT_metatarsi(i,j,3)/GRF_metatarsi(i,j,2);
+                    COP_metatarsi(i,j,3) = -GRT_metatarsi(i,j,1)/GRF_metatarsi(i,j,2);
+                end
 
                 % body origin positions
                 toes_or(i,j,:) = T_res(jointfi.toes_or);
@@ -450,6 +489,8 @@ else
                 calcn_or(i,j,:) = T_res(jointfi.calcn_or);
                 talus_or(i,j,:) = T_res(jointfi.talus_or);
                 tibia_or(i,j,:) = T_res(jointfi.tibia_or);
+                
+                ankle_axis(i,j,:) = T_res(jointfi.ankle_axis);
 
                 % calculate arch length
                 l_fa_ext(i,j) = norm(squeeze(toes_or(i,j,:)-calcn_or(i,j,:)));
@@ -525,6 +566,14 @@ else
     R.T_subt.pass = tau_subt;
     R.T_subt.ext = T_subt_ext;
     R.PF_stiffness = PF_stiffness;
+    R.legname = legname;
+    R.GRT_calcn = GRT_calcn;
+    R.GRT_metatarsi = GRT_metatarsi;
+    R.GRT_total = GRT_total;
+    R.ankle_axis = ankle_axis;
+    R.COP_total = COP_total;
+    R.COP_calcn = COP_calcn;
+    R.COP_metatarsi = COP_metatarsi;
 
     if save_result
         save(Outname,'R');

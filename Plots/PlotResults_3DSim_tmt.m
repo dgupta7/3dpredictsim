@@ -517,13 +517,13 @@ if exist(ResultsFile,'file')
     
     if boolFirst && md && ~strcmp(subject,'Fal_s1')
         for i=1:3
-            subplot(2,3,i)
+            subplot(3,3,i)
             hold on
             plot(Dat.(type).gc.GRF.Fmean(:,i)/(R.body_mass*9.81)*100,'-k');
         end
     end
     for i=1:3
-        subplot(2,3,i)
+        subplot(3,3,i)
         hold on
         l = plot(R.GRFs(:,i),'-','Color',Cs);
         title(R.colheaders.GRF{i});
@@ -538,7 +538,7 @@ if exist(ResultsFile,'file')
 
     if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
         for i=1:3
-            subplot(2,3,i)
+            subplot(3,3,i)
             hold on
             p1=plot(R.GRFs_separate(:,i),'-.','Color',Cs,'DisplayName','calcaneus');
             p2=plot(R.GRFs_separate(:,i+3),'--','Color',Cs,'DisplayName','forefoot');
@@ -553,35 +553,82 @@ if exist(ResultsFile,'file')
             lh.Interpreter = 'none';
         end
         
-        for i=1:3
-            % get GRFs
-            GRF1 = R.GRFs_separate(:,i);
-            GRF2 = R.GRFs_separate(:,i+3);
-            GRF3 = R.GRFs_separate(:,i+6);
-            % total
-            GRFt = GRF1 + GRF2 + GRF3;
-            % relative
-            grf1 = GRF1./GRFt*100;
-            grf2 = GRF2./GRFt*100;
-            grf3 = GRF3./GRFt*100;
-            % set to 0 when total is too small
-            grf1(abs(GRFt)<1) = 0;
-            grf2(abs(GRFt)<1) = 0;
-            grf3(abs(GRFt)<1) = 0;
+
+        % get GRFs
+        GRF1 = R.GRFs_separate(:,2);
+        GRF2 = R.GRFs_separate(:,5);
+        GRF3 = R.GRFs_separate(:,8);
+        % total
+        GRFt = GRF1 + GRF2 + GRF3;
+        % relative
+        grf1 = GRF1./GRFt*100;
+        grf2 = GRF2./GRFt*100;
+        grf3 = GRF3./GRFt*100;
+        % set to 0 when total is too small
+        grf1(abs(GRFt)<1) = 0;
+        grf2(abs(GRFt)<1) = 0;
+        grf3(abs(GRFt)<1) = 0;
+
+        subplot(3,3,5)
+        hold on
+        p1=plot(x,grf1,'-.','Color',Cs,'DisplayName','calcaneus');
+        p2=plot(x,grf2,'--','Color',Cs,'DisplayName','forefoot');
+        p3=plot(x,grf3,':','Color',Cs,'DisplayName','toes');
+        title(R.colheaders.GRF{2});
+        xlabel('% stride');
+        ylabel('% total GRF')
             
-            subplot(2,3,3+i)
-            hold on
-            p1=plot(x,grf1,'-.','Color',Cs,'DisplayName','calcaneus');
-            p2=plot(x,grf2,'--','Color',Cs,'DisplayName','forefoot');
-            p3=plot(x,grf3,':','Color',Cs,'DisplayName','toes');
-            title(R.colheaders.GRF{i});
-            xlabel('% stride');
-            ylabel('% total GRF')
-            
-        end
+
         if boolFirst
             lh=legend([p1,p2,p3],'location','best');
             lh.Interpreter = 'none';
+        end
+        
+        if isfield(R,'AnkleInGround')
+            ictt = find(R.AnkleInGround.leverArmGRF.r~=0);
+            relPos = R.COPR - R.AnkleInGround.position.r;
+            
+            subplot(3,3,7)
+            hold on
+            plot(x(ictt),relPos(ictt,1),'.','Color',Cs)
+            xlim([x(1),x(end)])
+            xlabel('% stride');
+            ylabel('distance (m)')
+            title('fore-aft distance COP wrt ankle')
+            
+            subplot(3,3,8)
+            hold on
+            plot(x(ictt),relPos(ictt,2),'.','Color',Cs)
+            xlim([x(1),x(end)])
+            xlabel('% stride');
+            ylabel('distance (m)')
+            title('vertical distance COP wrt ankle')
+            
+            subplot(3,3,9)
+            hold on
+            plot(x(ictt),relPos(ictt,3),'.','Color',Cs)
+            xlim([x(1),x(end)])
+            xlabel('% stride');
+            ylabel('distance (m)')
+            title('lateral distance COP wrt ankle')
+            
+            subplot(3,3,4)
+            hold on
+            plot(x(ictt),R.AnkleInGround.leverArmGRF.r(ictt),'.','Color',Cs)
+            xlim([x(1),x(end)])
+            xlabel('% stride');
+            ylabel('lever arm (m)')
+            title('GRF lever arm wrt ankle')
+            
+            subplot(3,3,6)
+            hold on
+            gearRatio = -R.AnkleInGround.leverArmGRF.r(ictt)./R.AnkleInGround.leverArmSol.r(ictt);
+            plot(x(ictt),gearRatio,'.','Color',Cs)
+            xlim([x(1),x(end)])
+            xlabel('% stride');
+            ylabel('Gear ratio (-)')
+            title('GRF lever arm / sol lever')
+            
         end
     end
 

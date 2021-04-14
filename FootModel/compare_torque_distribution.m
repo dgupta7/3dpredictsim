@@ -3,24 +3,28 @@ clc
 AddCasadiPaths();
 
 S.sf_PF = 1;
-S.sf_li = 1;
-PF_stiffness = {'Gefen2001'};
+% PF_stiffness = {'Gefen2001'};
+PF_stiffness = {'Ker1987'};
 % PF_stiffness = {'Natali2010'};
 % PF_stiffness = {'linear'};
 
-ls = 0.135;
+ls = 0.137;
 f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(PF_stiffness,'ls',ls);
+
+
+% S.mtj_stiffness = 'Gefen2001';
+S.mtj_stiffness = 'Ker1987';
 
 S.dMT = 0;
 S.MT_li_nonl = 1;
 S.kMT_li = 90;
 
-q_mt = linspace(-20,20,1000)'*pi/180;
+q_mt = linspace(-35,35,1000)'*pi/180;
 q_mtp = [-30,0,30]*pi/180;
 % q_mtp = 0;
 
 Fmin = 1;
-Fmax = 30;
+Fmax = 40;
 
 %%
 

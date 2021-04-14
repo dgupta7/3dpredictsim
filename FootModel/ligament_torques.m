@@ -105,11 +105,11 @@ legend('Location','southwest')
 xlabel('Angle (°)')
 ylabel('Torque (Nm)')
 title('Equivalent ligament stiffness midtarsal joint')
-ylim([-100,100])
+% ylim([-100,100])
 
 %%
 
-x = linspace(-25,15,500)'*pi/180;
+x = linspace(-25,25,500)'*pi/180;
 
 c1 = -8;
 c2 = 8;
@@ -120,12 +120,12 @@ y = -9*(exp(4*(x-2*pi/180))-1)*1.2;
 
 y1 = 2*exp(-10*(x+0.1));
 
-% plot(x*180/pi,y,'--')
+plot(x*180/pi,y,'--')
 plot(x*180/pi,y1)
 y2 = (y+y1);
 plot(x*180/pi,y2)
 
-ylim([-20,20])
+% ylim([-20,20])
 
 % figure
 % plot(x,y+y2)
@@ -283,6 +283,16 @@ interp1(x,y,0)
 
 % xlim([-7,5])
 % ylim([-5,5])
+
+%%
+% approximated from Ker et al 1987
+figure(f1)
+hold on
+grid on
+y = -25*exp(3*(x-10*pi/180)) + 25*exp(-3*(x+10*pi/180));
+
+plot(x*180/pi,y)
+
 
 
 

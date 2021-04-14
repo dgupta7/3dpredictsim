@@ -18,7 +18,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clear all
-% close all
+close all
 clc
 
 %% Paths
@@ -84,27 +84,30 @@ S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsifl
 
 S.mtj = 1;              % 1: use a model with tmt joint (will override tmt)
 % plantar fascia
-S.PF_stiffness = 'Gefen2001'; % stiffness model for the gait simulation
+% S.PF_stiffness = 'Gefen2001'; % stiffness model for the gait simulation
 % S.PF_stiffness = 'Natali2010';
+S.PF_stiffness = 'Ker1987';
         % options: 'none''linear''Gefen2001''Cheng2008''Barrett2018''Natali2010'
-S.PF_slack_length = 0.135; % (m) slack length
+S.sf_PF = 1;                % multiply PF force with constant factor
+S.PF_slack_length = 0.137; % (m) slack length
+
 % other ligaments (long, short planter ligament, etc)
 S.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
-S.kMT_li = 90;          % angular stiffness in case of linear
-S.dMT = 0;              % (Nms/rad) damping
+% S.mtj_stiffness = 'Gefen2001';
+S.mtj_stiffness = 'Ker1987';
+S.kMT_li = 300;          % angular stiffness in case of linear
+S.dMT = 0;               % (Nms/rad) damping
 
-S.sf_PF = 1;
-S.sf_li = 1;
 
 % PF reaction torque on mtp joint
 S.WL_T_mtp = 0;         % 0: spring mtp, 1: PF reaction on mtp
 S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
     
 % List of stiffness models to use for the STATIC footmodel:
-% PF_stiffness = {S.PF_stiffness};
+PF_stiffness = {S.PF_stiffness};
 % PF_stiffness = {'linear','Gefen2001','Cheng2008','Barrett2018','Natali2010','none'};
-% PF_stiffness = {'none','Gefen2001'};
-PF_stiffness = {'Gefen2001'};
+% PF_stiffness = {'none'};
+% PF_stiffness = {'Natali2010'};
 
 %% Exoskeleton
 % exo
@@ -168,7 +171,7 @@ if S.tmt == 0 && S.mtj == 0
     elseif strcmp(S.subject,'subject1')
         if S.ExoBool == 0
             S.ExternalFunc  = 'ID_Subject1.dll';
-            S.ExternalFunc2 = 'Analyse_Subject1_pp.dll';
+            S.ExternalFunc2 = 'PredSim_3D_Fal_s1_pp_v2.dll';
         end
     end
     
@@ -233,7 +236,7 @@ else
     end
 
     % Create the casadifunctions if they do not exist yet
-    if ~isfolder([pathRepo '\CasADiFunctions\' S.CasadiFunc_Folders])
+    if ~isfolder([pathRepo '\CasADiFunctions\' S.CasadiFunc_Folders]) && slv
         disp('Creating casadifunctions...');
         CreateCasADiFunctions_all_tmt(pathRepo,S);
         disp('...casadifunctions created');

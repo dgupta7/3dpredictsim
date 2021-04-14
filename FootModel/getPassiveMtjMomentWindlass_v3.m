@@ -25,12 +25,12 @@ phi0 = 2.1274;
 
 
 %% Default parameters
-% R_mtth = 7.5e-3; % average radius of the metatarsal head
-R_mtth = 9.5e-3; % radius of the first metatarsal head
+R_mtth = 7.5e-3; % average radius of the metatarsal head
+% R_mtth = 9.5e-3; % radius of the first metatarsal head
 l_toe = 0; % distance from metatarsal head to PF attachment point at toe
 
-sf_PF = 1;
-sf_li = 1;
+sf_PF = 1; % scale factor for PF stiffness
+mtj_stiffness = 'Ker1987'; % model for resulting foot stiffness
 
 %% Get specific parameters
 if isempty(varargin)
@@ -45,8 +45,8 @@ else
     if isfield(S,'sf_PF') && ~isempty(S.sf_PF)
         sf_PF = S.sf_PF;
     end
-    if isfield(S,'sf_li') && ~isempty(S.sf_li)
-        sf_li = S.sf_li;
+    if isfield(S,'mtj_stiffness') && ~isempty(S.mtj_stiffness)
+        mtj_stiffness = S.mtj_stiffness;
     end
 end
 
@@ -62,80 +62,40 @@ l_PF = l_PF_fa + R_mtth*q_mtp + l_toe;
 
 %% Torques
 % plantar fascia
-F_PF = f_PF_stiffness(l_PF)*sf_PF;
-if nargout > 1
-    % convert SX to double when called from post-processing
-    F_PF = full(F_PF);
+try
+    F_PF = f_PF_stiffness(l_PF)*sf_PF;
+    if nargout > 2
+        % convert SX to double when called from post-processing
+        F_PF = full(F_PF);
+    end
+catch
+    warning('No valid function to describe the plantar fascia stiffness model, using 0 instead.')
+    F_PF = 0;
 end
 
 M_PF = -F_PF*MA_PF;
 
 % other elastic structures
 if nl
-%     dl_0 = 3*pi/180;
-%     dq_0 = 2*pi/180;
-%     M_li = -kMT_li*( (q_mt-dq_0) - dl_0*tanh((q_mt-dq_0)/dl_0/1.2)) +... % toe-in and linear part
-%             (-exp(20*(q_mt-20*pi/180)) + exp(-25*(q_mt+10*pi/180)))/2; % stiffening at the end
-    
-M_li = -9*(exp(4*(q_mt-2*pi/180))-1)*1.2 + 2*exp(-10*(q_mt+0.1));
+    if strcmp(mtj_stiffness,'Gefen2001')
+        M_li = -9*(exp(4*(q_mt-2*pi/180))-1)*1.2 + 2*exp(-10*(q_mt+0.1));
+        
+    elseif strcmp(mtj_stiffness,'Ker1987')
+        % calculated in ligaments_torques_Ker87_v2.m
+        
+%         M_li = 0.324608 + -35.10522*q_mt^1 + -2082.547*q_mt^3 + 28073.93*q_mt^5 +...
+%             -177327*q_mt^7 + 529060.7*q_mt^9 + -584959.5*q_mt^11;
+        
+%         M_li = 0.313409 + -21.27506*q_mt^1 + -2206.793*q_mt^3 + 29433.1*q_mt^5 +...
+%             -309969.7*q_mt^7 + 1580497*q_mt^9 + -2975238*q_mt^11;
+        
+        M_li = 0.282068 + -19.14756*q_mt^1 + -1986.114*q_mt^3 + 26489.79*q_mt^5 +...
+            -278972.7*q_mt^7 + 1422447*q_mt^9 + -2677715*q_mt^11; %sf=0.9, F*sf^2
 
-%     M_li = -kMT_li*q_mt*(exp(5*(q_mt-10*pi/180)) + exp(-3*(q_mt+20*pi/180)))/2; % approx 1
-    
-
-%     k1 = 12;
-%     t1 = 8*pi/180*sf_li;
-%     f2 = 1.5*(2-sf_li);
-%     k2 = 5;
-%     t2 = 10*pi/180*sf_li;
-%     M_li = (-exp(k1*(q_mt-t1)) + f2*exp(-k2*(q_mt+t2)))*kMT_li*5/90; % approx 2
-%     M_li = (-exp(k1*(q_mt-t1)) + f2*exp(-k2*(q_mt+t2)))*5*3-2; % approx 2a
-    
-%     sf = 0.1;
-%     t = 0.5;
-%     c1 = 12*(2-t)/(1-t+sf);
-%     c2 = 8*sf;
-%     c3 = 1.5;
-%     c4 = 5;
-%     c5 = 10*sf;
-%     M_li = (-exp(c1*(q_mt-c2*pi/180)) + c3*exp(-c4*(q_mt+c5*pi/180)))*kMT_li*5/90*(1+sf)/2;
-
-%     sf = 0.3;
-%     c1 = 12/(sf+0.5)*1.5;
-%     c2 = 8*(1+sf)/2;
-%     c3 = 1.5*(sf);%+0.4)/1.4;
-%     c4 = 5;%/(sf+0.5)*1.5;
-%     c5 = 10;%*(1+sf)/2;
-
-% sf = 0.1;
-% c1 = 12/(sf+1)*2;
-% c2 = 8*(2+sf)/3;
-% c3 = 1.5*(sf+0.5)/1.5;
-% c4 = 5;%/(sf+5)*6;
-% c5 = 10;%*(1+sf)/2;
-
-% c1 = 25;
-% c2 = 1;
-% c3 = 3;
-% c4 = 5;
-% c5 = 1;
-% sf=1;
-% 
-%     M_li = (-exp(c1*(q_mt-c2*pi/180)) + c3*exp(-c4*(q_mt+c5*pi/180)))*5/sf;
-
-% M_li = (-exp(12*(q_mt*3-8*pi/180)) + 2*exp(-5*(q_mt*2+10*pi/180)))*5*2;
-
-% M_li = (-exp(12*(q_mt*2-8*pi/180)) + 1.5*exp(-5*(q_mt*1.5+10*pi/180)))*5*5; % v5
-
-% M_li = 0;
-
-% M_li = -exp(25*(q_mt-5*pi/180)) + 2*exp(-15*(q_mt+5*pi/180)) +0.5;
-
-% M_li = -2*exp(10*(q_mt-5*pi/180)) + 2*exp(-15*(q_mt+5*pi/180));
-
+    end
 else
     M_li = -kMT_li*q_mt;
 end
-
 
 % viscous damping
 M_d = -dMT*qdot_mt;

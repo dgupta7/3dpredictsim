@@ -1,5 +1,5 @@
 function [varargout] = PlotResults_FootSim(R,varargin)
-fig2 = 0;
+fig2 = 1;
 
 n_mtp = length(R.Qs_mtp);
 n_tib = length(R.Fs_tib);
@@ -18,6 +18,7 @@ if length(varargin) >= 2
     tab2 = h.Parent.Children(1).Children(1).Children(2);
     tab3 = h.Parent.Children(1).Children(1).Children(3);
     tab4 = h.Parent.Children(1).Children(1).Children(4);
+    BoolFirst = 0;
 else
     h = figure('Position',[82,151,1497,827]);
     h.Name = 'FootModel_Results';
@@ -26,6 +27,7 @@ else
     tab2 = uitab(hTabGroup, 'Title', 'Load effects 1');
     tab3 = uitab(hTabGroup, 'Title', 'Load effects 2');
     tab4 = uitab(hTabGroup, 'Title', 'Arch stiffness');
+    BoolFirst = 1;
 end
 
 % return figure handle if wanted
@@ -58,13 +60,11 @@ title('Foot arch height')
 
 subplot(3,3,3)
 hold on
-plot(R.Qs_mtp*180/pi,R.Qs(:,1,R.jointfi.tmt.r)*180/pi,'color',CsV,'DisplayName',R.PF_stiffness)
+plot(R.Qs_mtp*180/pi,R.Qs(:,1,R.jointfi.tmt.r)*180/pi,'color',CsV,'DisplayName',R.legname)
 xlabel('mtp angle (°)')
 ylabel('mt angle (°)')
 title('Midtarsal joint angle')
 lg12 = legend('Location','northeast');
-lg12.Interpreter = 'none';
-title(lg12,'PF stiffness model')
 lhPos = lg12.Position;
 lhPos(1) = lhPos(1)+0.1;
 set(lg12,'position',lhPos);
@@ -160,7 +160,7 @@ for i=1:n_mtp
     subplot(2,3,5)
     hold on
     plot(Fs_tib,R.F_PF(i,js),mrk{i},'Color',CsV,...
-        'DisplayName',[num2str(R.Qs_mtp(i)*180/pi) '°, ' R.PF_stiffness])
+        'DisplayName',[num2str(R.Qs_mtp(i)*180/pi) '°; ' R.legname])
     xlabel('tibia force (N)')
     ylabel('F PF (N)')
     title('Plantar fascia force')
@@ -168,11 +168,10 @@ for i=1:n_mtp
 
 end
 
-title(lg02,'mtp, PF model')
+title(lg02,'mtp, model')
 lhPos = lg02.Position;
-lhPos(1) = lhPos(1)+0.15;
+lhPos(1) = lhPos(1)+0.25;
 set(lg02,'position',lhPos);
-lg02.Interpreter = 'none';
 
 %%
 for i=1:n_mtp
@@ -198,7 +197,7 @@ for i=1:n_mtp
     subplot(3,3,3)
     hold on
     plot(Fs_tib,R.Qs(i,js,R.jointfi.tmt.r)*180/pi,mrk{i},'Color',CsV,...
-        'DisplayName',[num2str(R.Qs_mtp(i)*180/pi) '°, ' R.PF_stiffness])
+        'DisplayName',[num2str(R.Qs_mtp(i)*180/pi) '°, ' R.legname])
     xlabel('tibia force (N)')
     ylabel('angle (°)')
     lg02=legend('Location','northeast');
@@ -248,11 +247,10 @@ for i=1:n_mtp
     
 end
 
-title(lg02,'mtp, PF model')
+title(lg02,'mtp, model')
 lhPos = lg02.Position;
 lhPos(1) = lhPos(1)+0.1;
 set(lg02,'position',lhPos);
-lg02.Interpreter = 'none';
 
 %%
 axes('parent', tab4);
@@ -264,53 +262,102 @@ Fs_tib = R.Fs_tib(js);
 l_fa = R.l_fa(j,js);
 h_fa = R.h_fa(j,js);
 
+if BoolFirst
+    % load reference graph images
+    pathmain        = pwd;
+    [pathRepo,~,~]  = fileparts(pathmain);
+    folder = '\Figures';
+    file = 'arch_stiffness_Ker87.png';
+    pathRefImg = fullfile(pathRepo,folder,file);
+    img_Ker = imread(pathRefImg);
+    file = 'arch_stiffness_Welte18.png';
+    pathRefImg = fullfile(pathRepo,folder,file);
+    img_Welte = imread(pathRefImg);
+    file = 'arch_stiffness_Stearne16.png';
+    pathRefImg = fullfile(pathRepo,folder,file);
+    img_Stearne = imread(pathRefImg);
+
+end
+
 subplot(3,5,[1,2,6,7])
-plot((l_fa-l_fa(1))*1000,Fs_tib/1000,'color',CsV,'DisplayName',R.PF_stiffness)
-% plot((l_fa-R.L0)*1000,Fs_tib/1000,'color',CsV,'DisplayName',R.PF_stiffness)
+if R.F_PF(j,js(end))<1
+    plot((l_fa-R.L0)*1000,Fs_tib/1000,'color',CsV,'DisplayName',R.legname)
+else
+    plot((l_fa-l_fa(1))*1000,Fs_tib/1000,'color',CsV,'DisplayName',R.legname)
+end
 hold on
-grid on
+if BoolFirst
+    hi1 = image([1,9.65],flip([0,4]),img_Ker);
+    uistack(hi1,'bottom')
+end
 xlabel('horizontal elongation (mm)')
 ylabel('vertical force (kN)')
 title({'Foot arch stiffness','as defined by Ker et al, 1987'})
 lg12 = legend('Location','southeast');
-lg12.Interpreter = 'none';
+lhPos = lg12.Position;
+lhPos(2) = lhPos(2)-0.3;
+set(lg12,'position',lhPos);
+
 
 
 subplot(3,5,[5,10])
-plot((h_fa(1)-h_fa)*1000,Fs_tib/1000,'color',CsV)
-% plot((R.H0-h_fa)*1000,Fs_tib/1000,'color',CsV)
+if R.F_PF(j,js(end))<1
+    plot((R.H0-h_fa)*1000,Fs_tib/1000,'color',CsV)
+else
+    plot((h_fa(1)-h_fa)*1000,Fs_tib/1000,'color',CsV)
+end
 hold on
-grid on
+axis tight
+if BoolFirst
+    hi2 = image([-2,12],flip([-0.3,6]),img_Stearne);
+    uistack(hi2,'bottom')
+end
 xlabel('vertical displacement (mm)')
 ylabel('vertical force (kN)')
 title({'Foot arch stiffness','as defined by Stearne et al, 2016'})
 
 subplot(3,5,15)
-plot((h_fa(1)-h_fa(Fs_tib<=300))*1000,Fs_tib(Fs_tib<=300),'color',CsV)
-% plot((R.H0-h_fa(Fs_tib<=300))*1000,Fs_tib(Fs_tib<=300),'color',CsV)
+if R.F_PF(j,js(end))<1
+    plot((R.H0-h_fa(Fs_tib<=300))*1000,Fs_tib(Fs_tib<=300),'color',CsV)
+else
+    plot((h_fa(1)-h_fa(Fs_tib<=300))*1000,Fs_tib(Fs_tib<=300),'color',CsV)
+end
 hold on
-grid on
 xlabel('vertical displacement (mm)')
 ylabel('vertical force (N)')
 title('Detail view')
 
 
-for i=1:n_mtp
+j1 = find(R.Qs_mtp(:)==-30*pi/180);
+j2 = find(R.Qs_mtp(:)==30*pi/180);
+
+if ~isempty(j1) && ~isempty(j2)
+    idx = [j1,j2];
+    n_i = 2;
+else
+    idx = 1:n_mtp;
+    n_i = n_mtp;
+end
+
+for i=1:n_i
     BW = R.S.mass*9.81;
-    idx_ac = find(R.failed(i,:)==0 & R.Fs_tib<=BW);
+    idx_ac = find(R.failed(idx(i),:)==0 & R.Fs_tib<=BW);
     F_ac{i} = R.Fs_tib(idx_ac);
-    h0_ac = R.h_fa(i,1);
-    tmp = h0_ac - R.h_fa(i,idx_ac);
+    h0_ac = R.h_fa(idx(i),1);
+    tmp = h0_ac - R.h_fa(idx(i),idx_ac);
     ac{i} = tmp;
     ac_max(i) = max(ac{i});
 end
 
 subplot(3,5,[3,4,8,9])
 hold on
-grid on
-for i=1:n_mtp
+for i=1:n_i
     ac_rel = ac{i}/max(ac_max);
-    plot(ac_rel(:),F_ac{i}/BW,mrk{i},'color',CsV,'DisplayName',['mtp: ' num2str(R.Qs_mtp(i)*180/pi) '°'])
+    plot(ac_rel(:),F_ac{i}/BW,mrk{i},'color',CsV,'DisplayName',['mtp: ' num2str(R.Qs_mtp(idx(i))*180/pi) '°'])
+end
+if BoolFirst
+    hi3 = image([0,1],flip([0,0.9]),img_Welte);
+    uistack(hi3,'bottom')
 end
 xlabel('arch compression (-)')
 ylabel('vertical force / body weight (-)')
@@ -365,7 +412,7 @@ if fig2
     zmin = 0;
     zmax = 0;
 
-    for i=1:2:n_tib
+    for i=1:(round(n_tib/5)):n_tib
         if R.failed(j,i) == 0
             figure(h2)
 
@@ -387,13 +434,22 @@ if fig2
             range_x = [xmin-0.01,xmax+0.01];
             range_y = [ymin-0.01,ymin-0.01+norm(range_x)];
 
+            ankle_axis = squeeze(R.talus_or(j,i,:)) + [-1,1].*squeeze(R.ankle_axis(j,i,:))/100;
+            COP_calcn = squeeze(R.COP_calcn(j,i,[1,3]));
+            COP_calcn(2) = -COP_calcn(2); %to plot -z
+            COP_metatarsi = squeeze(R.COP_metatarsi(j,i,[1,3]));
+            COP_metatarsi(2) = -COP_metatarsi(2);
+            COP_R = [R.GRF_calcn(j,i,2),R.GRF_metatarsi(j,i,2)];
+            COP_R = COP_R./sum(COP_R)/30;
+            
             subplot(2,3,2)
             hold on
             plot(xy(1,4:5),xy(2,4:5),'-','Color',CsV2(i,:))
             plot(xy(1,1),xy(2,1),'x','Color',CsV2(i,:))
-            plot(xy(1,2),xy(2,2),'o','Color',CsV2(i,:))
+            plot(xy(1,2),xy(2,2),'d','Color',CsV2(i,:))
             plot(xy(1,3),xy(2,3),'.','Color',CsV2(i,:))
             plot(xy(1,4),xy(2,4),'*','Color',CsV2(i,:))
+            plot(ankle_axis(1,:),ankle_axis(2,:),'--','Color',CsV2(i,:))
             axis equal
             title('sagittal plane (right)')
             xlabel('x')
@@ -406,9 +462,10 @@ if fig2
             hold on
             plot(-z(1,4:5),xy(2,4:5),'-','Color',CsV2(i,:))
             p1=plot(-z(1,1),xy(2,1),'x','Color',CsV2(i,:),'DisplayName',['F_y = ' num2str(R.Fs_tib(i)) 'N']);
-            plot(-z(1,2),xy(2,2),'o','Color',CsV2(i,:))
+            plot(-z(1,2),xy(2,2),'d','Color',CsV2(i,:))
             plot(-z(1,3),xy(2,3),'.','Color',CsV2(i,:))
             plot(-z(1,4),xy(2,4),'*','Color',CsV2(i,:))
+            plot(-ankle_axis(3,:),ankle_axis(2,:),'--','Color',CsV2(i,:))
             leg1(end+1) = p1;
             axis equal
             title('frontal plane (front)')
@@ -422,10 +479,18 @@ if fig2
             hold on
             p6=plot(xy(1,4:5),-z(1,4:5),'-','Color',CsV2(i,:),'DisplayName','tibia');
             p2=plot(xy(1,1),-z(1,1),'x','Color',CsV2(i,:),'DisplayName','toes or');
-            p3=plot(xy(1,2),-z(1,2),'o','Color',CsV2(i,:),'DisplayName','metatarsi or');
+            p3=plot(xy(1,2),-z(1,2),'d','Color',CsV2(i,:),'DisplayName','metatarsi or');
             p4=plot(xy(1,3),-z(1,3),'.','Color',CsV2(i,:),'DisplayName','calcn or');
             p5=plot(xy(1,4),-z(1,4),'*','Color',CsV2(i,:),'DisplayName','talus or');
-            lg2=legend([p2,p3,p4,p5,p6],'Location','northeast');
+            p7=plot(ankle_axis(1,:),-ankle_axis(3,:),'--','Color',CsV2(i,:),'DisplayName','ankle axis');
+%             p8=plot(COP(1,2:3),-COP(3,2:3),'o','Color',CsV2(i,:),'DisplayName','centres of pressure');
+            if i>1
+                p8=viscircles(COP_calcn',COP_R(1),'Color',CsV2(i,:),'LineWidth',1,'LineStyle',':');
+                p9=viscircles(COP_metatarsi',COP_R(2),'Color',CsV2(i,:),'LineWidth',1,'LineStyle',':');
+                set(p8,'DisplayName','COP calcn')
+                set(p9,'DisplayName','COP metatarsi')
+                lg2=legend([p2,p3,p4,p5,p6,p7,p8,p9],'Location','northeast');
+            end
             axis equal
             title('transverse plane (top)')
             xlabel('x')

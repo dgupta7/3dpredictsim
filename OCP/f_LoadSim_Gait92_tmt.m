@@ -31,6 +31,10 @@ load(Outname,'w_opt','stats','Sopt','ExoVect','setup');
 S = Sopt;
 
 body_mass = S.mass;
+
+S.ResultsFolder = ResultsFolder;
+S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v5.dll';
+
 %% User inputs (typical settings structure)
 % load default CasadiFunctions
 
@@ -164,7 +168,7 @@ if strcmp(ExoImplementation,'IdealAnkle') || strcmp(ExoImplementation,'Nuckols20
     calcOrall.all   = [calcOrall.r,calcOrall.l];
     NcalcOrall      = length(calcOrall.all);
     
-    if F1.nnz_out > 45
+    if F1.nnz_out >= 63
         % separate GRF
         GRFi.calcn.r = 46:48;
         GRFi.metatarsi.r = 49:51;
@@ -174,6 +178,24 @@ if strcmp(ExoImplementation,'IdealAnkle') || strcmp(ExoImplementation,'Nuckols20
         GRFi.toes.l = 61:63;
         GRFi.separate = GRFi.calcn.r(1):GRFi.toes.l(end);
         GRF_separate_labels = {'calcn_r','metatarsi_r','toes_r','calcn_l','metatarsi_l','toes_l'};
+    end
+    if F1.nnz_out >= 99
+        % GRF torques
+        GRFTi.r = 64:66;
+        GRFTi.l = 67:69;
+        % talus origin
+        TalusOr.r = 70:72;
+        TalusOr.l = 73:75;
+        % separate GRF
+        GRFTi.calcn.r = 76:78;
+        GRFTi.metatarsi.r = 79:81;
+        GRFTi.toes.r = 82:84;
+        GRFTi.calcn.l = 85:87;
+        GRFTi.metatarsi.l = 88:90;
+        GRFTi.toes.l = 91:93;
+        % ankle axis (from talus origin, but oriented in world frame)
+        ankleAxis.r = 94:96;
+        ankleAxis.l = 97:99;
     end
 end
 % adapt indexes GRF in Nuckols simulations
@@ -1229,6 +1251,61 @@ if writeIKmotion
     end
 end
 
+if F1.nnz_out >= 99
+    % compute COP information
+    nfr = length(Qs_GC(:,1));
+    qdqdd = zeros(nfr,nq.all*2);
+    qdqdd(:,1:2:66) = Qs_GC;
+    qdqdd(:,2:2:66) = Qdots_GC;
+    qdd = Qdotdots_GC;
+    qdqdd(:,[1:6 13:end]) = qdqdd(:,[1:6 13:end])*pi./180;        
+    qdqdd(:,11) = qdqdd(:,11);        
+    COPR = zeros(nfr,3);    FR = zeros(nfr,3);  MR = zeros(nfr,3);
+    COPL = zeros(nfr,3);    FL = zeros(nfr,3);  ML = zeros(nfr,3);  
+    apr = zeros(nfr,3);     aor = zeros(nfr,3); agr = zeros(nfr,1);
+    apl = zeros(nfr,3);     aol = zeros(nfr,3); agl = zeros(nfr,1);
+%     GRFs_sep_opt = zeros(nfr,18);
+    for ind = 1:nfr
+        res = full(F1([qdqdd(ind,:)'; qdd(ind,:)'])); % normal implementation
+        apr(ind,:) = res(TalusOr.r);
+        apl(ind,:) = res(TalusOr.l);
+        aor(ind,:) = res(ankleAxis.r);
+        aol(ind,:) = res(ankleAxis.l);
+%         GRFs_sep_opt(ind,:) = res(GRFi.separate);
+        
+        % compute the COP position
+        FR(ind,:) = res(GRFi.r);
+        FL(ind,:) = res(GRFi.l);
+        MR(ind,:) = res(GRFTi.r);
+        ML(ind,:) = res(GRFTi.l);
+        if abs(FR(ind,2)) > 10
+            COPR(ind,:) = [MR(ind,3)./FR(ind,2), 0, -MR(ind,1)./FR(ind,2)];
+            vec_a = COPR(ind,:) - apr(ind,:); % from ankle origin to COP
+            vec_b = aor(ind,:); % ankle axis orientation
+            vec_ap = dot(vec_a,vec_b)/dot(vec_b,vec_b)*vec_b; % orthogonal projection of a onto b
+            vec_an = vec_a - vec_ap; % component of a that is normal to b 
+            agr(ind,1) = norm(vec_an); % lever arm of GRF wrt ankle
+        end
+        if abs(FL(ind,2)) > 10
+            COPL(ind,:) = [ML(ind,3)./FL(ind,2), 0, -ML(ind,1)./FL(ind,2)];
+            vec_a = COPL(ind,:) - apl(ind,:); % from ankle origin to COP
+            vec_b = aol(ind,:); % ankle axis orientation
+            vec_ap = dot(vec_a,vec_b)/dot(vec_b,vec_b)*vec_b; % orthogonal projection of a onto b
+            vec_an = vec_a - vec_ap; % component of a that is normal to b 
+            agl(ind,1) = norm(vec_an); % lever arm of GRF wrt ankle
+        end
+        
+    end
+    AnkleInGround.position.r = apr;
+    AnkleInGround.position.l = apl;
+    AnkleInGround.axisOrientation.r = aor;
+    AnkleInGround.axisOrientation.l = aol;
+    AnkleInGround.leverArmGRF.r = agr;
+    AnkleInGround.leverArmGRF.l = agl;
+%     GRFs_sep_opt = GRFs_sep_opt./(body_weight/100);
+    
+end
+
 %% Metabolic cost of transport for a gait cycle
 Qs_opt_rad = Qs_GC;
 Qs_opt_rad(:,roti) = Qs_opt_rad(:,roti).*pi/180;
@@ -1569,11 +1646,15 @@ if strcmp(ExoImplementation,'TorqueTibiaCalcn')
     R.Exodiff_id = TExo_Joint.*body_mass;   
 end
 
-if F1.nnz_out == 73
+if F1.nnz_out == 73  || F1.nnz_out >= 99
     R.COPL = COPL;
     R.COPR = COPR; 
 end
-
+if F1.nnz_out >= 99
+    AnkleInGround.leverArmSol.r = squeeze(dM_Vect(:,80,5));
+    AnkleInGround.leverArmSol.l = squeeze(dM_Vect(:,34,5));
+    R.AnkleInGround = AnkleInGround;
+end
 if exist('windlass','var')
     R.windlass = windlass;
 end

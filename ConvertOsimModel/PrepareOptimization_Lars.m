@@ -14,13 +14,13 @@ AddCasadiPaths();
 
 
 % path to Cpp file used in the optimization
-% S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','PredSim_3D_Fal_s1_mtj_pp_v1.cpp');
-S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','Foot_3D_Fal_s1_mtj_subt3_v1.cpp');
+S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','PredSim_3D_Fal_s1_mtj_pp_v5.cpp');
+% S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','Foot_3D_Fal_s1_mtj_subt1_v5.cpp');
 % S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','Foot_3D_cdvr_mtj_v1.cpp');
 
 % Number of input arguments in the cpp file
-% S.CppFile_nInput = 33*3;
-S.CppFile_nInput = 10*3; 
+S.CppFile_nInput = 33*3;
+% S.CppFile_nInput = 10*3; 
 
 % path information for automatically building cpp files
 OsimSource  = 'D:\opensim-ad\opensim-ad-core';
@@ -30,11 +30,9 @@ ExtFuncs    = 'D:\opensim-ad\external-functions';
 VSinstall   = 'C:\Program Files (x86)\Microsoft Visual Studio 14.0';
 
 
-%% 3: Create .dll files if needed
-
+%% Create .dll files
 % install the functions to create .dll files. you can download this matlab
 % software here: https://github.com/MaartenAfschrift/CreateDll_PredSim
-% addpath('C:\Users\u0088756\Documents\FWO\Software\GitProjects\CreateDll_PredSim');
 
 % create the .dll file automatically to solve the NLP
 [CppDir,Name,~] = fileparts(S.CppFile_NLP);

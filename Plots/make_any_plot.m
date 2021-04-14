@@ -14,7 +14,7 @@ addpath([pathRepo '/FootModel']);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 plot_default = 1;
 plot_validation = 0;
-plot_report =0;
+plot_report = 0;
 
 plot_foot_standing = 0;
 plot_foot_hanging = 0;
@@ -26,7 +26,8 @@ plot_foot_hanging = 0;
 % ResultsFolder = {'running'};
 % ResultsFolder = {'MuscleModel'};
 % ResultsFolder = {'batch_tmt_lin'};
-ResultsFolder = {'test_WL_v2'};
+% ResultsFolder = {'test_WL_v2'};
+ResultsFolder = {'test_pp'};
 
 %% General information
 % experimental data to plot as reference
@@ -64,12 +65,12 @@ S.subt_orientation = 'default'; %'Reule2010''Parr2012'
 % This will always have the windlass mechanism.
 S.mtj = 1;              % 1: use a model with tmt joint (will override tmt)
 % plantar fascia
-S.PF_stiffness = 'Gefen2001'; % stiffness model for the gait simulation
+% S.PF_stiffness = 'Gefen2001'; % stiffness model for the gait simulation
 % S.PF_stiffness = 'Natali2010';
         % options: 'none''linear''Gefen2001''Cheng2008''Barrett2018''Natali2010'
-S.PF_slack_length = 0.135; % slack length (m)
+% S.PF_slack_length = 0.135; % slack length (m)
 % other ligaments (long, short planter ligament, etc)
-S.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
+% S.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
 % S.kMT_li = 200;         % angular stiffness in case of linear
 
 % PF reaction torque on mtp joint
@@ -128,7 +129,8 @@ if plot_validation || plot_default
         end
     else
         if isfield(S,'subject') && strcmp(S.subject,'subject1')
-            ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Fal_s1_bCst_ig24_v2_pp.mat';
+%             ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Fal_s1_bCst_ig24_v2_pp.mat';
+            ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\test_pp\Fal_s1_bCst_ig24_v2_pp.mat';
         elseif isfield(S,'subject') && strcmp(S.subject,'s1_Poggensee')
             ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pp.mat';
         else
@@ -167,7 +169,7 @@ if plot_validation || plot_default
     % call plot function
     Plot3D(filteredResultsWithRef,reference_data,pl)
 %     Plot3D(filteredResults,reference_data,pl)
-    % Plot3D(ref,reference_data,pl)
+%     Plot3D(ref,reference_data,pl)
 
 end
 

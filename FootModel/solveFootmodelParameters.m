@@ -1,12 +1,16 @@
-% Find the parameters for a new foot model (right foot), such that it is dynamically 
-% equivalent to the old footmodel, and to a more detailed footmodel.
+% Find the parameters for a new foot model (right foot), based on a more 
+% detailed footmodel.
 % Every joint is taken at its default angle of 0°. This means that the 0°
-% angle of the newly introduced m2.m.tmtj joint corresponds to its
-% rigid position in the old model.
+% angle of the newly introduced joint corresponds to its rigid position 
+% in the old model. 
+% The first 2 introduced models (a, b) are dynamically equivalent to the
+% original model. The third (c) is closer to the detailed model, because
+% the original model is not realistic enough. (Very flat foot, with centre
+% of mass high up.)
 
 % note: These functions are not needed to run any simulation, their only
 % purpose is to calculate parameters needed for the source code of the
-% external functions.
+% external functions. (\ExternalFunctions\CppFiles)
 
 % Parameter name explenation:
 % 1) Model used
@@ -38,6 +42,7 @@ clc
 %%
 add_tmtj = 0;
 add_mtj = 0;
+add_mtj2 = 1;
 
 %% parameters from original model
 % Pog s1
@@ -119,7 +124,7 @@ m2.gnd.talus2mtpj = m2.t.subt + m2.c.mtj + m2.m.tmtj + m2.f.mtpj;
 % a different person.
 % Distance from mtpj to com of calcn + midfoot + forefoot, since this vector can be specified in all 3 models.
 sf = m0.gnd.mtpj2cmfCOM./m2.gnd.mtpj2cmfCOM;
-% sf = m0.gnd.talus2mtpj./m2.gnd.talus2mtpj;
+
 
 % transform detailed model to ref frame
 m2.gnd.mtpj = m0.cmf.mtpj;
@@ -420,8 +425,6 @@ if add_mtj
 
 
     %% relating vectors to foot arch compression
-    % based on DOI: 10.1038/srep19403
-
     a = m1b.c.mtj(1:2);
     b = m1b.mf.mtpj(1:2);
 
@@ -454,436 +457,404 @@ if add_mtj
     
 end
 
-
-%%
-% vars = x;
-% vars(4) = vars(4)/2;
-% vars(7) = vars(7)/2;
-% vars(10) = vars(10)/2;
-% 
-% res = f_footmodel_add_mtj(vars,m0.cmf.m,m0.cmf.I,m0.cmf.COM,m2.c.m,m2.m.m,m2.f.m,m2.gnd.mtj2mfCOM,m2.gnd.mtj2cCOM,m1b.c.I,sf);
-% res'
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-% This part derives the skeletal and contact model parameters for a foot
-% with midtarsal joint in a more arbitrary way. The goal is to make the
-% foot arch dimensions more consistent with values found in literature.
+if add_mtj2
+    % This part derives the skeletal and contact model parameters for a foot
+    % with midtarsal joint in a more arbitrary way. The goal is to make the
+    % foot arch dimensions more consistent with values found in literature.
 
 
-% model 0 dof
-m0.t.mtpj = m0.t.subt + m0.cmf.mtpj;
-m0.t.cmfCOM = m0.t.subt + m0.cmf.COM;
+    % model 0 dof
+    m0.t.mtpj = m0.t.subt + m0.cmf.mtpj;
+    m0.t.cmfCOM = m0.t.subt + m0.cmf.COM;
 
-m0.t.cmfI = Steiner(-m0.t.cmfCOM,m0.cmf.I,m0.cmf.m);
+    m0.t.cmfI = Steiner(-m0.t.cmfCOM,m0.cmf.I,m0.cmf.m);
 
-m0.c.subt_st = [0.78717961, 0.60474746, -0.12094949]';
-m0.t.subt_st = m0.t.subt + m0.c.subt_st/10;
+    m0.c.subt_st = [0.78717961, 0.60474746, -0.12094949]';
+    m0.t.subt_st = m0.t.subt + m0.c.subt_st/10;
 
-m0j = [[0;0;0],m0.t.subt,m0.t.mtpj];
-m0c = m0.t.cmfCOM;
-m0st = [m0.t.subt,m0.t.subt_st];
+    m0j = [[0;0;0],m0.t.subt,m0.t.mtpj];
+    m0c = m0.t.cmfCOM;
+    m0st = [m0.t.subt,m0.t.subt_st];
 
 
-% model 2 dof
-m2.t.mtj = m2.t.subt + m2.c.mtj;
-m2.t.tmtj = m2.t.mtj + m2.m.tmtj;
-m2.t.mtpj = m2.t.tmtj + m2.f.mtpj;
+    % model 2 dof
+    m2.t.mtj = m2.t.subt + m2.c.mtj;
+    m2.t.tmtj = m2.t.mtj + m2.m.tmtj;
+    m2.t.mtpj = m2.t.tmtj + m2.f.mtpj;
 
-m2.c.subt_st = [-0.63276, -0.588866, 0.502838]';
-m2.t.subt_st = m2.t.subt + m2.c.subt_st/10;
+    m2.c.subt_st = [-0.63276, -0.588866, 0.502838]';
+    m2.t.subt_st = m2.t.subt + m2.c.subt_st/10;
 
-m2.t.PF(:,1) = m2.t.subt + m2.c.PF;
-m2.t.PF(:,2) = m2.t.tmtj + m2.f.PF;
+    m2.t.PF(:,1) = m2.t.subt + m2.c.PF;
+    m2.t.PF(:,2) = m2.t.tmtj + m2.f.PF;
 
-m2.t.LPL(:,1) = m2.t.subt + m2.c.LPL;
-m2.t.LPL(:,2) = m2.t.mtj + m2.m.LPL;
+    m2.t.LPL(:,1) = m2.t.subt + m2.c.LPL;
+    m2.t.LPL(:,2) = m2.t.mtj + m2.m.LPL;
 
-m2.t.SPL(:,1) = m2.t.subt + m2.c.SPL;
-m2.t.SPL(:,2) = m2.t.mtj + m2.m.SPL;
+    m2.t.SPL(:,1) = m2.t.subt + m2.c.SPL;
+    m2.t.SPL(:,2) = m2.t.mtj + m2.m.SPL;
 
-m2.t.ext_dig1 = m2.f.ext_dig + m2.t.tmtj;
-m2.t.ext_dig2 = m2.ts.ext_dig + m2.t.mtpj;
+    m2.t.ext_dig1 = m2.f.ext_dig + m2.t.tmtj;
+    m2.t.ext_dig2 = m2.ts.ext_dig + m2.t.mtpj;
 
-m2.t.ext_hal1 = m2.f.ext_hal + m2.t.tmtj;
-m2.t.ext_hal2 = m2.ts.ext_hal + m2.t.mtpj;
+    m2.t.ext_hal1 = m2.f.ext_hal + m2.t.tmtj;
+    m2.t.ext_hal2 = m2.ts.ext_hal + m2.t.mtpj;
 
-m2.t.cCOM = m2.t.subt + m2.c.COM;
-m2.t.mCOM = m2.t.mtj + m2.m.COM;
-m2.t.fCOM = m2.t.tmtj + m2.f.COM;
+    m2.t.cCOM = m2.t.subt + m2.c.COM;
+    m2.t.mCOM = m2.t.mtj + m2.m.COM;
+    m2.t.fCOM = m2.t.tmtj + m2.f.COM;
 
-m2.t.cmfCOM = (m2.t.cCOM*m2.c.m + m2.t.mCOM*m2.m.m + m2.t.fCOM*m2.f.m)/(m2.c.m+m2.m.m+m2.f.m);
+    m2.t.cmfCOM = (m2.t.cCOM*m2.c.m + m2.t.mCOM*m2.m.m + m2.t.fCOM*m2.f.m)/(m2.c.m+m2.m.m+m2.f.m);
 
-m_sf = m0.cmf.m/(m2.c.m+m2.m.m+m2.f.m);
+    m_sf = m0.cmf.m/(m2.c.m+m2.m.m+m2.f.m);
 
-m2j = [[0;0;0],m2.t.subt,m2.t.mtj,m2.t.tmtj,m2.t.mtpj];
-m2c = [m2.t.cCOM,m2.t.mCOM,m2.t.fCOM];
-m2st = [m2.t.subt,m2.t.subt_st];
+    m2j = [[0;0;0],m2.t.subt,m2.t.mtj,m2.t.tmtj,m2.t.mtpj];
+    m2c = [m2.t.cCOM,m2.t.mCOM,m2.t.fCOM];
+    m2st = [m2.t.subt,m2.t.subt_st];
 
-sf = m0.gnd.talus2mtpj./m2.gnd.talus2mtpj;
-sf(2) = 1;
+    sf = m0.gnd.talus2mtpj./m2.gnd.talus2mtpj;
+    sf(2) = 1;
 
-m2js(1,:) = m2j(1,:)*sf(1);
-m2js(2,:) = m2j(2,:)*sf(2);
-m2js(3,:) = m2j(3,:)*sf(3);
-m2cs(1,:) = m2c(1,:)*sf(1);
-m2cs(2,:) = m2c(2,:)*sf(2);
-m2cs(3,:) = m2c(3,:)*sf(3);
-m2.t.cmfCOM_s = m2.t.cmfCOM.*sf;
+    m2js(1,:) = m2j(1,:)*sf(1);
+    m2js(2,:) = m2j(2,:)*sf(2);
+    m2js(3,:) = m2j(3,:)*sf(3);
+    m2cs(1,:) = m2c(1,:)*sf(1);
+    m2cs(2,:) = m2c(2,:)*sf(2);
+    m2cs(3,:) = m2c(3,:)*sf(3);
+    m2.t.cmfCOM_s = m2.t.cmfCOM.*sf;
 
 
-% model 1 with mtj:
-diff = m0.t.mtpj(2) - m2.t.mtpj(2);
-m1c.t.subt = m0.t.subt;
-m1c.t.subt(2) = m1c.t.subt(2) - diff;
-m1c.t.mtj = m2.t.mtj.*sf;
-m1c.t.mtj(2) = m1c.t.mtj(2);
-m1c.t.mtpj = m0.t.mtpj;
-m1c.t.mtpj(2) = m1c.t.mtpj(2) - diff;
+    % model 1 with mtj:
+    diff = m0.t.mtpj(2) - m2.t.mtpj(2);
+    m1c.t.subt = m0.t.subt;
+    m1c.t.subt(2) = m1c.t.subt(2) - diff;
+    m1c.t.mtj = m2.t.mtj.*sf;
+    m1c.t.mtj(2) = m1c.t.mtj(2);
+    m1c.t.mtpj = m0.t.mtpj;
+    m1c.t.mtpj(2) = m1c.t.mtpj(2) - diff;
 
-m1c.c.mtj = m1c.t.mtj - m1c.t.subt;
-m1c.mf.mtpj = m1c.t.mtpj - m1c.t.mtj;
+    m1c.c.mtj = m1c.t.mtj - m1c.t.subt;
+    m1c.mf.mtpj = m1c.t.mtpj - m1c.t.mtj;
 
-m1c.t.cCOM = m2.t.cCOM.*sf;
-m1c.t.cCOM(2) = m1c.t.cCOM(2) + 0.01;
-m1c.t.mfCOM = (m2.t.mCOM*m2.m.m + m2.t.fCOM*m2.f.m)/(m2.m.m+m2.f.m).*sf;
-m1c.t.mfCOM(2) = m1c.t.mfCOM(2);
-m1c.t.cmfCOM = m0.t.cmfCOM;
-m1c.t.cmfCOM(2) = m2.t.cmfCOM_s(2);
+    m1c.t.cCOM = m2.t.cCOM.*sf;
+    m1c.t.cCOM(2) = m1c.t.cCOM(2) + 0.01;
+    m1c.t.mfCOM = (m2.t.mCOM*m2.m.m + m2.t.fCOM*m2.f.m)/(m2.m.m+m2.f.m).*sf;
+    m1c.t.mfCOM(2) = m1c.t.mfCOM(2);
+    m1c.t.cmfCOM = m0.t.cmfCOM;
+    m1c.t.cmfCOM(2) = m2.t.cmfCOM_s(2);
 
-m1c.c.m = m2.c.m*m_sf;
-m1c.mf.m = (m2.m.m+m2.f.m)*m_sf;
+    m1c.c.m = m2.c.m*m_sf;
+    m1c.mf.m = (m2.m.m+m2.f.m)*m_sf;
 
-m1c.c.COM = m1c.t.cCOM - m1c.t.subt;
-m1c.mf.COM = m1c.t.mfCOM - m1c.t.mtj;
+    m1c.c.COM = m1c.t.cCOM - m1c.t.subt;
+    m1c.mf.COM = m1c.t.mfCOM - m1c.t.mtj;
 
-m1c.t.PF(:,1) = m2.t.PF(:,1).*sf;
-m1c.t.PF(:,2) = m2.t.PF(:,2).*sf;
-m1c.c.PF = m1c.t.PF(:,1) - m1c.t.subt;
-m1c.mf.PF = m1c.t.PF(:,1) - m1c.t.mtj;
+    m1c.t.PF(:,1) = m2.t.PF(:,1).*sf;
+    m1c.t.PF(:,2) = m2.t.PF(:,2).*sf;
+    m1c.c.PF = m1c.t.PF(:,1) - m1c.t.subt;
+    m1c.mf.PF = m1c.t.PF(:,1) - m1c.t.mtj;
 
-m1c.t.LPL(:,1) = m2.t.LPL(:,1).*sf;
-m1c.t.LPL(:,2) = m2.t.LPL(:,2).*sf;
+    m1c.t.LPL(:,1) = m2.t.LPL(:,1).*sf;
+    m1c.t.LPL(:,2) = m2.t.LPL(:,2).*sf;
 
-m1c.t.SPL(:,1) = m2.t.SPL(:,1).*sf;
-m1c.t.SPL(:,2) = m2.t.SPL(:,2).*sf;
-
-m1c.t.ext_dig1 = m2.t.ext_dig1.*sf;
-m1c.t.ext_dig2 = m2.t.ext_dig2.*sf;
-
-m1c.t.ext_hal1 = m2.t.ext_hal1.*sf;
-m1c.t.ext_hal2 = m2.t.ext_hal2.*sf;
-
-m1c_j = [[0;0;0],m1c.t.subt,m1c.t.mtj,m1c.t.mtpj];
-m1c_c = [m1c.t.cCOM,m1c.t.mfCOM];
-
-Icx = 0.08842e-3;     %kg m^2 /kg (normalised with cmf mass)
-Icy = 0.1807e-3;
-Icz = 0.2077e-3;
-m1c.c.I = [Icx; Icy; Icz]*m0.cmf.m;
-
-m1c.t.cI = Steiner(-m1c.t.cCOM,m1c.c.I,m1c.c.m);
-
-m1c.mf.I = [0;0;0]; %initialise
-m1c.t.mfI = Steiner(-m1c.t.mfCOM,m1c.mf.I,m1c.mf.m);
-
-m0.t.cmfI = Steiner(-m1c.t.cmfCOM,m0.cmf.I,m0.cmf.m);
-
-I_res = m0.t.cmfI - (m1c.t.cI + m1c.t.mfI); % resultant error is I_mf value to satisfy
-m1c.mf.I = I_res;
-
-locSphere_3_r_new = locSphere_3_r - m1c.c.mtj';
-locSphere_4_r_new = locSphere_4_r - m1c.c.mtj';
-
-m1c.mf.ls3 = locSphere_3_r_new';
-m1c.mf.ls4 = locSphere_4_r_new';
-
-m1c.t.ls1 = m1c.t.subt + locSphere_1_r';
-m1c.t.ls2 = m1c.t.subt + locSphere_2_r';
-m1c.t.ls3 = m1c.t.mtj + m1c.mf.ls3;
-m1c.t.ls4 = m1c.t.mtj + m1c.mf.ls4;
-m1c.t.ls5 = m1c.t.mtpj + locSphere_5_r';
-m1c.t.ls6 = m1c.t.mtpj + locSphere_6_r';
-
-locSps = [m1c.t.ls1,m1c.t.ls2,m1c.t.ls3,m1c.t.ls4,m1c.t.ls5,m1c.t.ls6];
-radSps = [rS1,rS2,rS3,rS4,rS5,rS6];
-
-figure
-subplot(2,1,1)
-viscircles(locSps(1:2,:)',radSps(:),'Color','c');
-hold on
-grid on
-
-plot(m2j(1,:),m2j(2,:),'ob')
-plot(m2c(1,:),m2c(2,:),'xb')
-plot(m2.t.cmfCOM(1),m2.t.cmfCOM(2),'*b')
-% plot(m2st(1,:),m2st(2,:),'--b')
-plot(m2.t.PF(1,:),m2.t.PF(2,:),'b')
-
-plot(m2js(1,:),m2js(2,:),'ok')
-plot(m2js(1,:),m2js(2,:),'.k')
-plot(m2cs(1,:),m2cs(2,:),'xk')
-plot(m2.t.cmfCOM_s(1),m2.t.cmfCOM_s(2),'*k')
-
-plot(m0j(1,:),m0j(2,:),'og')
-plot(m0c(1,:),m0c(2,:),'xg')
-% plot(m0st(1,:),m0st(2,:),'--g')
-
-plot(m1c_j(1,:),m1c_j(2,:),'or')
-plot(m1c_c(1,:),m1c_c(2,:),'xr')
-plot(m1c.t.PF(1,:),m1c.t.PF(2,:),'-dr')
-
-axis equal
-title('Right foot side view')
-xlabel('x')
-ylabel('y')
-
-subplot(2,1,2)
-viscircles(locSps([1,3],:)',radSps(:),'Color','c');
-hold on
-grid on
-
-plot(m2j(1,:),m2j(3,:),'ob')
-plot(m2c(1,:),m2c(3,:),'xb')
-plot(m2.t.cmfCOM(1),m2.t.cmfCOM(3),'*b')
-% plot(m2st(1,:),m2st(3,:),'--b')
-plot(m2.t.PF(1,:),m2.t.PF(3,:),'b')
-
-plot(m2js(1,:),m2js(3,:),'ok')
-plot(m2js(1,:),m2js(3,:),'.k')
-plot(m2cs(1,:),m2cs(3,:),'xk')
-plot(m2.t.cmfCOM_s(1),m2.t.cmfCOM_s(3),'*k')
-
-plot(m0j(1,:),m0j(3,:),'og')
-plot(m0c(1,:),m0c(3,:),'xg')
-% plot(m0st(1,:),m0st(3,:),'--g')
-
-plot(m1c_j(1,:),m1c_j(3,:),'or')
-plot(m1c_c(1,:),m1c_c(3,:),'xr')
-plot(m1c.t.PF(1,:),m1c.t.PF(3,:),'-dr')
-
-axis equal
-title('Right foot bottom view')
-xlabel('x')
-ylabel('z')
-
-%% Get source code lines
-N = 5; % amount of decimals
-
-disp(['calcn_l = new OpenSim::Body("calcn_l", ' num2str(m1c.c.m,N)...
-', Vec3(' num2str(m1c.c.COM(1),N) ', ' num2str(m1c.c.COM(2),N) ', ' num2str(-m1c.c.COM(3),N)...
-    '), Inertia(' num2str(m1c.c.I(1),N) ', ' num2str(m1c.c.I(2),N) ', ' num2str(m1c.c.I(3),N) ', 0, 0, 0));']);
-disp(['calcn_r = new OpenSim::Body("calcn_r", ' num2str(m1c.c.m,N)...
-', Vec3(' num2str(m1c.c.COM(1),N) ', ' num2str(m1c.c.COM(2),N) ', ' num2str(m1c.c.COM(3),N)...
-    '), Inertia(' num2str(m1c.c.I(1),N) ', ' num2str(m1c.c.I(2),N) ', ' num2str(m1c.c.I(3),N) ', 0, 0, 0));']);
-
-disp(['metatarsi_l = new OpenSim::Body("metatarsi_l", ' num2str(m1c.mf.m,N)...
-    ', Vec3(' num2str(m1c.mf.COM(1),N) ', ' num2str(m1c.mf.COM(2),N) ', ' num2str(-m1c.mf.COM(3),N)...
-    '), Inertia(' num2str(m1c.mf.I(1),N) ', ' num2str(m1c.mf.I(2),N) ', ' num2str(m1c.mf.I(3),N) ', 0, 0, 0));']);
-disp(['metatarsi_r = new OpenSim::Body("metatarsi_r", ' num2str(m1c.mf.m,N)...
-    ', Vec3(' num2str(m1c.mf.COM(1),N) ', ' num2str(m1c.mf.COM(2),N) ', ' num2str(m1c.mf.COM(3),N)...
-    '), Inertia(' num2str(m1c.mf.I(1),N) ', ' num2str(m1c.mf.I(2),N) ', ' num2str(m1c.mf.I(3),N) ', 0, 0, 0));']);
-
-disp(['subtalar_l = new CustomJoint("subtalar_l", *talus_l, Vec3('...
-    num2str(m1c.t.subt(1),N) ', ' num2str(m1c.t.subt(2),N) ', ' num2str(-m1c.t.subt(3),N)...
-    '), Vec3(0), *calcn_l, Vec3(0), Vec3(0), st_subtalar_l);']);
-disp(['subtalar_r = new CustomJoint("subtalar_r", *talus_r, Vec3('...
-    num2str(m1c.t.subt(1),N) ', ' num2str(m1c.t.subt(2),N) ', ' num2str(m1c.t.subt(3),N)...
-    '), Vec3(0), *calcn_r, Vec3(0), Vec3(0), st_subtalar_r);']);
-
-disp(['midtarsal_l = new PinJoint("midtarsal_l", *calcn_l, Vec3('...
-    num2str(m1c.c.mtj(1),N) ', ' num2str(m1c.c.mtj(2),N) ', ' num2str(-m1c.c.mtj(3),N)...
-    '), Vec3(0), *metatarsi_l, Vec3(0), Vec3(0));']);
-disp(['midtarsal_r = new PinJoint("midtarsal_r", *calcn_r, Vec3('...
-    num2str(m1c.c.mtj(1),N) ', ' num2str(m1c.c.mtj(2),N) ', ' num2str(m1c.c.mtj(3),N)...
-    '), Vec3(0), *metatarsi_r, Vec3(0), Vec3(0));']);
-
-disp(['mtp_l = new PinJoint("mtp_l", *metatarsi_l, Vec3('...
-    num2str(m1c.mf.mtpj(1),N) ', ' num2str(m1c.mf.mtpj(2),N) ', ' num2str(-m1c.mf.mtpj(3),N)...
-    '), Vec3(0), *toes_l, Vec3(0), Vec3(0));']);
-disp(['mtp_r = new PinJoint("mtp_r", *metatarsi_r, Vec3('...
-    num2str(m1c.mf.mtpj(1),N) ', ' num2str(m1c.mf.mtpj(2),N) ', ' num2str(m1c.mf.mtpj(3),N)...
-    '), Vec3(0), *toes_r, Vec3(0), Vec3(0));']);
-
-
-disp(['Vec3 locSphere_3_r(' num2str(m1c.mf.ls3(1)) ', ' num2str(m1c.mf.ls3(2)) ', ' num2str(m1c.mf.ls3(3)) ');']);
-disp(['Vec3 locSphere_4_r(' num2str(m1c.mf.ls4(1)) ', ' num2str(m1c.mf.ls4(2)) ', ' num2str(m1c.mf.ls4(3)) ');']);
-
-
-
-%% relating vectors to foot arch compression
-
-a = m1c.c.mtj(1:2);
-b = m1c.mf.mtpj(1:2);
-
-
-l_0 = norm(a+b);
-h0 = -b(2);
-
-c0 = acos(h0/norm(a));
-d0 = acos(h0/norm(b));
-
-beta0 = (c0+d0)*180/pi;
-
-disp(['calcn2mtj = ' num2str(norm(a)) ';']);
-disp(['mtj2mtpj = ' num2str(norm(b)) ';']);
-disp(['beta0 = ' num2str(beta0*pi/180) ';']);
-
-
-%% relating vectors to windlass geometry in neutral position
-% 3D
-% plantar fascia
-% vec_a = m1c.t.mtj - m1c.t.PF(:,1); % calcaneal insertion of PF to mtj
-% vec_b = m1c.t.PF(:,2) - m1c.t.mtj; % mtj to PF "connection" to metatarsi
-% long plantar ligament
-% vec_a = m1c.t.mtj - m1c.t.LPL(:,1);
-% vec_b = m1c.t.LPL(:,2) - m1c.t.mtj;
-% short plantar ligament
-vec_a = m1c.t.mtj - m1c.t.SPL(:,1);
-vec_b = m1c.t.SPL(:,2) - m1c.t.mtj;
-
-vec_c = vec_a + vec_b; % PF
-
-vec_ap = dot(vec_a,vec_c)/dot(vec_c,vec_c)*vec_c; % orthogonal projection of a onto c
-vec_an = vec_a - vec_ap; % component of a that is normal to c 
-
-% parallel to sagittal plane (xy)
-l_PF_fa = norm(vec_c(1:2)); % length of PF spanning foot arch
-MA_PF = abs(norm(vec_an(1:2))); % moment arm of PF force onto mtj
-
-a_PF = norm(vec_a(1:2));
-b_PF = norm(vec_b(1:2));
-phi0 = acos( (l_PF_fa^2 - a_PF^2 - b_PF^2)/(-2*a_PF*b_PF) );
-
-disp(['calcnPF2mtj = ' num2str(a_PF) ';']);
-disp(['mtj2mttPF = ' num2str(b_PF) ';']);
-disp(['phi0 = ' num2str(phi0) ';']);
-
-
-%% approximate momentarm for mtp muscles
-% ext_dig_r
-vec_a = m1c.t.mtpj - m1c.t.ext_dig1;
-vec_b = m1c.t.ext_dig2 - m1c.t.mtpj;
-
-a = norm(vec_a(1:2));
-b = norm(vec_b(1:2));
-c = norm(vec_c(1:2));
-alpha = acos( (c^2 - a^2 - b^2)/(-2*a*b) );
-
-disp(['ext_dig2mtpj = ' num2str(a) ';']);
-disp(['mtpj2ext_dig = ' num2str(b) ';']);
-disp(['phi0 = ' num2str(alpha) ';']);
-
-% ext_hal_r
-vec_a = m1c.t.mtpj - m1c.t.ext_hal1;
-vec_b = m1c.t.ext_hal2 - m1c.t.mtpj;
-
-a = norm(vec_a(1:2));
-b = norm(vec_b(1:2));
-c = norm(vec_c(1:2));
-alpha = acos( (c^2 - a^2 - b^2)/(-2*a*b) );
-
-disp(['ext_hal2mtpj = ' num2str(a) ';']);
-disp(['mtpj2ext_hal = ' num2str(b) ';']);
-disp(['phi0 = ' num2str(alpha) ';']);
-
-
-%% subtalar joint axis orientation
-% original
-alpha_st = atan(m0.c.subt_st(2)/m0.c.subt_st(1))*180/pi;
-beta_st = atan(-m0.c.subt_st(3)/m0.c.subt_st(1))*180/pi;
-
-incl1 = alpha_st*pi/180;
-dev1 = beta_st*pi/180;
-
-R1 = [cos(incl1),-sin(incl1),0;
-     sin(incl1),cos(incl1),0;
-     0,0,1];
-R2 = [cos(dev1),0,sin(dev1);
-     0,1,0;
-     -sin(dev1),0,cos(dev1)];
-
-st_subt1 = R2*R1*[1;0;0];
-
-m0.c.subt_st;
-
-% doi:10.1136/bjsm.2010.080119
-incl2 = 42*pi/180; % +-16
-dev2 = 11*pi/180; % +-23
-
-R1 = [cos(incl2),-sin(incl2),0;
-     sin(incl2),cos(incl2),0;
-     0,0,1];
-R2 = [cos(dev2),0,sin(dev2);
-     0,1,0;
-     -sin(dev2),0,cos(dev2)];
-
-st_subt2 = R2*R1*[1;0;0];
-norm(st_subt2);
-
-% doi:10.1016/j.jbiomech.2012.01.011
-incl3 = 45.5*pi/180; % std 3.4
-dev3 = 5*pi/180; % std3.8
-
-
-R1 = [cos(incl3),-sin(incl3),0;
-     sin(incl3),cos(incl3),0;
-     0,0,1];
-R2 = [cos(dev3),0,sin(dev3);
-     0,1,0;
-     -sin(dev3),0,cos(dev3)];
-
-st_subt3 = R2*R1*[1;0;0];
-norm(st_subt3);
-
-
-%%
-subt1 = [m1c.t.subt, m1c.t.subt + st_subt1/10];
-subt2 = [m1c.t.subt, m1c.t.subt + st_subt2/10];
-subt3 = [m1c.t.subt, m1c.t.subt + st_subt3/10];
-
-% axis has to pas through x and z of talus origin
-offset2z = -interp1(subt2(1,:),subt2(3,:),0);
-subt2(3,:) = subt2(3,:) + offset2z;
-
-% axis has to pas through talus origin
-offset3z = -interp1(subt3(1,:),subt3(3,:),0);
-subt3(3,:) = subt3(3,:) + offset3z;
-
-offset3y = -interp1(subt3(1,:),subt3(2,:),0);
-subt3(2,:) = subt3(2,:) + offset3y;
-
-figure
-subplot(2,1,1)
-hold on
-grid on
-
-plot(m1c_j(1,:),m1c_j(2,:),'or')
-plot(m1c_c(1,:),m1c_c(2,:),'xr')
-plot(subt1(1,:),subt1(2,:))
-plot(subt2(1,:),subt2(2,:))
-plot(subt3(1,:),subt3(2,:))
-
-plot(locSps(1,:),locSps(2,:),'*c')
-axis equal
-
-subplot(2,1,2)
-hold on
-grid on
-
-plot(m1c_j(1,:),m1c_j(3,:),'or')
-plot(m1c_c(1,:),m1c_c(3,:),'xr')
-plot(subt1(1,:),subt1(3,:))
-plot(subt2(1,:),subt2(3,:))
-plot(subt3(1,:),subt3(3,:))
-
-plot(locSps(1,:),locSps(3,:),'*c')
-axis equal
-
-
-
-%%
+    m1c.t.SPL(:,1) = m2.t.SPL(:,1).*sf;
+    m1c.t.SPL(:,2) = m2.t.SPL(:,2).*sf;
+
+    m1c.t.ext_dig1 = m2.t.ext_dig1.*sf;
+    m1c.t.ext_dig2 = m2.t.ext_dig2.*sf;
+
+    m1c.t.ext_hal1 = m2.t.ext_hal1.*sf;
+    m1c.t.ext_hal2 = m2.t.ext_hal2.*sf;
+
+    m1c_j = [[0;0;0],m1c.t.subt,m1c.t.mtj,m1c.t.mtpj];
+    m1c_c = [m1c.t.cCOM,m1c.t.mfCOM];
+
+    Icx = 0.08842e-3;     %kg m^2 /kg (normalised with cmf mass)
+    Icy = 0.1807e-3;
+    Icz = 0.2077e-3;
+    m1c.c.I = [Icx; Icy; Icz]*m0.cmf.m;
+
+    m1c.t.cI = Steiner(-m1c.t.cCOM,m1c.c.I,m1c.c.m);
+
+    m1c.mf.I = [0;0;0]; %initialise
+    m1c.t.mfI = Steiner(-m1c.t.mfCOM,m1c.mf.I,m1c.mf.m);
+
+    m0.t.cmfI = Steiner(-m1c.t.cmfCOM,m0.cmf.I,m0.cmf.m);
+
+    I_res = m0.t.cmfI - (m1c.t.cI + m1c.t.mfI); % resultant error is I_mf value to satisfy
+    m1c.mf.I = I_res;
+
+    locSphere_3_r_new = locSphere_3_r - m1c.c.mtj';
+    locSphere_4_r_new = locSphere_4_r - m1c.c.mtj';
+
+    m1c.mf.ls3 = locSphere_3_r_new';
+    m1c.mf.ls4 = locSphere_4_r_new';
+
+    m1c.t.ls1 = m1c.t.subt + locSphere_1_r';
+    m1c.t.ls2 = m1c.t.subt + locSphere_2_r';
+    m1c.t.ls3 = m1c.t.mtj + m1c.mf.ls3;
+    m1c.t.ls4 = m1c.t.mtj + m1c.mf.ls4;
+    m1c.t.ls5 = m1c.t.mtpj + locSphere_5_r';
+    m1c.t.ls6 = m1c.t.mtpj + locSphere_6_r';
+
+    locSps = [m1c.t.ls1,m1c.t.ls2,m1c.t.ls3,m1c.t.ls4,m1c.t.ls5,m1c.t.ls6];
+    radSps = [rS1,rS2,rS3,rS4,rS5,rS6];
+
+    figure
+    subplot(2,1,1)
+    viscircles(locSps(1:2,:)',radSps(:),'Color','c');
+    hold on
+    grid on
+
+    plot(m2j(1,:),m2j(2,:),'ob')
+    plot(m2c(1,:),m2c(2,:),'xb')
+    plot(m2.t.cmfCOM(1),m2.t.cmfCOM(2),'*b')
+    % plot(m2st(1,:),m2st(2,:),'--b')
+    plot(m2.t.PF(1,:),m2.t.PF(2,:),'b')
+
+    plot(m2js(1,:),m2js(2,:),'ok')
+    plot(m2js(1,:),m2js(2,:),'.k')
+    plot(m2cs(1,:),m2cs(2,:),'xk')
+    plot(m2.t.cmfCOM_s(1),m2.t.cmfCOM_s(2),'*k')
+
+    plot(m0j(1,:),m0j(2,:),'og')
+    plot(m0c(1,:),m0c(2,:),'xg')
+    % plot(m0st(1,:),m0st(2,:),'--g')
+
+    plot(m1c_j(1,:),m1c_j(2,:),'or')
+    plot(m1c_c(1,:),m1c_c(2,:),'xr')
+    plot(m1c.t.PF(1,:),m1c.t.PF(2,:),'-dr')
+
+    axis equal
+    title('Right foot side view')
+    xlabel('x')
+    ylabel('y')
+
+    subplot(2,1,2)
+    viscircles(locSps([1,3],:)',radSps(:),'Color','c');
+    hold on
+    grid on
+
+    plot(m2j(1,:),m2j(3,:),'ob')
+    plot(m2c(1,:),m2c(3,:),'xb')
+    plot(m2.t.cmfCOM(1),m2.t.cmfCOM(3),'*b')
+    % plot(m2st(1,:),m2st(3,:),'--b')
+    plot(m2.t.PF(1,:),m2.t.PF(3,:),'b')
+
+    plot(m2js(1,:),m2js(3,:),'ok')
+    plot(m2js(1,:),m2js(3,:),'.k')
+    plot(m2cs(1,:),m2cs(3,:),'xk')
+    plot(m2.t.cmfCOM_s(1),m2.t.cmfCOM_s(3),'*k')
+
+    plot(m0j(1,:),m0j(3,:),'og')
+    plot(m0c(1,:),m0c(3,:),'xg')
+    % plot(m0st(1,:),m0st(3,:),'--g')
+
+    plot(m1c_j(1,:),m1c_j(3,:),'or')
+    plot(m1c_c(1,:),m1c_c(3,:),'xr')
+    plot(m1c.t.PF(1,:),m1c.t.PF(3,:),'-dr')
+
+    axis equal
+    title('Right foot bottom view')
+    xlabel('x')
+    ylabel('z')
+
+    %% Get source code lines
+    N = 5; % amount of decimals
+
+    disp('      source code, bodies:');
+    
+    disp(['calcn_l = new OpenSim::Body("calcn_l", ' num2str(m1c.c.m,N)...
+    ', Vec3(' num2str(m1c.c.COM(1),N) ', ' num2str(m1c.c.COM(2),N) ', ' num2str(-m1c.c.COM(3),N)...
+        '), Inertia(' num2str(m1c.c.I(1),N) ', ' num2str(m1c.c.I(2),N) ', ' num2str(m1c.c.I(3),N) ', 0, 0, 0));']);
+    disp(['calcn_r = new OpenSim::Body("calcn_r", ' num2str(m1c.c.m,N)...
+    ', Vec3(' num2str(m1c.c.COM(1),N) ', ' num2str(m1c.c.COM(2),N) ', ' num2str(m1c.c.COM(3),N)...
+        '), Inertia(' num2str(m1c.c.I(1),N) ', ' num2str(m1c.c.I(2),N) ', ' num2str(m1c.c.I(3),N) ', 0, 0, 0));']);
+
+    disp(['metatarsi_l = new OpenSim::Body("metatarsi_l", ' num2str(m1c.mf.m,N)...
+        ', Vec3(' num2str(m1c.mf.COM(1),N) ', ' num2str(m1c.mf.COM(2),N) ', ' num2str(-m1c.mf.COM(3),N)...
+        '), Inertia(' num2str(m1c.mf.I(1),N) ', ' num2str(m1c.mf.I(2),N) ', ' num2str(m1c.mf.I(3),N) ', 0, 0, 0));']);
+    disp(['metatarsi_r = new OpenSim::Body("metatarsi_r", ' num2str(m1c.mf.m,N)...
+        ', Vec3(' num2str(m1c.mf.COM(1),N) ', ' num2str(m1c.mf.COM(2),N) ', ' num2str(m1c.mf.COM(3),N)...
+        '), Inertia(' num2str(m1c.mf.I(1),N) ', ' num2str(m1c.mf.I(2),N) ', ' num2str(m1c.mf.I(3),N) ', 0, 0, 0));']);
+
+    disp('      source code, joints:');
+    
+    disp(['subtalar_l = new CustomJoint("subtalar_l", *talus_l, Vec3('...
+        num2str(m1c.t.subt(1),N) ', ' num2str(m1c.t.subt(2),N) ', ' num2str(-m1c.t.subt(3),N)...
+        '), Vec3(0), *calcn_l, Vec3(0), Vec3(0), st_subtalar_l);']);
+    disp(['subtalar_r = new CustomJoint("subtalar_r", *talus_r, Vec3('...
+        num2str(m1c.t.subt(1),N) ', ' num2str(m1c.t.subt(2),N) ', ' num2str(m1c.t.subt(3),N)...
+        '), Vec3(0), *calcn_r, Vec3(0), Vec3(0), st_subtalar_r);']);
+
+    disp(['midtarsal_l = new PinJoint("midtarsal_l", *calcn_l, Vec3('...
+        num2str(m1c.c.mtj(1),N) ', ' num2str(m1c.c.mtj(2),N) ', ' num2str(-m1c.c.mtj(3),N)...
+        '), Vec3(0), *metatarsi_l, Vec3(0), Vec3(0));']);
+    disp(['midtarsal_r = new PinJoint("midtarsal_r", *calcn_r, Vec3('...
+        num2str(m1c.c.mtj(1),N) ', ' num2str(m1c.c.mtj(2),N) ', ' num2str(m1c.c.mtj(3),N)...
+        '), Vec3(0), *metatarsi_r, Vec3(0), Vec3(0));']);
+
+    disp(['mtp_l = new PinJoint("mtp_l", *metatarsi_l, Vec3('...
+        num2str(m1c.mf.mtpj(1),N) ', ' num2str(m1c.mf.mtpj(2),N) ', ' num2str(-m1c.mf.mtpj(3),N)...
+        '), Vec3(0), *toes_l, Vec3(0), Vec3(0));']);
+    disp(['mtp_r = new PinJoint("mtp_r", *metatarsi_r, Vec3('...
+        num2str(m1c.mf.mtpj(1),N) ', ' num2str(m1c.mf.mtpj(2),N) ', ' num2str(m1c.mf.mtpj(3),N)...
+        '), Vec3(0), *toes_r, Vec3(0), Vec3(0));']);
+
+    disp('      source code, contact spheres:');
+    
+    disp(['Vec3 locSphere_3_r(' num2str(m1c.mf.ls3(1)) ', ' num2str(m1c.mf.ls3(2)) ', ' num2str(m1c.mf.ls3(3)) ');']);
+    disp(['Vec3 locSphere_4_r(' num2str(m1c.mf.ls4(1)) ', ' num2str(m1c.mf.ls4(2)) ', ' num2str(m1c.mf.ls4(3)) ');']);
+
+
+
+    %% relating vectors to foot arch compression
+
+    a = m1c.c.mtj(1:2);
+    b = m1c.mf.mtpj(1:2);
+
+
+    l_0 = norm(a+b);
+    h0 = -b(2);
+
+    c0 = acos(h0/norm(a));
+    d0 = acos(h0/norm(b));
+
+    beta0 = (c0+d0)*180/pi;
+
+    disp('      foot arch geometry:');
+    disp(['calcn2mtj = ' num2str(norm(a)) ';']);
+    disp(['mtj2mtpj = ' num2str(norm(b)) ';']);
+    disp(['beta0 = ' num2str(beta0*pi/180) ';']);
+
+
+    %% relating vectors to windlass geometry in neutral position
+    % 3D
+    % plantar fascia
+    vec_a = m1c.t.mtj - m1c.t.PF(:,1); % calcaneal insertion of PF to mtj
+    vec_b = m1c.t.PF(:,2) - m1c.t.mtj; % mtj to PF "connection" to metatarsi
+    % long plantar ligament
+%     vec_a = m1c.t.mtj - m1c.t.LPL(:,1);
+%     vec_b = m1c.t.LPL(:,2) - m1c.t.mtj;
+    % short plantar ligament
+%     vec_a = m1c.t.mtj - m1c.t.SPL(:,1);
+%     vec_b = m1c.t.SPL(:,2) - m1c.t.mtj;
+
+    vec_c = vec_a + vec_b; % PF
+
+    vec_ap = dot(vec_a,vec_c)/dot(vec_c,vec_c)*vec_c; % orthogonal projection of a onto c
+    vec_an = vec_a - vec_ap; % component of a that is normal to c 
+
+    % parallel to sagittal plane (xy)
+    l_PF_fa = norm(vec_c(1:2)); % length of PF spanning foot arch
+    MA_PF = abs(norm(vec_an(1:2))); % moment arm of PF force onto mtj
+
+    a_PF = norm(vec_a(1:2));
+    b_PF = norm(vec_b(1:2));
+    phi0 = acos( (l_PF_fa^2 - a_PF^2 - b_PF^2)/(-2*a_PF*b_PF) );
+
+    disp('      windlass mechanism geometry:');
+    disp(['calcnPF2mtj = ' num2str(a_PF) ';']);
+    disp(['mtj2mttPF = ' num2str(b_PF) ';']);
+    disp(['phi0 = ' num2str(phi0) ';']);
+
+    %% subtalar joint axis orientation
+    % original
+    alpha_st = atan(m0.c.subt_st(2)/m0.c.subt_st(1))*180/pi;
+    beta_st = atan(-m0.c.subt_st(3)/m0.c.subt_st(1))*180/pi;
+
+    incl1 = alpha_st*pi/180;
+    dev1 = beta_st*pi/180;
+
+    R1 = [cos(incl1),-sin(incl1),0;
+         sin(incl1),cos(incl1),0;
+         0,0,1];
+    R2 = [cos(dev1),0,sin(dev1);
+         0,1,0;
+         -sin(dev1),0,cos(dev1)];
+
+    st_subt1 = R2*R1*[1;0;0];
+
+    m0.c.subt_st;
+
+    % doi:10.1136/bjsm.2010.080119
+    incl2 = 42*pi/180; % +-16
+    dev2 = 11*pi/180; % +-23
+
+    R1 = [cos(incl2),-sin(incl2),0;
+         sin(incl2),cos(incl2),0;
+         0,0,1];
+    R2 = [cos(dev2),0,sin(dev2);
+         0,1,0;
+         -sin(dev2),0,cos(dev2)];
+
+    st_subt2 = R2*R1*[1;0;0];
+    norm(st_subt2);
+
+    % doi:10.1016/j.jbiomech.2012.01.011
+    incl3 = 45.5*pi/180; % std 3.4
+    dev3 = 5*pi/180; % std3.8
+
+
+    R1 = [cos(incl3),-sin(incl3),0;
+         sin(incl3),cos(incl3),0;
+         0,0,1];
+    R2 = [cos(dev3),0,sin(dev3);
+         0,1,0;
+         -sin(dev3),0,cos(dev3)];
+
+    st_subt3 = R2*R1*[1;0;0];
+    norm(st_subt3);
+
+
+    %%
+    subt1 = [m1c.t.subt, m1c.t.subt + st_subt1/10];
+    subt2 = [m1c.t.subt, m1c.t.subt + st_subt2/10];
+    subt3 = [m1c.t.subt, m1c.t.subt + st_subt3/10];
+
+    % axis has to pas through x and z of talus origin
+    offset2z = -interp1(subt2(1,:),subt2(3,:),0);
+    subt2(3,:) = subt2(3,:) + offset2z;
+
+    % axis has to pas through talus origin
+    offset3z = -interp1(subt3(1,:),subt3(3,:),0);
+    subt3(3,:) = subt3(3,:) + offset3z;
+
+    offset3y = -interp1(subt3(1,:),subt3(2,:),0);
+    subt3(2,:) = subt3(2,:) + offset3y;
+
+    figure
+    subplot(2,1,1)
+    hold on
+    grid on
+
+    plot(m1c_j(1,:),m1c_j(2,:),'or')
+    plot(m1c_c(1,:),m1c_c(2,:),'xr')
+    plot(subt1(1,:),subt1(2,:))
+    plot(subt2(1,:),subt2(2,:))
+    plot(subt3(1,:),subt3(2,:))
+
+    plot(locSps(1,:),locSps(2,:),'*c')
+    axis equal
+
+    subplot(2,1,2)
+    hold on
+    grid on
+
+    plot(m1c_j(1,:),m1c_j(3,:),'or')
+    plot(m1c_c(1,:),m1c_c(3,:),'xr')
+    plot(subt1(1,:),subt1(3,:))
+    plot(subt2(1,:),subt2(3,:))
+    plot(subt3(1,:),subt3(3,:))
+
+    plot(locSps(1,:),locSps(3,:),'*c')
+    axis equal
+
+end
+
+%% So I don't have to type Steiner's theorem every time
 function I_new = Steiner(vec1,I_com,mass)
     I_new = I_com + mass*(vec1'*vec1*eye(3) - vec1*vec1')*ones(3,1);
 

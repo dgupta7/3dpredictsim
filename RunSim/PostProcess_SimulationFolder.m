@@ -15,10 +15,11 @@ addpath([pwd,'/MuscleModel']);
 addpath([pwd,'/Debug']);
 addpath([pwd '/VariousFunctions']);
 AddCasadiPaths();
-DataFolders = {'test_WL_v2'};
+% DataFolders = {'test_WL_v2'};
+DataFolders = {'test_pp'};
 
 
-S.OverWrite = 1;
+S.OverWrite = 0;
 
 %% Post process the simulations
 
@@ -38,20 +39,20 @@ for f = 1:nF
             FolderIndex(ct) = f;
             ct= ct+1;
             if (~exist(OutName,'file') || S.OverWrite == 1)
-                try
-%                     f_LoadSim_Gait92_tmt_ia(DataFolders{f},filename);
+%                 try
+% %                     f_LoadSim_Gait92_tmt_ia(DataFolders{f},filename);
                     f_LoadSim_Gait92_tmt(DataFolders{f},filename);
-                catch
-                    try
-                        f_LoadSim_Gait92_tmt_v2(DataFolders{f},filename);
-                    catch
-                        try
-                            f_LoadSim_Gait92(DataFolders{f},filename);
-                        catch
-                            disp(['Postprocess of ' filename ' failed.']);
-                        end
-                    end
-                end
+%                 catch
+%                     try
+%                         f_LoadSim_Gait92_tmt_v2(DataFolders{f},filename);
+%                     catch
+%                         try
+%                             f_LoadSim_Gait92(DataFolders{f},filename);
+%                         catch
+%                             disp(['Postprocess of ' filename ' failed.']);
+%                         end
+%                     end
+%                 end
 %                 disp(ct);
             end
         end
