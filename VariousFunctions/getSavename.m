@@ -44,24 +44,21 @@ if isfield(S,'mtj') && ~isempty(S.mtj) && S.mtj
         savenameparts{end+1} = ['ls' num2str(S.PF_slack_length*1000)];
         casfuncfolparts{end+1} = ['ls' num2str(S.PF_slack_length*1000)];
     end
-    if isfield(S,'kMT_li') && ~isempty(S.kMT_li)
-        if isfield(S,'MT_li_nonl') && ~isempty(S.MT_li_nonl)
-            if S.MT_li_nonl
-                savenameparts{end+1} = ['k_nonl' num2str(S.kMT_li)];
-                casfuncfolparts{end+1} = ['k_nonl' num2str(S.kMT_li)];
-            else
-                not{end+1} = 'not_k_nonl';
-            end
+    if isfield(S,'MT_li_nonl') && ~isempty(S.MT_li_nonl) && S.MT_li_nonl
+        if isfield(S,'mtj_stiffness') && ~isempty(S.mtj_stiffness) 
+            savenameparts{end+1} = ['MT_nl_' S.mtj_stiffness];
+            casfuncfolparts{end+1} = ['MT_nl_' S.mtj_stiffness];
         else
-            savenameparts{end+1} = ['k' num2str(S.kMT_li)];
-            casfuncfolparts{end+1} = ['k' num2str(S.kMT_li)];
+            savenameparts{end+1} = ['MT_nl'];
+            casfuncfolparts{end+1} = ['MT_nl'];
         end
-    elseif isfield(S,'MT_li_nonl') && ~isempty(S.MT_li_nonl) 
-        if S.MT_li_nonl
-            not{end+1} = 'k_nonl';
-        else
-            not{end+1} = 'not_k_nonl';
-        end
+    elseif isfield(S,'kMT_li') && ~isempty(S.kMT_li)
+        savenameparts{end+1} = ['MT_k' num2str(S.kMT_li)];
+        casfuncfolparts{end+1} = ['MT_k' num2str(S.kMT_li)];
+        
+    end
+    if isfield(S,'MT_li_nonl') && ~isempty(S.MT_li_nonl) && ~S.MT_li_nonl
+        not{end+1} = 'not_MT_nl';
     end
     if isfield(S,'dMT') && ~isempty(S.dMT) && S.dMT~=0
         savenameparts{end+1} = ['d0' num2str(S.dMT*10)];

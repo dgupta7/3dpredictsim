@@ -1,4 +1,4 @@
-function f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(modelType,varargin)
+function [f_PF_stiffness, varargout] = f_getPlantarFasciaStiffnessModelCasADiFunction(modelType,varargin)
 % This function returns a casADi function object that describes the tensile
 % force of the plantar fascia in function of its length.
 %
@@ -21,7 +21,7 @@ E = 350; % Young's modulus (N/mm^2)
 % A0 = 290; % initial cross-section (mm^2)
 A0 = 49.7; % initial cross-section (mm^2)
 nu = 0.4; % Poisson ratio
-ls = 0.135; % slack length (m)
+ls = 0.144; % slack length (m)
 k = E*A0/ls; % spring constant (N/m)
 dl_0 = ls/100*1; % toe-in length
 
@@ -48,18 +48,19 @@ end
 
 %% 3) Calculate force 
 % intermediate variables
-cf = (tanh((l-1.0005*ls)/ls*1e4)+1)/2; 
-dl_1 = l-ls; % elongation
-dl = dl_1*cf; % positive elongation
+dl = l-ls; % elongation
+% dl = dl_1*cf; % positive elongation
 lambda = l/ls; % stretch ratio
 A = A0*lambda^(-nu*2); % actual cross-section
 
 % stiffness models
 if strcmp(modelType,'linear')
     F_PF = k*dl;
+    F = F_PF*(tanh(dl*5e3-1.2)+1)/2;
     
 elseif strcmp(modelType,'tanh')
     F_PF = k*(dl - dl_0*tanh(dl/dl_0));
+    F = F_PF*(tanh(dl*1e4)+1)/2;
     
 elseif strcmp(modelType,'Gefen2001')
     % 5th order polynomial approximation
@@ -72,6 +73,7 @@ elseif strcmp(modelType,'Gefen2001')
     a6 = 724755.5;
     sigma = a1*lambda^5 + a2*lambda^4 + a3*lambda^3 + a4*lambda^2 + a5*lambda + a6 -0.100; % stress
     F_PF = sigma*A; % correction term, to make F=0 for l=ls
+    F = F_PF*(tanh(dl*3e3-1)+1)/2;
     
 elseif strcmp(modelType,'Cheng2008')
     % Mooney-Rivlin model with 5 parameters (2nd order)
@@ -92,6 +94,7 @@ elseif strcmp(modelType,'Cheng2008')
         % combining both steps gives:
     sigma_e = ls*jacobian(W,l); % engineering stress
     F_PF = sigma_e*A0;
+    F = F_PF*(tanh(dl*5e3-1)+1)/2;
     
 elseif strcmp(modelType,'Barrett2018') || strcmp(modelType,'toein_gaussian')
     % data from DOI 10.1007/s00276-011-0873-z
@@ -109,6 +112,7 @@ elseif strcmp(modelType,'Barrett2018') || strcmp(modelType,'toein_gaussian')
     d_erf = exp(-zi.^2);
     erf = 2/sqrt(pi)* sum(d_erf(2:end)*z)/500;
     F_PF = k*std/sqrt(2*pi)*exp(-(x+mu).^2/(2*std^2)) + k*(x+mu)/2 .*(erf+1);
+    F = F_PF;
     
 elseif strcmp(modelType,'Natali2010')
     % https://doi.org/10.3109/03008200903389127
@@ -118,34 +122,58 @@ elseif strcmp(modelType,'Natali2010')
     alpha = 10.397; % (-)
     sigma = mu*(lambda^2 - 1/lambda) + k/(2*alpha) *(exp(alpha*(lambda^2-1))-1)*lambda^2; % Cauchy stress
     F_PF = sigma*A;
+    F = F_PF*(tanh(dl*4e3-1.1)+1)/2;
     
 elseif strcmp(modelType,'Ker1987')
     % see ligament_torques_Ker87.m
-%     F_PF = -3578055333 + 21011527142*lambda^1 + -51373584416*lambda^2 + 66942934105*lambda^3 + ...
-%         -49031631482*lambda^4 + 19139494724*lambda^5 + -3110684740.1*lambda^6; %sf=1, corrf
+% %     F_PF = -3578055333 + 21011527142*lambda^1 + -51373584416*lambda^2 + 66942934105*lambda^3 + ...
+% %         -49031631482*lambda^4 + 19139494724*lambda^5 + -3110684740.1*lambda^6; %sf=1, corrf
+% 
+% %     F_PF = -17217144166 + 98866378186.7*lambda^1 + -236477798399*lambda^2 + 301574344494*lambda^3 +...
+% %         -216263086165*lambda^4 + 82685305006.2*lambda^5 +
+% %         -13167998957.6*lambda^6; %sf=0.9
+% 
+% %     F_PF = -15561008725 + 89385254015.1*lambda^1 + -213868002470*lambda^2 + 272825909452*lambda^3 +...
+% %         -195707300417*lambda^4 + 74848663484.9*lambda^5 + -11923515339.9*lambda^6; %sf=0.9, F*sf^2
 
-%     F_PF = -17217144166 + 98866378186.7*lambda^1 + -236477798399*lambda^2 + 301574344494*lambda^3 +...
-%         -216263086165*lambda^4 + 82685305006.2*lambda^5 +
-%         -13167998957.6*lambda^6; %sf=0.9
+    F_PF = 1190429209.9 + -6723339025.14*lambda^1 + 15825461895.6*lambda^2 + -19872782816.5*lambda^3 +...
+        14042641491.4*lambda^4 + -5294662348.84*lambda^5 + 832251593.622*lambda^6; %sf=0.9, F*sf^2, ls=144
 
-    F_PF = -15561008725 + 89385254015.1*lambda^1 + -213868002470*lambda^2 + 272825909452*lambda^3 +...
-        -195707300417*lambda^4 + 74848663484.9*lambda^5 + -11923515339.9*lambda^6; %sf=0.9, F*sf^2
+%     F_PF = 7195632736.8 + -41599933291.5*lambda^1 + 100216263545*lambda^2 + -128771324055*lambda^3 + ...
+%         93081370168*lambda^4 + -35887952242.8*lambda^5 + 5765943139.39*lambda^6;
+%     
+%     F_PF = -3150766530.9 + 18267823560.6*lambda^1 + -44102167662.6*lambda^2 + 56746605927.5*lambda^3 +...
+%         -41043503491.8*lambda^4 + 15821340935.3*lambda^5 + -2539332738.17*lambda^6;
 
+%     F_PF = -4124403976.1 + 23856013211.9*lambda^1 + -57466715191.5*lambda^2 + 73794178295.7*lambda^3 + -53276302798.5*lambda^4 + 20503288770.1*lambda^5 + -3286058311.51*lambda^6;
+% F_PF = -14918925924 + 85670777243.1*lambda^1 + -204923922835*lambda^2 + 261351854524*lambda^3 + -187436174861*lambda^4 + 71672144667.6*lambda^5 + -11415752813.7*lambda^6;
+% F_PF = 5152985283.4 + -30027247509.1*lambda^1 + 72907310890.2*lambda^2 + -94414180271.5*lambda^3 + 68776402236.5*lambda^4 + -26721181717.3*lambda^5 + 4325911087.74*lambda^6;
+% F_PF = -828501490.76 + 4848568102.78*lambda^1 + -11804788285.9*lambda^2 + 15304797352.4*lambda^3 + -11143786537.5*lambda^4 + 4320502591.01*lambda^5 + -696791731.982*lambda^6;
+    F = F_PF*(tanh(dl*1e4-1)+1)/2;
+    
 else
     % plantar fascia fully released
-    F_PF = 0;
+    F = 0;
     warning('No valid function to describe the plantar fascia stiffness model, using 0 instead.')
 end  
 
-F = F_PF*cf; % F >= 0
+% F = F_PF*cf; % F >= 0
 
 
 %% 4) Build function
 f_PF_stiffness = Function('f_PF_stiffness',{l},{F},{'l'},{'F'});
 
+if nargout == 4
+    [H,g] = hessian(F,l);
+    g_f = Function('gradient',{l},{g},{'l'},{'g'});
+    varargout{1} = g_f;
+    
+    H_f = Function('hessian',{l},{H},{'l'},{'H'});
+    varargout{2} = H_f;
 
-
-
+    f_PF_stiffness_nonsmoothed = Function('f_PF_stiffness_nonsmoothed',{l},{F_PF},{'l'},{'F'});
+    varargout{3} = f_PF_stiffness_nonsmoothed;
+end
 
 
 

@@ -18,7 +18,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clear all
-close all
+% close all
 clc
 
 %% Paths
@@ -36,24 +36,24 @@ AddCasadiPaths();
 
 %% General settings
 % Full body gait simulation
-slv = 0;                % run solver
-pp = 0;                 % postproces
-plot = 0;               % plot solution
+slv = 1;                % run solver
+pp = 1;                 % postproces
+plot = 1;               % plot solution
 batchQueue = 0;         % save settings to run later
 % Static foot simulation
-foot_standing = 1;      % load on knee
+foot_standing = 0;      % load on knee
 foot_hanging = 0;       % knee position fixed, tibia and foot hanging freely
 
 % settings for optimization
 S.v_tgt     = 1.25;     % average speed 1.25
 S.N         = 50;       % number of mesh intervals
-S.NThreads  = 8;        % number of threads for parallel computing
+S.NThreads  = 6;        % number of threads for parallel computing
 % S.max_iter  = 10;       % maximum number of iterations (comment -> 10000)
 
 % output folder
-S.ResultsFolder = 'test_WL_v2'; % 'batch_windlass' 'standing' 'MuscleModel' 'batch_tmt_lin'
-suffixCasName = '_v4';         
-suffixName = '_v4';
+S.ResultsFolder = 'MidTarsalJoint'; % 'batch_windlass' 'standing' 'MuscleModel' 'batch_tmt_lin'
+suffixCasName = '';         
+suffixName = '';
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
@@ -85,22 +85,24 @@ S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsifl
 S.mtj = 1;              % 1: use a model with tmt joint (will override tmt)
 % plantar fascia
 % S.PF_stiffness = 'Gefen2001'; % stiffness model for the gait simulation
-% S.PF_stiffness = 'Natali2010';
-S.PF_stiffness = 'Ker1987';
+S.PF_stiffness = 'Natali2010';
+% S.PF_stiffness = 'linear';
         % options: 'none''linear''Gefen2001''Cheng2008''Barrett2018''Natali2010'
 S.sf_PF = 1;                % multiply PF force with constant factor
-S.PF_slack_length = 0.137; % (m) slack length
+S.PF_slack_length = 0.148; % (m) slack length
 
 % other ligaments (long, short planter ligament, etc)
 S.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
 % S.mtj_stiffness = 'Gefen2001';
-S.mtj_stiffness = 'Ker1987';
-S.kMT_li = 300;          % angular stiffness in case of linear
-S.dMT = 0;               % (Nms/rad) damping
+% S.mtj_stiffness = 'Ker1987';
+S.mtj_stiffness = 'fitted';
+
+S.kMT_li = 20;          % angular stiffness in case of linear
+% S.dMT = 0.1;               % (Nms/rad) damping
 
 
 % PF reaction torque on mtp joint
-S.WL_T_mtp = 0;         % 0: spring mtp, 1: PF reaction on mtp
+S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
 S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
     
 % List of stiffness models to use for the STATIC footmodel:
@@ -183,7 +185,7 @@ elseif S.mtj == 1
             
         elseif strcmp(S.subject,'subject1')
             S.ExternalFunc  = 'PredSim_3D_Fal_s1_mtj_v1.dll';
-            S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v1.dll';
+            S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v5.dll';
         end
     end
     

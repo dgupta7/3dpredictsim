@@ -16,7 +16,7 @@ pathmain        = pwd;
 
 make_figures = 0;
 sf = 0.9; % Ker's data is from 85kg male (shoe size 38 to 42 is 10% diff in foot length)
-PF_slack_length = 0.137;
+PF_slack_length = 0.144;
 
 
 %% reference figure
@@ -138,7 +138,7 @@ MA_FL0 = 0.0335; % lever arm of vertical external load around mtj in neutral pos
 % on graph c: plantar fascia and heel pad removed, everything else present
 
 x = [1,    2,    3,    4,   5,   6,     7,    7.5,  8,    8.5, 8.8];
-y = [0.05, 0.13, 0.27, 0.5, 0.77, 1.15, 1.65, 1.95, 2.35, 2.72, 3];
+y = [0.01, 0.13, 0.27, 0.5, 0.77, 1.15, 1.65, 1.95, 2.35, 2.72, 3];
 
 % x1 = [x,9.5,9.8];
 % y = interp1(x,y,x1,'spline','extrap');
@@ -202,17 +202,14 @@ Ts = interp1(q_mt_K,T_mt_K,qs,'spline','extrap');
 plot(qs*180/pi,Ts,'DisplayName','Ker 87')
 
 %% Fit curve in rotational variables
-
-% corrf1 = interp1([q_mt_K(1),q_mt_K(end)],[1,0.3],q_mt_K,'spline','extrap');
-% corrf2 = interp1([q_mt_K(1),q_mt_K(4),q_mt_K(end)],[1,1.2,1],q_mt_K,'spline','extrap');
-% 
-% corrf1 = corrf1.*corrf2;
-% corrf2 = interp1([q_mt_K(1),q_mt_K(3),q_mt_K(5),q_mt_K(7),q_mt_K(9),q_mt_K(end)],[1.2,1.4,1.2,1,1,1],q_mt_K,'spline','extrap');
 corrf1 = 1;
 corrf2 = 1;
+corrf1 = interp1([q_mt_K(1),q_mt_K(end)],[1,0.55],q_mt_K,'spline','extrap');
+corrf2 = interp1([q_mt_K(1),q_mt_K(4),q_mt_K(end)],[1.2,1.2,1],q_mt_K,'spline','extrap');
 
 figure(h2)
-q_mt = linspace(-1,1,500)'*q_max;
+q_mt = linspace(-1,1,500)'*q_max*1.5;
+grid on
 
 % values for positive angles
 xp = q_mt_K;
@@ -227,7 +224,7 @@ y = [yn;yp];
 plot(x*180/pi,y,'DisplayName','Symmetric')
 
 
-order = 11;
+order = 9;
 stop = 0;
 
 while ~stop
@@ -237,7 +234,7 @@ while ~stop
 
     disp(err2)
     
-    if err2 <= 0.1 || order >= 11
+    if err2 <= 0.1 || order >= 9
         stop = 1;
     else
         order = order+2;
@@ -259,7 +256,7 @@ end
 % odd function with constant term
 codeString = ['M_li = ' num2str(coeff(1),6)];
 for ii=1:2:length(coeff)-1
-    codeString = [codeString ' + ' num2str(coeff(ii+1),7) '*q_mt^' num2str(ii)];
+    codeString = [codeString ' + ' num2str(coeff(ii+1),8) '*q_mt^' num2str(ii)];
 end
 codeString = [codeString ';'];
 disp(codeString)
@@ -361,6 +358,7 @@ plot(qs*180/pi,M_li,'DisplayName','w/o PF, Ker 87')
 
 M_PF = Ts - M_li;
 plot(qs*180/pi,M_PF,'DisplayName','PF, Ker 87')
+grid on
 
 %% to plantar fascia variables
 phi_K = phi0 + q_mt_K; % top angle of WL triangle
@@ -369,24 +367,28 @@ l_PF_fa_K = sqrt(calcnPF2mtj^2 + mtj2mttPF^2 - 2*calcnPF2mtj*mtj2mttPF*cos(phi_K
 MA_PF_K = calcnPF2mtj*mtj2mttPF./l_PF_fa_K.*sin(phi_K); % moment arm of PF to mtj
 q_mtp_K = -0.4751*q_mt_K; % mtp moves for toes to remain flat on ground
 R_mtth = 7.5e-3; % average radius of the metatarsal head
-l_PF_K = l_PF_fa_K + R_mtth*q_mtp_K;
+l_PF_K = l_PF_fa_K + R_mtth*(pi/2+q_mtp_K)-0.0017;
 lambda_PF_K = l_PF_K/PF_slack_length;
-M_li_K = T_pass_mtj(q_mt_K);
+M_li_K = T_pass_mtj(q_mt_K)-1;
 M_PF_K = T_mt_K - M_li_K;
 F_PF_K = -M_PF_K./MA_PF_K;
 
 % some adjusting
 F_PF_K = F_PF_K + 50;
-F_PF_K(1) = F_PF_K(1)-50;
-F_PF_K(2) = F_PF_K(2)/2;
+F_PF_K(1) = F_PF_K(1) -75;
+F_PF_K(2) = F_PF_K(2)/3;
 
+% figure
+% plot(q_mt_K*180/pi,lambda_PF_K)
+% ylabel('Stretch ratio (-)')
+% xlabel('Angle (°)')
 
-lambda_PF = linspace(1,lambda_PF_K(end)+0.01,100)';
+lambda_PF = linspace(1,1.2,1000)';
 
 %% Fit polynomial plantar fascia stiffness
 
-% corrf3 = interp1([q_mt_K(1),q_mt_K(4),q_mt_K(7),q_mt_K(9),q_mt_K(end)],[1,2,1,0.5,0.2],q_mt_K,'spline','extrap');
 corrf3 = 1;
+corrf3 = interp1([q_mt_K(1),q_mt_K(4),q_mt_K(7),q_mt_K(9),q_mt_K(end)],[0.9,1,1,0.7,0.5],q_mt_K,'linear','extrap');
 
 h4 = figure;
 hold on
@@ -397,10 +399,10 @@ ylabel('Force (N)')
 xlabel('Stretch ratio (-)')
 title('Plantar fascia stiffness model')
 grid on
-
+ylim([-100,2e3]);
 F_PF_K = F_PF_K.*corrf3;
 x = [1;1.005;1.01; lambda_PF_K];
-y = [0;2;5; F_PF_K];
+y = [0;1;3; F_PF_K];
 
 % x = [lambda_PF_K];
 % y = [F_PF_K];
@@ -435,7 +437,8 @@ grid on
 xlabel('\lambda = stretch ratio (-)')
 ylabel('dF/d\lambda')
 title('must be positive, so stiffness is strictly increasing')
-    
+ylim([-100,2e3]);
+
 coeff(1) = coeff(1) - F_pass_PF(1); % l-ls = 0 -> F = 0
 
 codeString = ['F_PF = ' num2str(coeff(1),11)];

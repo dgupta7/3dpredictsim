@@ -9,6 +9,7 @@ clc
 
 plot_result = 1;
 save_result = 1;
+overwrite = 1;
 
 % mtp angles to be considered
 Qs_mtp = [-45:15:45]*pi/180;
@@ -21,7 +22,7 @@ PF_stiffness = S.PF_stiffness;
 
 subtR = 1; % reduce subtalar mobility
 
-overwrite = 1;
+
 
 %% Build savename
 % name of external function
@@ -35,12 +36,16 @@ elseif strcmp(S.subject,'subject1')
 %         ext_name = 'Foot_3D_Fal_s1_mtj_subt3_v1';
 end
 
+if S.MT_li_nonl == 0
+    S.mtj_stiffness = ['k' num2str(S.kMT_li)];
+end
 
-savename = [ext_name '_' PF_stiffness];
-
+savename = [ext_name '_' PF_stiffness '_' S.mtj_stiffness];
 
 savename = [savename '_Q' num2str(Qs_mtp(1)*180/pi) '_' num2str(Qs_mtp(end)*180/pi)...
-    '_hanging' '_WLv3'];
+     '_WLv3' '_ls' num2str(S.PF_slack_length*1000) '_hanging'];
+
+legname = ['PF: ' PF_stiffness ', l_s = ' num2str(S.PF_slack_length*1000) '; mtj: ' S.mtj_stiffness];
 
 pathmain        = pwd;
 [pathRepo,~,~]  = fileparts(pathmain);
@@ -77,7 +82,7 @@ else
     %% CasADi functions
     % We create several CasADi functions for later use
     pathCasADiFunctions = [pathRepo,'/CasADiFunctions'];
-    PathDefaultFunc = fullfile(pathCasADiFunctions,S.CasadiFunc_Folders);
+    PathDefaultFunc = fullfile(pathCasADiFunctions,'casadi_s1Fal_MuscModel_bCst');
     f_PassiveMoments = Function.load(fullfile(PathDefaultFunc,'f_PassiveMoments'));
     f_passiveWLTorques = Function.load(fullfile(PathDefaultFunc,'f_passiveWLTorques'));
     f_forceEquilibrium_FtildeState_all_tendon = Function.load(fullfile(PathDefaultFunc,...
@@ -97,7 +102,7 @@ else
     qin2     = SX.sym('qin_pass2',1);
     qdotin1  = SX.sym('qdotin_pass1',1);
 
-    [passWLTorques_mtj,~] = getPassiveMtjMomentWindlass_v3(qin1,qdotin1,qin2,f_PF_stiffness);
+    [passWLTorques_mtj,~] = getPassiveMtjMomentWindlass_v3(qin1,qdotin1,qin2,f_PF_stiffness,S);
     f_passiveWLTorques_mtj = Function('f_passiveWLTorques_mtj',{qin1,qdotin1,qin2}, ...
         {passWLTorques_mtj},{'qin1','qdotin1','qin2'},{'passWLTorques'});
 
@@ -184,7 +189,7 @@ else
     
     %% Get some information about neutral position
     [~,~,~,~,~,~,~,~,~,H0_fa,L0_fa] = ...
-                getPassiveMtjMomentWindlass_v3(0,0,0,f_PF_stiffness);
+                getPassiveMtjMomentWindlass_v3(0,0,0,f_PF_stiffness,S);
     
     %% Build system to solve
 
@@ -334,6 +339,13 @@ else
     for i=1:NMf
         F_tendon.(muscleNamesFoot{i}) = zeros(n_mtp,n_tib);
     end
+    GRT_calcn = zeros(n_mtp,n_tib,3);
+    GRT_metatarsi = zeros(n_mtp,n_tib,3);
+    GRT_total = zeros(n_mtp,n_tib,3);
+    ankle_axis = zeros(n_mtp,n_tib,3);
+    COP_total = zeros(n_mtp,n_tib,3);
+    COP_calcn = zeros(n_mtp,n_tib,3);
+    COP_metatarsi = zeros(n_mtp,n_tib,3);
 
     %% make solver
     opti = casadi.Opti();
@@ -351,7 +363,7 @@ else
     [obj,constr] = f_foot([qs_opti;FTtilde_opti],qmtp);
     opti.subject_to(constr == 0);
 
-    opti.minimize(obj);
+%     opti.minimize(obj);
 
     % solver options
     options.ipopt.hessian_approximation = 'limited-memory';
@@ -506,6 +518,14 @@ else
     R.T_subt.pass = tau_subt;
     R.T_subt.ext = T_subt_ext;
     R.PF_stiffness = PF_stiffness;
+    R.legname = legname;
+    R.GRT_calcn = GRT_calcn;
+    R.GRT_metatarsi = GRT_metatarsi;
+    R.GRT_total = GRT_total;
+    R.ankle_axis = ankle_axis;
+    R.COP_total = COP_total;
+    R.COP_calcn = COP_calcn;
+    R.COP_metatarsi = COP_metatarsi;
 
     if save_result
         save(Outname,'R');

@@ -61,3 +61,26 @@ hold on
 grid on
 plot(q_mtp,T_pass_mtp)
 
+
+
+%%
+
+qin_pass = linspace(-4,70,1000)'*pi/180;
+
+K_pass = [-0.9 14.87 0.18 -70.08]';
+theta_pass = [0 65/180*pi]';
+
+
+Tau_pass = K_pass(1,1)*exp(K_pass(2,1)*(qin_pass-theta_pass(2,1))) + ...
+    K_pass(3,1)*exp(K_pass(4,1)*(qin_pass-theta_pass(1,1)));
+
+figure
+plot(qin_pass*180/pi,Tau_pass)
+
+
+
+
+
+
+
+

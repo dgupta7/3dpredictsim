@@ -94,6 +94,7 @@ m2.t.subt = [0.010347 -0.03163 0.00134647]';
 
 m2.c.PF = [-0.028; -0.037; -0.002];
 m2.f.PF = [0.062; -0.016; -0.006];
+m2.ts.PF = [0.009; -0.002; -0.008];
 
 m2.c.LPL = [-0.018; -0.028; 0.007];
 m2.m.LPL = [0.002; -0.025; 0.016];
@@ -489,6 +490,7 @@ if add_mtj2
 
     m2.t.PF(:,1) = m2.t.subt + m2.c.PF;
     m2.t.PF(:,2) = m2.t.tmtj + m2.f.PF;
+    m2.t.PF(:,3) = m2.t.mtpj + m2.ts.PF;
 
     m2.t.LPL(:,1) = m2.t.subt + m2.c.LPL;
     m2.t.LPL(:,2) = m2.t.mtj + m2.m.LPL;
@@ -553,6 +555,7 @@ if add_mtj2
 
     m1c.t.PF(:,1) = m2.t.PF(:,1).*sf;
     m1c.t.PF(:,2) = m2.t.PF(:,2).*sf;
+    m1c.t.PF(:,3) = m2.t.PF(:,3).*sf;
     m1c.c.PF = m1c.t.PF(:,1) - m1c.t.subt;
     m1c.mf.PF = m1c.t.PF(:,1) - m1c.t.mtj;
 
@@ -626,6 +629,7 @@ if add_mtj2
     plot(m1c_j(1,:),m1c_j(2,:),'or')
     plot(m1c_c(1,:),m1c_c(2,:),'xr')
     plot(m1c.t.PF(1,:),m1c.t.PF(2,:),'-dr')
+    viscircles(m1c.t.mtpj(1:2)',7.5e-3,'Color','r')
 
     axis equal
     title('Right foot side view')
@@ -760,6 +764,12 @@ if add_mtj2
     disp(['mtj2mttPF = ' num2str(b_PF) ';']);
     disp(['phi0 = ' num2str(phi0) ';']);
 
+    % physical plantar fascia length (instead of force path)
+    L_fa = norm(m1c.t.mtpj - [0;7.5e-3;0] - m1c.t.PF(:,1));
+    L_fa - l_PF_fa
+    L_mtth = 7.5e-3*pi/2;
+    L = L_fa+L_mtth;
+    
     %% subtalar joint axis orientation
     % original
     alpha_st = atan(m0.c.subt_st(2)/m0.c.subt_st(1))*180/pi;

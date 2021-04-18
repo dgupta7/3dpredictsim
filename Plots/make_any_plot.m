@@ -27,7 +27,7 @@ plot_foot_hanging = 0;
 % ResultsFolder = {'MuscleModel'};
 % ResultsFolder = {'batch_tmt_lin'};
 % ResultsFolder = {'test_WL_v2'};
-ResultsFolder = {'test_pp'};
+ResultsFolder = {'MidTarsalJoint'};
 
 %% General information
 % experimental data to plot as reference
@@ -68,14 +68,17 @@ S.mtj = 1;              % 1: use a model with tmt joint (will override tmt)
 % S.PF_stiffness = 'Gefen2001'; % stiffness model for the gait simulation
 % S.PF_stiffness = 'Natali2010';
         % options: 'none''linear''Gefen2001''Cheng2008''Barrett2018''Natali2010'
-% S.PF_slack_length = 0.135; % slack length (m)
+% S.PF_slack_length = 0.144; % slack length (m)
 % other ligaments (long, short planter ligament, etc)
-% S.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
+S.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
 % S.kMT_li = 200;         % angular stiffness in case of linear
+% S.mtj_stiffness = 'Gefen2001';
+% S.mtj_stiffness = 'Ker1987';
+S.mtj_stiffness = 'fitted';
 
 % PF reaction torque on mtp joint
-% S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
-% S.Mu_mtp = 1;           % 0: torque actuator, 1: muscles connected to mtp
+S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
+S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
 
 
 %% Exoskeleton
@@ -153,8 +156,8 @@ if plot_validation || plot_default
 %     filteredResults{n+1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug_tmt\Pog_s1_tmt_bCst_d02_k800_kc1_t5_ig24_v3_pp.mat';
 %     filteredResults{n+2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug_tmt\Pog_s1_tmt_bCst_d02_k800_ig24_v3_pp.mat';
 
-%     filteredResultsWithRef = {ref{:}, filteredResults{:}};
-    filteredResultsWithRef = {filteredResults{:}, ref{:}};
+    filteredResultsWithRef = {ref{:}, filteredResults{:}};
+%     filteredResultsWithRef = {filteredResults{:}, ref{:}};
 
     % set value according to which figure(s) to make
     pl = 0;
@@ -230,12 +233,10 @@ if plot_foot_standing || plot_foot_hanging
             crit{end+1} = 'subt1';
         end
     end
-    if exist('standing','var')
-        if plot_foot_standing
-            crit{end+1} = 'not_hanging';
-        else
-            crit{end+1} = 'hanging';
-        end
+    if plot_foot_standing
+        crit{end+1} = 'not_hanging';
+    else
+        crit{end+1} = 'hanging';
     end
     if isfield(S,'PF_stiffness')
         crit{end+1} = S.PF_stiffness;
@@ -244,8 +245,8 @@ if plot_foot_standing || plot_foot_hanging
         crit{end+1} = ['_' num2str(Fmax)];
     end
     
-    crit{end+1} = '_WLv3';
-    crit{end+1} = '_ls';
+%     crit{end+1} = '_WLv3';
+%     crit{end+1} = '_ls';
     
     OutFolder{1} = fullfile(pathRepo,'Results','FootModel');
     

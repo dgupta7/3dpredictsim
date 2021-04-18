@@ -12,14 +12,14 @@ overwrite = 1;
 
 % mtp angles to be considered
 % Qs_mtp = [-45:15:45]*pi/180;
-% Qs_mtp = [-30:30:30]*pi/180;
+Qs_mtp = [-30:30:30]*pi/180;
 % vertical forces on knee
-Fs_tib = [0:50:1000];
-% Fs_tib = [0:50:300,400:100:1000,1250:250:4000];
-% Fs_tib = [0:50:300,400:100:1000,1250:250:3000];
+% Fs_tib = [0:50:1000];
+Fs_tib = [0:50:300,400:100:1000,1250:250:4000];
+% Fs_tib = [0:50:300,400:100:1000,1250:250:2700];
 % Fs_tib = [0:50:1000,1100:100:6000];
 
-Qs_mtp = [0]*pi/180;
+% Qs_mtp = [0]*pi/180;
 % Fs_tib = [0];
 
 n_mtp = length(Qs_mtp);
@@ -42,6 +42,10 @@ elseif strcmp(S.subject,'subject1')
 %     ext_name = 'Foot_3D_Fal_s1_mtj_subt3_v1';
 end
 
+if S.MT_li_nonl == 0
+    S.mtj_stiffness = ['k' num2str(S.kMT_li)];
+end
+    
 savename = [ext_name '_' PF_stiffness '_' S.mtj_stiffness];
 
 savename = [savename '_Q' num2str(Qs_mtp(1)*180/pi) '_' num2str(Qs_mtp(end)*180/pi)...
@@ -199,7 +203,7 @@ else
     
     %% Get some information about neutral position
     [~,~,~,~,~,~,~,~,~,H0_fa,L0_fa] = ...
-                getPassiveMtjMomentWindlass_v3(0,0,0,f_PF_stiffness);
+                getPassiveMtjMomentWindlass_v3(0,0,0,f_PF_stiffness,S);
 
     
     %% Build system to solve
@@ -258,7 +262,7 @@ else
         vMTj_lr((46+musif(i)),1) = vMT_r(i);
         tensionsj_lr((46+musif(i)),1) = tensions(i);
     end
-    [Hilldiffj,FTj,Fcej,Fpassj,Fisoj] =f_forceEquilibrium_FtildeState_all_tendon(akj(:,1),...
+    [Hilldiffj,FTj,Fcej,Fpassj,Fisoj] = f_forceEquilibrium_FtildeState_all_tendon(akj(:,1),...
             FTtildekj_nsc(:,1),dFTtildej_nsc(:,1),lMTj_lr,vMTj_lr,tensionsj_lr);
 
     Hilldiff = MX.zeros(NMf,1);

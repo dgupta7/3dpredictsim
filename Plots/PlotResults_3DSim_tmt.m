@@ -517,13 +517,13 @@ if exist(ResultsFile,'file')
     
     if boolFirst && md && ~strcmp(subject,'Fal_s1')
         for i=1:3
-            subplot(3,3,i)
+            subplot(3,4,i)
             hold on
             plot(Dat.(type).gc.GRF.Fmean(:,i)/(R.body_mass*9.81)*100,'-k');
         end
     end
     for i=1:3
-        subplot(3,3,i)
+        subplot(3,4,i)
         hold on
         l = plot(R.GRFs(:,i),'-','Color',Cs);
         title(R.colheaders.GRF{i});
@@ -531,14 +531,11 @@ if exist(ResultsFile,'file')
         ylabel('% body weight')
     end
     l.DisplayName = LegName;
-%     if boolFirst
-%         lh=legend('-DynamicLegend','location','east');
-%         lh.Interpreter = 'none';
-%     end
+    
 
     if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
         for i=1:3
-            subplot(3,3,i)
+            subplot(3,4,i)
             hold on
             p1=plot(R.GRFs_separate(:,i),'-.','Color',Cs,'DisplayName','calcaneus');
             p2=plot(R.GRFs_separate(:,i+3),'--','Color',Cs,'DisplayName','forefoot');
@@ -548,10 +545,10 @@ if exist(ResultsFile,'file')
             ylabel('% body weight')
             
         end
-        if boolFirst
-            lh=legend([l,p1,p2,p3],'location','best');
-            lh.Interpreter = 'none';
-        end
+%         if boolFirst
+%             lh=legend([l,p1,p2,p3],'location','best');
+%             lh.Interpreter = 'none';
+%         end
         
 
         % get GRFs
@@ -569,7 +566,7 @@ if exist(ResultsFile,'file')
         grf2(abs(GRFt)<1) = 0;
         grf3(abs(GRFt)<1) = 0;
 
-        subplot(3,3,5)
+        subplot(3,4,4)
         hold on
         p1=plot(x,grf1,'-.','Color',Cs,'DisplayName','calcaneus');
         p2=plot(x,grf2,'--','Color',Cs,'DisplayName','forefoot');
@@ -577,58 +574,73 @@ if exist(ResultsFile,'file')
         title(R.colheaders.GRF{2});
         xlabel('% stride');
         ylabel('% total GRF')
-            
-
-        if boolFirst
-            lh=legend([p1,p2,p3],'location','best');
-            lh.Interpreter = 'none';
-        end
         
+        lh=legend([p1,p2,p3],'location','best');
+        lh.Interpreter = 'none';
+        
+        subplot(3,4,8)
+        hold on
+        plot(x,R.Muscle.vM(:,iSol)*1e3,'Color',Cs)
+        xlabel('% stride');
+        ylabel('velocity')
+        title('Soleus fibre velocity')
+            
         if isfield(R,'AnkleInGround')
             ictt = find(R.AnkleInGround.leverArmGRF.r~=0);
-            relPos = R.COPR - R.AnkleInGround.position.r;
+            relPos = (R.COPR - R.AnkleInGround.position.r)*1e3;
             
-            subplot(3,3,7)
+            subplot(3,4,5)
             hold on
             plot(x(ictt),relPos(ictt,1),'.','Color',Cs)
             xlim([x(1),x(end)])
             xlabel('% stride');
-            ylabel('distance (m)')
+            ylabel('distance (mm)')
             title('fore-aft distance COP wrt ankle')
             
-            subplot(3,3,8)
+            subplot(3,4,6)
             hold on
             plot(x(ictt),relPos(ictt,2),'.','Color',Cs)
             xlim([x(1),x(end)])
             xlabel('% stride');
-            ylabel('distance (m)')
+            ylabel('distance (mm)')
             title('vertical distance COP wrt ankle')
             
-            subplot(3,3,9)
+            subplot(3,4,7)
             hold on
             plot(x(ictt),relPos(ictt,3),'.','Color',Cs)
             xlim([x(1),x(end)])
             xlabel('% stride');
-            ylabel('distance (m)')
+            ylabel('distance (mm)')
             title('lateral distance COP wrt ankle')
             
-            subplot(3,3,4)
+            subplot(3,4,9)
             hold on
-            plot(x(ictt),R.AnkleInGround.leverArmGRF.r(ictt),'.','Color',Cs)
+            plot(x(ictt),R.AnkleInGround.leverArmGRF.r(ictt)*1e3,'.','Color',Cs)
             xlim([x(1),x(end)])
             xlabel('% stride');
-            ylabel('lever arm (m)')
+            ylabel('lever arm (mm)')
             title('GRF lever arm wrt ankle')
             
-            subplot(3,3,6)
+            subplot(3,4,10)
+            hold on
+            plot(x(ictt),-R.AnkleInGround.leverArmSol.r(ictt)*1e3,'.','Color',Cs)
+            xlim([x(1),x(end)])
+            xlabel('% stride');
+            ylabel('lever arm (mm)')
+            title('Soleus lever arm wrt ankle')
+            
+            subplot(3,4,11)
             hold on
             gearRatio = -R.AnkleInGround.leverArmGRF.r(ictt)./R.AnkleInGround.leverArmSol.r(ictt);
-            plot(x(ictt),gearRatio,'.','Color',Cs)
+            plot(x(ictt),gearRatio,'.','Color',Cs,'DisplayName',LegName);
             xlim([x(1),x(end)])
             xlabel('% stride');
             ylabel('Gear ratio (-)')
             title('GRF lever arm / sol lever')
-            
+            if boolFirst
+                lh=legend('-DynamicLegend','location','east');
+                lh.Interpreter = 'none';
+            end
         end
     end
 
@@ -860,8 +872,46 @@ if exist(ResultsFile,'file')
         imtj = find(strcmp(R.colheaders.joints,'tmt_angle_r'));
     end
         
+    axes('parent', tab12);
+    
+    subplot(3,4,11)
+    hold on
+    plot(x,R.TPass(:,imtp),'-','color',Cs,'linewidth',line_linewidth,'DisplayName','Passive');
+    title('Passive mtp torque')
+    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+    ylabel('Torque (Nm)','Fontsize',label_fontsize);
+        
+    subplot(3,4,2)
+    hold on
+    plot(x,R.Qs(:,imtp),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+    title('Mtp angle')
+    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+    ylabel('Angle (°)','Fontsize',label_fontsize);
+    lh = legend('location','best');
+    lh.Interpreter = 'none';
+        
+    subplot(3,4,6)
+    hold on
+    plot(x,R.Tid(:,imtp),'color',Cs,'linewidth',line_linewidth)
+    title('Total mtp torque')
+    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+    ylabel('Torque (Nm)','Fontsize',label_fontsize);
+    
+    if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
+        subplot(3,4,12)
+        hold on
+        p1=plot(R.GRFs_separate(:,2),'-.','Color',Cs,'DisplayName','calcaneus');
+        p2=plot(R.GRFs_separate(:,2+3),'--','Color',Cs,'DisplayName','forefoot');
+        p3=plot(R.GRFs_separate(:,2+6),':','Color',Cs,'DisplayName','toes');
+        title(R.colheaders.GRF{i});
+        xlabel('% stride');
+        ylabel('% body weight')
+        title('Vertical GRF')
+        lh=legend([p1,p2,p3],'location','best');
+        lh.Interpreter = 'none';
+    end
+    
     if has_tmt && has_tmt_unlocked && has_WL || has_mtj
-        axes('parent', tab12);
         
         q_mtj = R.Qs(:,imtj);
         qdot_mtj = R.Qdots(:,imtj)*pi/180;
@@ -923,61 +973,63 @@ if exist(ResultsFile,'file')
         end
 
         
-        set(0,'defaultTextInterpreter','none');
         
-        subplot(2,4,1)
+        subplot(3,4,1)
         hold on
         plot(x,q_mtj,'color',Cs,'linewidth',line_linewidth)
         title('Midtarsal angle')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Angle (°)','Fontsize',label_fontsize);
-        
-        subplot(2,4,2)
-        hold on
-        plot(x,q_mtp,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-        title('Mtp angle')
-        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        ylabel('Angle (°)','Fontsize',label_fontsize);
-        lh = legend('location','best');
-        lh.Interpreter = 'none';
 
-        subplot(2,4,3)
+        subplot(3,4,3)
         hold on
         plot(x,l_fa*1000,'color',Cs,'linewidth',line_linewidth)
         title('Foot arch length')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Length (mm)','Fontsize',label_fontsize);
         
-        subplot(2,4,4)
+        subplot(3,4,4)
         hold on
         plot(x,h_fa*1000,'color',Cs,'linewidth',line_linewidth)
         title('Foot arch height')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Height (mm)','Fontsize',label_fontsize);
         
-        subplot(2,4,5)
+        subplot(3,4,5)
         hold on
         p1=plot(x,R.Tid(:,imtj),'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
-        p2=plot(x,M_PF,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Plantar fascia');
-        legend([p1,p2],'location','best')
+%         p2=plot(x,M_PF,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Plantar fascia');
+%         legend([p1,p2],'location','best')
         title('Midtarsal torque')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Torque (Nm)','Fontsize',label_fontsize);
         
-        subplot(2,4,6)
+        subplot(3,4,9)
         hold on
-        p1=plot(x,R.Tid(:,imtp),'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
+        p1=plot(x,M_PF,'-','color',Cs,'linewidth',line_linewidth,'DisplayName','Plantar fascia');
+        p2=plot(x,M_li,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','Passive (non-PF)');
+        legend([p1,p2],'location','best')
+        title('Midtarsal torque')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('Torque (Nm)','Fontsize',label_fontsize);
+
+        
+        subplot(3,4,10)
+        hold on
+        p1=plot(x,R.Tid(:,imtp)-R.TPass(:,imtp),':','color',Cs,'linewidth',line_linewidth,'DisplayName','Active');
         if isfield(R.S,'WL_T_mtp') && R.S.WL_T_mtp
-            p2=plot(x,M_mtp,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Plantar fascia');
-            legend([p1,p2],'location','best')
+            p2=plot(x,M_mtp,'-','color',Cs,'linewidth',line_linewidth,'DisplayName','Plantar fascia');
+            p3=plot(x,R.TPass(:,imtp)-M_mtp,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','Passive (non-PF)');
+            legend([p1,p2,p3],'location','best')
+        else
+            p3=plot(x,R.TPass(:,imtp),'--','color',Cs,'linewidth',line_linewidth,'DisplayName','Passive');
+            legend([p1,p3],'location','best')
         end
         title('Mtp torque')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Torque (Nm)','Fontsize',label_fontsize);
         
-        
-        
-        subplot(2,4,7)
+        subplot(3,4,7)
         hold on
         if isfield(R.S,'PF_slack_length')
             ls = R.S.PF_slack_length;
@@ -991,12 +1043,14 @@ if exist(ResultsFile,'file')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Nominal strain (%)','Fontsize',label_fontsize);
         
-        subplot(2,4,8)
+        subplot(3,4,8)
         hold on
-        plot(x,F_PF/(R.body_mass*9.81)*100,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+%         plot(x,F_PF/(R.body_mass*9.81)*100,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+        plot(x,F_PF,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
         title('Plantar fascia force')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        ylabel('Force/BW (%)','Fontsize',label_fontsize);
+%         ylabel('Force/BW (%)','Fontsize',label_fontsize);
+        ylabel('Force (N)','Fontsize',label_fontsize);
         
     
     
@@ -1022,6 +1076,19 @@ if exist(ResultsFile,'file')
         P_PF = -v_PF.*F_PF/R.body_mass;
         P_li = qdot_mtj.*M_li/R.body_mass;
         
+        
+    else
+        axes('parent', tab12);
+        
+        subplot(3,4,10)
+        hold on
+        p1=plot(x,R.Tid(:,imtp)-R.TPass(:,imtp),':','color',Cs,'linewidth',line_linewidth,'DisplayName','Active');
+        p3=plot(x,R.TPass(:,imtp),'--','color',Cs,'linewidth',line_linewidth,'DisplayName','Passive');
+        legend([p1,p3],'location','best')
+        title('Mtp torque')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        ylabel('Torque (Nm)','Fontsize',label_fontsize);
+
     end
     
     W_mtj = zeros(length(x),1);
@@ -1233,7 +1300,6 @@ if exist(ResultsFile,'file')
     title('Total foot')
 
     if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
-
         subplot(3,3,6)
         hold on
         grid on

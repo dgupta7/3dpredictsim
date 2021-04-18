@@ -27,21 +27,27 @@ phi0 = 2.1274;
 %% Default parameters
 R_mtth = 7.5e-3; % average radius of the metatarsal head
 % R_mtth = 9.5e-3; % radius of the first metatarsal head
-l_toe = 0; % distance from metatarsal head to PF attachment point at toe
 
 sf_PF = 1; % scale factor for PF stiffness
 mtj_stiffness = 'Ker1987'; % model for resulting foot stiffness
+dMT = 0;
+nl = 1; % use nonlinear ligament stiffness
+kMT_li = 90; % linear stiffness
 
 %% Get specific parameters
 if isempty(varargin)
-    dMT = 0;
-    nl = 1; % use nonlinear ligament stiffness
-    kMT_li = 90; % linear stiffness
+    
 else
     S = varargin{1};
-    dMT = S.dMT;
-    nl = S.MT_li_nonl;
-    kMT_li = S.kMT_li;
+    if isfield(S,'dMT') && ~isempty(S.dMT)
+        dMT = S.dMT;
+    end
+    if isfield(S,'MT_li_nonl') && ~isempty(S.MT_li_nonl)
+        nl = S.MT_li_nonl;
+    end
+    if isfield(S,'kMT_li') && ~isempty(S.kMT_li)
+        kMT_li = S.kMT_li;
+    end
     if isfield(S,'sf_PF') && ~isempty(S.sf_PF)
         sf_PF = S.sf_PF;
     end
@@ -58,7 +64,7 @@ l_PF_fa = sqrt(calcnPF2mtj^2 + mtj2mttPF^2 - 2*calcnPF2mtj*mtj2mttPF*cos(phi)); 
 MA_PF = calcnPF2mtj*mtj2mttPF/l_PF_fa*sin(phi); % moment arm of PF to mtj
 
 % Plantar fascia length
-l_PF = l_PF_fa + R_mtth*q_mtp + l_toe;
+l_PF = l_PF_fa + R_mtth*(pi/2+q_mtp) -0.0017; % constant term to correct path length to physical length
 
 %% Torques
 % plantar fascia
@@ -69,7 +75,7 @@ try
         F_PF = full(F_PF);
     end
 catch
-    warning('No valid function to describe the plantar fascia stiffness model, using 0 instead.')
+%     warning('No valid function to describe the plantar fascia stiffness model, using 0 instead.')
     F_PF = 0;
 end
 
@@ -82,21 +88,36 @@ if nl
         
     elseif strcmp(mtj_stiffness,'Ker1987')
         % calculated in ligaments_torques_Ker87_v2.m
-        
-%         M_li = 0.324608 + -35.10522*q_mt^1 + -2082.547*q_mt^3 + 28073.93*q_mt^5 +...
-%             -177327*q_mt^7 + 529060.7*q_mt^9 + -584959.5*q_mt^11;
-        
-%         M_li = 0.313409 + -21.27506*q_mt^1 + -2206.793*q_mt^3 + 29433.1*q_mt^5 +...
-%             -309969.7*q_mt^7 + 1580497*q_mt^9 + -2975238*q_mt^11;
-        
-        M_li = 0.282068 + -19.14756*q_mt^1 + -1986.114*q_mt^3 + 26489.79*q_mt^5 +...
-            -278972.7*q_mt^7 + 1422447*q_mt^9 + -2677715*q_mt^11; %sf=0.9, F*sf^2
+        M_li = 2.16362 + -55.325857*q_mt^1 + -614.60128*q_mt^3 + 1732.1067*q_mt^5 + ...
+            7091.9679*q_mt^7 + -24459.968*q_mt^9 -1;
+            
+    elseif strcmp(mtj_stiffness,'fitted')
+%         % for Natali2010, with ls=144
+%         t1 = 0*pi/180;
+%         c1 = 10;
+%         c2 = 20;
+% 
+%         t2 = 10*pi/180;
+%         c3 = 1;
+%         c4 = 50;
+%         c5 = 28;
 
+        t1 = 3*pi/180;
+        c1 = 10;
+        c2 = 25;
+
+        t2 = 10*pi/180;
+        c3 = 2;
+        c4 = 40;
+        c5 = 8;
+
+        M_li = -c1*exp(c2*(q_mt-t1)) + c3*exp(-c4*(q_mt+t2)) + c5;
+        
     end
 else
     M_li = -kMT_li*q_mt;
 end
-
+       
 % viscous damping
 M_d = -dMT*qdot_mt;
 

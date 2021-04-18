@@ -32,8 +32,8 @@ S = Sopt;
 
 body_mass = S.mass;
 
-S.ResultsFolder = ResultsFolder;
-S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v5.dll';
+% S.ResultsFolder = ResultsFolder;
+% S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v5.dll';
 
 %% User inputs (typical settings structure)
 % load default CasadiFunctions

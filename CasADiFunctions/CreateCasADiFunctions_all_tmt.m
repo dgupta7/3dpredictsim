@@ -534,18 +534,20 @@ if mtj
         passTorques_mtpj = passWLTorques_mtpj;
         
     else
-        % Define the passive mtp torque such that it approaches the previous
-        % model incase the midtarsal angle is 0.
-        if strcmp(S.PF_stiffness,'linear')
-            passTorques_mtpj = passWLTorques_mtpj + 4 - 10*qin2 -damp * qdotin2;
-        elseif strcmp(S.PF_stiffness,'Gefen2001')
-            passTorques_mtpj = passWLTorques_mtpj + 1 - 15*qin2 -damp * qdotin2;
+        % Adjust such that they all cross 0Nm between 0 and 1° mtp, for mtj=0
+        passTorques_mtpj = passWLTorques_mtpj - 10*qin2 -damp * qdotin2;
+        if strcmp(S.PF_stiffness,'Gefen2001')
+            passTorques_mtpj = passTorques_mtpj + 0.6;
+        elseif strcmp(S.PF_stiffness,'Ker1987')
+            passTorques_mtpj = passTorques_mtpj + 1.4;
         elseif strcmp(S.PF_stiffness,'Cheng2008')
-            passTorques_mtpj = passWLTorques_mtpj + 4 - 12*qin2 -damp * qdotin2;
-        elseif strcmp(S.PF_stiffness,'Barrett2018')
-            passTorques_mtpj = passWLTorques_mtpj - 16*qin2 -damp * qdotin2;
+            passTorques_mtpj = passTorques_mtpj + 5;
         elseif strcmp(S.PF_stiffness,'Natali2010')
-            passTorques_mtpj = passWLTorques_mtpj + 9*qin2^2 - 5*qin2 + 5 -damp * qdotin2;
+            passTorques_mtpj = passTorques_mtpj + 6;
+        elseif strcmp(S.PF_stiffness,'linear')
+            passTorques_mtpj = passTorques_mtpj + 5;
+        elseif strcmp(S.PF_stiffness,'tanh')
+            passTorques_mtpj = passTorques_mtpj + 4;
         end
         
     end
@@ -755,8 +757,8 @@ elseif mtj
     Tau_passj.mtj.r = f_passiveWLTorques_mtj(Q_SX(jointi.tmt.r), ...
         Qdot_SX(jointi.tmt.r),Q_SX(jointi.mtp.r));
 
-    if WL_T_mtp
-        if Mu_mtp
+    if WL_T_mtp % plantar fascia exerts reaction torque on toes
+        if Mu_mtp % use model with muscle-driven mtp
             Tau_passj.mtp.l =...
                 f_passiveWLTorques_mtpj(Q_SX(jointi.tmt.l), Qdot_SX(jointi.tmt.l),...
                 Q_SX(jointi.mtp.l),Qdot_SX(jointi.mtp.l), dampingMtp)...
@@ -768,7 +770,7 @@ elseif mtj
                 + f_PassiveMoments(k_pass.mtp, theta.pass.mtp, Q_SX(jointi.mtp.r),...
                 Qdot_SX(jointi.mtp.r));
             
-        else
+        else % ideal torque actuator mtp
             Tau_passj.mtp.l = f_passiveWLTorques_mtpj(Q_SX(jointi.tmt.l), ...
                 Qdot_SX(jointi.tmt.l),Q_SX(jointi.mtp.l),Qdot_SX(jointi.mtp.l),...
                 dampingMtp);
@@ -776,7 +778,7 @@ elseif mtj
                 Qdot_SX(jointi.tmt.r),Q_SX(jointi.mtp.r),Qdot_SX(jointi.mtp.r),...
                 dampingMtp);
         end
-    else
+    else % spring mtp 
         Tau_passj.mtp.l = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
             Q_SX(jointi.mtp.l), Qdot_SX(jointi.mtp.l));
         Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...

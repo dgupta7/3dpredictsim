@@ -1,36 +1,167 @@
 clear
 clc
+
+[pathHere,~,~] = fileparts(mfilename('fullpath'));
+[pathRepo,~,~] = fileparts(pathHere);
+addpath([pathRepo '/VariousFunctions']);
 AddCasadiPaths();
 
-ls = 0.137;
-l = linspace(ls,ls+0.03,1000);
+set(0,'defaultTextInterpreter','tex');
 
-% PF_stiffness = {'linear','tanh','Gefen2001','Cheng2008','Barrett2018','Natali2010'};
-PF_stiffness = {'Cheng2008','Gefen2001','Ker1987','Natali2010','linear'};
+%%
+N = 1000;
+ls = 0.144;
 
-CsV1 = hsv(numel(PF_stiffness));
-A0 = 49.7;
-dl = (l-ls)*1000;
-figure
-hold on
+l = linspace(ls,ls+0.03,N);
+l_0 = linspace(ls-5e-4,ls+3e-3,N);
+l_0p = linspace(ls,ls+2e-3,N);
+q_mt = linspace(-40,40,N)'*pi/180;
+q_mtp = linspace(-45,45,N)*pi/180;
+
+PF_stiffness = {'Cheng2008','Gefen2001','Ker1987','Natali2010','linear','tanh'};
+% PF_stiffness = {'Natali2010'};
+mtj_stiffness = {'Gefen2001','Ker1987'};
+k = 300;
+
+%%
 for i=1:numel(PF_stiffness)
-    f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(PF_stiffness{i},'ls',ls);
-    for j=1:1000
-        F_PF(i,j) = full(f_PF_stiffness(l(j)));
+    [f_PF_stiffness,grad,Hess,f_PF_stiffness_nonsmoothed] = f_getPlantarFasciaStiffnessModelCasADiFunction(PF_stiffness{i},'ls',ls);
+    F_PF(i,:) = full(f_PF_stiffness(l));
+    F_PF_0(i,:) = full(f_PF_stiffness(l_0));
+    F_PF_0_ns(i,:) = full(f_PF_stiffness_nonsmoothed(l_0p));
+    g_F_PF(i,:) = full(grad(l_0));
+    H_F_PF(i,:) = full(Hess(l_0));
+    for j=1:N
+        [~,temp] = getPassiveMtjMomentWindlass_v3(0,0,q_mtp(j),f_PF_stiffness);
+        T_mtp(i,j) = full(temp);
     end
-    plot((l-ls)*1000,F_PF(i,:),'DisplayName',PF_stiffness{i},'color',CsV1(i,:))
+    
+end
+T_mtp2(:,:) = T_mtp(:,:) - 10.*q_mtp.*ones(i,1) + [5;1.4;0.6;6;5;4];
+
+for i=1:numel(mtj_stiffness)
+    S.mtj_stiffness = mtj_stiffness{i};
+    for j=1:length(q_mt)
+        [~,~,~,M2,~,~,~,~,~,~,~] = getPassiveMtjMomentWindlass_v3(q_mt(j),0,0,0,S);
+        M_li(i,j) = M2;
+    end
+    
 end
 
-legend('Location','best')
-xlabel('Elongation (mm)')
-ylabel('Force (N)')
-title('Plantar fascia stiffness models')
-ylim([0,2000])
-% xlim([0,20])
 
 %%
 
-% sf = 3;
-% Fsf = F_PF(3,:).*sf;
-% plot((l-ls)*1000,Fsf,'DisplayName',['Gefen x' num2str(sf)])
+figure
+for i=1:numel(PF_stiffness)
+    subplot(231)
+    hold on
+    plot((l-ls)*1000,F_PF(i,:),'DisplayName',PF_stiffness{i})
+    grid on
+    legend('Location','best')
+    xlabel('Elongation (mm)')
+    ylabel('Force (N)')
+    title('Plantar fascia force')
+    ylim([0,2000])
+
+    subplot(333)
+    hold on
+    pl=plot((l_0-ls)/ls*100,F_PF_0(i,:),'DisplayName',PF_stiffness{i});
+    pls(i)=pl;
+    grid on
+    xlabel('Nominal strain (%)')
+    ylabel('Force (N)')
+    title('Plantar fascia force')
+%     ylim([-10,200])
+    
+    subplot(336)
+    hold on
+    plot((l_0-ls)/ls*100,g_F_PF(i,:),'DisplayName',PF_stiffness{i})
+    grid on
+    legend('Location','best')
+    xlabel('Nominal strain (%)')
+    ylabel('\nablaF')
+    title('Plantar fascia force gradient')
+
+    subplot(339)
+    hold on
+    plot((l_0-ls)/ls*100,H_F_PF(i,:),'DisplayName',PF_stiffness{i})
+    grid on
+    legend('Location','best')
+    xlabel('Nominal strain (%)')
+    ylabel('\nabla^2F')
+    title('Plantar fascia force Hessian')
+    
+    subplot(232)
+    hold on
+    plot(q_mtp*180/pi,T_mtp(i,:),'DisplayName',PF_stiffness{i})
+    grid on
+    legend('Location','best')
+    xlabel('Mtp angle (°)')
+    ylabel('Torque (Nm)')
+    title('Plantar fascia torque on mtp')
+
+
+    subplot(235)
+    hold on
+    plot(q_mtp*180/pi,T_mtp2(i,:),'DisplayName',PF_stiffness{i})
+    grid on
+    legend('Location','best')
+    xlabel('Mtp angle (°)')
+    ylabel('Torque (Nm)')
+    title('Full mtp torque')
+end
+
+for i=1:numel(PF_stiffness)
+    subplot(333)
+    plot((l_0p-ls)/ls*100,F_PF_0_ns(i,:),'--','Color',pls(i).Color);
+end
+legend(pls,'Location','best')
+
+for i=1:numel(mtj_stiffness)
+    subplot(234)
+    hold on
+    plot(q_mt*180/pi,M_li(i,:),'DisplayName',mtj_stiffness{i})
+    grid on
+    legend('Location','best')
+    xlabel('Midtarsal angle (°)')
+    ylabel('Torque (Nm)')
+    title('Midtarsal stiffness models')
+    ylim([-100,100])
+end
+
+plot(q_mt*180/pi,-q_mt*k,'DisplayName',['k = ' num2str(k) ' Nm/rad'])
+
+
+
+%%
+
+% cf = (tanh((l_0-ls)*1e3/ls)+1)/2; 
+% 
+% figure
+% plot(l_0,cf)
+
+
+% e = 1.415; % %
+% F = 212.5; % N
+% l_e = ls*(1+e/100);
+% 
+% dF = interp1(l_0,g_F_PF(1,:),l_e);
+% ddF = interp1(l_0,H_F_PF(1,:),l_e);
+% 
+% subplot(333)
+% plot(e,F,'.k','MarkerSize',10)
+% 
+% subplot(336)
+% plot(e,dF,'.k','MarkerSize',10)
+% plot(([l_0(1),l_0(end)]-ls)/ls*100,[dF,dF],'k')
+
+
+
+
+
+
+
+
+
+
 

@@ -1,5 +1,13 @@
 function [varargout] = PlotResults_FootSim(R,varargin)
-fig2 = 1;
+fig2 = 0;
+
+% if ~isfield(R,'legname')
+%     if ~isfield(R.S,'mtj_stiffness')
+%         R.S.mtj_stiffness = '';
+%     end
+%     legname = ['PF: ' R.PF_stiffness ', l_s = ' num2str(R.S.PF_slack_length*1000) '; mtj: ' R.S.mtj_stiffness];
+%     R.legname = legname;
+% end
 
 n_mtp = length(R.Qs_mtp);
 n_tib = length(R.Fs_tib);
@@ -287,7 +295,7 @@ else
 end
 hold on
 if BoolFirst
-    hi1 = image([1,9.65],flip([0,4]),img_Ker);
+    hi1 = image([1,9.65]*0.9,flip([0,4]*0.9^2),img_Ker);
     uistack(hi1,'bottom')
 end
 xlabel('horizontal elongation (mm)')
@@ -363,7 +371,7 @@ xlabel('arch compression (-)')
 ylabel('vertical force / body weight (-)')
 title({'Foot arch stiffness','as defined by Welte et al, 2018'})
 leg = legend('Location','southeast');
-title(leg,'mtp angle')
+title(leg,'mtp dorsiflexion')
 xlim([0,1])
 
 
@@ -412,7 +420,7 @@ if fig2
     zmin = 0;
     zmax = 0;
 
-    for i=1:(round(n_tib/5)):n_tib
+    for i=1:(ceil(n_tib/5)):n_tib
         if R.failed(j,i) == 0
             figure(h2)
 
@@ -454,8 +462,10 @@ if fig2
             title('sagittal plane (right)')
             xlabel('x')
             ylabel('y')
-            ylim(range_y)
-            xlim(range_x)
+            if i>1
+                ylim(range_y)
+                xlim(range_x)
+            end
             range_y = get(gca, 'ylim');
 
             subplot(2,3,3)
@@ -471,7 +481,9 @@ if fig2
             title('frontal plane (front)')
             xlabel('-z')
             ylabel('y')
-            ylim(range_y)
+            if i>1
+                ylim(range_y)
+            end
             range_z = get(gca, 'xlim');
             lg1=legend(leg1,'Location','northeast');
 
@@ -490,14 +502,18 @@ if fig2
                 set(p8,'DisplayName','COP calcn')
                 set(p9,'DisplayName','COP metatarsi')
                 lg2=legend([p2,p3,p4,p5,p6,p7,p8,p9],'Location','northeast');
+            else
+                lg2=legend([p2,p3,p4,p5,p6,p7],'Location','northeast');
             end
             axis equal
             title('transverse plane (top)')
             xlabel('x')
             ylabel('-z')
-            xlim(range_x)
-            ylim(range_z)
-
+            if i>1
+                xlim(range_x)
+                ylim(range_z)
+            end
+            
         end
     end
 
