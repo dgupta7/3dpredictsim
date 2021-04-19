@@ -63,7 +63,11 @@ fpos = [1,scs(4)/2+20;
         -scs(3)/2,40;
         -scs(3),40;];
 
-
+label_fontsize  = 12;
+line_linewidth  = 0.5;
+NumTicks = 6;
+        
+        
 for inr=1:nr
     load(ResultsFile{inr},'R');
     if LN
@@ -110,6 +114,7 @@ for inr=1:nr
     idx_sp = [1,2,3,5,6,7]; % subplots to use
     end
     
+    x = 1:(100-1)/(size(R.Qs,1)-1):100;
     
     %% kinematics
     if makeplot.kinematics
@@ -265,7 +270,7 @@ for inr=1:nr
         end
         iSol = find(strcmp(R.colheaders.muscles,'soleus_r'));
 
-        subplot(5,1,1); hold on;
+        subplot(6,1,1); hold on;
 
         if inr==1 && md && ~strcmp(RefData,'Fal_s1')
             iSol_data = find(strcmp(Dat.(type).EMGheaders,'soleus_r'));
@@ -279,24 +284,30 @@ for inr=1:nr
         title('Soleus')
         ylabel('activity')
 
-        subplot(5,1,2)
+        subplot(6,1,2)
         plot(R.MetabB.Etot(:,iSol),'-'); hold on;
         ylabel('Muscle metab power');
 
-        subplot(5,1,3)
+        subplot(6,1,3)
         plot(R.lMtilde(:,iSol),'-'); hold on;
         ylabel('Norm fiber length');
 
-        subplot(5,1,4)
+        subplot(6,1,4)
         plot(R.MetabB.Wdot(:,iSol),'-'); hold on;
         ylabel('Wdot');
 
-        subplot(5,1,5)
-        plot(R.FT(:,iSol),'-','DisplayName',LegName); hold on;
+        subplot(6,1,5)
+        plot(R.FT(:,iSol),'-','DisplayName',LegName);
+        hold on
         ylabel('Norm muscle force');
+        
+
+        subplot(6,1,6)
+        plot(R.Muscle.vM(:,iSol),'DisplayName',LegName);
+        hold on
+        ylabel('Fibre velocity')
+
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-
-
         if inr==1
             lh=legend('-DynamicLegend','location','east');
             lh.Interpreter = 'none';
@@ -329,34 +340,229 @@ for inr=1:nr
                 ylabel({'Ground reaction force','(% body weight)'})
             end
         end
-        l.DisplayName = LegName;
+        l.DisplayName = ['Total (' LegName ')'];
 
-        if inr == 1
+        if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
+            for i=1:3
+                subplot(1,3,i)
+                hold on
+                p1=plot(R.GRFs_separate(:,i),'-.','DisplayName','hindfoot');
+                p2=plot(R.GRFs_separate(:,i+3),'--','DisplayName','forefoot');
+                p3=plot(R.GRFs_separate(:,i+6),':','DisplayName','toes');
+%                 title(R.colheaders.GRF{i});
+%                 xlabel('% stride');
+%                 ylabel('% body weight')
+
+            end
+            if inr == 1
+                lh=legend([l,p1,p2,p3],'location','best');
+                lh.Interpreter = 'none';
+            end
+        elseif inr == 1
             lh=legend('location','northeast');
             lh.Interpreter = 'none';
         end
     end
 
-%     if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
-%         for i=1:3
-%             subplot(1,3,i)
-%             hold on
-%             p1=plot(R.GRFs_separate(:,i),'-.','DisplayName','calcaneus');
-%             p2=plot(R.GRFs_separate(:,i+3),'--','DisplayName','forefoot');
-%             p3=plot(R.GRFs_separate(:,i+6),':','DisplayName','toes');
-%             title(R.colheaders.GRF{i});
-%             xlabel('% stride');
-%             ylabel('% body weight')
-%             
-%         end
-%         if boolFirst
-%             lh=legend([l,p1,p2,p3],'location','best');
-%             lh.Interpreter = 'none';
-%         end
-%     end
     
     
     %% windlass
+    
+    if makeplot.compareLiterature
+        
+        if inr==1
+            pathmain = pwd;
+            [pathRepo,~,~]  = fileparts(pathmain);
+            folder = '\Figures';
+            file = 'calcn_foreft_Caravaggi18.png';
+            pathRefImg = fullfile(pathRepo,folder,file);
+            img_q_mtj = imread(pathRefImg);
+            file = 'mtp1_Caravaggi18.png';
+            pathRefImg = fullfile(pathRepo,folder,file);
+            img_q_mtp = imread(pathRefImg);
+            file = 'PF_force_Caravaggi09.png';
+            pathRefImg = fullfile(pathRepo,folder,file);
+            img_F_PF = imread(pathRefImg);
+            file = 'foot_power_Takahashi17.png';
+            pathRefImg = fullfile(pathRepo,folder,file);
+            img_P_foot = imread(pathRefImg);
+            file = 'mtj_power_Takahashi17.png';
+            pathRefImg = fullfile(pathRepo,folder,file);
+            img_P_mtj = imread(pathRefImg);
+            
+            h5 = figure('Position',[fpos(1,:),fwide]);
+            
+            subplot(121)
+            hold on
+            axis tight
+            hi1 = image([-12,102],flip([-72,27]+30),img_q_mtj);
+            uistack(hi1,'bottom')
+            xlabel('Gait cycle (%)')
+            ylabel('Midtarsal angle (°)')
+            title('Joint angles,')
+
+            subplot(122)
+            hold on
+            axis tight
+            hi2 = image([-12,102],flip([-36,77]),img_q_mtp);
+            uistack(hi2,'bottom')
+            xlabel('Gait cycle (%)')
+            ylabel('Mtp angle (°)')
+            title('Caravaggi (2018), experiments + ID')
+            lh=legend('location','southwest');
+            lh.Interpreter = 'none';
+            
+            h6 = figure('Position',[fpos(4,:),scs(3)/4*3, scs(4)/2]);
+            
+            subplot(121)
+            hold on
+            axis tight
+            hi3 = image([-4,108],flip([-1.71,3.6]),img_P_foot);
+            uistack(hi3,'bottom')
+            ylabel('Power (W/kg)');
+            xlabel('Stance phase (%)');
+            title('Joint power,')
+            lh=legend('location','west');
+            lh.Interpreter = 'none';
+            title(lh,'Distal to')
+
+            subplot(122)
+            hold on
+            axis tight
+            hi4 = image([-6.5,109],flip([-1.64,1.69]),img_P_mtj);
+            uistack(hi4,'bottom')
+            ylabel('Power (W/kg)');
+            xlabel('Stance phase (%)');
+            title('Takahashi (2017), experiment-based')
+            lh=legend('location','south');
+            lh.Interpreter = 'none';
+            
+            h7 = figure('Position',[fpos(2,:),scs(3)/2, scs(4)/3]);
+            title('Plantar fascia force, Caravaggi (2009), FE-simulation')
+            hold on
+            axis tight
+            hi5 = image([-13,112],flip([-0.16,1.75]),img_F_PF);
+            uistack(hi5,'bottom')
+            ylabel('Tension/BW (-)');
+            xlabel('Stance phase (%)');
+%             title('Plantar fascia force')
+            lh=legend('location','northwest');
+            lh.Interpreter = 'none';
+            
+        end
+        
+        istance = 1:1:round(R.Event.Stance)+2;
+        xst = linspace(1,100,length(istance));
+        imtp = find(strcmp(R.colheaders.joints,'mtp_angle_r'));
+        imtj = find(strcmp(R.colheaders.joints,'mtj_angle_r'));
+        iankle = strcmp(R.colheaders.joints,'ankle_angle_r');
+        isubt = strcmp(R.colheaders.joints,'subtalar_angle_r');
+        line_linewidth = 2;
+
+        % Q
+        figure(h5)
+        if ~isempty(imtj)
+            
+            subplot(121)
+            plot(x,R.Qs(:,imtj),'linewidth',line_linewidth,'DisplayName',LegName);
+        end
+        
+        subplot(122)
+        plot(x,R.Qs(:,imtp),'linewidth',line_linewidth,'DisplayName',LegName);
+        
+        % P
+        figure(h6)
+        
+        P_ankle = R.Qdots(istance,iankle)*pi/180.*R.Tid(istance,iankle)/R.body_mass;
+        P_subt = R.Qdots(istance,isubt)*pi/180.*R.Tid(istance,isubt)/R.body_mass;
+        P_mtp = R.Qdots(istance,imtp)*pi/180.*R.Tid(istance,imtp)/R.body_mass;
+        if ~isempty(imtj)
+            P_mtj = R.Qdots(istance,imtj)*pi/180.*R.Tid(istance,imtj)/R.body_mass;
+            P_hindfoot = P_mtj+P_mtp;
+            P_tot = P_mtj + P_ankle + P_subt + P_mtp;
+        else
+            P_hindfoot = P_mtp;
+            P_tot = P_ankle + P_subt + P_mtp;
+        end
+        
+        subplot(121)
+        plot(xst,P_mtp','-.','Color',[0.7, 0.1, 0.1],'linewidth',line_linewidth,'DisplayName',['forefoot']);
+        plot(xst,P_hindfoot,'-.','Color',[0, 0.4470, 0.7410],'linewidth',line_linewidth,'DisplayName',['hindfoot']);
+        plot(xst,P_tot,'-.k','linewidth',line_linewidth,'DisplayName',['shank']);
+        
+
+        subplot(122)
+        plot(xst,P_mtp,'-.','Color',[0.7, 0.1, 0.1],'linewidth',line_linewidth,'DisplayName',['Distal to forefoot']);
+        if ~isempty(imtj)
+            plot(xst,P_mtj,'-','Color',[0.3010, 0.7450, 0.9330],'linewidth',line_linewidth,'DisplayName',['Midtarsal joint']);
+        end
+        plot(xst,P_hindfoot,'-.','Color',[0, 0.4470, 0.7410],'linewidth',line_linewidth,'DisplayName',['Distal to hindfoot']);
+        
+        % F
+        if isfield(R,'windlass') && ~isempty(R.windlass)
+            figure(h7)
+            plot(xst,R.windlass.F_PF(istance)/(R.body_mass*9.81),'linewidth',line_linewidth,'DisplayName',LegName);
+        end
+            
+        
+
+
+    end
+    
+    
+    %% centre of pressure
+    if makeplot.COP
+        if inr==1
+            h8 = figure('Position',[fpos(2,:),fwide]);
+            
+        end
+        
+        if isfield(R,'AnkleInGround')
+            ictt = find(R.AnkleInGround.leverArmGRF.r~=0);
+            relPos = (R.COPR(ictt,:) - R.AnkleInGround.position.r(ictt,:))*1e3;
+            
+            figure(h8)
+            subplot(121)
+            p1=plot(0,0,'d','DisplayName','Ankle');
+            hold on
+            grid on
+            axis equal
+            xlabel('fore-after (mm)')
+            ylabel('vertical (mm)')
+            title('Centre of pressure during stance')
+            plot(relPos(:,1),relPos(:,2),'o','Color',p1.Color,'DisplayName','COP');
+            
+            subplot(122)
+            p1=plot(0,0,'d','DisplayName','Ankle');
+            hold on
+            grid on
+            axis equal
+            ylabel('fore-after (mm)')
+            xlabel('lateral (mm)')
+            title('Centre of pressure during stance')
+            plot(relPos(:,3),relPos(:,1),'o','Color',p1.Color,'DisplayName','COP');
+            legend;
+            
+            
+            figure
+            ictt1 = ictt(1:5:end);
+            grfx = [R.COPR(ictt1,1)*1e3, R.COPR(ictt1,1)*1e3 + R.GRFs(ictt1,1)];
+            grfy = [R.COPR(ictt1,2)*1e3, R.COPR(ictt1,2)*1e3 + R.GRFs(ictt1,2)];
+            plot(R.AnkleInGround.position.r(ictt1,1)*1e3,R.AnkleInGround.position.r(ictt1,2)*1e3,'d','DisplayName','Ankle');
+            hold on
+            plot(R.COPR(ictt1,1)*1e3,R.COPR(ictt1,2)*1e3,'o','DisplayName','COP');
+            plot(grfx',grfy','-','DisplayName','GRF');
+            grid on
+            axis equal
+            xlabel('fore-after (mm)')
+            ylabel('vertical (mm)')
+            title('Centre of pressure during stance')
+            
+        end
+        
+        
+    end
+    
     
     
 end

@@ -52,8 +52,8 @@ S.NThreads  = 6;        % number of threads for parallel computing
 
 % output folder
 S.ResultsFolder = 'MidTarsalJoint'; % 'batch_windlass' 'standing' 'MuscleModel' 'batch_tmt_lin'
-suffixCasName = '';         
-suffixName = '';
+suffixCasName = '_v2';         
+suffixName = '_v2';
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst

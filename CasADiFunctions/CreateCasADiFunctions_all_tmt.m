@@ -282,6 +282,14 @@ end
 f_lMT_vMT_dM = Function('f_lMT_vMT_dM',{qin,qdotin},{lMT,vMT,dM},...
     {'qin','qdotin'},{'lMT','vMT','dM'});
 
+
+%% Midtarsal joint: muscle momentarms (approximation)
+qin     = SX.sym('qin',1);
+
+[MA_mtj] = getMtjMomentArmApprox(qin);
+
+f_MA_Mtj = Function('f_MA_Mtj',{qin},{MA_mtp},{'q_mtj'},{'MA_mtj'});
+
 %% Normalized sum of squared values
 % Function for 8 elements
 etemp8 = SX.sym('etemp8',8);
@@ -534,22 +542,26 @@ if mtj
         passTorques_mtpj = passWLTorques_mtpj;
         
     else
-        % Adjust such that they all cross 0Nm between 0 and 1° mtp, for mtj=0
-        passTorques_mtpj = passWLTorques_mtpj - 10*qin2 -damp * qdotin2;
-        if strcmp(S.PF_stiffness,'Gefen2001')
-            passTorques_mtpj = passTorques_mtpj + 0.6;
-        elseif strcmp(S.PF_stiffness,'Ker1987')
-            passTorques_mtpj = passTorques_mtpj + 1.4;
-        elseif strcmp(S.PF_stiffness,'Cheng2008')
-            passTorques_mtpj = passTorques_mtpj + 5;
-        elseif strcmp(S.PF_stiffness,'Natali2010')
-            passTorques_mtpj = passTorques_mtpj + 6;
-        elseif strcmp(S.PF_stiffness,'linear')
-            passTorques_mtpj = passTorques_mtpj + 5;
-        elseif strcmp(S.PF_stiffness,'tanh')
-            passTorques_mtpj = passTorques_mtpj + 4;
-        end
         
+        % Adjust such that they all cross 0Nm at 0 ° mtp, for mtj=0
+        % Numbers are for PF slack length = 148mm;
+        % see \FootModel\compare_PF_stiffness_models.m
+        if strcmp(S.PF_stiffness,'Cheng2008')
+            offset = 1.2915;
+        elseif strcmp(S.PF_stiffness,'Gefen2001')
+            offset = 0.1824;
+        elseif strcmp(S.PF_stiffness,'Ker1987')
+            offset = 0.0550;
+        elseif strcmp(S.PF_stiffness,'Natali2010')
+            offset = 0.9254;
+        elseif strcmp(S.PF_stiffness,'linear')
+            offset = 1.1449;
+        elseif strcmp(S.PF_stiffness,'tanh')
+            offset = 0.2249;
+        else
+            offset = 0;
+        end
+        passTorques_mtpj = passWLTorques_mtpj - 10*qin2 -damp * qdotin2 + offset;
     end
     
     f_passiveWLTorques_mtpj = Function('f_passiveWLTorques_mtpj',{qin1,qdotin1,qin2,qdotin2,damp}, ...
@@ -761,14 +773,14 @@ elseif mtj
         if Mu_mtp % use model with muscle-driven mtp
             Tau_passj.mtp.l =...
                 f_passiveWLTorques_mtpj(Q_SX(jointi.tmt.l), Qdot_SX(jointi.tmt.l),...
-                Q_SX(jointi.mtp.l),Qdot_SX(jointi.mtp.l), dampingMtp)...
-                + f_PassiveMoments(k_pass.mtp, theta.pass.mtp,Q_SX(jointi.mtp.l),...
-                Qdot_SX(jointi.mtp.l));
+                Q_SX(jointi.mtp.l),Qdot_SX(jointi.mtp.l), dampingMtp);%...
+%                 + f_PassiveMoments(k_pass.mtp, theta.pass.mtp,Q_SX(jointi.mtp.l),...
+%                 Qdot_SX(jointi.mtp.l));
             Tau_passj.mtp.r =...
                 f_passiveWLTorques_mtpj(Q_SX(jointi.tmt.r), Qdot_SX(jointi.tmt.r),...
-                Q_SX(jointi.mtp.r),Qdot_SX(jointi.mtp.r), dampingMtp)...
-                + f_PassiveMoments(k_pass.mtp, theta.pass.mtp, Q_SX(jointi.mtp.r),...
-                Qdot_SX(jointi.mtp.r));
+                Q_SX(jointi.mtp.r),Qdot_SX(jointi.mtp.r), dampingMtp);%...
+%                 + f_PassiveMoments(k_pass.mtp, theta.pass.mtp, Q_SX(jointi.mtp.r),...
+%                 Qdot_SX(jointi.mtp.r));
             
         else % ideal torque actuator mtp
             Tau_passj.mtp.l = f_passiveWLTorques_mtpj(Q_SX(jointi.tmt.l), ...
@@ -836,6 +848,7 @@ f_J92exp.save(fullfile(OutPath,'f_J92exp'));
 f_Jnn2.save(fullfile(OutPath,'f_Jnn2'));
 f_Jnn3.save(fullfile(OutPath,'f_Jnn3'));
 f_lMT_vMT_dM.save(fullfile(OutPath,'f_lMT_vMT_dM'));
+f_MA_Mtj.save(fullfile(OutPath,'f_MA_Mtj'));
 f_MtpActivationDynamics.save(fullfile(OutPath,'f_MtpActivationDynamics'));
 f_PassiveMoments.save(fullfile(OutPath,'f_PassiveMoments'));
 f_passiveTATorques.save(fullfile(OutPath,'f_passiveTATorques'));

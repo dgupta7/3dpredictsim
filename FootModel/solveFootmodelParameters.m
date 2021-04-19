@@ -102,11 +102,19 @@ m2.m.LPL = [0.002; -0.025; 0.016];
 m2.c.SPL = [0.005; -0.013; 0.001];
 m2.m.SPL = [0.004; -0.016; 0.006];
 
+m2.m.ext_dig = [0.025;0.01;0.015];
 m2.f.ext_dig = [0.06;-0.005;0.011];
 m2.ts.ext_dig = [0.028;0.002;0.009];
 
+m2.m.ext_hal = [0.029;0.023;-0.002];
 m2.f.ext_hal = [0.059;0.003;-0.017];
 m2.ts.ext_hal = [0.033;0;-0.029];
+
+m2.c.flex_dig = [-0.019;0.007;-0.016];
+m2.m.flex_dig = [-0.009;0;-0.023];
+
+m2.c.flex_hal = [-0.014;0.003;-0.015];
+m2.m.flex_hal = [0.026;-0.016;-0.021];
 
 % derived params
 m2.gnd.tmtj2cCOM = -m2.c.mtj - m2.m.tmtj + m2.c.COM;
@@ -500,10 +508,18 @@ if add_mtj2
 
     m2.t.ext_dig1 = m2.f.ext_dig + m2.t.tmtj;
     m2.t.ext_dig2 = m2.ts.ext_dig + m2.t.mtpj;
+    m2.t.ext_dig3 = m2.m.ext_dig + m2.t.mtj;
 
     m2.t.ext_hal1 = m2.f.ext_hal + m2.t.tmtj;
     m2.t.ext_hal2 = m2.ts.ext_hal + m2.t.mtpj;
+    m2.t.ext_hal3 = m2.m.ext_hal + m2.t.mtj;
 
+    m2.t.flex_dig1 = m2.c.flex_dig + m2.t.subt;
+    m2.t.flex_hal1 = m2.c.flex_hal + m2.t.subt;
+    m2.t.flex_dig2 = m2.m.flex_dig + m2.t.mtj;
+    m2.t.flex_hal2 = m2.m.flex_hal + m2.t.mtj;
+
+    
     m2.t.cCOM = m2.t.subt + m2.c.COM;
     m2.t.mCOM = m2.t.mtj + m2.m.COM;
     m2.t.fCOM = m2.t.tmtj + m2.f.COM;
@@ -567,10 +583,18 @@ if add_mtj2
 
     m1c.t.ext_dig1 = m2.t.ext_dig1.*sf;
     m1c.t.ext_dig2 = m2.t.ext_dig2.*sf;
+    m1c.t.ext_dig3 = m2.t.ext_dig3.*sf;
 
     m1c.t.ext_hal1 = m2.t.ext_hal1.*sf;
     m1c.t.ext_hal2 = m2.t.ext_hal2.*sf;
+    m1c.t.ext_hal3 = m2.t.ext_hal3.*sf;
 
+    m1c.t.flex_dig1 = m2.t.flex_dig1.*sf;
+    m1c.t.flex_dig2 = m2.t.flex_dig2.*sf;
+    
+    m1c.t.flex_hal1 = m2.t.flex_hal1.*sf;
+    m1c.t.flex_hal2 = m2.t.flex_hal2.*sf;
+    
     m1c_j = [[0;0;0],m1c.t.subt,m1c.t.mtj,m1c.t.mtpj];
     m1c_c = [m1c.t.cCOM,m1c.t.mfCOM];
 
@@ -766,9 +790,85 @@ if add_mtj2
 
     % physical plantar fascia length (instead of force path)
     L_fa = norm(m1c.t.mtpj - [0;7.5e-3;0] - m1c.t.PF(:,1));
-    L_fa - l_PF_fa
+    L_fa - l_PF_fa;
     L_mtth = 7.5e-3*pi/2;
     L = L_fa+L_mtth;
+    
+    
+    %% muscles
+    figure
+    plot(m1c.t.mtj(1),m1c.t.mtj(2),'o')
+    hold on
+    plot(m1c.t.ext_dig3(1),m1c.t.ext_dig3(2),'d')
+    plot(m1c.t.ext_hal3(1),m1c.t.ext_hal3(2),'v')
+    plot(0,0,'*')
+    tmp1 = [m1c.t.flex_dig1(1:2),m1c.t.flex_dig2(1:2)];
+    plot(tmp1(1,:),tmp1(2,:),'--')
+    tmp2 = [m1c.t.flex_hal1(1:2),m1c.t.flex_hal2(1:2)];
+    plot(tmp2(1,:),tmp2(2,:))
+    axis equal
+    
+    a = m1c.t.ext_dig3 - m1c.t.mtj;
+    a = norm(a(1:2));
+    
+    disp('      mtj muscle moment arms:');
+    disp(['ext_dig2mtj = ' num2str(a) ';']);
+    
+    a = m1c.t.ext_hal3 - m1c.t.mtj;
+    a = norm(a(1:2));
+    disp(['ext_hal2mtj = ' num2str(a) ';']);
+    
+    %
+    vec_a = m1c.t.mtj - m1c.t.flex_dig1;
+    vec_b = m1c.t.flex_dig2 - m1c.t.mtj;
+    vec_c = vec_a + vec_b;
+    vec_ap = dot(vec_a,vec_c)/dot(vec_c,vec_c)*vec_c; % orthogonal projection of a onto c
+    vec_an = vec_a - vec_ap; % component of a that is normal to c 
+
+    a = norm(vec_a(1:2));
+    b = norm(vec_b(1:2));
+    c = norm(vec_c(1:2));
+    phi0 = acos( (c^2 - a^2 - b^2)/(-2*a*b) );
+    
+    q = linspace(-15,15,500)'*pi/180;
+    
+    phi = phi0 + q;
+    l = sqrt(a^2+b^2-2*a*b.*cos(phi));
+    MA = a*b./l.*sin(phi);
+    
+    figure
+    plot(q,MA)
+    
+    disp(['flex_dig2mtj = ' num2str(a) ';']);
+    disp(['mtj2flex_dig = ' num2str(b) ';']);
+    disp(['phi0 = ' num2str(phi0) ';']);
+    
+    %
+    vec_a = m1c.t.mtj - m1c.t.flex_hal1;
+    vec_b = m1c.t.flex_hal2 - m1c.t.mtj;
+    vec_c = vec_a + vec_b;
+    vec_ap = dot(vec_a,vec_c)/dot(vec_c,vec_c)*vec_c; % orthogonal projection of a onto c
+    vec_an = vec_a - vec_ap; % component of a that is normal to c 
+
+    a = norm(vec_a(1:2));
+    b = norm(vec_b(1:2));
+    c = norm(vec_c(1:2));
+    phi0 = acos( (c^2 - a^2 - b^2)/(-2*a*b) );
+    
+    q = linspace(-15,15,500)'*pi/180;
+    
+    phi = phi0 + q;
+    l = sqrt(a^2+b^2-2*a*b.*cos(phi));
+    MA = a*b./l.*sin(phi);
+    
+    figure
+    plot(q,MA)
+    
+    disp(['flex_hal2mtj = ' num2str(a) ';']);
+    disp(['mtj2flex_hal = ' num2str(b) ';']);
+    disp(['phi0 = ' num2str(phi0) ';']);
+    
+    
     
     %% subtalar joint axis orientation
     % original

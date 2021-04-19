@@ -66,9 +66,9 @@ S.subt_orientation = 'default'; %'Reule2010''Parr2012'
 S.mtj = 1;              % 1: use a model with tmt joint (will override tmt)
 % plantar fascia
 % S.PF_stiffness = 'Gefen2001'; % stiffness model for the gait simulation
-% S.PF_stiffness = 'Natali2010';
+S.PF_stiffness = 'Natali2010';
         % options: 'none''linear''Gefen2001''Cheng2008''Barrett2018''Natali2010'
-% S.PF_slack_length = 0.144; % slack length (m)
+S.PF_slack_length = 0.148; % slack length (m)
 % other ligaments (long, short planter ligament, etc)
 S.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
 % S.kMT_li = 200;         % angular stiffness in case of linear
@@ -90,7 +90,7 @@ S.ExoScale      = 0;    % scale factor of exoskeleton assistance profile
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-if plot_validation || plot_default
+if plot_validation || plot_default || plot_report
     % get file names
     for i=1:numel(ResultsFolder)
         pathResult{i} = fullfile([pathRepo '/Results/' ResultsFolder{i}]);
@@ -111,8 +111,8 @@ if plot_validation || plot_default
     [~,~,criteria] = getSavename(S);
 
     % manually add more filter criteria
-%     criteria{end+1} = 'v3';
-%     criteria{end+1} = 'not_Natali';
+    criteria{end+1} = 'not_Wmtp';
+%     criteria{end+1} = 'not_kmtp5';
 
     % filter filenames
     [filteredResults] = filterResultfolderByParameters(pathResult,criteria);
@@ -169,33 +169,39 @@ if plot_validation || plot_default
         end
     end
     
+    if plot_validation || plot_default
     % call plot function
-    Plot3D(filteredResultsWithRef,reference_data,pl)
-%     Plot3D(filteredResults,reference_data,pl)
-%     Plot3D(ref,reference_data,pl)
-
+        Plot3D(filteredResultsWithRef,reference_data,pl)
+%         Plot3D(filteredResults,reference_data,pl)
+%         Plot3D(ref,reference_data,pl)
+    end
+    
 end
 
 %%
 if plot_report
 
-    ResultsFile = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Fal_s1_bCst_ig24_v2_pp.mat'};
+%     ResultsFile = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Fal_s1_bCst_ig24_v2_pp.mat'};
 %         'D:\school\WTK\thesis\model\3dpredictsim\Results\batch_windlass\Fal_s1_tmt_bCst_d05_k1000_WL30_ig24_pp.mat'};
     
-%     ResultsFile = filteredResultsWithRef;
+    ResultsFile = filteredResultsWithRef;
+%     ResultsFile = filteredResults;
     
-    LegNames = {'Simulated'};
+%     LegNames = {'Simulated'};
+    LegNames = {'without midtarsal joint','midtarsal joint and windlass'};
     
     
     RefData = 'Fal_s1';
-    mtj = -1;
+    mtj = 1;
     
     makeplot.kinematics = 1;
-    makeplot.kinetics = 1;
+    makeplot.kinetics = 0;
     makeplot.soleus = 1;
-    makeplot.GRF = 1;
+    makeplot.GRF = 0;
+    makeplot.compareLiterature = 0;
+    makeplot.COP = 1;
 
-    figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab\SOTA';
+    figNamePrefix = 0;%'D:\OneDrive\WTK\thesis\figuren\matlab\SOTA';
     
     PlotResults_3DSim_Report(ResultsFile,LegNames,RefData,mtj,makeplot,figNamePrefix);
 end

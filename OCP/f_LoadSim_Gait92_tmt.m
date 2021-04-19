@@ -1537,7 +1537,7 @@ end
 
 %% Analyse windlass mechanism
 if S.mtj
-    f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(S.PF_stiffness);
+    f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(S.PF_stiffness,'ls',S.PF_slack_length);
     M_PF = zeros(length(Qs_GC),1);
     M_li = zeros(length(Qs_GC),1);
     F_PF = zeros(length(Qs_GC),1);

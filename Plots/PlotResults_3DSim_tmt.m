@@ -580,7 +580,7 @@ if exist(ResultsFile,'file')
         
         subplot(3,4,8)
         hold on
-        plot(x,R.Muscle.vM(:,iSol)*1e3,'Color',Cs)
+        plot(x,R.Muscle.vM(:,iSol),'Color',Cs)
         xlabel('% stride');
         ylabel('velocity')
         title('Soleus fibre velocity')

@@ -10,7 +10,7 @@ set(0,'defaultTextInterpreter','tex');
 
 %%
 N = 1000;
-ls = 0.144;
+ls = 0.148;
 
 l = linspace(ls,ls+0.03,N);
 l_0 = linspace(ls-5e-4,ls+3e-3,N);
@@ -20,8 +20,9 @@ q_mtp = linspace(-45,45,N)*pi/180;
 
 PF_stiffness = {'Cheng2008','Gefen2001','Ker1987','Natali2010','linear','tanh'};
 % PF_stiffness = {'Natali2010'};
-mtj_stiffness = {'Gefen2001','Ker1987'};
-k = 300;
+mtj_stiffness = {'Gefen2001','Ker1987','fitted'};
+k_mtj = 300;
+k_mtp = 10;
 
 %%
 for i=1:numel(PF_stiffness)
@@ -35,9 +36,12 @@ for i=1:numel(PF_stiffness)
         [~,temp] = getPassiveMtjMomentWindlass_v3(0,0,q_mtp(j),f_PF_stiffness);
         T_mtp(i,j) = full(temp);
     end
-    
+    T_mtp2(i,:) = T_mtp(i,:) - k_mtp.*q_mtp;
+    T_mtp_offset(i,1) = -interp1(q_mtp,T_mtp2(i,:),0,'spline');
+    T_mtp3(i,:) = T_mtp2(i,:) + T_mtp_offset(i,1);
 end
-T_mtp2(:,:) = T_mtp(:,:) - 10.*q_mtp.*ones(i,1) + [5;1.4;0.6;6;5;4];
+
+% + [5;1.4;0.6;6;5;4];
 
 for i=1:numel(mtj_stiffness)
     S.mtj_stiffness = mtj_stiffness{i};
@@ -103,7 +107,7 @@ for i=1:numel(PF_stiffness)
 
     subplot(235)
     hold on
-    plot(q_mtp*180/pi,T_mtp2(i,:),'DisplayName',PF_stiffness{i})
+    plot(q_mtp*180/pi,T_mtp3(i,:),'DisplayName',PF_stiffness{i})
     grid on
     legend('Location','best')
     xlabel('Mtp angle (°)')
@@ -129,7 +133,7 @@ for i=1:numel(mtj_stiffness)
     ylim([-100,100])
 end
 
-plot(q_mt*180/pi,-q_mt*k,'DisplayName',['k = ' num2str(k) ' Nm/rad'])
+plot(q_mt*180/pi,-q_mt*k_mtj,'DisplayName',['k = ' num2str(k_mtj) ' Nm/rad'])
 
 
 

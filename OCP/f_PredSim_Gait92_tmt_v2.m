@@ -139,7 +139,7 @@ f_J92exp = Function.load(fullfile(PathDefaultFunc,'f_J92exp'));
 f_Jnn2  = Function.load(fullfile(PathDefaultFunc,'f_Jnn2'));
 f_lMT_vMT_dM = Function.load(fullfile(PathDefaultFunc,'f_lMT_vMT_dM'));
 % f_MtpActivationDynamics = Function.load(fullfile(PathDefaultFunc,'f_MtpActivationDynamics'));
-% f_mtpMomentArmApprox = Function.load(fullfile(PathDefaultFunc,'f_mtpMomentArmApprox'));
+f_MA_Mtj = Function.load(fullfile(PathDefaultFunc,'f_MA_Mtj'));
 f_T12 = Function.load(fullfile(PathDefaultFunc,'f_T12'));
 f_T13 = Function.load(fullfile(PathDefaultFunc,'f_T13'));
 f_T27 = Function.load(fullfile(PathDefaultFunc,'f_T27'));
@@ -398,8 +398,8 @@ for j=1:d
     MAj.knee.l       =  MAj_l(mai(4).mus.l',4);
     MAj.ankle.l      =  MAj_l(mai(5).mus.l',5);
     MAj.subt.l       =  MAj_l(mai(6).mus.l',6);
-%     qinj_l_mtp = Qskj_nsc(jointi.mtp.l, j+1);
-%     MAj.mtp.l = f_mtpMomentArmApprox(qinj_l_mtp);
+    qinj_l_mtj = Qskj_nsc(jointi.tmt.l, j+1);
+    MAj.mtj.l = f_MA_Mtj(qinj_l_mtj);
     MAj.mtp.l       =   MAj_l(mai(7).mus.l',7);
     % For the back muscles, we want left and right together: left
     % first, right second. In MuscleInfo, we first have the right
@@ -420,8 +420,8 @@ for j=1:d
     MAj.knee.r       =  MAj_r(mai(4).mus.l',4);
     MAj.ankle.r      =  MAj_r(mai(5).mus.l',5);
     MAj.subt.r       =  MAj_r(mai(6).mus.l',6);
-%     qinj_r_mtp = Qskj_nsc(jointi.mtp.r, j+1);
-%     MAj.mtp.r = f_mtpMomentArmApprox(qinj_r_mtp);
+    qinj_r_mtj = Qskj_nsc(jointi.tmt.r, j+1);
+    MAj.mtj.r = f_MA_Mtj(qinj_r_mtj);
     MAj.mtp.r       =   MAj_r(mai(7).mus.l',7);
     % Both legs
     % In MuscleInfo, we first have the right back muscles (44:46) and
@@ -599,9 +599,13 @@ for j=1:d
     eq_constr{end+1} = Tj(jointi.mtp.r,1)-(T_mtp_r + Tau_passj.mtp.r);
     
     % Tmt, left
-    eq_constr{end+1} = Tj(jointi.tmt.l,1) - Tau_passj.tmt.l;
+    Ft_mtj_l        = FTj(mai(7).mus.l',1);
+    T_mtj_l         = f_T4(MAj.mtj.l,Ft_mtj_l);
+    eq_constr{end+1} = Tj(jointi.tmt.l,1) - (T_mtj_l + Tau_passj.tmt.l);
     % Tmt, right
-    eq_constr{end+1} = Tj(jointi.tmt.r,1) - Tau_passj.tmt.r;
+    Ft_mtj_r        = FTj(mai(7).mus.r',1);
+    T_mtj_r         = f_T4(MAj.mtj.r,Ft_mtj_r);
+    eq_constr{end+1} = Tj(jointi.tmt.r,1) - (T_mtj_r + Tau_passj.tmt.r);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Activation dynamics (implicit formulation)
