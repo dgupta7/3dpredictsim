@@ -12,15 +12,18 @@ set(0,'defaultTextInterpreter','tex');
 N = 1000;
 ls = 0.148;
 
-l = linspace(ls,ls+0.03,N);
+l = linspace(ls,ls+0.02,N);
 l_0 = linspace(ls-5e-4,ls+3e-3,N);
 l_0p = linspace(ls,ls+2e-3,N);
-q_mt = linspace(-40,40,N)'*pi/180;
+q_mt = linspace(-5,30,N)'*pi/180;
 q_mtp = linspace(-45,45,N)*pi/180;
 
-PF_stiffness = {'Cheng2008','Gefen2001','Ker1987','Natali2010','linear','tanh'};
+% PF_stiffness = {'Cheng2008','Gefen2001','Ker1987','Natali2010','linear','tanh'};
+PF_stiffness = {'Cheng2008','Gefen2001','Natali2010','linear'};
+
 % PF_stiffness = {'Natali2010'};
-mtj_stiffness = {'Gefen2001','Ker1987','fitted'};
+% mtj_stiffness = {'Gefen2001','Ker1987','fitted1'};
+mtj_stiffness = {'Gefen2001','Ker1987'};
 k_mtj = 300;
 k_mtp = 10;
 
@@ -133,7 +136,7 @@ for i=1:numel(mtj_stiffness)
     ylim([-100,100])
 end
 
-plot(q_mt*180/pi,-q_mt*k_mtj,'DisplayName',['k = ' num2str(k_mtj) ' Nm/rad'])
+% plot(q_mt*180/pi,-q_mt*k_mtj,'DisplayName',['k = ' num2str(k_mtj) ' Nm/rad'])
 
 
 

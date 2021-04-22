@@ -36,9 +36,9 @@ AddCasadiPaths();
 
 %% General settings
 % Full body gait simulation
-slv = 1;                % run solver
+slv = 0;                % run solver
 pp = 1;                 % postproces
-plot = 1;               % plot solution
+plot = 0;               % plot solution
 batchQueue = 0;         % save settings to run later
 % Static foot simulation
 foot_standing = 0;      % load on knee
@@ -51,9 +51,9 @@ S.NThreads  = 6;        % number of threads for parallel computing
 % S.max_iter  = 10;       % maximum number of iterations (comment -> 10000)
 
 % output folder
-S.ResultsFolder = 'MidTarsalJoint'; % 'batch_windlass' 'standing' 'MuscleModel' 'batch_tmt_lin'
-suffixCasName = '_v2';         
-suffixName = '_v2';
+S.ResultsFolder = 'Final'; % 'MuscleModel' 'MidTarsalJoint' 'Final'
+suffixCasName = '';         
+suffixName = '';
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
@@ -95,16 +95,19 @@ S.PF_slack_length = 0.148; % (m) slack length
 S.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
 % S.mtj_stiffness = 'Gefen2001';
 % S.mtj_stiffness = 'Ker1987';
-S.mtj_stiffness = 'fitted';
+S.mtj_stiffness = 'fitted1';
 
-S.kMT_li = 20;          % angular stiffness in case of linear
+S.kMT_li = 100;          % angular stiffness in case of linear
 % S.dMT = 0.1;               % (Nms/rad) damping
 
+S.stiffen_arch = 0;      % (Nm/rad) extra stiffness added to arch (mtj)
 
 % PF reaction torque on mtp joint
 S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
 S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
     
+S.kMTP = 10;
+
 % List of stiffness models to use for the STATIC footmodel:
 PF_stiffness = {S.PF_stiffness};
 % PF_stiffness = {'linear','Gefen2001','Cheng2008','Barrett2018','Natali2010','none'};
@@ -134,7 +137,7 @@ ia = 0;
 
 %% Initial guess
 % initial guess based on simulations without exoskeletons
-S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
+S.IGsel         = 1;        % initial guess identifier (1: quasi random, 2: data-based)
 S.IGmodeID      = 4;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
 
 if S.IGmodeID == 4
@@ -148,6 +151,13 @@ elseif S.IGmodeID == 3
     end
 end
 
+if S.IGmodeID == 1
+    if strcmp(S.subject,'s1_Poggensee')
+        S.IG_PelvisY = 0.896 + 0.0131;
+    else
+        S.IG_PelvisY = 0.9385 + 0.0131;
+    end
+end
 
 %% Automated settings
 % Change some more settings, based on what was selected above. 
@@ -172,8 +182,10 @@ if S.tmt == 0 && S.mtj == 0
         end
     elseif strcmp(S.subject,'subject1')
         if S.ExoBool == 0
-            S.ExternalFunc  = 'ID_Subject1.dll';
-            S.ExternalFunc2 = 'PredSim_3D_Fal_s1_pp_v2.dll';
+%             S.ExternalFunc  = 'ID_Subject1.dll';
+%             S.ExternalFunc2 = 'PredSim_3D_Fal_s1_pp_v2.dll';
+            S.ExternalFunc  = 'PredSim_3D_Fal_s1_v7.dll';
+            S.ExternalFunc2 = 'PredSim_3D_Fal_s1_pp_v4.dll';
         end
     end
     

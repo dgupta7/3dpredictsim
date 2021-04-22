@@ -272,9 +272,16 @@ for inr=1:nr
 
         subplot(6,1,1); hold on;
 
-        if inr==1 && md && ~strcmp(RefData,'Fal_s1')
-            iSol_data = find(strcmp(Dat.(type).EMGheaders,'soleus_r'));
-            ankle_act(:,1) = Dat.(type).gc.lowEMG_mean(:,iSol_data);
+        if inr==1 && md 
+            if strcmp(RefData,'Fal_s1')
+                iSol_data = find(strcmp(Dat.(type).EMGheaders,'Soleus'));
+                ankle_act(:,1) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iSol_data);
+            else
+                iSol_data = find(strcmp(Dat.(type).EMGheaders,'soleus_r'));
+                ankle_act(:,1) = Dat.(type).gc.lowEMG_mean(:,iSol_data);
+            end
+%             ankle_act(:,1) = Dat.(type).gc.lowEMG_mean(:,iSol_data);
+            ankle_a = [ankle_act(ceil(end/2):end,:); ankle_act(1:ceil(end/2)-1,:)];
             scale = max(R.a(:,iSol))/max(ankle_act(:,1));
             ankle_a_sc = ankle_a.*scale;
             plot(ankle_a_sc(:,1),'-k','DisplayName','EMG data') 
@@ -322,11 +329,15 @@ for inr=1:nr
         else
             figure(h4);
         end
-        if inr==1 && md && ~strcmp(RefData,'Fal_s1')
+        if inr==1 && md
             for i=1:3
                 subplot(1,3,i)
                 hold on
-                plot(Dat.(type).gc.GRF.Fmean(:,i)/(R.body_mass*9.81)*100,'-k');
+                if strcmp(RefData,'Fal_s1')
+                    plot(Dat.(type).gc.GRF.Fmean(:,i),'-k');
+                else
+                    plot(Dat.(type).gc.GRF.Fmean(:,i)/(R.body_mass*9.81)*100,'-k');
+                end
             end
 
         end
@@ -544,19 +555,19 @@ for inr=1:nr
             legend;
             
             
-            figure
-            ictt1 = ictt(1:5:end);
-            grfx = [R.COPR(ictt1,1)*1e3, R.COPR(ictt1,1)*1e3 + R.GRFs(ictt1,1)];
-            grfy = [R.COPR(ictt1,2)*1e3, R.COPR(ictt1,2)*1e3 + R.GRFs(ictt1,2)];
-            plot(R.AnkleInGround.position.r(ictt1,1)*1e3,R.AnkleInGround.position.r(ictt1,2)*1e3,'d','DisplayName','Ankle');
-            hold on
-            plot(R.COPR(ictt1,1)*1e3,R.COPR(ictt1,2)*1e3,'o','DisplayName','COP');
-            plot(grfx',grfy','-','DisplayName','GRF');
-            grid on
-            axis equal
-            xlabel('fore-after (mm)')
-            ylabel('vertical (mm)')
-            title('Centre of pressure during stance')
+%             figure
+%             ictt1 = ictt(1:5:end);
+%             grfx = [R.COPR(ictt1,1)*1e3, R.COPR(ictt1,1)*1e3 + R.GRFs(ictt1,1)];
+%             grfy = [R.COPR(ictt1,2)*1e3, R.COPR(ictt1,2)*1e3 + R.GRFs(ictt1,2)];
+%             plot(R.AnkleInGround.position.r(ictt1,1)*1e3,R.AnkleInGround.position.r(ictt1,2)*1e3,'d','DisplayName','Ankle');
+%             hold on
+%             plot(R.COPR(ictt1,1)*1e3,R.COPR(ictt1,2)*1e3,'o','DisplayName','COP');
+%             plot(grfx',grfy','-','DisplayName','GRF');
+%             grid on
+%             axis equal
+%             xlabel('fore-after (mm)')
+%             ylabel('vertical (mm)')
+%             title('Centre of pressure during stance')
             
         end
         

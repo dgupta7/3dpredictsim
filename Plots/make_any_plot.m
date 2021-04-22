@@ -14,7 +14,7 @@ addpath([pathRepo '/FootModel']);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 plot_default = 1;
 plot_validation = 0;
-plot_report = 0;
+plot_report = 1;
 
 plot_foot_standing = 0;
 plot_foot_hanging = 0;
@@ -27,7 +27,8 @@ plot_foot_hanging = 0;
 % ResultsFolder = {'MuscleModel'};
 % ResultsFolder = {'batch_tmt_lin'};
 % ResultsFolder = {'test_WL_v2'};
-ResultsFolder = {'MidTarsalJoint'};
+% ResultsFolder = {'MidTarsalJoint'};
+ResultsFolder = {'MidTarsalJoint','Final'};
 
 %% General information
 % experimental data to plot as reference
@@ -74,11 +75,11 @@ S.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
 % S.kMT_li = 200;         % angular stiffness in case of linear
 % S.mtj_stiffness = 'Gefen2001';
 % S.mtj_stiffness = 'Ker1987';
-S.mtj_stiffness = 'fitted';
+% S.mtj_stiffness = 'fitted';
 
 % PF reaction torque on mtp joint
-S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
-S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
+% S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
+% S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
 
 
 %% Exoskeleton
@@ -112,14 +113,20 @@ if plot_validation || plot_default || plot_report
 
     % manually add more filter criteria
     criteria{end+1} = 'not_Wmtp';
-%     criteria{end+1} = 'not_kmtp5';
+    criteria{end+1} = 'Mmtp';
+    criteria{end+1} = 'not_v2';
+%     criteria{end+1} = 'not_v3';
 
     % filter filenames
     [filteredResults] = filterResultfolderByParameters(pathResult,criteria);
 
-%     for i=1:numel(filteredResults)
-%         disp(filteredResults{i});
-%     end
+    for i=1:numel(filteredResults)
+        disp(filteredResults{i});
+    end
+    
+%     filteredResults = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls148_MT_nl_fitted_Mmtp_ig24_kmtp10_pp.mat',
+%         'D:\school\WTK\thesis\model\3dpredictsim\Results\Final\Fal_s1_bCst_PF_Natali2010_ls148_MT_nl_fitted1_MTP_T10_ig1_pp.mat',
+%         'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls148_MT_nl_fitted_Tmtp_ig24_pp.mat'};
     
 
     % specify reference results
@@ -133,7 +140,8 @@ if plot_validation || plot_default || plot_report
     else
         if isfield(S,'subject') && strcmp(S.subject,'subject1')
 %             ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Fal_s1_bCst_ig24_v2_pp.mat';
-            ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\test_pp\Fal_s1_bCst_ig24_v2_pp.mat';
+%             ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\test_pp\Fal_s1_bCst_ig24_v2_pp.mat';
+            ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\Final\Fal_s1_bCst_ig1_pp.mat';
         elseif isfield(S,'subject') && strcmp(S.subject,'s1_Poggensee')
             ref{1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Pog_s1_bCst_pp.mat';
         else
@@ -184,19 +192,19 @@ if plot_report
 %     ResultsFile = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Fal_s1_bCst_ig24_v2_pp.mat'};
 %         'D:\school\WTK\thesis\model\3dpredictsim\Results\batch_windlass\Fal_s1_tmt_bCst_d05_k1000_WL30_ig24_pp.mat'};
     
-    ResultsFile = filteredResultsWithRef;
-%     ResultsFile = filteredResults;
+%     ResultsFile = filteredResultsWithRef;
+    ResultsFile = filteredResults;
     
-%     LegNames = {'Simulated'};
-    LegNames = {'without midtarsal joint','midtarsal joint and windlass'};
+    LegNames = {'Simulated'};
+%     LegNames = {'without midtarsal joint','midtarsal joint and windlass'};
     
     
     RefData = 'Fal_s1';
     mtj = 1;
     
-    makeplot.kinematics = 1;
+    makeplot.kinematics = 0;
     makeplot.kinetics = 0;
-    makeplot.soleus = 1;
+    makeplot.soleus = 0;
     makeplot.GRF = 0;
     makeplot.compareLiterature = 0;
     makeplot.COP = 1;
@@ -252,12 +260,20 @@ if plot_foot_standing || plot_foot_hanging
     end
     
 %     crit{end+1} = '_WLv3';
-%     crit{end+1} = '_ls';
+    crit{end+1} = '_ls148';
     
     OutFolder{1} = fullfile(pathRepo,'Results','FootModel');
     
     % filter resultfiles
     [resultFiles] = filterResultfolderByParameters(OutFolder,crit);
+    
+    for i=1:numel(resultFiles)
+        disp(resultFiles{i});
+    end
+    
+    resultFiles = {'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2001_Gefen2001_Q-30_30_F0_4000_WLv3_ls148.mat',
+        'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_none_Gefen2001_Q-30_30_F0_4000_WLv3_ls148.mat',
+        'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_none_Ker1987_Q-30_30_F0_4000_WLv3_ls148.mat'};
     
     % call plot function
     nrf = numel(resultFiles);

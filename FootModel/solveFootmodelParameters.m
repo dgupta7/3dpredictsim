@@ -790,83 +790,83 @@ if add_mtj2
 
     % physical plantar fascia length (instead of force path)
     L_fa = norm(m1c.t.mtpj - [0;7.5e-3;0] - m1c.t.PF(:,1));
-    L_fa - l_PF_fa;
+%     L_fa - l_PF_fa
     L_mtth = 7.5e-3*pi/2;
     L = L_fa+L_mtth;
     
     
     %% muscles
-    figure
-    plot(m1c.t.mtj(1),m1c.t.mtj(2),'o')
-    hold on
-    plot(m1c.t.ext_dig3(1),m1c.t.ext_dig3(2),'d')
-    plot(m1c.t.ext_hal3(1),m1c.t.ext_hal3(2),'v')
-    plot(0,0,'*')
-    tmp1 = [m1c.t.flex_dig1(1:2),m1c.t.flex_dig2(1:2)];
-    plot(tmp1(1,:),tmp1(2,:),'--')
-    tmp2 = [m1c.t.flex_hal1(1:2),m1c.t.flex_hal2(1:2)];
-    plot(tmp2(1,:),tmp2(2,:))
-    axis equal
-    
-    a = m1c.t.ext_dig3 - m1c.t.mtj;
-    a = norm(a(1:2));
-    
-    disp('      mtj muscle moment arms:');
-    disp(['ext_dig2mtj = ' num2str(a) ';']);
-    
-    a = m1c.t.ext_hal3 - m1c.t.mtj;
-    a = norm(a(1:2));
-    disp(['ext_hal2mtj = ' num2str(a) ';']);
-    
-    %
-    vec_a = m1c.t.mtj - m1c.t.flex_dig1;
-    vec_b = m1c.t.flex_dig2 - m1c.t.mtj;
-    vec_c = vec_a + vec_b;
-    vec_ap = dot(vec_a,vec_c)/dot(vec_c,vec_c)*vec_c; % orthogonal projection of a onto c
-    vec_an = vec_a - vec_ap; % component of a that is normal to c 
-
-    a = norm(vec_a(1:2));
-    b = norm(vec_b(1:2));
-    c = norm(vec_c(1:2));
-    phi0 = acos( (c^2 - a^2 - b^2)/(-2*a*b) );
-    
-    q = linspace(-15,15,500)'*pi/180;
-    
-    phi = phi0 + q;
-    l = sqrt(a^2+b^2-2*a*b.*cos(phi));
-    MA = a*b./l.*sin(phi);
-    
-    figure
-    plot(q,MA)
-    
-    disp(['flex_dig2mtj = ' num2str(a) ';']);
-    disp(['mtj2flex_dig = ' num2str(b) ';']);
-    disp(['phi0 = ' num2str(phi0) ';']);
-    
-    %
-    vec_a = m1c.t.mtj - m1c.t.flex_hal1;
-    vec_b = m1c.t.flex_hal2 - m1c.t.mtj;
-    vec_c = vec_a + vec_b;
-    vec_ap = dot(vec_a,vec_c)/dot(vec_c,vec_c)*vec_c; % orthogonal projection of a onto c
-    vec_an = vec_a - vec_ap; % component of a that is normal to c 
-
-    a = norm(vec_a(1:2));
-    b = norm(vec_b(1:2));
-    c = norm(vec_c(1:2));
-    phi0 = acos( (c^2 - a^2 - b^2)/(-2*a*b) );
-    
-    q = linspace(-15,15,500)'*pi/180;
-    
-    phi = phi0 + q;
-    l = sqrt(a^2+b^2-2*a*b.*cos(phi));
-    MA = a*b./l.*sin(phi);
-    
-    figure
-    plot(q,MA)
-    
-    disp(['flex_hal2mtj = ' num2str(a) ';']);
-    disp(['mtj2flex_hal = ' num2str(b) ';']);
-    disp(['phi0 = ' num2str(phi0) ';']);
+%     figure
+%     plot(m1c.t.mtj(1),m1c.t.mtj(2),'o')
+%     hold on
+%     plot(m1c.t.ext_dig3(1),m1c.t.ext_dig3(2),'d')
+%     plot(m1c.t.ext_hal3(1),m1c.t.ext_hal3(2),'v')
+%     plot(0,0,'*')
+%     tmp1 = [m1c.t.flex_dig1(1:2),m1c.t.flex_dig2(1:2)];
+%     plot(tmp1(1,:),tmp1(2,:),'--')
+%     tmp2 = [m1c.t.flex_hal1(1:2),m1c.t.flex_hal2(1:2)];
+%     plot(tmp2(1,:),tmp2(2,:))
+%     axis equal
+%     
+%     a = m1c.t.ext_dig3 - m1c.t.mtj;
+%     a = norm(a(1:2));
+%     
+%     disp('      mtj muscle moment arms:');
+%     disp(['ext_dig2mtj = ' num2str(a) ';']);
+%     
+%     a = m1c.t.ext_hal3 - m1c.t.mtj;
+%     a = norm(a(1:2));
+%     disp(['ext_hal2mtj = ' num2str(a) ';']);
+%     
+%     %
+%     vec_a = m1c.t.mtj - m1c.t.flex_dig1;
+%     vec_b = m1c.t.flex_dig2 - m1c.t.mtj;
+%     vec_c = vec_a + vec_b;
+%     vec_ap = dot(vec_a,vec_c)/dot(vec_c,vec_c)*vec_c; % orthogonal projection of a onto c
+%     vec_an = vec_a - vec_ap; % component of a that is normal to c 
+% 
+%     a = norm(vec_a(1:2));
+%     b = norm(vec_b(1:2));
+%     c = norm(vec_c(1:2));
+%     phi0 = acos( (c^2 - a^2 - b^2)/(-2*a*b) );
+%     
+%     q = linspace(-15,15,500)'*pi/180;
+%     
+%     phi = phi0 + q;
+%     l = sqrt(a^2+b^2-2*a*b.*cos(phi));
+%     MA = a*b./l.*sin(phi);
+%     
+%     figure
+%     plot(q,MA)
+%     
+%     disp(['flex_dig2mtj = ' num2str(a) ';']);
+%     disp(['mtj2flex_dig = ' num2str(b) ';']);
+%     disp(['phi0 = ' num2str(phi0) ';']);
+%     
+%     %
+%     vec_a = m1c.t.mtj - m1c.t.flex_hal1;
+%     vec_b = m1c.t.flex_hal2 - m1c.t.mtj;
+%     vec_c = vec_a + vec_b;
+%     vec_ap = dot(vec_a,vec_c)/dot(vec_c,vec_c)*vec_c; % orthogonal projection of a onto c
+%     vec_an = vec_a - vec_ap; % component of a that is normal to c 
+% 
+%     a = norm(vec_a(1:2));
+%     b = norm(vec_b(1:2));
+%     c = norm(vec_c(1:2));
+%     phi0 = acos( (c^2 - a^2 - b^2)/(-2*a*b) );
+%     
+%     q = linspace(-15,15,500)'*pi/180;
+%     
+%     phi = phi0 + q;
+%     l = sqrt(a^2+b^2-2*a*b.*cos(phi));
+%     MA = a*b./l.*sin(phi);
+%     
+%     figure
+%     plot(q,MA)
+%     
+%     disp(['flex_hal2mtj = ' num2str(a) ';']);
+%     disp(['mtj2flex_hal = ' num2str(b) ';']);
+%     disp(['phi0 = ' num2str(phi0) ';']);
     
     
     
@@ -963,6 +963,19 @@ if add_mtj2
     axis equal
 
 end
+
+
+%%
+
+m0a.t.cmfCOM = (m2.t.mtpj + m2.gnd.mtpj2cmfCOM).*sf;
+m0a.t.subt = m1c.t.subt;
+m0a.c.mtpj = m1c.c.mtj + m1c.mf.mtpj;
+m0a.c.COM = m0a.t.cmfCOM - m0a.t.subt;
+
+vec_1 = m0a.t.cmfCOM - m1c.t.cCOM;
+vec_2 = m0a.t.cmfCOM - m1c.t.mfCOM;
+
+m0a.c.I = Steiner(vec_1,m1c.c.I,m1c.c.m) + Steiner(vec_2,m1c.mf.I,m1c.mf.m);
 
 %% So I don't have to type Steiner's theorem every time
 function I_new = Steiner(vec1,I_com,mass)

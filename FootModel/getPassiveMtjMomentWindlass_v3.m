@@ -33,6 +33,7 @@ mtj_stiffness = 'Ker1987'; % model for resulting foot stiffness
 dMT = 0;
 nl = 1; % use nonlinear ligament stiffness
 kMT_li = 90; % linear stiffness
+k_sta = 0; % externally added stiffness to the mtj (e.g. shoe, insole)
 
 %% Get specific parameters
 if isempty(varargin)
@@ -53,6 +54,9 @@ else
     end
     if isfield(S,'mtj_stiffness') && ~isempty(S.mtj_stiffness)
         mtj_stiffness = S.mtj_stiffness;
+    end
+    if isfield(S,'stiffen_arch') && ~isempty(S.stiffen_arch)
+        k_sta = S.stiffen_arch;
     end
 end
 
@@ -91,27 +95,20 @@ if nl
         M_li = 2.16362 + -55.325857*q_mt^1 + -614.60128*q_mt^3 + 1732.1067*q_mt^5 + ...
             7091.9679*q_mt^7 + -24459.968*q_mt^9 -1;
             
-    elseif strcmp(mtj_stiffness,'fitted')
-%         % for Natali2010, with ls=144
-%         t1 = 0*pi/180;
-%         c1 = 10;
-%         c2 = 20;
-% 
-%         t2 = 10*pi/180;
-%         c3 = 1;
-%         c4 = 50;
-%         c5 = 28;
+    elseif strcmp(mtj_stiffness,'fitted1')
+        % for Natali2010, with ls=148
+        t1 = 3*pi/180;
+        c1 = 10;
+        c2 = 25;
 
-%         % for Natali2010, with ls=148
-%         t1 = 3*pi/180;
-%         c1 = 10;
-%         c2 = 25;
-% 
-%         t2 = 10*pi/180;
-%         c3 = 2;
-%         c4 = 40;
-%         c5 = 8;
+        t2 = 10*pi/180;
+        c3 = 2;
+        c4 = 40;
+        c5 = 8;
         
+        M_li = -c1*exp(c2*(q_mt-t1)) + c3*exp(-c4*(q_mt+t2)) + c5;
+        
+    elseif strcmp(mtj_stiffness,'fitted2')
         % v2
         t1 = 5*pi/180;
         c1 = 10;
@@ -122,14 +119,33 @@ if nl
         c4 = 40;
         c5 = 1;
 
-
         M_li = -c1*exp(c2*(q_mt-t1)) + c3*exp(-c4*(q_mt+t2)) + c5;
+        
+    elseif strcmp(mtj_stiffness,'fitted3')
+        % v3 same as 1, but with influence from mtp
+        t1 = 3*pi/180;
+        c1 = 10;
+        c2 = 25;
+
+        t2 = 10*pi/180;
+        c3 = 2;
+        c4 = 40;
+        c5 = 8;
+        
+        c6 = 10;
+        
+        M_li = -c1*exp(c2*(q_mt-t1)) + c3*exp(-c4*(q_mt+t2)) + c5 - c6*q_mtp;
         
     end
 else
-    M_li = -kMT_li*q_mt;
+    M_li = -kMT_li*q_mt + 1.55;
 end
        
+% additional external stiffness
+if k_sta ~= 0
+    M_li = M_li - k_sta*q_mt;
+end
+
 % viscous damping
 M_d = -dMT*qdot_mt;
 

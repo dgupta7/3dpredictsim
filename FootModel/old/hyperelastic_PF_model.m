@@ -3,7 +3,7 @@
 % An, KN: Material properties of the plantar aponeurosis. Foot Ankle Int 15(10): 557 – 560, 1994.
 
 
-lz = linspace(1,1.3,1000);
+lz = linspace(1,3,1000);
 ls = 0.17;
 l = lz*ls;
 

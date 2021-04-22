@@ -64,20 +64,31 @@ if isfield(S,'mtj') && ~isempty(S.mtj) && S.mtj
         savenameparts{end+1} = ['d0' num2str(S.dMT*10)];
         casfuncfolparts{end+1} = ['d0' num2str(S.dMT*10)];
     end
-    if isfield(S,'WL_T_mtp') && ~isempty(S.WL_T_mtp) 
+    if isfield(S,'WL_T_mtp') && ~isempty(S.WL_T_mtp)
+        savenameparts{end+1} = 'MTP';
+        casfuncfolparts{end+1} = 'MTP';
         if S.WL_T_mtp
             if isfield(S,'Mu_mtp') && ~isempty(S.Mu_mtp) && S.Mu_mtp
-                savenameparts{end+1} = 'Mmtp';
-                casfuncfolparts{end+1} = 'Mmtp';
+                savenameparts{end} = [savenameparts{end} '_Mu'];
+                casfuncfolparts{end} = [casfuncfolparts{end} '_Mu'];
             else
-                savenameparts{end+1} = 'Tmtp';
-                casfuncfolparts{end+1} = 'Tmtp';
+                savenameparts{end} = [savenameparts{end} '_T'];
+                casfuncfolparts{end} = [casfuncfolparts{end} '_T'];
             end
         else
-            savenameparts{end+1} = 'kmtp';
-            casfuncfolparts{end+1} = 'kmtp';
+            savenameparts{end} = [savenameparts{end} '_k'];
+            casfuncfolparts{end} = [casfuncfolparts{end} '_k'];
+        end
+        if isfield(S,'kMTP') && ~isempty(S.kMTP)
+            savenameparts{end} = [savenameparts{end} num2str(S.kMTP)];
+            casfuncfolparts{end} = [casfuncfolparts{end} num2str(S.kMTP)];
         end
     end
+    if isfield(S,'stiffen_arch') && ~isempty(S.stiffen_arch) && S.stiffen_arch~=0
+        savenameparts{end+1} = ['K' num2str(S.stiffen_arch)];
+        casfuncfolparts{end+1} = ['K' num2str(S.stiffen_arch)];
+    end
+    
 else
     if isfield(S,'tmt') && ~isempty(S.tmt)
         if S.tmt && isfield(S,'dTMT') && ~isempty(S.dTMT) && ~S.tmt_locked
@@ -103,7 +114,7 @@ else
                 casfuncfolparts{end+1} = ['k' num2str(S.kTMT)];
             end
         end
-        if isfield(S,'Windlass') && ~isempty(S.Windlass) 
+        if isfield(S,'Windlass') && ~isempty(S.Windlass) && S.tmt
             if S.Windlass
                 savenameparts{end+1} = ['WL'];
                 casfuncfolparts{end+1} = ['WL'];

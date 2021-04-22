@@ -91,7 +91,11 @@ end
 nq.leg = 10; % #joints needed for polynomials
 stiffnessArm = 0;
 dampingArm = 0.1;
-stiffnessMtp = 1.5/(pi/180)/5;
+if isfield(S,'kMTP') && ~isempty(S.kMTP)
+    stiffnessMtp = S.kMTP;
+else
+    stiffnessMtp = 1.5/(pi/180)/5;
+end
 dampingMtp = 0.5;
 
 % define general settings for default objective functions
@@ -288,7 +292,7 @@ qin     = SX.sym('qin',1);
 
 [MA_mtj] = getMtjMomentArmApprox(qin);
 
-f_MA_Mtj = Function('f_MA_Mtj',{qin},{MA_mtp},{'q_mtj'},{'MA_mtj'});
+f_MA_Mtj = Function('f_MA_Mtj',{qin},{MA_mtj},{'q_mtj'},{'MA_mtj'});
 
 %% Normalized sum of squared values
 % Function for 8 elements
@@ -538,10 +542,10 @@ if mtj
     f_passiveWLTorques_mtj = Function('f_passiveWLTorques_mtj',{qin1,qdotin1,qin2}, ...
         {passWLTorques_mtj},{'qin1','qdotin1','qin2'},{'passWLTorques'});
     
-    if Mu_mtp
-        passTorques_mtpj = passWLTorques_mtpj;
-        
-    else
+%     if Mu_mtp
+%         passTorques_mtpj = passWLTorques_mtpj;
+%         
+%     else
         
         % Adjust such that they all cross 0Nm at 0 ° mtp, for mtj=0
         % Numbers are for PF slack length = 148mm;
@@ -561,8 +565,8 @@ if mtj
         else
             offset = 0;
         end
-        passTorques_mtpj = passWLTorques_mtpj - 10*qin2 -damp * qdotin2 + offset;
-    end
+        passTorques_mtpj = passWLTorques_mtpj - stiffnessMtp*qin2 - damp * qdotin2 + offset;
+%     end
     
     f_passiveWLTorques_mtpj = Function('f_passiveWLTorques_mtpj',{qin1,qdotin1,qin2,qdotin2,damp}, ...
         {passTorques_mtpj},{'qin1','qdotin1','qin2','qdotin2','damp'},{'passWLTorques'});

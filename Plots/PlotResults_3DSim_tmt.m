@@ -491,11 +491,15 @@ if exist(ResultsFile,'file')
     %% Ground reaction force
     axes('parent', tab6);
     
-    if boolFirst && md && ~strcmp(subject,'Fal_s1')
+    if boolFirst && md 
         for i=1:3
             subplot(2,3,i)
             hold on
-            plot(Dat.(type).gc.GRF.Fmean(:,i)/(R.body_mass*9.81)*100,'-k');
+            if strcmp(subject,'Fal_s1')
+                plot(Dat.(type).gc.GRF.Fmean(:,i),'-k');
+            else
+                plot(Dat.(type).gc.GRF.Fmean(:,i)/(R.body_mass*9.81)*100,'-k');
+            end
         end
     end
     for i=1:6
@@ -515,11 +519,15 @@ if exist(ResultsFile,'file')
 %% GRF detailed
     axes('parent', tab7);
     
-    if boolFirst && md && ~strcmp(subject,'Fal_s1')
+    if boolFirst && md
         for i=1:3
             subplot(3,4,i)
             hold on
-            plot(Dat.(type).gc.GRF.Fmean(:,i)/(R.body_mass*9.81)*100,'-k');
+            if strcmp(subject,'Fal_s1')
+                plot(Dat.(type).gc.GRF.Fmean(:,i),'-k');
+            else
+                plot(Dat.(type).gc.GRF.Fmean(:,i)/(R.body_mass*9.81)*100,'-k');
+            end
         end
     end
     for i=1:3
@@ -684,17 +692,32 @@ if exist(ResultsFile,'file')
         iTib = find(strcmp(R.colheaders.muscles,'tibant_r'));
     end
     
-    if boolFirst && md && ~strcmp(subject,'Fal_s1')
+    if boolFirst && md 
         
-        iSol_data = find(strcmp(Dat.(type).EMGheaders,'soleus_r'));
-        iGas_data = find(strcmp(Dat.(type).EMGheaders,'gas_med_r'));
-        iGas2_data = find(strcmp(Dat.(type).EMGheaders,'gas_lat_r'));
-        iTib_data = find(strcmp(Dat.(type).EMGheaders,'tib_ant_r'));
+        if~strcmp(subject,'Fal_s1')
+            iSol_data = find(strcmp(Dat.(type).EMGheaders,'soleus_r'));
+            iGas_data = find(strcmp(Dat.(type).EMGheaders,'gas_med_r'));
+            iGas2_data = find(strcmp(Dat.(type).EMGheaders,'gas_lat_r'));
+            iTib_data = find(strcmp(Dat.(type).EMGheaders,'tib_ant_r'));
+            
+            ankle_act(:,1) = Dat.(type).gc.lowEMG_mean(:,iSol_data);
+            ankle_act(:,2) = Dat.(type).gc.lowEMG_mean(:,iGas_data);
+            ankle_act(:,3) = Dat.(type).gc.lowEMG_mean(:,iGas2_data);
+            ankle_act(:,4) = Dat.(type).gc.lowEMG_mean(:,iTib_data);
         
-        ankle_act(:,1) = Dat.(type).gc.lowEMG_mean(:,iSol_data);
-        ankle_act(:,2) = Dat.(type).gc.lowEMG_mean(:,iGas_data);
-        ankle_act(:,3) = Dat.(type).gc.lowEMG_mean(:,iGas2_data);
-        ankle_act(:,4) = Dat.(type).gc.lowEMG_mean(:,iTib_data);
+        else
+            iSol_data = find(strcmp(Dat.(type).EMGheaders,'Soleus'));
+            iGas_data = find(strcmp(Dat.(type).EMGheaders,'Gastrocnemius-medialis'));
+            iGas2_data = find(strcmp(Dat.(type).EMGheaders,'Gastrocnemius-lateralis'));
+            iTib_data = find(strcmp(Dat.(type).EMGheaders,'Tibialis-anterior'));
+            
+            ankle_act(:,1) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iSol_data);
+            ankle_act(:,2) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas_data);
+            ankle_act(:,3) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas2_data);
+            ankle_act(:,4) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iTib_data);
+            
+        end
+        
         
         
         ankle_a = [ankle_act(ceil(end/2):end,:); ankle_act(1:ceil(end/2)-1,:)];
