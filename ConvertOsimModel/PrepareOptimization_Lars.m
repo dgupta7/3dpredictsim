@@ -14,13 +14,13 @@ AddCasadiPaths();
 
 
 % path to Cpp file used in the optimization
-S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','PredSim_3D_Fal_s1_v7.cpp');
+% S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','PredSim_3D_Fal_s1_v7.cpp');
 % S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','Foot_3D_Fal_s1_mtj_subt1_v5.cpp');
-% S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','Foot_3D_cdvr_mtj_v1.cpp');
+S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','Leg_3D_Fal_s1_mtj_pp.cpp');
 
 % Number of input arguments in the cpp file
-S.CppFile_nInput = 31*3;
-% S.CppFile_nInput = 10*3; 
+% S.CppFile_nInput = 31*3;
+S.CppFile_nInput = 14*3; 
 
 % path information for automatically building cpp files
 OsimSource  = 'D:\opensim-ad\opensim-ad-core';

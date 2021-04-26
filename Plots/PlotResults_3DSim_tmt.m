@@ -592,14 +592,16 @@ if exist(ResultsFile,'file')
         xlabel('% stride');
         ylabel('velocity')
         title('Soleus fibre velocity')
+        grid on
             
         if isfield(R,'AnkleInGround')
             ictt = find(R.AnkleInGround.leverArmGRF.r~=0);
             relPos = (R.COPR - R.AnkleInGround.position.r)*1e3;
+            mks = 2;
             
             subplot(3,4,5)
             hold on
-            plot(x(ictt),relPos(ictt,1),'.','Color',Cs)
+            plot(x(ictt),relPos(ictt,1),'.','MarkerSize',mks,'Color',Cs)
             xlim([x(1),x(end)])
             xlabel('% stride');
             ylabel('distance (mm)')
@@ -607,7 +609,7 @@ if exist(ResultsFile,'file')
             
             subplot(3,4,6)
             hold on
-            plot(x(ictt),relPos(ictt,2),'.','Color',Cs)
+            plot(x(ictt),relPos(ictt,2),'.','MarkerSize',mks,'Color',Cs)
             xlim([x(1),x(end)])
             xlabel('% stride');
             ylabel('distance (mm)')
@@ -615,15 +617,32 @@ if exist(ResultsFile,'file')
             
             subplot(3,4,7)
             hold on
-            plot(x(ictt),relPos(ictt,3),'.','Color',Cs)
+            plot(x(ictt),relPos(ictt,3),'.','MarkerSize',mks,'Color',Cs)
             xlim([x(1),x(end)])
             xlabel('% stride');
             ylabel('distance (mm)')
             title('lateral distance COP wrt ankle')
             
+            for ind=1:length(x)
+                vec_a = R.COPR(ind,:) - R.AnkleInGround.position.r(ind,:); % from ankle origin to COP
+                vec_b = R.GRFs(ind,1:3); 
+                vec_ap = dot(vec_a,vec_b)/dot(vec_b,vec_b)*vec_b; % orthogonal projection of a onto b
+                vec_an = vec_a - vec_ap; % component of a that is normal to b
+                MA1(ind) = norm(vec_an);
+                MA2(ind) = norm(vec_a);
+                
+                vec_a = vec_an;
+                vec_b = R.AnkleInGround.axisOrientation.r(ind,:);
+                vec_ap = dot(vec_a,vec_b)/dot(vec_b,vec_b)*vec_b; % orthogonal projection of a onto b
+                vec_an = vec_a - vec_ap; % component of a that is normal to b
+                MA(ind) = norm(vec_an);
+                
+                
+            end
+            
             subplot(3,4,9)
             hold on
-            plot(x(ictt),R.AnkleInGround.leverArmGRF.r(ictt)*1e3,'.','Color',Cs)
+            plot(x(ictt),MA(ictt)*1e3,'.','MarkerSize',mks,'Color',Cs)
             xlim([x(1),x(end)])
             xlabel('% stride');
             ylabel('lever arm (mm)')
@@ -631,7 +650,7 @@ if exist(ResultsFile,'file')
             
             subplot(3,4,10)
             hold on
-            plot(x(ictt),-R.AnkleInGround.leverArmSol.r(ictt)*1e3,'.','Color',Cs)
+            plot(x(ictt),-R.AnkleInGround.leverArmSol.r(ictt)*1e3,'.','MarkerSize',mks,'Color',Cs)
             xlim([x(1),x(end)])
             xlabel('% stride');
             ylabel('lever arm (mm)')
@@ -639,8 +658,8 @@ if exist(ResultsFile,'file')
             
             subplot(3,4,11)
             hold on
-            gearRatio = -R.AnkleInGround.leverArmGRF.r(ictt)./R.AnkleInGround.leverArmSol.r(ictt);
-            plot(x(ictt),gearRatio,'.','Color',Cs,'DisplayName',LegName);
+            gearRatio = -MA(ictt)'./R.AnkleInGround.leverArmSol.r(ictt);
+            plot(x(ictt),gearRatio,'.','MarkerSize',mks,'Color',Cs,'DisplayName',LegName);
             xlim([x(1),x(end)])
             xlabel('% stride');
             ylabel('Gear ratio (-)')
@@ -1144,9 +1163,17 @@ if exist(ResultsFile,'file')
 
     P_ankle = R.Qdots(:,iankle)*pi/180.*R.Tid(:,iankle)/R.body_mass;
     P_subt = R.Qdots(:,isubt)*pi/180.*R.Tid(:,isubt)/R.body_mass;
+    P_ankle_pass = R.Qdots(:,iankle)*pi/180.*R.TPass(:,iankle)/R.body_mass;
+    P_subt_pass = R.Qdots(:,isubt)*pi/180.*R.TPass(:,isubt)/R.body_mass;
     P_mtp = R.Qdots(:,imtp)*pi/180.*R.Tid(:,imtp)/R.body_mass;
     P_tot = P_mtj + P_ankle + P_subt + P_mtp;
 
+    if isfield(R,'vT')
+       P_T_Sol = -R.FT(:,iSol).*R.vT(:,iSol)/R.body_mass;
+       P_T_Gas = -R.FT(:,iGas).*R.vT(:,iGas)/R.body_mass;
+       P_T_Gas2 = -R.FT(:,iGas2).*R.vT(:,iGas2)/R.body_mass;
+    end
+    
     axes('parent', tab14);
 
     % Work
@@ -1247,7 +1274,7 @@ if exist(ResultsFile,'file')
     axes('parent', tab13);
     % Power
     if has_tmt && has_tmt_unlocked || has_mtj
-        subplot(3,3,1)
+        subplot(3,4,1)
         hold on
         grid on
         plot(x,P_mtj,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1256,7 +1283,7 @@ if exist(ResultsFile,'file')
         title('Midtarsal')
 
         if has_WL || has_mtj
-            subplot(3,3,4)
+            subplot(3,4,5)
             hold on
             grid on
             plot(x,P_PF,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1264,7 +1291,7 @@ if exist(ResultsFile,'file')
             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
             title('Plantar fascia')
 
-            subplot(3,3,7)
+            subplot(3,4,9)
             hold on
             grid on
             plot(x,P_li,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1274,15 +1301,16 @@ if exist(ResultsFile,'file')
         end
     end
     
-    subplot(3,3,2)
+    subplot(3,4,2)
     hold on
     grid on
-    plot(x,P_ankle,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+    plot(x,P_ankle,'Color',Cs,'linewidth',line_linewidth,'DisplayName','Ankle');
     ylabel('Power (W/kg)')
     xlabel('Gait cycle (%)','Fontsize',label_fontsize);
     title('Ankle')
+    
 
-    subplot(3,3,5)
+    subplot(3,4,6)
     hold on
     grid on
     plot(x,P_subt,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1290,7 +1318,7 @@ if exist(ResultsFile,'file')
     xlabel('Gait cycle (%)','Fontsize',label_fontsize);
     title('Subtalar')
 
-    subplot(3,3,8)
+    subplot(3,4,10)
     hold on
     grid on
     plot(x,P_mtp,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1298,7 +1326,7 @@ if exist(ResultsFile,'file')
     xlabel('Gait cycle (%)','Fontsize',label_fontsize);
     title('Mtp')
 
-    subplot(3,3,9)
+    subplot(3,4,11)
     hold on
     grid on
     plot(x,P_mtp+P_mtj,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1314,7 +1342,7 @@ if exist(ResultsFile,'file')
         set(lh,'position',lhPos);
     end
 
-    subplot(3,3,3)
+    subplot(3,4,3)
     hold on
     grid on
     plot(x,P_tot,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1322,8 +1350,29 @@ if exist(ResultsFile,'file')
     xlabel('Gait cycle (%)','Fontsize',label_fontsize);
     title('Total foot')
 
+    if isfield(R,'vT')
+        subplot(3,4,4)
+        hold on
+        grid on
+        plot(x,P_T_Sol,'-','Color',Cs,'linewidth',line_linewidth)
+        ylabel('Power (W/kg)')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        title('Tendon Soleus')
+    
+        subplot(3,4,8)
+        hold on
+        grid on
+%         p1=plot(x,P_T_Gas,'-','Color',Cs,'linewidth',line_linewidth,'DisplayName','Gas lat');
+%         p2=plot(x,P_T_Gas2,':','Color',Cs,'linewidth',line_linewidth,'DisplayName','Gas med');
+        plot(x,P_T_Gas+P_T_Gas2,'-','Color',Cs,'linewidth',line_linewidth)
+        ylabel('Power (W/kg)')
+        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        title('Tendon Gastrocnemius')
+%         legend([p1,p2]);
+    end
+    
     if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
-        subplot(3,3,6)
+        subplot(3,4,7)
         hold on
         grid on
         p1=plot(R.GRFs_separate(:,2),'-.','Color',Cs,'DisplayName','calcaneus');

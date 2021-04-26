@@ -10,22 +10,24 @@ set(0,'defaultTextInterpreter','tex');
 
 %%
 N = 1000;
-ls = 0.148;
+ls = 0.150;
+S.R_mtth = 9.5e-3;
+S.sf_PF = 10;
 
 l = linspace(ls,ls+0.02,N);
 l_0 = linspace(ls-5e-4,ls+3e-3,N);
 l_0p = linspace(ls,ls+2e-3,N);
-q_mt = linspace(-5,30,N)'*pi/180;
+q_mt = linspace(-30,30,N)'*pi/180;
 q_mtp = linspace(-45,45,N)*pi/180;
 
-% PF_stiffness = {'Cheng2008','Gefen2001','Ker1987','Natali2010','linear','tanh'};
-PF_stiffness = {'Cheng2008','Gefen2001','Natali2010','linear'};
-
+% PF_stiffness = {'Cheng2008','Gefen2002','Ker1987','Natali2010','Song2011','linear','tanh'};
+PF_stiffness = {'Cheng2008','Gefen2002','Natali2010','Song2011','linear'};
 % PF_stiffness = {'Natali2010'};
-% mtj_stiffness = {'Gefen2001','Ker1987','fitted1'};
-mtj_stiffness = {'Gefen2001','Ker1987'};
+
+% mtj_stiffness = {'Gefen2002','Ker1987','fitted1'};
+mtj_stiffness = {'Gefen2002','Ker1987','Song2011'};
 k_mtj = 300;
-k_mtp = 10;
+k_mtp = 5;
 
 %%
 for i=1:numel(PF_stiffness)
@@ -36,7 +38,7 @@ for i=1:numel(PF_stiffness)
     g_F_PF(i,:) = full(grad(l_0));
     H_F_PF(i,:) = full(Hess(l_0));
     for j=1:N
-        [~,temp] = getPassiveMtjMomentWindlass_v3(0,0,q_mtp(j),f_PF_stiffness);
+        [~,temp] = getPassiveMtjMomentWindlass_v3(0,0,q_mtp(j),f_PF_stiffness,S);
         T_mtp(i,j) = full(temp);
     end
     T_mtp2(i,:) = T_mtp(i,:) - k_mtp.*q_mtp;
@@ -57,12 +59,12 @@ end
 
 
 %%
-
+CsV = hsv(numel(PF_stiffness));
 figure
 for i=1:numel(PF_stiffness)
     subplot(231)
     hold on
-    plot((l-ls)*1000,F_PF(i,:),'DisplayName',PF_stiffness{i})
+    plot((l-ls)*1000,F_PF(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i})
     grid on
     legend('Location','best')
     xlabel('Elongation (mm)')
@@ -72,7 +74,7 @@ for i=1:numel(PF_stiffness)
 
     subplot(333)
     hold on
-    pl=plot((l_0-ls)/ls*100,F_PF_0(i,:),'DisplayName',PF_stiffness{i});
+    pl=plot((l_0-ls)/ls*100,F_PF_0(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i});
     pls(i)=pl;
     grid on
     xlabel('Nominal strain (%)')
@@ -82,7 +84,7 @@ for i=1:numel(PF_stiffness)
     
     subplot(336)
     hold on
-    plot((l_0-ls)/ls*100,g_F_PF(i,:),'DisplayName',PF_stiffness{i})
+    plot((l_0-ls)/ls*100,g_F_PF(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i})
     grid on
     legend('Location','best')
     xlabel('Nominal strain (%)')
@@ -91,7 +93,7 @@ for i=1:numel(PF_stiffness)
 
     subplot(339)
     hold on
-    plot((l_0-ls)/ls*100,H_F_PF(i,:),'DisplayName',PF_stiffness{i})
+    plot((l_0-ls)/ls*100,H_F_PF(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i})
     grid on
     legend('Location','best')
     xlabel('Nominal strain (%)')
@@ -100,7 +102,7 @@ for i=1:numel(PF_stiffness)
     
     subplot(232)
     hold on
-    plot(q_mtp*180/pi,T_mtp(i,:),'DisplayName',PF_stiffness{i})
+    plot(q_mtp*180/pi,T_mtp(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i})
     grid on
     legend('Location','best')
     xlabel('Mtp angle (°)')
@@ -110,7 +112,7 @@ for i=1:numel(PF_stiffness)
 
     subplot(235)
     hold on
-    plot(q_mtp*180/pi,T_mtp3(i,:),'DisplayName',PF_stiffness{i})
+    plot(q_mtp*180/pi,T_mtp3(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i})
     grid on
     legend('Location','best')
     xlabel('Mtp angle (°)')
@@ -118,6 +120,9 @@ for i=1:numel(PF_stiffness)
     title('Full mtp torque')
 end
 
+subplot(235)
+plot(q_mtp*180/pi,-17*q_mtp,'--','DisplayName','original')
+    
 for i=1:numel(PF_stiffness)
     subplot(333)
     plot((l_0p-ls)/ls*100,F_PF_0_ns(i,:),'--','Color',pls(i).Color);
@@ -164,11 +169,53 @@ end
 
 
 
+%%
 
+figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab\stiffness';
 
+h1=figure;
+for i=1:numel(PF_stiffness)
+    hold on
+    plot((l-ls)*1000,F_PF(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i})
+    grid on
+    legend('Location','best')
+    xlabel('Elongation (mm)')
+    ylabel('Force (N)')
+    title('Plantar fascia force')
+    ylim([0,2000])
+end
 
+set(h1,'PaperPositionMode','auto')
+print(h1,[figNamePrefix '_PF'],'-dpng','-r0')
+    
+% h2=figure;
+% for i=1:numel(mtj_stiffness)
+%     hold on
+%     plot(q_mt*180/pi,M_li(i,:),'DisplayName',mtj_stiffness{i})
+%     grid on
+%     legend('Location','best')
+%     xlabel('Midtarsal angle (°)')
+%     ylabel('Torque (Nm)')
+%     title('Midtarsal stiffness models')
+%     ylim([-100,100])
+% end
 
+% set(h2,'PaperPositionMode','auto')
+% print(h2,[figNamePrefix '_mtj'],'-dpng','-r0')
 
+% h3=figure;
+% for i=1:numel(PF_stiffness)
+%     hold on
+%     plot(q_mtp*180/pi,T_mtp3(i,:),'DisplayName',PF_stiffness{i})
+%     grid on
+%     legend('Location','best')
+%     xlabel('Mtp angle (°)')
+%     ylabel('Torque (Nm)')
+%     title('Full mtp torque')
+% end
+% plot(q_mtp*180/pi,-17*q_mtp,'--','DisplayName','original')
 
+% set(h3,'PaperPositionMode','auto')
+% print(h3,[figNamePrefix '_mtpj'],'-dpng','-r0')
 
 

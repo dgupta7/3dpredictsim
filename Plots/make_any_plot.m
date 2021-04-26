@@ -14,7 +14,7 @@ addpath([pathRepo '/FootModel']);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 plot_default = 1;
 plot_validation = 0;
-plot_report = 1;
+plot_report = 0;
 
 plot_foot_standing = 0;
 plot_foot_hanging = 0;
@@ -27,15 +27,15 @@ plot_foot_hanging = 0;
 % ResultsFolder = {'MuscleModel'};
 % ResultsFolder = {'batch_tmt_lin'};
 % ResultsFolder = {'test_WL_v2'};
-% ResultsFolder = {'MidTarsalJoint'};
-ResultsFolder = {'MidTarsalJoint','Final'};
+ResultsFolder = {'MidTarsalJoint'};
+% ResultsFolder = {'Final'};
 
 %% General information
 % experimental data to plot as reference
 reference_data = 'norm'; % 'none' 'norm' 'pas' 'act' 'Fal_s1'
 
 % assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
+% S.MuscModelAsmp = 0;    % 0: musc height = cst, 1: pennation angle = cst
 
 % Test subject
 S.subject            = 'subject1';
@@ -53,10 +53,10 @@ S.subt_orientation = 'default'; %'Reule2010''Parr2012'
 % Fmax = 4000;
 
 %% tarsometatarsal joint
-% S.tmt = 1;              % 1: use a model with tmt joint
+% S.tmt = 0;              % 1: use a model with tmt joint
 % S.tmt_locked = 0;       % 1: lock the tmt joint (to compare with model w/o)
-% S.kTMT = 1000;          % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
-% S.dTMT = 0.5;           % [0 0.2 0.5] (Nms/rad) damping of tmt joint
+% % S.kTMT = 1000;          % [250 500 800 1000 2000] (Nm/rad) stiffness of tmt joint 
+% % S.dTMT = 0.5;           % [0 0.2 0.5] (Nms/rad) damping of tmt joint
 % % Windlass mechanism
 % S.Windlass = 1;         % 1: has windlass mechnism
 % S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsiflexion
@@ -66,21 +66,22 @@ S.subt_orientation = 'default'; %'Reule2010''Parr2012'
 % This will always have the windlass mechanism.
 S.mtj = 1;              % 1: use a model with tmt joint (will override tmt)
 % plantar fascia
-% S.PF_stiffness = 'Gefen2001'; % stiffness model for the gait simulation
-S.PF_stiffness = 'Natali2010';
-        % options: 'none''linear''Gefen2001''Cheng2008''Barrett2018''Natali2010'
-S.PF_slack_length = 0.148; % slack length (m)
+% S.PF_stiffness = 'Song2011'; % stiffness model for the gait simulation
+% S.PF_stiffness = 'Natali2010';
+        % options: 'none''linear''Gefen2001''Cheng2008''Barrett2018''Natali2010''Song2011'
+% S.PF_slack_length = 0.150; % slack length (m)
 % other ligaments (long, short planter ligament, etc)
-S.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
-% S.kMT_li = 200;         % angular stiffness in case of linear
+% S.MT_li_nonl = 0;       % 1: nonlinear torque-angle characteristic
+% S.kMT_li = 50;         % angular stiffness in case of linear
 % S.mtj_stiffness = 'Gefen2001';
 % S.mtj_stiffness = 'Ker1987';
-% S.mtj_stiffness = 'fitted';
+% S.mtj_stiffness = 'fitted6';
+% S.mtj_stiffness = 'signed_lin';
 
 % PF reaction torque on mtp joint
 % S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
 % S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
-
+% S.kMTP = 5;
 
 %% Exoskeleton
 S.ExoBool       = 0;    % 1: is wearing exo
@@ -112,10 +113,11 @@ if plot_validation || plot_default || plot_report
     [~,~,criteria] = getSavename(S);
 
     % manually add more filter criteria
-    criteria{end+1} = 'not_Wmtp';
-    criteria{end+1} = 'Mmtp';
-    criteria{end+1} = 'not_v2';
-%     criteria{end+1} = 'not_v3';
+%     criteria{end+1} = 'v27';
+%     criteria{end+1} = '_300_10';
+%     criteria{end+1} = 'not_k10';
+%     criteria{end+1} = 'not_00_';
+%     criteria{end+1} = 'PFx';
 
     % filter filenames
     [filteredResults] = filterResultfolderByParameters(pathResult,criteria);
@@ -128,6 +130,10 @@ if plot_validation || plot_default || plot_report
 %         'D:\school\WTK\thesis\model\3dpredictsim\Results\Final\Fal_s1_bCst_PF_Natali2010_ls148_MT_nl_fitted1_MTP_T10_ig1_pp.mat',
 %         'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls148_MT_nl_fitted_Tmtp_ig24_pp.mat'};
     
+% filteredResults = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k50_MTP_T5_ig24_pp.mat',
+%     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T5_ig24_pp.mat',
+%     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k500_MTP_T5_ig24_pp.mat',
+%     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k800_MTP_T5_ig24_pp.mat'};
 
     % specify reference results
     n = length(filteredResults);
@@ -164,8 +170,8 @@ if plot_validation || plot_default || plot_report
 %     filteredResults{n+1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug_tmt\Pog_s1_tmt_bCst_d02_k800_kc1_t5_ig24_v3_pp.mat';
 %     filteredResults{n+2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug_tmt\Pog_s1_tmt_bCst_d02_k800_ig24_v3_pp.mat';
 
-    filteredResultsWithRef = {ref{:}, filteredResults{:}};
-%     filteredResultsWithRef = {filteredResults{:}, ref{:}};
+%     filteredResultsWithRef = {ref{:}, filteredResults{:}};
+    filteredResultsWithRef = {filteredResults{:}, ref{:}};
 
     % set value according to which figure(s) to make
     pl = 0;
@@ -192,24 +198,26 @@ if plot_report
 %     ResultsFile = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Fal_s1_bCst_ig24_v2_pp.mat'};
 %         'D:\school\WTK\thesis\model\3dpredictsim\Results\batch_windlass\Fal_s1_tmt_bCst_d05_k1000_WL30_ig24_pp.mat'};
     
-%     ResultsFile = filteredResultsWithRef;
-    ResultsFile = filteredResults;
+    ResultsFile = filteredResultsWithRef;
+    LegNames = {'original','k = 30, PF x10','k = 50, PF x5','k = 50'};
+%     LegNames = {'k_{mtj} = 50','k_{mtj} = 300','k_{mtj} = 500','k_{mtj} = 800','original'};
+%     LegNames = {'original','Gefen2002','Natali2010','Song2011','linear'};
+%     ResultsFile = filteredResults;
+%     LegNames = {'mtj and wl'};
     
-    LegNames = {'Simulated'};
-%     LegNames = {'without midtarsal joint','midtarsal joint and windlass'};
-    
-    
+
     RefData = 'Fal_s1';
     mtj = 1;
     
-    makeplot.kinematics = 0;
-    makeplot.kinetics = 0;
-    makeplot.soleus = 0;
-    makeplot.GRF = 0;
-    makeplot.compareLiterature = 0;
+    makeplot.kinematics = 1;
+    makeplot.kinetics = 1;
+    makeplot.soleus = 1;
+    makeplot.GRF = 1;
+    makeplot.compareLiterature = 1;
     makeplot.COP = 1;
 
-    figNamePrefix = 0;%'D:\OneDrive\WTK\thesis\figuren\matlab\SOTA';
+    figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab\PFx';
+%     figNamePrefix = 0;
     
     PlotResults_3DSim_Report(ResultsFile,LegNames,RefData,mtj,makeplot,figNamePrefix);
 end
@@ -271,9 +279,13 @@ if plot_foot_standing || plot_foot_hanging
         disp(resultFiles{i});
     end
     
-    resultFiles = {'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2001_Gefen2001_Q-30_30_F0_4000_WLv3_ls148.mat',
-        'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_none_Gefen2001_Q-30_30_F0_4000_WLv3_ls148.mat',
-        'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_none_Ker1987_Q-30_30_F0_4000_WLv3_ls148.mat'};
+    resultFiles = {'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2002_Gefen2002_Q-30_30_F0_3000_WLv3_ls150.mat',
+        'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_none_Gefen2002_Q-30_30_F0_3000_WLv3_ls150.mat',
+        'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_none_Ker1987_Q-30_30_F0_3000_WLv3_ls150.mat'};
+    
+%     resultFiles = {'Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_fitted4_Q-20_30_F0_0_WLv3_ls148_mtp1.mat',
+%         'Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_fitted4_Q-20_30_F0_0_WLv3_ls148_mtp2.mat'};
+    
     
     % call plot function
     nrf = numel(resultFiles);

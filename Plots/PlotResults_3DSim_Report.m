@@ -66,7 +66,8 @@ fpos = [1,scs(4)/2+20;
 label_fontsize  = 12;
 line_linewidth  = 0.5;
 NumTicks = 6;
-        
+CsV = hsv(nr);
+   
         
 for inr=1:nr
     load(ResultsFile{inr},'R');
@@ -158,7 +159,7 @@ for inr=1:nr
                 % skip this plot
             else
                 j=j+1;
-                plot(x,R.Qs(:,idx_Qs(j)),'linewidth',line_linewidth,'DisplayName',LegName);
+                plot(x,R.Qs(:,idx_Qs(j)),'linewidth',line_linewidth,'Color',CsV(inr,:),'DisplayName',LegName);
 
             end
 
@@ -228,7 +229,7 @@ for inr=1:nr
                 % skip this plot
             else
                 j=j+1;
-                plot(x,R.Tid(:,idx_Qs(j)),'linewidth',line_linewidth,'DisplayName',LegName);
+                plot(x,R.Tid(:,idx_Qs(j)),'linewidth',line_linewidth,'Color',CsV(inr,:),'DisplayName',LegName);
 
             end
             % Plot settings
@@ -271,7 +272,7 @@ for inr=1:nr
         iSol = find(strcmp(R.colheaders.muscles,'soleus_r'));
 
         subplot(6,1,1); hold on;
-
+        
         if inr==1 && md 
             if strcmp(RefData,'Fal_s1')
                 iSol_data = find(strcmp(Dat.(type).EMGheaders,'Soleus'));
@@ -284,41 +285,42 @@ for inr=1:nr
             ankle_a = [ankle_act(ceil(end/2):end,:); ankle_act(1:ceil(end/2)-1,:)];
             scale = max(R.a(:,iSol))/max(ankle_act(:,1));
             ankle_a_sc = ankle_a.*scale;
-            plot(ankle_a_sc(:,1),'-k','DisplayName','EMG data') 
+            plot(ankle_a_sc(:,1),'-k','DisplayName','EMG data')
         end
-
-        plot(R.a(:,iSol),'-') 
+        
+        plot(R.a(:,iSol),'-','Color',CsV(inr,:),'DisplayName',LegName);
         title('Soleus')
         ylabel('activity')
-
+        if inr==1
+            lh=legend('-DynamicLegend','location','best');
+            lh.Interpreter = 'none';
+        end
+        
         subplot(6,1,2)
-        plot(R.MetabB.Etot(:,iSol),'-'); hold on;
+        plot(R.MetabB.Etot(:,iSol),'-','Color',CsV(inr,:)); hold on;
         ylabel('Muscle metab power');
 
         subplot(6,1,3)
-        plot(R.lMtilde(:,iSol),'-'); hold on;
+        plot(R.lMtilde(:,iSol),'-','Color',CsV(inr,:)); hold on;
         ylabel('Norm fiber length');
 
         subplot(6,1,4)
-        plot(R.MetabB.Wdot(:,iSol),'-'); hold on;
+        plot(R.MetabB.Wdot(:,iSol),'-','Color',CsV(inr,:)); hold on;
         ylabel('Wdot');
 
         subplot(6,1,5)
-        plot(R.FT(:,iSol),'-','DisplayName',LegName);
+        plot(R.FT(:,iSol),'-','Color',CsV(inr,:),'DisplayName',LegName);
         hold on
         ylabel('Norm muscle force');
         
 
         subplot(6,1,6)
-        plot(R.Muscle.vM(:,iSol),'DisplayName',LegName);
+        plot(R.Muscle.vM(:,iSol),'Color',CsV(inr,:),'DisplayName',LegName);
         hold on
         ylabel('Fibre velocity')
 
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        if inr==1
-            lh=legend('-DynamicLegend','location','east');
-            lh.Interpreter = 'none';
-        end
+        
     end
     
     %% GRF
@@ -331,7 +333,7 @@ for inr=1:nr
         end
         if inr==1 && md
             for i=1:3
-                subplot(1,3,i)
+                subplot(1,4,i)
                 hold on
                 if strcmp(RefData,'Fal_s1')
                     plot(Dat.(type).gc.GRF.Fmean(:,i),'-k');
@@ -342,9 +344,9 @@ for inr=1:nr
 
         end
         for i=1:3
-            subplot(1,3,i)
+            subplot(1,4,i)
             hold on
-            l = plot(R.GRFs(:,i),'-');
+            l = plot(R.GRFs(:,i),'-','Color',CsV(inr,:));
             title(R.colheaders.GRF{i});
             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
             if i==1
@@ -355,29 +357,35 @@ for inr=1:nr
 
         if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
             for i=1:3
-                subplot(1,3,i)
+                subplot(1,4,i)
                 hold on
-                p1=plot(R.GRFs_separate(:,i),'-.','DisplayName','hindfoot');
-                p2=plot(R.GRFs_separate(:,i+3),'--','DisplayName','forefoot');
-                p3=plot(R.GRFs_separate(:,i+6),':','DisplayName','toes');
+                p1=plot(R.GRFs_separate(:,i),'-.','Color',CsV(inr,:),'DisplayName','hindfoot');
+                p2=plot(R.GRFs_separate(:,i+3),'--','Color',CsV(inr,:),'DisplayName','forefoot');
+                p3=plot(R.GRFs_separate(:,i+6),':','Color',CsV(inr,:),'DisplayName','toes');
 %                 title(R.colheaders.GRF{i});
 %                 xlabel('% stride');
 %                 ylabel('% body weight')
 
             end
             if inr == 1
-                lh=legend([l,p1,p2,p3],'location','best');
+                lh=legend([l,p1,p2,p3],'location','northeast');
                 lh.Interpreter = 'none';
+                lhPos = lh.Position;
+                lhPos(1) = lhPos(1)+0.2;
+                set(lh,'position',lhPos);
             end
         elseif inr == 1
             lh=legend('location','northeast');
             lh.Interpreter = 'none';
+            lhPos = lh.Position;
+            lhPos(1) = lhPos(1)+0.2;
+            set(lh,'position',lhPos);
         end
     end
 
     
     
-    %% windlass
+    %% literature
     
     if makeplot.compareLiterature
         
@@ -433,7 +441,8 @@ for inr=1:nr
             ylabel('Power (W/kg)');
             xlabel('Stance phase (%)');
             title('Joint power,')
-            lh=legend('location','west');
+            lh=legend;
+            lh.Position = [0.1539    0.6207    0.1132    0.2269];
             lh.Interpreter = 'none';
             title(lh,'Distal to')
 
@@ -445,7 +454,8 @@ for inr=1:nr
             ylabel('Power (W/kg)');
             xlabel('Stance phase (%)');
             title('Takahashi (2017), experiment-based')
-            lh=legend('location','south');
+            lh=legend;
+            lh.Position=[0.6234    0.6373    0.1458    0.1287];
             lh.Interpreter = 'none';
             
             h7 = figure('Position',[fpos(2,:),scs(3)/2, scs(4)/3]);
@@ -469,17 +479,17 @@ for inr=1:nr
         iankle = strcmp(R.colheaders.joints,'ankle_angle_r');
         isubt = strcmp(R.colheaders.joints,'subtalar_angle_r');
         line_linewidth = 2;
-
+        
         % Q
         figure(h5)
         if ~isempty(imtj)
-            
             subplot(121)
-            plot(x,R.Qs(:,imtj),'linewidth',line_linewidth,'DisplayName',LegName);
+            plot(x,R.Qs(:,imtj),'linewidth',line_linewidth,'Color',CsV(inr,:),'DisplayName',LegName);
+       
         end
         
         subplot(122)
-        plot(x,R.Qs(:,imtp),'linewidth',line_linewidth,'DisplayName',LegName);
+        plot(x,R.Qs(:,imtp),'linewidth',line_linewidth,'Color',CsV(inr,:),'DisplayName',LegName);
         
         % P
         figure(h6)
@@ -491,28 +501,39 @@ for inr=1:nr
             P_mtj = R.Qdots(istance,imtj)*pi/180.*R.Tid(istance,imtj)/R.body_mass;
             P_hindfoot = P_mtj+P_mtp;
             P_tot = P_mtj + P_ankle + P_subt + P_mtp;
+            
+            subplot(121)
+            plot(xst,P_mtp','-.','Color',[0.7, 0.1, 0.1],'linewidth',line_linewidth,'DisplayName',['forefoot (' LegName ')']);
+            plot(xst,P_hindfoot,'-.','Color',[0, 0.4470, 0.7410],'linewidth',line_linewidth,'DisplayName',['hindfoot (' LegName ')']);
+            plot(xst,P_tot,'-.k','linewidth',line_linewidth,'DisplayName',['shank (' LegName ')']);
+        
         else
             P_hindfoot = P_mtp;
             P_tot = P_ankle + P_subt + P_mtp;
+            
+            subplot(121)
+            plot(xst,P_mtp','-.','linewidth',line_linewidth,'DisplayName',['forefoot (' LegName ')']);
+            plot(xst,P_hindfoot,'-.','linewidth',line_linewidth,'DisplayName',['hindfoot (' LegName ')']);
+            plot(xst,P_tot,'-.','linewidth',line_linewidth,'DisplayName',['shank (' LegName ')']);
+        
         end
         
-        subplot(121)
-        plot(xst,P_mtp','-.','Color',[0.7, 0.1, 0.1],'linewidth',line_linewidth,'DisplayName',['forefoot']);
-        plot(xst,P_hindfoot,'-.','Color',[0, 0.4470, 0.7410],'linewidth',line_linewidth,'DisplayName',['hindfoot']);
-        plot(xst,P_tot,'-.k','linewidth',line_linewidth,'DisplayName',['shank']);
         
 
         subplot(122)
-        plot(xst,P_mtp,'-.','Color',[0.7, 0.1, 0.1],'linewidth',line_linewidth,'DisplayName',['Distal to forefoot']);
         if ~isempty(imtj)
-            plot(xst,P_mtj,'-','Color',[0.3010, 0.7450, 0.9330],'linewidth',line_linewidth,'DisplayName',['Midtarsal joint']);
+            plot(xst,P_mtp,'-.','Color',[0.7, 0.1, 0.1],'linewidth',line_linewidth,'DisplayName',['Distal to forefoot (' LegName ')']);
+            plot(xst,P_mtj,'-','Color',[0.3010, 0.7450, 0.9330],'linewidth',line_linewidth,'DisplayName',['Midtarsal joint (' LegName ')']);
+            plot(xst,P_hindfoot,'-.','Color',[0, 0.4470, 0.7410],'linewidth',line_linewidth,'DisplayName',['Distal to hindfoot (' LegName ')']);
+        else
+            plot(xst,P_hindfoot,'-.','linewidth',line_linewidth,'DisplayName',['Distal to hindfoot (' LegName ')']);
         end
-        plot(xst,P_hindfoot,'-.','Color',[0, 0.4470, 0.7410],'linewidth',line_linewidth,'DisplayName',['Distal to hindfoot']);
+        
         
         % F
         if isfield(R,'windlass') && ~isempty(R.windlass)
             figure(h7)
-            plot(xst,R.windlass.F_PF(istance)/(R.body_mass*9.81),'linewidth',line_linewidth,'DisplayName',LegName);
+            plot(xst,R.windlass.F_PF(istance)/(R.body_mass*9.81),'linewidth',line_linewidth,'Color',CsV(inr,:),'DisplayName',LegName);
         end
             
         
@@ -534,25 +555,25 @@ for inr=1:nr
             
             figure(h8)
             subplot(121)
-            p1=plot(0,0,'d','DisplayName','Ankle');
+            p1=plot(0,0,'d','Color',CsV(inr,:),'DisplayName',['Ankle (' LegName ')']);
             hold on
             grid on
             axis equal
             xlabel('fore-after (mm)')
             ylabel('vertical (mm)')
             title('Centre of pressure during stance')
-            plot(relPos(:,1),relPos(:,2),'o','Color',p1.Color,'DisplayName','COP');
+            plot(relPos(:,1),relPos(:,2),'o','Color',p1.Color,'DisplayName',['COP (' LegName ')']);
             
             subplot(122)
-            p1=plot(0,0,'d','DisplayName','Ankle');
+            p1=plot(0,0,'d','Color',CsV(inr,:),'DisplayName',['Ankle (' LegName ')']);
             hold on
             grid on
             axis equal
             ylabel('fore-after (mm)')
             xlabel('lateral (mm)')
             title('Centre of pressure during stance')
-            plot(relPos(:,3),relPos(:,1),'o','Color',p1.Color,'DisplayName','COP');
-            legend;
+            plot(relPos(:,3),relPos(:,1),'o','Color',p1.Color,'DisplayName',['COP (' LegName ')']);
+            legend('location','best')
             
             
 %             figure
@@ -575,7 +596,6 @@ for inr=1:nr
     end
     
     
-    
 end
 
 
@@ -589,6 +609,14 @@ if figNamePrefix ~= 0
     print(h3,[figNamePrefix '_sol'],'-dpng','-r0')
     set(h4,'PaperPositionMode','auto')
     print(h4,[figNamePrefix '_GRF'],'-dpng','-r0')
+    set(h5,'PaperPositionMode','auto')
+    print(h5,[figNamePrefix '_qs_lit'],'-dpng','-r0')
+    set(h6,'PaperPositionMode','auto')
+    print(h6,[figNamePrefix '_P_lit'],'-dpng','-r0')
+    set(h7,'PaperPositionMode','auto')
+    print(h7,[figNamePrefix '_F_PF_lit'],'-dpng','-r0')
+    set(h8,'PaperPositionMode','auto')
+    print(h8,[figNamePrefix '_COP'],'-dpng','-r0')
 end
 
 end

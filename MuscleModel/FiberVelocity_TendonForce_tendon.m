@@ -4,7 +4,7 @@
 % Author: Antoine Falisse
 % Date: 12/19/2018
 % 
-function [vM,vMtilde] = FiberVelocity_TendonForce_tendon(FTtile,...
+function [vM,vMtilde,varargout] = FiberVelocity_TendonForce_tendon(FTtile,...
     dFTtilde,params,lMT,vMT,Atendon,shift,varargin)
 
 if isempty(varargin)
@@ -31,5 +31,9 @@ else    % alpha = cst = alphao
 end
 vM = (vMT-vT).*cos_alpha;
 vMtilde = vM./vMmax;
+
+if nargout == 3
+    varargout{1} = vT;
+end
 
 end

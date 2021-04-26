@@ -4,7 +4,7 @@
 % Author: Antoine Falisse
 % Date: 12/19/2018
 % 
-function [lM,lMtilde ] = ...
+function [lM,lMtilde,varargout] = ...
     FiberLength_TendonForce_tendon(FTtilde,params,lMT,aTendon,shift,varargin)
 
 if isempty(varargin)
@@ -27,5 +27,7 @@ else    % alpha = cst = alphao
     lM = (lMT-lTs.*lTtilde)./cos(alphao);
 end
 lMtilde = lM./lMo;
-
+if nargout == 3
+    varargout{1} = lTs.*lTtilde;
+end
 end

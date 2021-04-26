@@ -33,7 +33,9 @@ mtj_stiffness = 'Ker1987'; % model for resulting foot stiffness
 dMT = 0;
 nl = 1; % use nonlinear ligament stiffness
 kMT_li = 90; % linear stiffness
+kMT_li2 = kMT_li;
 k_sta = 0; % externally added stiffness to the mtj (e.g. shoe, insole)
+poly = 0; % polynomial approximation instead of sin,cos
 
 %% Get specific parameters
 if isempty(varargin)
@@ -49,6 +51,11 @@ else
     if isfield(S,'kMT_li') && ~isempty(S.kMT_li)
         kMT_li = S.kMT_li;
     end
+    if isfield(S,'kMT_li2') && ~isempty(S.kMT_li2)
+        kMT_li2 = S.kMT_li2;
+    else
+        kMT_li2 = kMT_li;
+    end
     if isfield(S,'sf_PF') && ~isempty(S.sf_PF)
         sf_PF = S.sf_PF;
     end
@@ -58,18 +65,33 @@ else
     if isfield(S,'stiffen_arch') && ~isempty(S.stiffen_arch)
         k_sta = S.stiffen_arch;
     end
+    if isfield(S,'R_mtth') && ~isempty(S.R_mtth)
+        R_mtth = S.R_mtth;
+    end
+    if isfield(S,'WLpoly') && ~isempty(S.WLpoly)
+        poly = S.WLpoly;
+    end
 end
 
 
 %% Geometry Windlass mechanism
-% based on midtarsal joint angle
-phi = phi0 + q_mt; % top angle of WL triangle
-l_PF_fa = sqrt(calcnPF2mtj^2 + mtj2mttPF^2 - 2*calcnPF2mtj*mtj2mttPF*cos(phi)); % length of PF spanning arch
-MA_PF = calcnPF2mtj*mtj2mttPF/l_PF_fa*sin(phi); % moment arm of PF to mtj
+if poly
+    % based on midtarsal joint angle
+    phi = phi0 + q_mt; % top angle of WL triangle
+    l_PF_fa = sqrt(calcnPF2mtj^2 + mtj2mttPF^2 - 2*calcnPF2mtj*mtj2mttPF*cos(phi)); % length of PF spanning arch
+    MA_PF = calcnPF2mtj*mtj2mttPF/l_PF_fa*sin(phi); % moment arm of PF to mtj
+    
+else
+    % see \FootModel\windlassGeometryPolynomials.m
+    l_PF_fa = 0.1392179 + 0.0374482.*q_mt.^1 + -0.0166876.*q_mt.^2 + ...
+        -0.001758651.*q_mt.^3 + 0.0004480769.*q_mt.^4;
+    MA_PF = 0.0374478 + -0.03337403.*q_mt.^1 + -0.005255987.*q_mt.^2 + ...
+        0.001767266.*q_mt.^3 + -0.0001071423.*q_mt.^4 + 9.858065e-05.*q_mt.^5;
 
+end
 % Plantar fascia length
-l_PF = l_PF_fa + R_mtth*(pi/2+q_mtp) -0.0017; % constant term to correct path length to physical length
-
+l_PF = l_PF_fa + R_mtth*(pi/4+q_mtp) + 0.0042; % constant term to correct path length to physical length
+    
 %% Torques
 % plantar fascia
 try
@@ -87,14 +109,26 @@ M_PF = -F_PF*MA_PF;
 
 % other elastic structures
 if nl
-    if strcmp(mtj_stiffness,'Gefen2001')
+    if strcmp(mtj_stiffness,'Gefen2002')
         M_li = -9*(exp(4*(q_mt-2*pi/180))-1)*1.2 + 2*exp(-10*(q_mt+0.1));
         
     elseif strcmp(mtj_stiffness,'Ker1987')
         % calculated in ligaments_torques_Ker87_v2.m
         M_li = 2.16362 + -55.325857*q_mt^1 + -614.60128*q_mt^3 + 1732.1067*q_mt^5 + ...
             7091.9679*q_mt^7 + -24459.968*q_mt^9 -1;
-            
+        
+    elseif strcmp(mtj_stiffness,'Song2011')
+        %S. Song, C. LaMontagna, S. H. Collins en H. Geyer,
+        % „The Effect of Foot Compliance Encoded in the Windlass Mechanism 
+        % on the Energetics of Human Walking,” in 35th Annual International 
+        % Conference of the IEEE EMBS, Osaka, Japan, 2013. 
+        M_li = -800*q_mt;
+        
+    elseif strcmp(mtj_stiffness,'signed_lin')
+        y_p = -kMT_li*q_mt.*(tanh(q_mt*100-0.5)+1)/2;
+        y_n = -kMT_li2*q_mt.*(-tanh(q_mt*100+0.5)+1)/2;
+        M_li = y_p + y_n  + 1.55;
+        
     elseif strcmp(mtj_stiffness,'fitted1')
         % for Natali2010, with ls=148
         t1 = 3*pi/180;
@@ -136,6 +170,42 @@ if nl
         
         M_li = -c1*exp(c2*(q_mt-t1)) + c3*exp(-c4*(q_mt+t2)) + c5 - c6*q_mtp;
         
+        elseif strcmp(mtj_stiffness,'fitted4')
+            t1 = 5*pi/180;
+            c1 = 10;
+            c2 = 25;
+
+            t2 = 10*pi/180;
+            c3 = 2;
+            c4 = 40;
+            c5 = 8;
+            
+            M_li = -c1*exp(c2*(q_mt-t1)) + c3*exp(-c4*(q_mt+t2)) + c5;
+            
+        elseif strcmp(mtj_stiffness,'fitted5')
+            t1 = 5*pi/180;
+            c1 = 10;
+            c2 = 25;
+
+            t2 = 10*pi/180;
+            c3 = 10;
+            c4 = 15;
+            c5 = 10;
+            
+            M_li = -c1*exp(c2*(q_mt-t1)) + c3*exp(-c4*(q_mt+t2)) + c5;
+            
+        elseif strcmp(mtj_stiffness,'fitted6')
+            t1 = 5*pi/180;
+            c1 = 10;
+            c2 = 25;
+
+            t2 = 10*pi/180;
+            c3 = 5;
+            c4 = 20;
+            c5 = 4;
+            
+            M_li = -c1*exp(c2*(q_mt-t1)) + c3*exp(-c4*(q_mt+t2)) + c5;
+            
     end
 else
     M_li = -kMT_li*q_mt + 1.55;

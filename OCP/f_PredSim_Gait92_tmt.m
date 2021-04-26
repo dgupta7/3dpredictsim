@@ -213,6 +213,7 @@ elseif S.IGsel == 2 % Data-informed initial guess
         % only select 1:N to have half a gait cycle
         nfr = length(Qs_ig.allfilt(:,1));
         frSel = round(nfr./4);
+        Qs_ig.allfilt(:,6) = Qs_ig.allfilt(:,6) + 0.0131;
         Qs_ig_sel.allfilt   = Qs_ig.allfilt(1:frSel,:);
         Qs_ig_sel.time      = Qs_ig.time(1:frSel,:);
         Qs_ig_sel.colheaders = Qs_ig.colheaders;

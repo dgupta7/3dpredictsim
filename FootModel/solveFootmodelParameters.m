@@ -792,6 +792,7 @@ if add_mtj2
     L_fa = norm(m1c.t.mtpj - [0;7.5e-3;0] - m1c.t.PF(:,1));
 %     L_fa - l_PF_fa
     L_mtth = 7.5e-3*pi/2;
+%     L_mtth = 9.5e-3*pi/2;
     L = L_fa+L_mtth;
     
     

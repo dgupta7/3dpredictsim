@@ -267,6 +267,13 @@ f_Jnn3  = Function.load('f_Jnn3');
 f_lMT_vMT_dM = Function.load('f_lMT_vMT_dM');
 f_AllPassiveTorques = Function.load('f_AllPassiveTorques');
 fgetMetabolicEnergySmooth2004all = Function.load('fgetMetabolicEnergySmooth2004all');
+if exist(fullfile(PathDefaultFunc,'f_lT_vT.*'),'file')
+    f_lT_vT = Function.load('f_lT_vT');
+elseif strcmp(S.subject,'subject1')
+    cd([pathRepo,'/CasADiFunctions/casadi_s1Fal_MuscModel_bCst_v3']);
+    f_lT_vT = Function.load('f_lT_vT');
+end
+
 cd(pathmain);
 
 
@@ -1316,6 +1323,8 @@ e_mo_opt = zeros(2*N,1);
 e_mo_optb = zeros(2*N,1);
 vMtilde_opt_all = zeros(2*N, NMuscle);
 lMtilde_opt_all = zeros(2*N, NMuscle);
+vT_opt_all = zeros(2*N, NMuscle);
+lT_opt_all = zeros(2*N, NMuscle);
 metab_Etot  = zeros(2*N, NMuscle);
 metab_Adot  = zeros(2*N, NMuscle);
 metab_Mdot  = zeros(2*N, NMuscle);
@@ -1363,6 +1372,11 @@ for nn = 1:2*N
     [vM_opt,vMtilde_opt] = f_FiberVelocity_TendonForce_tendon(FTtilde_GC(nn,:)',...
         dFTtilde_GC(nn,:)',full(lMTk_lr_opt),full(vMTk_lr_opt));
     vMtilde_opt_all(nn,:) = full(vMtilde_opt)';
+    % tendon kinematics
+    [lT_opt,vT_opt] = f_lT_vT(FTtilde_GC(nn,:)',...
+        dFTtilde_GC(nn,:)',full(lMTk_lr_opt),full(vMTk_lr_opt));
+    lT_opt_all(nn,:) = full(lT_opt)';
+    vT_opt_all(nn,:) = full(vT_opt)';
     
     % Bhargava et al. (2004)
     [energy_total,Adot,Mdot,Sdot,Wdot,eBargh] = ...
@@ -1630,7 +1644,11 @@ R.dt_exoShift = dt_exoShift;
 R.Obj         = Obj;
 R.lMT         = lMT_Vect;
 R.vMT         = vMT_Vect;
+R.lT          = lT_opt_all;
+R.vT          = vT_opt_all;
 R.dM          = dM_Vect;
+R.FTtilde     = FTtilde_GC;
+R.dFTtilde    = dFTtilde_GC;
 R.Muscle.Fce  = Fce_opt;
 R.Muscle.vM   = vM_Vect;
 R.Muscle.Fpas = Fpass_opt;

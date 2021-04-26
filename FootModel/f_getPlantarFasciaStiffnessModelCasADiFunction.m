@@ -62,7 +62,7 @@ elseif strcmp(modelType,'tanh')
     F_PF = k*(dl - dl_0*tanh(dl/dl_0));
     F = F_PF*(tanh(dl*1e4)+1)/2;
     
-elseif strcmp(modelType,'Gefen2001')
+elseif strcmp(modelType,'Gefen2002')
     % 5th order polynomial approximation
     % https://doi.org/10.1016/S0021-9290(01)00242-1
     a1 = -488737.9;
@@ -126,31 +126,15 @@ elseif strcmp(modelType,'Natali2010')
     
 elseif strcmp(modelType,'Ker1987')
     % see ligament_torques_Ker87.m
-% %     F_PF = -3578055333 + 21011527142*lambda^1 + -51373584416*lambda^2 + 66942934105*lambda^3 + ...
-% %         -49031631482*lambda^4 + 19139494724*lambda^5 + -3110684740.1*lambda^6; %sf=1, corrf
-% 
-% %     F_PF = -17217144166 + 98866378186.7*lambda^1 + -236477798399*lambda^2 + 301574344494*lambda^3 +...
-% %         -216263086165*lambda^4 + 82685305006.2*lambda^5 +
-% %         -13167998957.6*lambda^6; %sf=0.9
-% 
-% %     F_PF = -15561008725 + 89385254015.1*lambda^1 + -213868002470*lambda^2 + 272825909452*lambda^3 +...
-% %         -195707300417*lambda^4 + 74848663484.9*lambda^5 + -11923515339.9*lambda^6; %sf=0.9, F*sf^2
-
     F_PF = 1190429209.9 + -6723339025.14*lambda^1 + 15825461895.6*lambda^2 + -19872782816.5*lambda^3 +...
-        14042641491.4*lambda^4 + -5294662348.84*lambda^5 + 832251593.622*lambda^6; %sf=0.9, F*sf^2, ls=144
-
-%     F_PF = 7195632736.8 + -41599933291.5*lambda^1 + 100216263545*lambda^2 + -128771324055*lambda^3 + ...
-%         93081370168*lambda^4 + -35887952242.8*lambda^5 + 5765943139.39*lambda^6;
-%     
-%     F_PF = -3150766530.9 + 18267823560.6*lambda^1 + -44102167662.6*lambda^2 + 56746605927.5*lambda^3 +...
-%         -41043503491.8*lambda^4 + 15821340935.3*lambda^5 + -2539332738.17*lambda^6;
-
-%     F_PF = -4124403976.1 + 23856013211.9*lambda^1 + -57466715191.5*lambda^2 + 73794178295.7*lambda^3 + -53276302798.5*lambda^4 + 20503288770.1*lambda^5 + -3286058311.51*lambda^6;
-% F_PF = -14918925924 + 85670777243.1*lambda^1 + -204923922835*lambda^2 + 261351854524*lambda^3 + -187436174861*lambda^4 + 71672144667.6*lambda^5 + -11415752813.7*lambda^6;
-% F_PF = 5152985283.4 + -30027247509.1*lambda^1 + 72907310890.2*lambda^2 + -94414180271.5*lambda^3 + 68776402236.5*lambda^4 + -26721181717.3*lambda^5 + 4325911087.74*lambda^6;
-% F_PF = -828501490.76 + 4848568102.78*lambda^1 + -11804788285.9*lambda^2 + 15304797352.4*lambda^3 + -11143786537.5*lambda^4 + 4320502591.01*lambda^5 + -696791731.982*lambda^6;
+        14042641491.4*lambda^4 + -5294662348.84*lambda^5 + 832251593.622*lambda^6;
     F = F_PF*(tanh(dl*1e4-1)+1)/2;
     
+elseif strcmp(modelType,'Song2011')
+    k = 5e6;
+    F_PF = k*dl^2;
+    F = F_PF*(tanh(dl*1e4-1)+1)/2;
+
 else
     % plantar fascia fully released
     F = 0;

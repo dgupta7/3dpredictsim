@@ -13,9 +13,10 @@ overwrite = 1;
 % mtp angles to be considered
 % Qs_mtp = [-45:15:45]*pi/180;
 Qs_mtp = [-30:30:30]*pi/180;
+% Qs_mtp = [-20:5:30]*pi/180;
 % vertical forces on knee
 % Fs_tib = [0:50:1000];
-Fs_tib = [0:50:300,400:100:1000,1250:250:4000];
+Fs_tib = [0:50:300,400:100:1000,1250:250:3000];
 % Fs_tib = [0:50:300,400:100:1000,1250:250:2700];
 % Fs_tib = [0:50:1000,1100:100:6000];
 
@@ -110,9 +111,9 @@ else
     qin2     = SX.sym('qin_pass2',1);
     qdotin1  = SX.sym('qdotin_pass1',1);
 
-    [passWLTorques_mtj,~] = getPassiveMtjMomentWindlass_v3(qin1,qdotin1,qin2,f_PF_stiffness,S);
-    f_passiveWLTorques_mtj = Function('f_passiveWLTorques_mtj',{qin1,qdotin1,qin2}, ...
-        {passWLTorques_mtj},{'qin1','qdotin1','qin2'},{'passWLTorques'});
+    [passWLTorques_mtj,~] = getPassiveMtjMomentWindlass_v3(qin1,0,qin2,f_PF_stiffness,S);
+    f_passiveWLTorques_mtj = Function('f_passiveWLTorques_mtj',{qin1,qin2}, ...
+        {passWLTorques_mtj},{'qin1','qin2'},{'passWLTorques'});
 
 
     %% Indices external function
@@ -234,7 +235,7 @@ else
     Tau_pass_ankle = f_PassiveMoments(k_pass.ankle,theta.pass.ankle,Q_ankle_nsc,0);
     Tau_pass_subt= f_PassiveMoments(k_pass.subt,theta.pass.subt,Q_subt_nsc*subtR,0);
     
-    Tau_pass_tmt = f_passiveWLTorques_mtj(Q_tmt_nsc,0,Q_mtp_nsc);
+    Tau_pass_tmt = f_passiveWLTorques_mtj(Q_tmt_nsc,Q_mtp_nsc);
 
     % Get muscle-tendon information
     qin_r = MX.zeros(10,1); % adapt vector size to match full model

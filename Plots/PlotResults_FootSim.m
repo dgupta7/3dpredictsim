@@ -49,15 +49,24 @@ axes('parent', tab1);
 
 
 subplot(3,3,1)
-plot(R.Qs_mtp*180/pi,R.l_fa(:,1)*1000,'color',CsV)
 hold on
+if length(R.Qs_mtp)>1 && min(R.Qs_mtp)*180/pi==-20
+    l0 = max(R.l_fa(:,1));
+    plot(R.Qs_mtp*180/pi,R.l_fa(:,1)./l0,'.','color',CsV)
+    c = polyfit(R.Qs_mtp'*180/pi,R.l_fa(:,1)./l0,1);
+    lm = polyval(c,R.Qs_mtp*180/pi);
+    plot(R.Qs_mtp*180/pi,lm,'-','color',CsV)
+    
+    ylabel('arch length normalised to max (-)')
+    
+else
+    plot(R.Qs_mtp*180/pi,R.l_fa(:,1)*1000,'color',CsV)
+    ylabel('arch length (mm)')
+    
+end
 xlabel('mtp angle (°)')
-ylabel('arch length (mm)')
 title('Foot arch length')
-% if length(R.Qs_mtp)>1 && min(R.Qs_mtp)*180/pi<-29
-%     l0 = interp1(R.Qs_mtp*180/pi,R.l_fa(:,1),-29);
-%     plot([-30,30],[1,0.95]*l0*1000,'--','color',CsV)
-% end
+
 
 subplot(3,3,2)
 hold on

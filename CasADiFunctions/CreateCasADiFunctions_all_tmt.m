@@ -457,8 +457,9 @@ f_forceEquilibrium_FtildeState_all_tendon = ...
 % Function to get (normalized) muscle fiber lengths
 lM      = SX(NMuscle,1);
 lMtilde = SX(NMuscle,1);
+lT      = SX(NMuscle,1);
 for m = 1:NMuscle
-    [lM(m),lMtilde(m)] = FiberLength_TendonForce_tendon(FTtilde(m),...
+    [lM(m),lMtilde(m),lT(m)] = FiberLength_TendonForce_tendon(FTtilde(m),...
         MTparameters_m(:,m),lMT(m),aTendon(m),shift(m),MuscMoAsmp);
 end
 f_FiberLength_TendonForce_tendon = Function(...
@@ -468,16 +469,19 @@ f_FiberLength_TendonForce_tendon = Function(...
 % Function to get (normalized) muscle fiber velocities
 vM      = SX(NMuscle,1);
 vMtilde = SX(NMuscle,1);
+vT      = SX(NMuscle,1);
 for m = 1:NMuscle
-    [vM(m),vMtilde(m)] = FiberVelocity_TendonForce_tendon(FTtilde(m),...
+    [vM(m),vMtilde(m),vT(m)] = FiberVelocity_TendonForce_tendon(FTtilde(m),...
         dFTtilde(m),MTparameters_m(:,m),lMT(m),vMT(m),aTendon(m),shift(m),MuscMoAsmp);
 end
 f_FiberVelocity_TendonForce_tendon = Function(...
     'f_FiberVelocity_Ftilde_tendon',{FTtilde,dFTtilde,lMT,vMT},...
     {vM,vMtilde},{'FTtilde','dFTtilde','lMT','vMT'},{'vM','vMtilde'});
 
+f_lT_vT = Function('f_lT_vT',{FTtilde,dFTtilde,lMT,vMT},...
+    {lT,vT},{'FTtilde','dFTtilde','lMT','vMT'},{'lT','vT'});
 
-%% Passive joint torques (bushing forces/ coodinate limit forces)
+%% Passive joint torques (bushing forces/ coordinate limit forces)
 K_pass      = SX.sym('K_pass',4);
 theta_pass  = SX.sym('theta_pass',2);
 qin_pass    = SX.sym('qin_pass',1);
@@ -551,17 +555,19 @@ if mtj
         % Numbers are for PF slack length = 148mm;
         % see \FootModel\compare_PF_stiffness_models.m
         if strcmp(S.PF_stiffness,'Cheng2008')
-            offset = 1.2915;
+            offset = 1.11;
         elseif strcmp(S.PF_stiffness,'Gefen2001')
-            offset = 0.1824;
+            offset = 0.14;
         elseif strcmp(S.PF_stiffness,'Ker1987')
-            offset = 0.0550;
+            offset = 0.036;
         elseif strcmp(S.PF_stiffness,'Natali2010')
-            offset = 0.9254;
+            offset = 0.75;
+        elseif strcmp(S.PF_stiffness,'Song2011')
+            offset = 0.037;
         elseif strcmp(S.PF_stiffness,'linear')
-            offset = 1.1449;
+            offset = 0.97;
         elseif strcmp(S.PF_stiffness,'tanh')
-            offset = 0.2249;
+            offset = 0.098;
         else
             offset = 0;
         end
@@ -777,22 +783,24 @@ elseif mtj
         if Mu_mtp % use model with muscle-driven mtp
             Tau_passj.mtp.l =...
                 f_passiveWLTorques_mtpj(Q_SX(jointi.tmt.l), Qdot_SX(jointi.tmt.l),...
-                Q_SX(jointi.mtp.l),Qdot_SX(jointi.mtp.l), dampingMtp);%...
-%                 + f_PassiveMoments(k_pass.mtp, theta.pass.mtp,Q_SX(jointi.mtp.l),...
-%                 Qdot_SX(jointi.mtp.l));
+                Q_SX(jointi.mtp.l),Qdot_SX(jointi.mtp.l), dampingMtp)...
+                + f_PassiveMoments(k_pass.mtp, theta.pass.mtp,Q_SX(jointi.mtp.l),...
+                Qdot_SX(jointi.mtp.l));
             Tau_passj.mtp.r =...
                 f_passiveWLTorques_mtpj(Q_SX(jointi.tmt.r), Qdot_SX(jointi.tmt.r),...
-                Q_SX(jointi.mtp.r),Qdot_SX(jointi.mtp.r), dampingMtp);%...
-%                 + f_PassiveMoments(k_pass.mtp, theta.pass.mtp, Q_SX(jointi.mtp.r),...
-%                 Qdot_SX(jointi.mtp.r));
+                Q_SX(jointi.mtp.r),Qdot_SX(jointi.mtp.r), dampingMtp)...
+                + f_PassiveMoments(k_pass.mtp, theta.pass.mtp, Q_SX(jointi.mtp.r),...
+                Qdot_SX(jointi.mtp.r));
             
         else % ideal torque actuator mtp
             Tau_passj.mtp.l = f_passiveWLTorques_mtpj(Q_SX(jointi.tmt.l), ...
                 Qdot_SX(jointi.tmt.l),Q_SX(jointi.mtp.l),Qdot_SX(jointi.mtp.l),...
-                dampingMtp);
+                dampingMtp) + f_PassiveMoments(k_pass.mtp, theta.pass.mtp,Q_SX(jointi.mtp.l),...
+                Qdot_SX(jointi.mtp.l));
             Tau_passj.mtp.r = f_passiveWLTorques_mtpj(Q_SX(jointi.tmt.r), ...
                 Qdot_SX(jointi.tmt.r),Q_SX(jointi.mtp.r),Qdot_SX(jointi.mtp.r),...
-                dampingMtp);
+                dampingMtp) + f_PassiveMoments(k_pass.mtp, theta.pass.mtp, Q_SX(jointi.mtp.r),...
+                Qdot_SX(jointi.mtp.r));
         end
     else % spring mtp 
         Tau_passj.mtp.l = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
@@ -857,6 +865,7 @@ f_MtpActivationDynamics.save(fullfile(OutPath,'f_MtpActivationDynamics'));
 f_PassiveMoments.save(fullfile(OutPath,'f_PassiveMoments'));
 f_passiveTATorques.save(fullfile(OutPath,'f_passiveTATorques'));
 f_passiveWLTorques.save(fullfile(OutPath,'f_passiveWLTorques'));
+f_lT_vT.save(fullfile(OutPath,'f_lT_vT'));
 f_T12.save(fullfile(OutPath,'f_T12'));
 f_T13.save(fullfile(OutPath,'f_T13'));
 f_T27.save(fullfile(OutPath,'f_T27'));
