@@ -1,4 +1,4 @@
-function [] = f_staticFootCompression_v4(S)
+function [] = f_staticFootCompression_v5(S)
 
 
 AddCasadiPaths();
@@ -17,7 +17,7 @@ overwrite = 1;
 Qs_mtp = [0:5:30]*pi/180;
 % vertical forces on knee
 % Fs_tib = [0:100:1000];
-Fs_tib = [0,330,660,1000];
+Fs_tib = [0,100,320,640,960];
 % Fs_tib = [0:50:300,400:100:1000,1250:250:3000];
 % Fs_tib = [0:50:300,400:100:1000,1250:250:2700];
 % Fs_tib = [0:50:1000,1100:100:6000];
@@ -114,10 +114,29 @@ else
     qin2     = SX.sym('qin_pass2',1);
     qdotin1  = SX.sym('qdotin_pass1',1);
 
-    [passWLTorques_mtj,~] = getPassiveMtjMomentWindlass_v3(qin1,0,qin2,f_PF_stiffness,S);
+    [passWLTorques_mtj,passWLTorques_mtpj] = getPassiveMtjMomentWindlass_v3(qin1,0,qin2,f_PF_stiffness,S);
     f_passiveWLTorques_mtj = Function('f_passiveWLTorques_mtj',{qin1,qin2}, ...
         {passWLTorques_mtj},{'qin1','qin2'},{'passWLTorques'});
+    f_passiveWLTorques_mtpj = Function('f_passiveWLTorques_mtpj',{qin1,qin2}, ...
+        {passWLTorques_mtpj},{'qin1','qin2'},{'passWLTorques'});
 
+    if strcmp(S.PF_stiffness,'Cheng2008')
+        offset = 1.11;
+    elseif strcmp(S.PF_stiffness,'Gefen2001')
+        offset = 0.14;
+    elseif strcmp(S.PF_stiffness,'Ker1987')
+        offset = 0.036;
+    elseif strcmp(S.PF_stiffness,'Natali2010')
+        offset = 0.75;
+    elseif strcmp(S.PF_stiffness,'Song2011')
+        offset = 0.037;
+    elseif strcmp(S.PF_stiffness,'linear')
+        offset = 0.97;
+    elseif strcmp(S.PF_stiffness,'tanh')
+        offset = 0.098;
+    else
+        offset = 0;
+    end
 
     %% Indices external function
     % External function: F
@@ -220,6 +239,7 @@ else
     Q_subt = MX.sym('Q_subt',1);
     Q_tmt = MX.sym('Q_tmt',1);
     FT_tilde = MX.sym('FT_tilde',NMf,1);
+    T_mtp_ext = MX.sym('T_mtp_ext',1);
 
     % parameters
     Q_mtp_gnd = MX.sym('Q_mtp',1);
@@ -239,6 +259,7 @@ else
     Tau_pass_subt= f_PassiveMoments(k_pass.subt,theta.pass.subt,Q_subt_nsc*subtR,0);
     
     Tau_pass_tmt = f_passiveWLTorques_mtj(Q_tmt_nsc,Q_mtp_nsc);
+    Tau_pass_mtp = f_passiveWLTorques_mtpj(Q_tmt_nsc,Q_mtp_nsc) - S.kMTP*Q_mtp_nsc + offset;
 
     % Get muscle-tendon information
     qin_r = MX.zeros(10,1); % adapt vector size to match full model
@@ -305,15 +326,17 @@ else
     T_subt_r        = f_T12(MAj.subt.r,Ft_subt_r);
     f2 = Tj(jointfi.subt.r,1) - (T_subt_r + Tau_pass_subt);
     % Tmt torque
-    f3 = Tj(jointfi.tmt.r,1) - Tau_pass_tmt;
+    f3 = Tj(jointfi.tmt.r,1) - (Tau_pass_tmt);
+    % Mtp torque
+    f4 = Tj(jointfi.mtp.r,1) - (T_mtp_ext + Tau_pass_mtp);
     % Vertical force on knee
-    f4 = Tj(jointfi.tibia.ty,1) + F_tib_y;
+    f5 = Tj(jointfi.tibia.ty,1) + F_tib_y;
 
     % Hill difference
     fh = Hilldiff;
 
     % Equality constraints
-    ff = [f1;f2;f3;f4;fh;];
+    ff = [f1;f2;f3;f4;f5;fh;];
 
     % Objective
     fo1 = (Tj(jointfi.calcn_or(2),1) - Tj(jointfi.toes_or(2),1) - 0.01)^2; % square to get positive value
@@ -330,10 +353,10 @@ else
 %     fo = fo_x - fo_z;
     
     % Define function to return constraints and objective
-    f_foot = Function('f_foot',{[Q_tib_rx;Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt;FT_tilde],Q_mtp_gnd,F_tib_y},{fo,ff});
+    f_foot = Function('f_foot',{[Q_tib_rx;Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt;FT_tilde;T_mtp_ext],Q_mtp_gnd,F_tib_y},{fo,ff});
 
     % Define function to return forces and torques for post-processing
-    f_foot_pp = Function('f_foot_pp',{[Q_tib_rx;Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt;FT_tilde],Q_mtp_gnd,F_tib_y},...
+    f_foot_pp = Function('f_foot_pp',{[Q_tib_rx;Q_tib_rz;Q_tib_ty;Q_ankle;Q_subt;Q_tmt;FT_tilde;T_mtp_ext],Q_mtp_gnd,F_tib_y},...
         {FT,T_ankle_r,Tau_pass_ankle,T_subt_r,Tau_pass_subt,Q_mtp_nsc});
 
 
@@ -362,6 +385,7 @@ else
     MA_PF = zeros(n_mtp,n_tib);
     l_PF_fa = zeros(n_mtp,n_tib);
     M_mtp = zeros(n_mtp,n_tib);
+    T_mtp = zeros(n_mtp,n_tib);
     q_tmt_0 = zeros(n_mtp,n_tib);
     failed = zeros(n_mtp,n_tib);
     T_ankle = zeros(n_mtp,n_tib);
@@ -391,11 +415,13 @@ else
     FTtilde_opti = opti.variable(NMf,1);
     opti.subject_to(bounds_FTs(:,1) <= FTtilde_opti(:,1));
     opti.subject_to(FTtilde_opti(:,1) <= bounds_FTs(:,2));
+    % torque from GRF on toes
+    T_mtp_opti = opti.variable(1,1);
     % parameters
     qmtp = opti.parameter();
     Ftib = opti.parameter();
     % equality constraints
-    [obj,constr] = f_foot([qs_opti;FTtilde_opti],qmtp,Ftib);
+    [obj,constr] = f_foot([qs_opti;FTtilde_opti;T_mtp_opti],qmtp,Ftib);
     opti.subject_to(constr == 0);
 
     opti.minimize(obj);
@@ -421,6 +447,7 @@ else
             % initial guess
             opti.set_initial(qs_opti,qs_init);
             opti.set_initial(FTtilde_opti,FTs_init);
+            opti.set_initial(T_mtp_opti,0);
 
             % set parameter values
             opti.set_value(qmtp, Qs_mtp(i));
@@ -430,6 +457,7 @@ else
                 sol = opti.solve();
                 qs_sol = sol.value(qs_opti).*scale_qs;
                 FTs_sol = sol.value(FTtilde_opti).*scale_FTs;
+                T_mtp_sol = sol.value(T_mtp_opti);
 
     %             % retrieve residuals
     %             [~,f_res] = f_foot([qs_sol./scale_qs;FTs_sol./scale_FTs],Qs_mtp(i),Fs_tib(j));
@@ -447,13 +475,14 @@ else
                 Qs(i,j,jointfi.ankle.r) = qs_sol(4);
                 Qs(i,j,jointfi.subt.r) = qs_sol(5);
                 Qs(i,j,jointfi.tmt.r) = qs_sol(6);
-                
+                T_mtp(i,j) = T_mtp_sol;
 
                 QsQdots(i,j,1:2:end) = Qs(i,j,:);
                 QsQdots(i,j,2:2:end) = Qdots(i,j,:);
 
                 % call post-processing function
-                [Fm,Ta,ta,Ts,ts,q_mtp] = f_foot_pp([qs_sol./scale_qs;FTs_sol./scale_FTs],Qs_mtp(i),Fs_tib(j));
+                [Fm,Ta,ta,Ts,ts,q_mtp] = f_foot_pp([qs_sol./scale_qs;...
+                    FTs_sol./scale_FTs;T_mtp_sol],Qs_mtp(i),Fs_tib(j));
                 for ii=1:NMf
                     F_tendon.(muscleNamesFoot{ii})(i,j) = full(Fm(ii));
                 end
@@ -462,6 +491,7 @@ else
                 T_subt(i,j) = full(Ts);
                 tau_subt(i,j) = full(ts);
                 Qs(i,j,jointfi.mtp.r) = full(q_mtp);
+                
 
                 % call external function
                 [T_res] = full(F([vertcat(squeeze(QsQdots(i,j,:)));vertcat(squeeze(Qddots(i,j,:)))]));
@@ -550,6 +580,7 @@ else
     R.GRF_metatarsi = GRF_metatarsi;
     R.M_WL = M;
     R.M_PF = M_PF;
+    R.T_mtp = T_mtp;
     R.M_li = M_li;
     R.F_PF = F_PF;
     R.l_PF = l_PF;

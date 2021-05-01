@@ -25,8 +25,8 @@ phi0 = 2.1274;
 
 
 %% Default parameters
-R_mtth = 7.5e-3; % average radius of the metatarsal head
-% R_mtth = 9.5e-3; % radius of the first metatarsal head
+% R_mtth = 7.5e-3; % average radius of the metatarsal head
+R_mtth = 9.5e-3; % radius of the first metatarsal head
 
 sf_PF = 1; % scale factor for PF stiffness
 mtj_stiffness = 'Ker1987'; % model for resulting foot stiffness

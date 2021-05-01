@@ -2,9 +2,15 @@
 clear
 clc
 
+[pathHere,~,~] = fileparts(mfilename('fullpath'));
+[pathRepo,~,~] = fileparts(pathHere);
+addpath([pathRepo '/VariousFunctions']);
+AddCasadiPaths();
+
+%%
 S.PF_stiffness = 'Natali2010';
 S.R_mtth = 9.5e-3;
-S.sf_PF = 10;                % multiply PF force with constant factor
+S.sf_PF = 1;                % multiply PF force with constant factor
 S.PF_slack_length = 0.15; % (m) slack length
 S.MT_li_nonl = 0;
 S.kMT_li = 300;
@@ -106,17 +112,38 @@ end
 %%
 
 figure
+subplot(321)
 plot(q_mtp,T)
+xlabel('mtp angle wrt gnd (°)')
+ylabel('mtp torque (Nm)')
 
-% figure
-% plot(q_mtp,q_mt*180/pi)
-% 
-% figure
-% plot(q_mtp,q_mtpj*180/pi)
+subplot(323)
+plot(q_mtp,q_mt*180/pi)
+xlabel('mtp angle wrt gnd (°)')
+ylabel('mtj angle (°)')
 
+subplot(322)
+plot(q_mtp,q_mtpj*180/pi)
+hold on
+plot(q_mtp,q_mtp,'--k')
+xlabel('mtp angle wrt gnd (°)')
+ylabel('mtp angle (°)')
 
+subplot(325)
+plot(q_mtpj*180/pi,T)
+xlabel('mtp angle (°)')
+ylabel('mtp torque (Nm)')
 
+subplot(324)
+Dq = q_mtp - q_mtpj*180/pi;
+plot(q_mtp,Dq)
+xlabel('mtp angle wrt gnd (°)')
+ylabel('\Deltaq (°)')
+title('absolute difference mtp')
 
-
-
-
+subplot(326)
+dq = Dq./(q_mtpj*180/pi);
+plot(q_mtp(2:end),dq(2:end))
+xlabel('mtp angle wrt gnd (°)')
+ylabel('\deltaq (-)')
+title('relative difference mtp')

@@ -21,7 +21,7 @@ E = 350; % Young's modulus (N/mm^2)
 % A0 = 290; % initial cross-section (mm^2)
 A0 = 49.7; % initial cross-section (mm^2)
 nu = 0.4; % Poisson ratio
-ls = 0.148; % slack length (m)
+ls = 0.150; % slack length (m)
 k = E*A0/ls; % spring constant (N/m)
 dl_0 = ls/100*1; % toe-in length
 

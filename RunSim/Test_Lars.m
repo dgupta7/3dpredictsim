@@ -52,8 +52,8 @@ S.NThreads  = 6;        % number of threads for parallel computing
 
 % output folder
 S.ResultsFolder = 'MidTarsalJoint'; % 'MuscleModel' 'MidTarsalJoint' 'Final'
-suffixCasName = '_300_10';         
-suffixName = '_300_10';
+suffixCasName = '';         
+suffixName = '';
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
@@ -84,7 +84,7 @@ S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsifl
 
 S.mtj = 1;              % 1: use a model with tmt joint (will override tmt)
 % plantar fascia
-% S.PF_stiffness = 'none'; % stiffness model for the gait simulation
+% S.PF_stiffness = 'linear'; % stiffness model for the gait simulation
 S.PF_stiffness = 'Natali2010';
 % S.PF_stiffness = 'Song2011';
         % options:
@@ -96,13 +96,13 @@ S.R_mtth = 9.5e-3;
 % S.WLpoly = 0;
 
 % other ligaments (long, short planter ligament, etc)
-S.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
+S.MT_li_nonl = 0;       % 1: nonlinear torque-angle characteristic
 % S.mtj_stiffness = 'Gefen2002';
 % S.mtj_stiffness = 'Ker1987';
-S.mtj_stiffness = 'signed_lin';
+% S.mtj_stiffness = 'signed_lin';
 % S.mtj_stiffness = 'Song2011';
 
-S.kMT_li = 300;          % angular stiffness in case of linear
+S.kMT_li = 200;          % angular stiffness in case of linear
 S.kMT_li2 = 10;          % angular stiffness in case of linear
 % S.dMT = 0.1;               % (Nms/rad) damping
 
@@ -110,14 +110,14 @@ S.stiffen_arch = 0;      % (Nm/rad) extra stiffness added to arch (mtj)
 
 % PF reaction torque on mtp joint
 S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
-S.Mu_mtp = 1;           % 0: torque actuator, 1: muscles connected to mtp
+S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
     
 S.kMTP = 5;
 
 % List of stiffness models to use for the STATIC footmodel:
 PF_stiffness = {S.PF_stiffness};
 % PF_stiffness = {'linear','Gefen2002','Cheng2008','Barrett2018','Natali2010','none'};
-% PF_stiffness = {'none','Gefen2002'};
+% PF_stiffness = {'Gefen2002'};
 
 
 %% Exoskeleton
@@ -333,7 +333,7 @@ if foot_standing
     for i=1:numel(PF_stiffness)
         S.PF_stiffness = PF_stiffness{i};
 %         f_staticFootCompression_v2(S);
-        f_staticFootCompression_v4(S);
+        f_staticFootCompression_v5(S);
     end
 end
 if foot_hanging

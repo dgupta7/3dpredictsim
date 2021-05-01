@@ -21,11 +21,14 @@ q_mt = linspace(-30,30,N)'*pi/180;
 q_mtp = linspace(-45,45,N)*pi/180;
 
 % PF_stiffness = {'Cheng2008','Gefen2002','Ker1987','Natali2010','Song2011','linear','tanh'};
-PF_stiffness = {'Cheng2008','Gefen2002','Natali2010','Song2011','linear'};
-% PF_stiffness = {'Natali2010'};
+% PF_stiffness = {'Cheng2008','Gefen2002','Natali2010','Song2011','linear'};
+PF_stiffness = {'Natali2010'};
 
 % mtj_stiffness = {'Gefen2002','Ker1987','fitted1'};
-mtj_stiffness = {'Gefen2002','Ker1987','Song2011'};
+% mtj_stiffness = {'Gefen2002','Ker1987','Song2011','signed_lin'};
+mtj_stiffness = {'Song2011','signed_lin'};
+S.kMT_li = 300;          % angular stiffness in case of linear
+S.kMT_li2 = 10;          % angular stiffness in case of linear
 k_mtj = 300;
 k_mtp = 5;
 
@@ -172,36 +175,36 @@ end
 %%
 
 figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab\stiffness';
-
-h1=figure;
-for i=1:numel(PF_stiffness)
-    hold on
-    plot((l-ls)*1000,F_PF(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i})
-    grid on
-    legend('Location','best')
-    xlabel('Elongation (mm)')
-    ylabel('Force (N)')
-    title('Plantar fascia force')
-    ylim([0,2000])
-end
-
-set(h1,'PaperPositionMode','auto')
-print(h1,[figNamePrefix '_PF'],'-dpng','-r0')
-    
-% h2=figure;
-% for i=1:numel(mtj_stiffness)
+% 
+% h1=figure;
+% for i=1:numel(PF_stiffness)
 %     hold on
-%     plot(q_mt*180/pi,M_li(i,:),'DisplayName',mtj_stiffness{i})
+%     plot((l-ls)*1000,F_PF(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i})
 %     grid on
 %     legend('Location','best')
-%     xlabel('Midtarsal angle (°)')
-%     ylabel('Torque (Nm)')
-%     title('Midtarsal stiffness models')
-%     ylim([-100,100])
+%     xlabel('Elongation (mm)')
+%     ylabel('Force (N)')
+%     title('Plantar fascia force')
+%     ylim([0,2000])
 % end
+% 
+% set(h1,'PaperPositionMode','auto')
+% print(h1,[figNamePrefix '_PF'],'-dpng','-r0')
+    
+h2=figure;
+for i=1:numel(mtj_stiffness)
+    hold on
+    plot(q_mt*180/pi,M_li(i,:),'DisplayName',mtj_stiffness{i})
+    grid on
+    legend('Song2011 (k = 800)','k = 10 (q<0), k = 300 (q>0)')
+    xlabel('Midtarsal angle (°)')
+    ylabel('Torque (Nm)')
+    title('Midtarsal stiffness models')
+    ylim([-100,100])
+end
 
-% set(h2,'PaperPositionMode','auto')
-% print(h2,[figNamePrefix '_mtj'],'-dpng','-r0')
+set(h2,'PaperPositionMode','auto')
+print(h2,[figNamePrefix '_mtj2'],'-dpng','-r0')
 
 % h3=figure;
 % for i=1:numel(PF_stiffness)

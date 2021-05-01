@@ -47,10 +47,10 @@ S.subject            = 'subject1';
 
 %% Footmodel only
 % subtalar orientation (footmodel only)
-S.subt_orientation = 'default'; %'Reule2010''Parr2012'
+% S.subt_orientation = 'default'; %'Reule2010''Parr2012'
 
 % max compressive force
-% Fmax = 4000;
+Fmax = 960;
 
 %% tarsometatarsal joint
 % S.tmt = 0;              % 1: use a model with tmt joint
@@ -67,21 +67,21 @@ S.subt_orientation = 'default'; %'Reule2010''Parr2012'
 S.mtj = 1;              % 1: use a model with tmt joint (will override tmt)
 % plantar fascia
 % S.PF_stiffness = 'Song2011'; % stiffness model for the gait simulation
-% S.PF_stiffness = 'Natali2010';
-        % options: 'none''linear''Gefen2001''Cheng2008''Barrett2018''Natali2010''Song2011'
-% S.PF_slack_length = 0.150; % slack length (m)
+S.PF_stiffness = 'Natali2010';
+        % options: 'none''linear''Gefen2002''Cheng2008''Barrett2018''Natali2010''Song2011'
+S.PF_slack_length = 0.150; % slack length (m)
 % other ligaments (long, short planter ligament, etc)
-% S.MT_li_nonl = 0;       % 1: nonlinear torque-angle characteristic
-% S.kMT_li = 50;         % angular stiffness in case of linear
+S.MT_li_nonl = 0;       % 1: nonlinear torque-angle characteristic
+% S.kMT_li = 300;         % angular stiffness in case of linear
 % S.mtj_stiffness = 'Gefen2001';
 % S.mtj_stiffness = 'Ker1987';
-% S.mtj_stiffness = 'fitted6';
+% S.mtj_stiffness = 'Song2011';
 % S.mtj_stiffness = 'signed_lin';
 
 % PF reaction torque on mtp joint
-% S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
-% S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
-% S.kMTP = 5;
+S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
+S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
+S.kMTP = 5;
 
 %% Exoskeleton
 S.ExoBool       = 0;    % 1: is wearing exo
@@ -117,7 +117,7 @@ if plot_validation || plot_default || plot_report
 %     criteria{end+1} = '_300_10';
 %     criteria{end+1} = 'not_k10';
 %     criteria{end+1} = 'not_00_';
-%     criteria{end+1} = 'PFx';
+    criteria{end+1} = 'not_PFx';
 
     % filter filenames
     [filteredResults] = filterResultfolderByParameters(pathResult,criteria);
@@ -132,8 +132,10 @@ if plot_validation || plot_default || plot_report
     
 % filteredResults = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k50_MTP_T5_ig24_pp.mat',
 %     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T5_ig24_pp.mat',
-%     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k500_MTP_T5_ig24_pp.mat',
-%     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k800_MTP_T5_ig24_pp.mat'};
+%     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k800_MTP_T5_ig24_pp.mat',
+% %     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_linear_ls150_MT_k300_MTP_T5_ig24_pp.mat',
+% %     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T5_ig24_pp.mat',
+%     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Song2011_ls150_MT_nl_Song2011_MTP_T5_ig24_pp.mat'};
 
     % specify reference results
     n = length(filteredResults);
@@ -170,8 +172,8 @@ if plot_validation || plot_default || plot_report
 %     filteredResults{n+1} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug_tmt\Pog_s1_tmt_bCst_d02_k800_kc1_t5_ig24_v3_pp.mat';
 %     filteredResults{n+2} = 'D:\school\WTK\thesis\model\3dpredictsim\Results\debug_tmt\Pog_s1_tmt_bCst_d02_k800_ig24_v3_pp.mat';
 
-%     filteredResultsWithRef = {ref{:}, filteredResults{:}};
-    filteredResultsWithRef = {filteredResults{:}, ref{:}};
+    filteredResultsWithRef = {ref{:}, filteredResults{:}};
+%     filteredResultsWithRef = {filteredResults{:}, ref{:}};
 
     % set value according to which figure(s) to make
     pl = 0;
@@ -267,8 +269,9 @@ if plot_foot_standing || plot_foot_hanging
         crit{end+1} = ['_' num2str(Fmax)];
     end
     
-%     crit{end+1} = '_WLv3';
-    crit{end+1} = '_ls148';
+%     crit{end+1} = '_sb';
+%     crit{end+1} = '_ls150';
+%     crit{end+1} = '_Q0_30';
     
     OutFolder{1} = fullfile(pathRepo,'Results','FootModel');
     
@@ -279,13 +282,19 @@ if plot_foot_standing || plot_foot_hanging
         disp(resultFiles{i});
     end
     
-    resultFiles = {'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2002_Gefen2002_Q-30_30_F0_3000_WLv3_ls150.mat',
-        'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_none_Gefen2002_Q-30_30_F0_3000_WLv3_ls150.mat',
-        'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_none_Ker1987_Q-30_30_F0_3000_WLv3_ls150.mat'};
+%     resultFiles = {'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2002_Gefen2002_Q-30_30_F0_3000_WLv3_ls150.mat',
+%         'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_none_Gefen2002_Q-30_30_F0_3000_WLv3_ls150.mat',
+%         'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_none_Ker1987_Q-30_30_F0_3000_WLv3_ls150.mat'};
     
 %     resultFiles = {'Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_fitted4_Q-20_30_F0_0_WLv3_ls148_mtp1.mat',
 %         'Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_fitted4_Q-20_30_F0_0_WLv3_ls148_mtp2.mat'};
     
+%     resultFiles = {'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k50_Q0_30_F0_1000_WLv3_ls150_sb1.mat',
+%         'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k300_Q0_30_F0_1000_WLv3_ls150_sb1.mat',
+%         'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k800_Q0_30_F0_1000_WLv3_ls150_sb1.mat',
+%         'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_linear_k300_Q0_30_F0_1000_WLv3_ls150_sb1.mat',
+%         'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2002_Gefen2002_Q0_30_F0_1000_WLv3_ls150_sb1.mat',
+%         'D:\school\WTK\thesis\model\3dpredictsim\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_Song2011_Q0_30_F0_1000_WLv3_ls150_sb1.mat'};
     
     % call plot function
     nrf = numel(resultFiles);

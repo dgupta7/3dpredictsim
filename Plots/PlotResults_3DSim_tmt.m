@@ -597,7 +597,7 @@ if exist(ResultsFile,'file')
         if isfield(R,'AnkleInGround')
             ictt = find(R.AnkleInGround.leverArmGRF.r~=0);
             relPos = (R.COPR - R.AnkleInGround.position.r)*1e3;
-            mks = 2;
+            mks = 3;
             
             subplot(3,4,5)
             hold on
@@ -916,31 +916,63 @@ if exist(ResultsFile,'file')
         
     axes('parent', tab12);
     
-    subplot(3,4,11)
+    subplot(3,5,13)
     hold on
     plot(x,R.TPass(:,imtp),'-','color',Cs,'linewidth',line_linewidth,'DisplayName','Passive');
     title('Passive mtp torque')
     xlabel('Gait cycle (%)','Fontsize',label_fontsize);
     ylabel('Torque (Nm)','Fontsize',label_fontsize);
         
-    subplot(3,4,2)
+    subplot(3,5,2)
     hold on
     plot(x,R.Qs(:,imtp),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
     title('Mtp angle')
     xlabel('Gait cycle (%)','Fontsize',label_fontsize);
     ylabel('Angle (°)','Fontsize',label_fontsize);
-    lh = legend('location','best');
-    lh.Interpreter = 'none';
-        
-    subplot(3,4,6)
+    
+    subplot(3,5,7)
     hold on
     plot(x,R.Tid(:,imtp),'color',Cs,'linewidth',line_linewidth)
     title('Total mtp torque')
     xlabel('Gait cycle (%)','Fontsize',label_fontsize);
     ylabel('Torque (Nm)','Fontsize',label_fontsize);
     
+    subplot(3,5,5)
+    hold on
+    p1=plot(R.Qs(:,imtp),R.Tid(:,imtp),'-','color',Cs,'linewidth',line_linewidth,'DisplayName','total');
+%     p2=plot(R.Qs(:,imtp),R.TPass(:,imtp),'--','color',Cs,'linewidth',line_linewidth,'DisplayName','Passive');
+    xlabel('mtp angle (°)','Fontsize',label_fontsize);
+    ylabel('mtp torque (Nm)','Fontsize',label_fontsize);
+    title('mtp stiffness')
+%     legend([p1,p2]);
+    
+%     subplot(3,5,15)
+%     qk = zeros(length(x),1);
+%     qs = [R.Qs(end-2:end,imtp); R.Qs(:,imtp); R.Qs(1:2,imtp)];
+% %     ts = [R.TPass(end-2:end,imtp); R.TPass(:,imtp); R.TPass(1:2,imtp)];
+%     ts = [R.Tid(end-2:end,imtp); R.Tid(:,imtp); R.Tid(1:2,imtp)];
+%     for iii=1:length(x)
+%         if R.Qs(iii,imtp)>pi/180
+%             tmp = polyfit(qs(iii:iii+4),ts(iii:iii+4),1);
+%             qk(iii) = -tmp(1);
+%         end
+%     end
+%     hold on
+%     plot(x,qk(:),'color',Cs,'linewidth',line_linewidth)
+%     xlabel('mtp angle (°)','Fontsize',label_fontsize);
+%     ylabel('mtp quasi-stiffness (Nm/rad)','Fontsize',label_fontsize);
+%     title('mtp quasi-stiffness')
+
+    
+%     subplot(3,5,10)
+%     hold on
+%     
+%     xlabel('mtp angle (°)','Fontsize',label_fontsize);
+%     ylabel('mtp torque (Nm)','Fontsize',label_fontsize);
+%     title('passive mtp stiffness')
+    
     if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
-        subplot(3,4,12)
+        subplot(3,5,14)
         hold on
         p1=plot(R.GRFs_separate(:,2),'-.','Color',Cs,'DisplayName','calcaneus');
         p2=plot(R.GRFs_separate(:,2+3),'--','Color',Cs,'DisplayName','forefoot');
@@ -1014,30 +1046,43 @@ if exist(ResultsFile,'file')
             end
         end
 
+        subplot(3,5,15)
+        hold on
+        grid on
+        plot(R.S.kMT_li,R.COT,'o','Color',Cs,'MarkerFaceColor',Cs)
+        xlabel('mtj stiffness (Nm-rad)')
+        ylabel('COT')
+        title('Cost of transport')
+    
+        subplot(3,5,10)
+        hold on
+        plot(R.Qs(:,imtp),l_PF,'-','color',Cs,'linewidth',line_linewidth)
+        xlabel('mtp angle (°)','Fontsize',label_fontsize);
+        ylabel('PF length','Fontsize',label_fontsize);
+        title('mtp stiffness')
         
-        
-        subplot(3,4,1)
+        subplot(3,5,1)
         hold on
         plot(x,q_mtj,'color',Cs,'linewidth',line_linewidth)
         title('Midtarsal angle')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Angle (°)','Fontsize',label_fontsize);
 
-        subplot(3,4,3)
+        subplot(3,5,3)
         hold on
         plot(x,l_fa*1000,'color',Cs,'linewidth',line_linewidth)
         title('Foot arch length')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Length (mm)','Fontsize',label_fontsize);
         
-        subplot(3,4,4)
+        subplot(3,5,4)
         hold on
         plot(x,h_fa*1000,'color',Cs,'linewidth',line_linewidth)
         title('Foot arch height')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Height (mm)','Fontsize',label_fontsize);
         
-        subplot(3,4,5)
+        subplot(3,5,6)
         hold on
         p1=plot(x,R.Tid(:,imtj),'color',Cs,'linewidth',line_linewidth,'DisplayName','Total');
 %         p2=plot(x,M_PF,':','color',Cs,'linewidth',line_linewidth,'DisplayName','Plantar fascia');
@@ -1046,7 +1091,7 @@ if exist(ResultsFile,'file')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Torque (Nm)','Fontsize',label_fontsize);
         
-        subplot(3,4,9)
+        subplot(3,5,11)
         hold on
         p1=plot(x,M_PF,'-','color',Cs,'linewidth',line_linewidth,'DisplayName','Plantar fascia');
         p2=plot(x,M_li,'--','color',Cs,'linewidth',line_linewidth,'DisplayName','Passive (non-PF)');
@@ -1056,7 +1101,7 @@ if exist(ResultsFile,'file')
         ylabel('Torque (Nm)','Fontsize',label_fontsize);
 
         
-        subplot(3,4,10)
+        subplot(3,5,12)
         hold on
         p1=plot(x,R.Tid(:,imtp)-R.TPass(:,imtp),':','color',Cs,'linewidth',line_linewidth,'DisplayName','Active');
         if isfield(R.S,'WL_T_mtp') && R.S.WL_T_mtp
@@ -1071,7 +1116,7 @@ if exist(ResultsFile,'file')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Torque (Nm)','Fontsize',label_fontsize);
         
-        subplot(3,4,7)
+        subplot(3,5,8)
         hold on
         if isfield(R.S,'PF_slack_length')
             ls = R.S.PF_slack_length;
@@ -1085,7 +1130,7 @@ if exist(ResultsFile,'file')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Nominal strain (%)','Fontsize',label_fontsize);
         
-        subplot(3,4,8)
+        subplot(3,5,9)
         hold on
 %         plot(x,F_PF/(R.body_mass*9.81)*100,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
         plot(x,F_PF,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1122,7 +1167,7 @@ if exist(ResultsFile,'file')
     else
         axes('parent', tab12);
         
-        subplot(3,4,10)
+        subplot(3,5,11)
         hold on
         p1=plot(x,R.Tid(:,imtp)-R.TPass(:,imtp),':','color',Cs,'linewidth',line_linewidth,'DisplayName','Active');
         p3=plot(x,R.TPass(:,imtp),'--','color',Cs,'linewidth',line_linewidth,'DisplayName','Passive');
@@ -1131,6 +1176,10 @@ if exist(ResultsFile,'file')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         ylabel('Torque (Nm)','Fontsize',label_fontsize);
 
+        subplot(3,5,2)
+        lh = legend('location','best');
+        lh.Interpreter = 'none';
+    
     end
     
     W_mtj = zeros(length(x),1);
