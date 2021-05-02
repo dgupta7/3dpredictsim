@@ -274,140 +274,7 @@ lhPos = lg02.Position;
 lhPos(1) = lhPos(1)+0.1;
 set(lg02,'position',lhPos);
 
-%%
-axes('parent', tab5);
 
-for i=1:n_tib
-    
-    js = find(R.failed(:,i)==0);
-    
-    subplot(2,3,1)
-    hold on
-    plot(R.Qs_mtp(js)*180/pi,R.Qs(js,i,R.jointfi.mtp.r)*180/pi,mrk{i},'Color',CsV,...
-        'DisplayName',[num2str(R.Fs_tib(i)) 'N, ' R.legname])
-    xlabel('angle wrt ground(°)')
-    ylabel('angle wrt forefoot(°)')
-    title('mtp angle')
-    
-    subplot(2,3,2)
-    hold on
-    plot(R.Qs_mtp(js)*180/pi,R.Qs(js,i,R.jointfi.tmt.r)*180/pi,mrk{i},'Color',CsV,...
-        'DisplayName',[num2str(R.Fs_tib(i)) 'N, ' R.legname])
-    xlabel('mtp angle wrt ground(°)')
-    ylabel('angle(°)')
-    title('mtj angle')
-    
-    subplot(2,3,3)
-    hold on
-    T_mtp = R.M_mtp(js,i);% - R.S.kMTP*R.Qs_mtp(:);
-    plot(R.Qs_mtp(js)*180/pi,T_mtp,mrk{i},'Color',CsV,...
-        'DisplayName',[num2str(R.Fs_tib(i)) 'N, ' R.legname])
-    xlabel('mtp angle wrt ground(°)')
-    ylabel('torque(Nm)')
-    title('mtp torque from PF')
-    lg03=legend('Location','northeast');
-    
-    subplot(2,3,4)
-    hold on
-    plot(R.Qs_mtp(js)*180/pi,R.l_PF(js,i)*1000,mrk{i},'Color',CsV,...
-        'DisplayName',[num2str(R.Fs_tib(i)) 'N, ' R.legname])
-    xlabel('mtp angle wrt ground(°)')
-    ylabel('length (mm)')
-    title('PF length')
-    
-    if isfield(R,'T_mtp')
-        subplot(2,3,5)
-        hold on
-        plot(R.Qs_mtp(js)*180/pi,R.T_mtp(js,i),mrk{i},'Color',CsV,...
-        'DisplayName',[num2str(R.Fs_tib(js(i))) 'N, ' R.legname])
-        xlabel('mtp angle wrt ground(°)')
-        ylabel('torque(Nm)')
-        title('external mtp torque')
-    end
-end
-title(lg03,'F, model')
-lhPos = lg03.Position;
-lhPos(2) = lhPos(2)-0.4;
-set(lg03,'position',lhPos); 
-
-    
-%%
-axes('parent', tab6);
-
-for i=1:n_tib
-    pl = polyfit(R.Qs_mtp(js)'*180/pi,T_mtp,1);
-    pln = polyfit(R.Qs(js,i,R.jointfi.mtp.r)*180/pi,T_mtp,1);
-    
-    kg(i) = -pl(1);
-    kf(i) = -pln(1);
-
-    if isfield(R,'T_mtp')
-        ple = polyfit(R.Qs_mtp(js)'*180/pi,R.T_mtp(js,i),1);
-        plne = polyfit(R.Qs(js,i,R.jointfi.mtp.r)*180/pi,R.T_mtp(js,i),1);
-        
-        kge(i) = ple(1);
-        kfe(i) = plne(1);
-    end
-
-end
-
-subplot(2,4,1)
-hold on
-grid on
-% p11=plot(Fs_tib(js)/BW,kg,'o','Color',CsV,'DisplayName','toes wrt ground');
-p12=plot(R.Fs_tib/BW,kf,'d','Color',CsV,'DisplayName','toes wrt forefoot');
-xlabel('vertical tibia load / BW (-)')
-ylabel('quasi-stiffness (Nm/°)')
-title('quasi-stiffness mtp (from PF only)')
-% lg05=legend([p11,p12]);
-% title(lg05,'mtp angle definition')
-% lhPos = lg05.Position;
-% lhPos(2) = lhPos(2)-0.1;
-% set(lg05,'position',lhPos); 
-
-subplot(2,4,2)
-hold on
-grid on
-% plot(Fs_tib(js)/BW,kg./kg(1),'o','Color',CsV,'DisplayName',R.legname)
-plot(R.Fs_tib/BW,kf./kf(1),'d','Color',CsV,'DisplayName',R.legname)
-xlabel('vertical tibia load / BW (-)')
-ylabel('relative quasi-stiffness (-)')
-title('quasi-stiffness mtp (from PF only)')
-lg06=legend('location','northwest');
-title(lg06,'plantar fascia and midtarsal joint stiffness models')
-lhPos = lg06.Position;
-lhPos(2) = lhPos(2)-0.4;
-set(lg06,'position',lhPos); 
-
-
-if isfield(R,'T_mtp')
-    subplot(2,4,3)
-    hold on
-    grid on
-%     plot(Fs_tib(js)/BW,kge,'o','Color',CsV,'DisplayName',R.legname)
-    plot(R.Fs_tib/BW,kfe,'d','Color',CsV,'DisplayName',R.legname)
-    xlabel('tibia force / BW (-)')
-    ylabel('quasi-stiffness (Nm/°)')
-    title('quasi-stiffness mtp (external)')
-
-    subplot(2,4,4)
-    hold on
-    grid on
-%     plot(Fs_tib(js)/BW,kge./kge(1),'o','Color',CsV,'DisplayName',R.legname)
-    plot(R.Fs_tib/BW,kfe./kfe(1),'d','Color',CsV,'DisplayName',R.legname)
-    xlabel('tibia force / BW (-)')
-    ylabel('relative quasi-stiffness (-)')
-    title('quasi-stiffness mtp (external)')
-    
-    subplot(2,4,7)
-    hold on
-    grid on
-    pln = polyfit(R.Fs_tib/BW,kfe./kfe(1),1);
-    plot(R.S.kMT_li,pln(1),'d','Color',CsV,'DisplayName',R.legname)
-    xlabel('mtj stiffness (Nm/rad)')
-    ylabel('mtp quasi-stiffening with load')
-    title('mtp quasi-stiffness increase with load')
-end
 
 %%
 axes('parent', tab4);
@@ -524,7 +391,140 @@ title(leg,'mtp dorsiflexion')
 xlim([0,1])
 
 
+%%
+axes('parent', tab5);
 
+for i=1:n_tib
+    
+    js = find(R.failed(:,i)==0);
+    
+    subplot(2,3,1)
+    hold on
+    plot(R.Qs_mtp(js)*180/pi,R.Qs(js,i,R.jointfi.mtp.r)*180/pi,mrk{i},'Color',CsV,...
+        'DisplayName',[num2str(R.Fs_tib(i)) 'N, ' R.legname])
+    xlabel('angle wrt ground(°)')
+    ylabel('angle wrt forefoot(°)')
+    title('mtp angle')
+    
+    subplot(2,3,2)
+    hold on
+    plot(R.Qs_mtp(js)*180/pi,R.Qs(js,i,R.jointfi.tmt.r)*180/pi,mrk{i},'Color',CsV,...
+        'DisplayName',[num2str(R.Fs_tib(i)) 'N, ' R.legname])
+    xlabel('mtp angle wrt ground(°)')
+    ylabel('angle(°)')
+    title('mtj angle')
+    
+    subplot(2,3,3)
+    hold on
+    T_mtp = R.M_mtp(js,i);% - R.S.kMTP*R.Qs_mtp(:);
+    plot(R.Qs_mtp(js)*180/pi,T_mtp,mrk{i},'Color',CsV,...
+        'DisplayName',[num2str(R.Fs_tib(i)) 'N, ' R.legname])
+    xlabel('mtp angle wrt ground(°)')
+    ylabel('torque(Nm)')
+    title('mtp torque from PF')
+    lg03=legend('Location','northeast');
+    
+    subplot(2,3,4)
+    hold on
+    plot(R.Qs_mtp(js)*180/pi,R.l_PF(js,i)*1000,mrk{i},'Color',CsV,...
+        'DisplayName',[num2str(R.Fs_tib(i)) 'N, ' R.legname])
+    xlabel('mtp angle wrt ground(°)')
+    ylabel('length (mm)')
+    title('PF length')
+    
+    if isfield(R,'T_mtp')
+        subplot(2,3,5)
+        hold on
+        plot(R.Qs_mtp(js)*180/pi,R.T_mtp(js,i),mrk{i},'Color',CsV,...
+            'DisplayName',[num2str(R.Fs_tib(i)) 'N, ' R.legname])
+        xlabel('mtp angle wrt ground(°)')
+        ylabel('torque(Nm)')
+        title('external mtp torque')
+    end
+end
+title(lg03,'F, model')
+lhPos = lg03.Position;
+lhPos(2) = lhPos(2)-0.4;
+set(lg03,'position',lhPos); 
+
+    
+%%
+axes('parent', tab6);
+
+for i=1:n_tib
+    pl = polyfit(R.Qs_mtp(js)'*180/pi,T_mtp,1);
+    pln = polyfit(R.Qs(js,i,R.jointfi.mtp.r)*180/pi,T_mtp,1);
+    
+    kg(i) = -pl(1);
+    kf(i) = -pln(1);
+
+    if isfield(R,'T_mtp')
+        ple = polyfit(R.Qs_mtp(js)'*180/pi,R.T_mtp(js,i),1);
+        plne = polyfit(R.Qs(js,i,R.jointfi.mtp.r)*180/pi,R.T_mtp(js,i),1);
+        
+        kge(i) = ple(1);
+        kfe(i) = plne(1);
+    end
+
+end
+
+subplot(2,4,1)
+hold on
+grid on
+% p11=plot(Fs_tib(js)/BW,kg,'o','Color',CsV,'DisplayName','toes wrt ground');
+p12=plot(R.Fs_tib/BW,kf,'d','Color',CsV,'DisplayName','toes wrt forefoot');
+xlabel('vertical tibia load / BW (-)')
+ylabel('quasi-stiffness (Nm/°)')
+title('quasi-stiffness mtp (from PF only)')
+% lg05=legend([p11,p12]);
+% title(lg05,'mtp angle definition')
+% lhPos = lg05.Position;
+% lhPos(2) = lhPos(2)-0.1;
+% set(lg05,'position',lhPos); 
+
+subplot(2,4,2)
+hold on
+grid on
+% plot(Fs_tib(js)/BW,kg./kg(1),'o','Color',CsV,'DisplayName',R.legname)
+plot(R.Fs_tib/BW,kf./kf(1),'d','Color',CsV,'DisplayName',R.legname)
+xlabel('vertical tibia load / BW (-)')
+ylabel('relative quasi-stiffness (-)')
+title('quasi-stiffness mtp (from PF only)')
+lg06=legend('location','northwest');
+title(lg06,'plantar fascia and midtarsal joint stiffness models')
+lhPos = lg06.Position;
+lhPos(2) = lhPos(2)-0.4;
+set(lg06,'position',lhPos); 
+
+
+if isfield(R,'T_mtp')
+    subplot(2,4,3)
+    hold on
+    grid on
+%     plot(Fs_tib(js)/BW,kge,'o','Color',CsV,'DisplayName',R.legname)
+    plot(R.Fs_tib/BW,kfe,'d','Color',CsV,'DisplayName',R.legname)
+    xlabel('tibia force / BW (-)')
+    ylabel('quasi-stiffness (Nm/°)')
+    title('quasi-stiffness mtp (external)')
+
+    subplot(2,4,4)
+    hold on
+    grid on
+%     plot(Fs_tib(js)/BW,kge./kge(1),'o','Color',CsV,'DisplayName',R.legname)
+    plot(R.Fs_tib/BW,kfe./kfe(1),'d','Color',CsV,'DisplayName',R.legname)
+    xlabel('tibia force / BW (-)')
+    ylabel('relative quasi-stiffness (-)')
+    title('quasi-stiffness mtp (external)')
+    
+    subplot(2,4,7)
+    hold on
+    grid on
+    pln = polyfit(R.Fs_tib/BW,kfe./kfe(1),1);
+    plot(R.S.kMT_li,pln(1),'d','Color',CsV,'DisplayName',R.legname)
+    xlabel('mtj stiffness (Nm/rad)')
+    ylabel('mtp quasi-stiffening with load')
+    title('mtp quasi-stiffness increase with load')
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

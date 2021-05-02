@@ -96,7 +96,12 @@ if isfield(S,'kMTP') && ~isempty(S.kMTP)
 else
     stiffnessMtp = 1.5/(pi/180)/5;
 end
-dampingMtp = 0.5;
+if isfield(S,'dMTP') && ~isempty(S.dMTP)
+    dampingMtp = S.dMTP;
+else
+    dampingMtp = 0.5;
+end
+
 
 % define general settings for default objective functions
 % By default, the tendon stiffness is 35 and the shift is 0.

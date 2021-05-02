@@ -1046,13 +1046,7 @@ if exist(ResultsFile,'file')
             end
         end
 
-        subplot(3,5,15)
-        hold on
-        grid on
-        plot(R.S.kMT_li,R.COT,'o','Color',Cs,'MarkerFaceColor',Cs)
-        xlabel('mtj stiffness (Nm-rad)')
-        ylabel('COT')
-        title('Cost of transport')
+        
     
         subplot(3,5,10)
         hold on
@@ -1227,7 +1221,7 @@ if exist(ResultsFile,'file')
 
     % Work
     if has_tmt && has_tmt_unlocked || has_mtj
-        subplot(3,3,1)
+        subplot(3,4,1)
         hold on
         grid on
         plot(x,W_mtj,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1235,8 +1229,43 @@ if exist(ResultsFile,'file')
         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         title('Midtarsal')
 
+        subplot(4,4,4)
+        hold on
+        grid on
+        plot(R.S.kMT_li,W_tot(end),'o','Color',Cs,'MarkerFaceColor',Cs)
+%         xlabel('mtj stiffness (Nm/rad)')
+        ylabel('Work (J/kg)')
+        title('Mechanical work foot (/gait cycle)')
+
+        dist_trav = R.Qs(end,strcmp(R.colheaders.joints,'pelvis_tx')) - ...
+            R.Qs(1,strcmp(R.colheaders.joints,'pelvis_tx'));
+        
+        subplot(4,4,8)
+        hold on
+        grid on
+        plot(R.S.kMT_li,R.COT*dist_trav,'o','Color',Cs,'MarkerFaceColor',Cs)
+%         xlabel('mtj stiffness (Nm/rad)')
+        ylabel('Metab. Energy (J/kg)')
+        title('Metabolic energy (/gait cycle)')
+
+        subplot(4,4,12)
+        hold on
+        grid on
+        plot(R.S.kMT_li,W_tot(end)/dist_trav,'o','Color',Cs,'MarkerFaceColor',Cs)
+%         xlabel('mtj stiffness (Nm/rad)')
+        ylabel('Work (J/(kg m))')
+        title({'Mechanical work foot (/m)'})
+        
+        subplot(4,4,16)
+        hold on
+        grid on
+        plot(R.S.kMT_li,R.COT,'o','Color',Cs,'MarkerFaceColor',Cs)
+        xlabel('mtj stiffness (Nm/rad)')
+        ylabel('COT (J/(kg m)')
+        title('Cost of transport')
+    
         if has_WL || has_mtj
-            subplot(3,3,4)
+            subplot(3,4,5)
             hold on
             grid on
             plot(x,W_PF,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1244,7 +1273,7 @@ if exist(ResultsFile,'file')
             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
             title('Plantar fascia')
 
-            subplot(3,3,7)
+            subplot(3,4,9)
             hold on
             grid on
             plot(x,W_li,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1254,7 +1283,7 @@ if exist(ResultsFile,'file')
         end
     end
     
-    subplot(3,3,2)
+    subplot(3,4,2)
     hold on
     grid on
     plot(x,W_ankle,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1262,7 +1291,7 @@ if exist(ResultsFile,'file')
     xlabel('Gait cycle (%)','Fontsize',label_fontsize);
     title('Ankle')
 
-    subplot(3,3,5)
+    subplot(3,4,6)
     hold on
     grid on
     plot(x,W_subt,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1270,7 +1299,7 @@ if exist(ResultsFile,'file')
     xlabel('Gait cycle (%)','Fontsize',label_fontsize);
     title('Subtalar')
 
-    subplot(3,3,8)
+    subplot(3,4,10)
     hold on
     grid on
     plot(x,W_mtp,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1278,7 +1307,7 @@ if exist(ResultsFile,'file')
     xlabel('Gait cycle (%)','Fontsize',label_fontsize);
     title('Mtp')
     
-    subplot(3,3,9)
+    subplot(3,4,11)
     hold on
     grid on
     plot(x,W_mtp+W_mtj,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1294,7 +1323,7 @@ if exist(ResultsFile,'file')
         set(lh,'position',lhPos);
     end
 
-    subplot(3,3,3)
+    subplot(3,4,3)
     hold on
     grid on
     plot(x,W_tot,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
@@ -1302,11 +1331,9 @@ if exist(ResultsFile,'file')
     xlabel('Gait cycle (%)','Fontsize',label_fontsize);
     title('Total foot')
 
-
-
     if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
 
-        subplot(3,3,6)
+        subplot(3,4,7)
         hold on
         grid on
         p1=plot(R.GRFs_separate(:,2),'-.','Color',Cs,'DisplayName','calcaneus');

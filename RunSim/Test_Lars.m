@@ -99,12 +99,12 @@ S.R_mtth = 9.5e-3;
 S.MT_li_nonl = 0;       % 1: nonlinear torque-angle characteristic
 % S.mtj_stiffness = 'Gefen2002';
 % S.mtj_stiffness = 'Ker1987';
-% S.mtj_stiffness = 'signed_lin';
+S.mtj_stiffness = 'signed_lin';
 % S.mtj_stiffness = 'Song2011';
 
-S.kMT_li = 200;          % angular stiffness in case of linear
+S.kMT_li = 250;          % angular stiffness in case of linear
 S.kMT_li2 = 10;          % angular stiffness in case of linear
-% S.dMT = 0.1;               % (Nms/rad) damping
+S.dMT = 5;               % (Nms/rad) damping
 
 S.stiffen_arch = 0;      % (Nm/rad) extra stiffness added to arch (mtj)
 
@@ -113,11 +113,12 @@ S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
 S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
     
 S.kMTP = 5;
+% S.dMTP = 0.5;
 
 % List of stiffness models to use for the STATIC footmodel:
 PF_stiffness = {S.PF_stiffness};
 % PF_stiffness = {'linear','Gefen2002','Cheng2008','Barrett2018','Natali2010','none'};
-% PF_stiffness = {'Gefen2002'};
+% PF_stiffness = {'none'};
 
 
 %% Exoskeleton

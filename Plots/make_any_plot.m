@@ -72,7 +72,7 @@ S.PF_stiffness = 'Natali2010';
 S.PF_slack_length = 0.150; % slack length (m)
 % other ligaments (long, short planter ligament, etc)
 S.MT_li_nonl = 0;       % 1: nonlinear torque-angle characteristic
-% S.kMT_li = 300;         % angular stiffness in case of linear
+S.kMT_li = 300;         % angular stiffness in case of linear
 % S.mtj_stiffness = 'Gefen2001';
 % S.mtj_stiffness = 'Ker1987';
 % S.mtj_stiffness = 'Song2011';
@@ -114,7 +114,7 @@ if plot_validation || plot_default || plot_report
 
     % manually add more filter criteria
 %     criteria{end+1} = 'v27';
-%     criteria{end+1} = '_300_10';
+%     criteria{end+1} = '300_10';
 %     criteria{end+1} = 'not_k10';
 %     criteria{end+1} = 'not_00_';
     criteria{end+1} = 'not_PFx';
@@ -136,6 +136,22 @@ if plot_validation || plot_default || plot_report
 % %     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_linear_ls150_MT_k300_MTP_T5_ig24_pp.mat',
 % %     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T5_ig24_pp.mat',
 %     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Song2011_ls150_MT_nl_Song2011_MTP_T5_ig24_pp.mat'};
+
+% filteredResults = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k50_MTP_T5_ig24_v2_pp.mat'
+%     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k100_MTP_T5_ig24_pp.mat'
+%     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k150_MTP_T5_ig24_pp.mat'
+%     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k200_MTP_T5_ig24_pp.mat'
+%     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k250_MTP_T5_ig24_pp.mat'
+%     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T5_ig24_pp.mat'
+%     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k400_MTP_T5_ig24_pp.mat'
+%     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k500_MTP_T5_ig24_pp.mat'
+%     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k800_MTP_T5_ig24_pp.mat'};
+    
+filteredResults = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k150_MTP_T5_ig24_pp.mat'
+    'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k200_MTP_T5_ig24_pp.mat'
+    'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k250_MTP_T5_ig24_pp.mat'
+    'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T5_ig24_pp.mat'};
+    
 
     % specify reference results
     n = length(filteredResults);
@@ -211,15 +227,15 @@ if plot_report
     RefData = 'Fal_s1';
     mtj = 1;
     
-    makeplot.kinematics = 1;
-    makeplot.kinetics = 1;
-    makeplot.soleus = 1;
-    makeplot.GRF = 1;
+    makeplot.kinematics = 0;
+    makeplot.kinetics = 0;
+    makeplot.soleus = 0;
+    makeplot.GRF = 0;
     makeplot.compareLiterature = 1;
-    makeplot.COP = 1;
+    makeplot.COP = 0;
 
-    figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab\PFx';
-%     figNamePrefix = 0;
+%     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab\PFx';
+    figNamePrefix = 0;
     
     PlotResults_3DSim_Report(ResultsFile,LegNames,RefData,mtj,makeplot,figNamePrefix);
 end

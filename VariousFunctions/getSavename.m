@@ -45,9 +45,14 @@ if isfield(S,'mtj') && ~isempty(S.mtj) && S.mtj
         casfuncfolparts{end+1} = ['ls' num2str(S.PF_slack_length*1000)];
     end
     if isfield(S,'MT_li_nonl') && ~isempty(S.MT_li_nonl) && S.MT_li_nonl
-        if isfield(S,'mtj_stiffness') && ~isempty(S.mtj_stiffness) 
-            savenameparts{end+1} = ['MT_nl_' S.mtj_stiffness];
-            casfuncfolparts{end+1} = ['MT_nl_' S.mtj_stiffness];
+        if isfield(S,'mtj_stiffness') && ~isempty(S.mtj_stiffness)
+            if strcmp(S.mtj_stiffness,'signed_lin')
+                savenameparts{end+1} = ['MT_nl_' S.mtj_stiffness];
+                casfuncfolparts{end+1} = ['MT_nl_' S.mtj_stiffness];
+            else
+                savenameparts{end+1} = ['MT_nl_k' num2str(S.kMT_li) '_' num2str(S.kMT_li2)];
+                casfuncfolparts{end+1} = ['MT_nl_k' num2str(S.kMT_li) '_' num2str(S.kMT_li2)];
+            end
         else
             savenameparts{end+1} = ['MT_nl'];
             casfuncfolparts{end+1} = ['MT_nl'];
@@ -83,6 +88,10 @@ if isfield(S,'mtj') && ~isempty(S.mtj) && S.mtj
             savenameparts{end} = [savenameparts{end} num2str(S.kMTP)];
             casfuncfolparts{end} = [casfuncfolparts{end} num2str(S.kMTP)];
         end
+        if isfield(S,'dMTP') && ~isempty(S.dMTP)
+        savenameparts{end+1} = ['d0' num2str(S.dMTP*10)];
+        casfuncfolparts{end+1} = ['d0' num2str(S.dMTP*10)];
+    end
     end
     if isfield(S,'stiffen_arch') && ~isempty(S.stiffen_arch) && S.stiffen_arch~=0
         savenameparts{end+1} = ['K' num2str(S.stiffen_arch)];
