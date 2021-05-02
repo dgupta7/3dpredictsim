@@ -102,9 +102,9 @@ S.MT_li_nonl = 0;       % 1: nonlinear torque-angle characteristic
 S.mtj_stiffness = 'signed_lin';
 % S.mtj_stiffness = 'Song2011';
 
-S.kMT_li = 250;          % angular stiffness in case of linear
+S.kMT_li = 800;          % angular stiffness in case of linear
 S.kMT_li2 = 10;          % angular stiffness in case of linear
-S.dMT = 5;               % (Nms/rad) damping
+% S.dMT = 5;               % (Nms/rad) damping
 
 S.stiffen_arch = 0;      % (Nm/rad) extra stiffness added to arch (mtj)
 
@@ -113,7 +113,7 @@ S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
 S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
     
 S.kMTP = 5;
-% S.dMTP = 0.5;
+S.dMTP = 0;
 
 % List of stiffness models to use for the STATIC footmodel:
 PF_stiffness = {S.PF_stiffness};

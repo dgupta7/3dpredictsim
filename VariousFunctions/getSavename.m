@@ -47,11 +47,11 @@ if isfield(S,'mtj') && ~isempty(S.mtj) && S.mtj
     if isfield(S,'MT_li_nonl') && ~isempty(S.MT_li_nonl) && S.MT_li_nonl
         if isfield(S,'mtj_stiffness') && ~isempty(S.mtj_stiffness)
             if strcmp(S.mtj_stiffness,'signed_lin')
-                savenameparts{end+1} = ['MT_nl_' S.mtj_stiffness];
-                casfuncfolparts{end+1} = ['MT_nl_' S.mtj_stiffness];
-            else
                 savenameparts{end+1} = ['MT_nl_k' num2str(S.kMT_li) '_' num2str(S.kMT_li2)];
                 casfuncfolparts{end+1} = ['MT_nl_k' num2str(S.kMT_li) '_' num2str(S.kMT_li2)];
+            else
+                savenameparts{end+1} = ['MT_nl_' S.mtj_stiffness];
+                casfuncfolparts{end+1} = ['MT_nl_' S.mtj_stiffness];
             end
         else
             savenameparts{end+1} = ['MT_nl'];
