@@ -10,6 +10,7 @@ addpath([pathRepo '/VariousFunctions']);
 addpath([pathRepo '/CasADiFunctions']);
 addpath([pathRepo '/Musclemodel']);
 addpath([pathRepo '/Polynomials']);
+addpath([pathRepo '/FootModel']);
 
 StartPath = pwd;
 ExoPath = fullfile(pathRepo,'Data','Poggensee_2020');
@@ -27,7 +28,7 @@ pathResult_pp = fullfile([pathRepo '/Results'],batchQ.(fields{i}).S.ResultsFolde
     end
 end
 
-imax = 2; % max nr of jobs to start
+imax = 200; % max nr of jobs to start
 
 
 %%
