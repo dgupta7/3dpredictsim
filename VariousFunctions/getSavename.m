@@ -97,6 +97,13 @@ if isfield(S,'mtj') && ~isempty(S.mtj) && S.mtj
         savenameparts{end+1} = ['K' num2str(S.stiffen_arch)];
         casfuncfolparts{end+1} = ['K' num2str(S.stiffen_arch)];
     end
+    if isfield(S,'contactStiff') && ~isempty(S.contactStiff)
+        if S.contactStiff == 10
+            savenameparts{end+1} = 'spx10';
+        elseif S.contactStiff == 2
+            savenameparts{end+1} = 'spx2';
+        end
+    end
     
 else
     if isfield(S,'tmt') && ~isempty(S.tmt)

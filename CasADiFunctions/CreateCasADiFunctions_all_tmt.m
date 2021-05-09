@@ -576,6 +576,10 @@ if mtj
         else
             offset = 0;
         end
+        if Mu_mtp == 0 && WL_T_mtp == 1
+            offset = 0;
+        end
+            
         passTorques_mtpj = passWLTorques_mtpj - stiffnessMtp*qin2 - damp * qdotin2 + offset;
 %     end
     

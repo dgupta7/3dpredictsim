@@ -1,5 +1,7 @@
 function [] = PlotResults_3DSim_Report(ResultsFile,LegNames,RefData,mtj,makeplot,figNamePrefix)
 
+set(0,'defaultTextInterpreter','tex');
+
 if strcmp(RefData,'none')
     md = 0;
 else
@@ -166,7 +168,8 @@ for inr=1:nr
             % Plot settings
             if inr == nr
                 set(gca,'Fontsize',label_fontsize);
-                title(joints_tit{idx_title(i)},'Fontsize',label_fontsize);
+                ttl_tmp = joints_tit{idx_title(i)};
+                title(ttl_tmp(1:end-2),'Fontsize',label_fontsize);
                 % Y-axis
                 if i == 1 || i == 4
                     ylabel('Angle (°)','Fontsize',label_fontsize);
@@ -236,7 +239,8 @@ for inr=1:nr
             if inr == nr
                 % Plot settings
                 set(gca,'Fontsize',label_fontsize);
-                title(joints_tit{idx_title(i)},'Fontsize',label_fontsize);
+                ttl_tmp = joints_tit{idx_title(i)};
+                title(ttl_tmp(1:end-2),'Fontsize',label_fontsize);
                 % Y-axis
                 if i == 1 || i == 4
                     ylabel('Torque (Nm)','Fontsize',label_fontsize);
@@ -270,62 +274,125 @@ for inr=1:nr
             figure(h3);
         end
         iSol = find(strcmp(R.colheaders.muscles,'soleus_r'));
-
-        subplot(6,1,1); hold on;
+        iGas = find(strcmp(R.colheaders.muscles,'lat_gas_r'));
+        iGas2 = find(strcmp(R.colheaders.muscles,'med_gas_r'));
+        if isempty(iGas)
+            iGas = find(strcmp(R.colheaders.muscles,'gaslat_r'));
+        end
+        if isempty(iGas2)
+            iGas2 = find(strcmp(R.colheaders.muscles,'gasmed_r'));
+        end
+        imus = [iSol,iGas,iGas2];
+        
+        
+%         figure
+%         subplot(211)
+%         plot(R.a(:,iSol))
+%         subplot(212)
+%         plot(R.e(:,iSol))
         
         if inr==1 && md 
             if strcmp(RefData,'Fal_s1')
                 iSol_data = find(strcmp(Dat.(type).EMGheaders,'Soleus'));
+                iGas_data = find(strcmp(Dat.(type).EMGheaders,'Gastrocnemius-medialis'));
+                iGas2_data = find(strcmp(Dat.(type).EMGheaders,'Gastrocnemius-lateralis'));
+                
                 ankle_act(:,1) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iSol_data);
+                ankle_act(:,2) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas_data);
+                ankle_act(:,3) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas2_data);
+                
             else
                 iSol_data = find(strcmp(Dat.(type).EMGheaders,'soleus_r'));
-                ankle_act(:,1) = Dat.(type).gc.lowEMG_mean(:,iSol_data);
+                iGas_data = find(strcmp(Dat.(type).EMGheaders,'gas_med_r'));
+                iGas2_data = find(strcmp(Dat.(type).EMGheaders,'gas_lat_r'));
+                ankle_act(:,1) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iSol_data);
+                ankle_act(:,2) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas_data);
+                ankle_act(:,3) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas2_data);
             end
-%             ankle_act(:,1) = Dat.(type).gc.lowEMG_mean(:,iSol_data);
             ankle_a = [ankle_act(ceil(end/2):end,:); ankle_act(1:ceil(end/2)-1,:)];
-            scale = max(R.a(:,iSol))/max(ankle_act(:,1));
-            ankle_a_sc = ankle_a.*scale;
-            plot(ankle_a_sc(:,1),'-k','DisplayName','EMG data')
+            
+            for imu=1:3
+                subplot(6,3,imu); hold on;
+                yyaxis right
+                plot(ankle_a(:,imu),'-k','DisplayName','EMG data')
+                a1 = gca;
+                a1.YColor = [0,0,0];
+                if imu==3
+                    ylabel('EMG (mV)')
+                end
+                yyaxis left
+                a1 = gca;
+                a1.YColor = [0,0,0];
+            end
+            
         end
         
+        subplot(6,3,1); hold on;
         plot(R.a(:,iSol),'-','Color',CsV(inr,:),'DisplayName',LegName);
         title('Soleus')
-        ylabel('activity')
+        ylabel('Activity (-)')
+        
+        subplot(6,3,2); hold on;
+        plot(R.a(:,iSol),'-','Color',CsV(inr,:),'DisplayName',LegName);
+        title('Gastrocnemius-medialis')
+        
+        subplot(6,3,3); hold on;
+        plot(R.a(:,iSol),'-','Color',CsV(inr,:),'DisplayName',LegName);
+        title('Gastrocnemius-lateralis')
+        
         if inr==1
-            lh=legend('-DynamicLegend','location','best');
+            lh=legend('-DynamicLegend','location','northeast');
             lh.Interpreter = 'none';
         end
         
-        subplot(6,1,2)
-        plot(R.MetabB.Etot(:,iSol),'-','Color',CsV(inr,:)); hold on;
-        ylabel('Muscle metab power');
+        for imu=1:3
+            
+            subplot(6,3,3+imu)
+            plot(R.FT(:,imus(imu)),'-','Color',CsV(inr,:),'DisplayName',LegName);
+            hold on
+            if imu==1
+                ylabel('F_{normal,muscle} (N)');
+            end
 
-        subplot(6,1,3)
-        plot(R.lMtilde(:,iSol),'-','Color',CsV(inr,:)); hold on;
-        ylabel('Norm fiber length');
+            subplot(6,3,6+imu)
+            plot(R.MetabB.Etot(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
+            hold on
+            if imu==1
+                ylabel('P_{metab, muscle} (W)');
+            end
 
-        subplot(6,1,4)
-        plot(R.MetabB.Wdot(:,iSol),'-','Color',CsV(inr,:)); hold on;
-        ylabel('Wdot');
+            subplot(6,3,9+imu)
+            plot(R.MetabB.Wdot(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
+            hold on
+            if imu==1
+                ylabel('P_{mech, MTU} (W)');
+            end
+            
+            subplot(6,3,12+imu)
+            plot(R.lMtilde(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
+            hold on
+            if imu==1
+                ylabel('Norm fiber length (-)');
+            end
 
-        subplot(6,1,5)
-        plot(R.FT(:,iSol),'-','Color',CsV(inr,:),'DisplayName',LegName);
-        hold on
-        ylabel('Norm muscle force');
-        
+            subplot(6,3,15+imu)
+            plot(R.Muscle.vM(:,imus(imu)),'Color',CsV(inr,:),'DisplayName',LegName);
+            hold on
+            if imu==1
+                ylabel('Fibre velocity (s^{-1})')
+            end
 
-        subplot(6,1,6)
-        plot(R.Muscle.vM(:,iSol),'Color',CsV(inr,:),'DisplayName',LegName);
-        hold on
-        ylabel('Fibre velocity')
-
-        xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        
+            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        end
     end
+    
+    lhPos = lh.Position;
+    lhPos(2) = lhPos(2)+0.08;
+    set(lh,'position',lhPos);
     
     %% GRF
     if makeplot.GRF
-        
+        GRF_title = {'fore-aft','vertical','lateral'};
         if inr==1
             h4 = figure('Position',[fpos(4,:),flong]);
         else
@@ -333,21 +400,21 @@ for inr=1:nr
         end
         if inr==1 && md
             for i=1:3
-                subplot(1,4,i)
+                subplot(1,7,[2*i-1,2*i])
                 hold on
                 if strcmp(RefData,'Fal_s1')
-                    plot(Dat.(type).gc.GRF.Fmean(:,i),'-k');
+                    p0=plot(Dat.(type).gc.GRF.Fmean(:,i),'-k','DisplayName','Total (experimental)');
                 else
-                    plot(Dat.(type).gc.GRF.Fmean(:,i)/(R.body_mass*9.81)*100,'-k');
+                    p0=plot(Dat.(type).gc.GRF.Fmean(:,i)/(R.body_mass*9.81)*100,'-k','Total (experimental)');
                 end
             end
 
         end
         for i=1:3
-            subplot(1,4,i)
+            subplot(1,7,[2*i-1,2*i])
             hold on
             l = plot(R.GRFs(:,i),'-','Color',CsV(inr,:));
-            title(R.colheaders.GRF{i});
+            title(GRF_title{i});
             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
             if i==1
                 ylabel({'Ground reaction force','(% body weight)'})
@@ -357,7 +424,7 @@ for inr=1:nr
 
         if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
             for i=1:3
-                subplot(1,4,i)
+                subplot(1,7,[2*i-1,2*i])
                 hold on
                 p1=plot(R.GRFs_separate(:,i),'-.','Color',CsV(inr,:),'DisplayName','hindfoot');
                 p2=plot(R.GRFs_separate(:,i+3),'--','Color',CsV(inr,:),'DisplayName','forefoot');
@@ -368,7 +435,7 @@ for inr=1:nr
 
             end
             if inr == 1
-                lh=legend([l,p1,p2,p3],'location','northeast');
+                lh=legend([p0,l,p1,p2,p3],'location','northeast');
                 lh.Interpreter = 'none';
                 lhPos = lh.Position;
                 lhPos(1) = lhPos(1)+0.2;

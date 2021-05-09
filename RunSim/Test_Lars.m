@@ -57,6 +57,7 @@ suffixName = '';
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
+S.contactStiff = 1;    % 10: contact spheres are 10x stiffer
 
 % Test subject
 S.subject = 'subject1'; % barefoot
@@ -102,7 +103,7 @@ S.MT_li_nonl = 0;       % 1: nonlinear torque-angle characteristic
 S.mtj_stiffness = 'signed_lin';
 % S.mtj_stiffness = 'Song2011';
 
-S.kMT_li = 800;          % angular stiffness in case of linear
+S.kMT_li = 300;          % angular stiffness in case of linear
 S.kMT_li2 = 10;          % angular stiffness in case of linear
 % S.dMT = 5;               % (Nms/rad) damping
 
@@ -110,10 +111,10 @@ S.stiffen_arch = 0;      % (Nm/rad) extra stiffness added to arch (mtj)
 
 % PF reaction torque on mtp joint
 S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
-S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
+S.Mu_mtp = 1;           % 0: torque actuator, 1: muscles connected to mtp
     
-S.kMTP = 5;
-S.dMTP = 0;
+S.kMTP = 1;
+% S.dMTP = 0;
 
 % List of stiffness models to use for the STATIC footmodel:
 PF_stiffness = {S.PF_stiffness};
@@ -154,7 +155,7 @@ elseif S.IGmodeID == 3
     if strcmp(S.subject,'s1_Poggensee')
         S.savename_ig   = 'Pog_s1_bCst_ig24';
     else
-        S.savename_ig   = 'Fal_s1_bCst_ig24_v2';
+        S.savename_ig   = 'Fal_s1_bCst_ig1';
     end
 end
 
@@ -203,8 +204,16 @@ elseif S.mtj == 1
             S.ExternalFunc2 = 'PredSim_3D_Pog_s1_mtj_pp_v3.dll';
             
         elseif strcmp(S.subject,'subject1')
-            S.ExternalFunc  = 'PredSim_3D_Fal_s1_mtj_v1.dll';
-            S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v5.dll';
+             if S.contactStiff == 10
+                S.ExternalFunc  = 'PredSim_3D_Fal_s1_mtj_spx10_v1.dll';
+                S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_spx10_pp_v1.dll';
+             elseif S.contactStiff == 2
+                S.ExternalFunc  = 'PredSim_3D_Fal_s1_mtj_spx2_v1.dll';
+                S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_spx2_pp_v1.dll';
+             else
+                S.ExternalFunc  = 'PredSim_3D_Fal_s1_mtj_v1.dll';
+                S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v5.dll';
+             end
         end
     end
     

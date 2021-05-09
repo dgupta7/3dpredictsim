@@ -12,9 +12,9 @@ addpath([pathRepo '/FootModel']);
 % Folder will be filtered to only plot results that satisfy all chosen
 % settings. Put an entry in comment to not use it to filter.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-plot_default = 1;
+plot_default = 0;
 plot_validation = 0;
-plot_report = 0;
+plot_report = 1;
 
 plot_foot_standing = 0;
 plot_foot_hanging = 0;
@@ -77,11 +77,13 @@ S.kMT_li = 300;         % angular stiffness in case of linear
 % S.mtj_stiffness = 'Ker1987';
 % S.mtj_stiffness = 'Song2011';
 % S.mtj_stiffness = 'signed_lin';
+% S.dMT = 5;
 
 % PF reaction torque on mtp joint
-S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
-S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
+% S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
+% S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
 S.kMTP = 5;
+% S.dMTP = 0;
 
 %% Exoskeleton
 S.ExoBool       = 0;    % 1: is wearing exo
@@ -116,7 +118,7 @@ if plot_validation || plot_default || plot_report
 %     criteria{end+1} = 'v27';
 %     criteria{end+1} = '300_10';
 %     criteria{end+1} = 'not_k10';
-%     criteria{end+1} = 'not_00_';
+    criteria{end+1} = 'not_d0';
     criteria{end+1} = 'not_PFx';
 
     % filter filenames
@@ -147,11 +149,7 @@ if plot_validation || plot_default || plot_report
 %     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k500_MTP_T5_ig24_pp.mat'
 %     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k800_MTP_T5_ig24_pp.mat'};
     
-filteredResults = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k150_MTP_T5_ig24_pp.mat'
-    'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k200_MTP_T5_ig24_pp.mat'
-    'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k250_MTP_T5_ig24_pp.mat'
-    'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T5_ig24_pp.mat'};
-    
+
 
     % specify reference results
     n = length(filteredResults);
@@ -216,26 +214,29 @@ if plot_report
 %     ResultsFile = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Fal_s1_bCst_ig24_v2_pp.mat'};
 %         'D:\school\WTK\thesis\model\3dpredictsim\Results\batch_windlass\Fal_s1_tmt_bCst_d05_k1000_WL30_ig24_pp.mat'};
     
-    ResultsFile = filteredResultsWithRef;
-    LegNames = {'original','k = 30, PF x10','k = 50, PF x5','k = 50'};
+%     ResultsFile = filteredResultsWithRef;
+%     LegNames = {'original','k = 30, PF x10','k = 50, PF x5','k = 50'};
 %     LegNames = {'k_{mtj} = 50','k_{mtj} = 300','k_{mtj} = 500','k_{mtj} = 800','original'};
 %     LegNames = {'original','Gefen2002','Natali2010','Song2011','linear'};
 %     ResultsFile = filteredResults;
 %     LegNames = {'mtj and wl'};
     
+    ResultsFile = ref;
+    LegNames = {'Falisse 2019'};
 
     RefData = 'Fal_s1';
-    mtj = 1;
+    mtj = -1;
     
-    makeplot.kinematics = 0;
-    makeplot.kinetics = 0;
-    makeplot.soleus = 0;
-    makeplot.GRF = 0;
-    makeplot.compareLiterature = 1;
-    makeplot.COP = 0;
+    makeplot.kinematics = 1;
+    makeplot.kinetics = 1;
+    makeplot.soleus = 1;
+    makeplot.GRF = 1;
+    makeplot.compareLiterature = 0;
+    makeplot.COP = 1;
 
-%     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab\PFx';
     figNamePrefix = 0;
+%     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab\SOTA';
+
     
     PlotResults_3DSim_Report(ResultsFile,LegNames,RefData,mtj,makeplot,figNamePrefix);
 end
