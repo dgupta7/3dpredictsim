@@ -104,7 +104,10 @@ if isfield(S,'mtj') && ~isempty(S.mtj) && S.mtj
             savenameparts{end+1} = 'spx2';
         end
     end
-    
+    if isfield(S,'WLpoly') && ~isempty(S.WLpoly) && S.WLpoly==0
+        savenameparts{end+1} = 'np';
+        casfuncfolparts{end+1} = 'np';
+    end
 else
     if isfield(S,'tmt') && ~isempty(S.tmt)
         if S.tmt && isfield(S,'dTMT') && ~isempty(S.dTMT) && ~S.tmt_locked

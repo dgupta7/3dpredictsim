@@ -15,7 +15,7 @@ clc
 %% User inputs
 runPolynomialfit = 1;
 saveQdot = 0;
-savePolynomials = 1;
+savePolynomials = 0;
 
 %% Extract time and angles from dummy motion
 subject = 'subject1_mtpPin';

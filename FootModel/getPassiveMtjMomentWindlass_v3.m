@@ -31,11 +31,11 @@ R_mtth = 9.5e-3; % radius of the first metatarsal head
 sf_PF = 1; % scale factor for PF stiffness
 mtj_stiffness = 'Ker1987'; % model for resulting foot stiffness
 dMT = 0;
-nl = 1; % use nonlinear ligament stiffness
-kMT_li = 90; % linear stiffness
+nl = 0; % use nonlinear ligament stiffness
+kMT_li = 300; % linear stiffness
 kMT_li2 = kMT_li;
 k_sta = 0; % externally added stiffness to the mtj (e.g. shoe, insole)
-poly = 0; % polynomial approximation instead of sin,cos
+poly = 1; % polynomial approximation instead of sin,cos
 
 %% Get specific parameters
 if isempty(varargin)
@@ -75,22 +75,28 @@ end
 
 
 %% Geometry Windlass mechanism
-if poly
+if poly == 0
     % based on midtarsal joint angle
-    phi = phi0 + q_mt; % top angle of WL triangle
-    l_PF_fa = sqrt(calcnPF2mtj^2 + mtj2mttPF^2 - 2*calcnPF2mtj*mtj2mttPF*cos(phi)); % length of PF spanning arch
-    MA_PF = calcnPF2mtj*mtj2mttPF/l_PF_fa*sin(phi); % moment arm of PF to mtj
+    % top angle of WL triangle
+    phi = phi0 + q_mt;
+    % length of PF spanning arch
+    l_PF_fa = sqrt(calcnPF2mtj^2 + mtj2mttPF^2 - 2*calcnPF2mtj*mtj2mttPF*cos(phi));
+    % moment arm of PF to mtj
+    MA_PF = calcnPF2mtj*mtj2mttPF/l_PF_fa*sin(phi);
     
 else
     % see \FootModel\windlassGeometryPolynomials.m
+    % length of PF spanning arch
     l_PF_fa = 0.1392179 + 0.0374482.*q_mt.^1 + -0.0166876.*q_mt.^2 + ...
         -0.001758651.*q_mt.^3 + 0.0004480769.*q_mt.^4;
+    % moment arm of PF to mtj
     MA_PF = 0.0374478 + -0.03337403.*q_mt.^1 + -0.005255987.*q_mt.^2 + ...
         0.001767266.*q_mt.^3 + -0.0001071423.*q_mt.^4 + 9.858065e-05.*q_mt.^5;
 
 end
+
 % Plantar fascia length
-l_PF = l_PF_fa + R_mtth*(pi/4+q_mtp) + 0.0042; % constant term to correct path length to physical length
+l_PF = l_PF_fa + R_mtth*(pi/4+q_mtp) + 0.0042; % constant term to correct to physical length
     
 %% Torques
 % plantar fascia
@@ -118,7 +124,7 @@ if nl
             7091.9679*q_mt^7 + -24459.968*q_mt^9 -1;
         
     elseif strcmp(mtj_stiffness,'Song2011')
-        %S. Song, C. LaMontagna, S. H. Collins en H. Geyer,
+        % S. Song, C. LaMontagna, S. H. Collins en H. Geyer,
         % „The Effect of Foot Compliance Encoded in the Windlass Mechanism 
         % on the Energetics of Human Walking,” in 35th Annual International 
         % Conference of the IEEE EMBS, Osaka, Japan, 2013. 

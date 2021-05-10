@@ -1,3 +1,12 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This script runs the batch of simulations created in another script. See
+% main_thesis_Lars.m of more.
+%
+% Author: Lars D'Hondt (May 2021)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 clear all
 close all
 clc

@@ -312,7 +312,7 @@ for inr=1:nr
             ankle_a = [ankle_act(ceil(end/2):end,:); ankle_act(1:ceil(end/2)-1,:)];
             
             for imu=1:3
-                subplot(6,3,imu); hold on;
+                subplot(7,3,imu); hold on;
                 yyaxis right
                 plot(ankle_a(:,imu),'-k','DisplayName','EMG data')
                 a1 = gca;
@@ -326,19 +326,29 @@ for inr=1:nr
             end
             
         end
+        NumTicks = 6;
         
-        subplot(6,3,1); hold on;
+        subplot(7,3,1); hold on;
         plot(R.a(:,iSol),'-','Color',CsV(inr,:),'DisplayName',LegName);
         title('Soleus')
         ylabel('Activity (-)')
+        grid on
+        L = get(gca,'XLim');
+        set(gca,'XTick',linspace(L(1),L(2),NumTicks))
         
-        subplot(6,3,2); hold on;
-        plot(R.a(:,iSol),'-','Color',CsV(inr,:),'DisplayName',LegName);
+        subplot(7,3,2); hold on;
+        plot(R.a(:,iGas),'-','Color',CsV(inr,:),'DisplayName',LegName);
         title('Gastrocnemius-medialis')
+        grid on
+        L = get(gca,'XLim');
+        set(gca,'XTick',linspace(L(1),L(2),NumTicks))
         
-        subplot(6,3,3); hold on;
-        plot(R.a(:,iSol),'-','Color',CsV(inr,:),'DisplayName',LegName);
+        subplot(7,3,3); hold on;
+        plot(R.a(:,iGas2),'-','Color',CsV(inr,:),'DisplayName',LegName);
         title('Gastrocnemius-lateralis')
+        grid on
+        L = get(gca,'XLim');
+        set(gca,'XTick',linspace(L(1),L(2),NumTicks))
         
         if inr==1
             lh=legend('-DynamicLegend','location','northeast');
@@ -347,37 +357,68 @@ for inr=1:nr
         
         for imu=1:3
             
-            subplot(6,3,3+imu)
+            subplot(7,3,3+imu)
             plot(R.FT(:,imus(imu)),'-','Color',CsV(inr,:),'DisplayName',LegName);
             hold on
+            grid on
+            
+            L = get(gca,'XLim');
+            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
             if imu==1
-                ylabel('F_{normal,muscle} (N)');
+                ylabel('F_{normal} (N)');
             end
 
-            subplot(6,3,6+imu)
+            subplot(7,3,6+imu)
             plot(R.MetabB.Etot(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
             hold on
+            grid on
+            
+            L = get(gca,'XLim');
+            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
             if imu==1
-                ylabel('P_{metab, muscle} (W)');
+                ylabel('P_{metabolic} (W)');
             end
 
-            subplot(6,3,9+imu)
+            subplot(7,3,9+imu)
             plot(R.MetabB.Wdot(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
             hold on
+            grid on
+            L = get(gca,'XLim');
+            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
             if imu==1
-                ylabel('P_{mech, MTU} (W)');
+                ylabel('P_{mech,tot} (W)');
             end
             
-            subplot(6,3,12+imu)
+            if isfield(R,'vT')
+               
+                subplot(7,3,12+imu)
+                plot(-R.FT(:,imus(imu)).*R.vT(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
+                hold on
+                grid on
+                
+                L = get(gca,'XLim');
+                set(gca,'XTick',linspace(L(1),L(2),NumTicks))
+                if imu==1
+                    ylabel('P_{tendon} (W)');
+                end
+            end
+       
+            subplot(7,3,15+imu)
             plot(R.lMtilde(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
             hold on
+            grid on
+            L = get(gca,'XLim');
+            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
             if imu==1
-                ylabel('Norm fiber length (-)');
+                ylabel('Fibre length (-)');
             end
 
-            subplot(6,3,15+imu)
+            subplot(7,3,18+imu)
             plot(R.Muscle.vM(:,imus(imu)),'Color',CsV(inr,:),'DisplayName',LegName);
             hold on
+            grid on
+            L = get(gca,'XLim');
+            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
             if imu==1
                 ylabel('Fibre velocity (s^{-1})')
             end
@@ -416,6 +457,8 @@ for inr=1:nr
             l = plot(R.GRFs(:,i),'-','Color',CsV(inr,:));
             title(GRF_title{i});
             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+            L = get(gca,'XLim');
+            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
             if i==1
                 ylabel({'Ground reaction force','(% body weight)'})
             end
@@ -448,6 +491,11 @@ for inr=1:nr
             lhPos(1) = lhPos(1)+0.2;
             set(lh,'position',lhPos);
         end
+        
+%         figure
+%         plot(R.GRFs(:,2)+R.GRFs(:,5),'-')
+%         hold on
+%         plot(Dat.(type).gc.GRF.Fmean(:,2)+Dat.(type).gc.GRF.Fmean([51:end,1:50],2),'-k')
     end
 
     
@@ -673,7 +721,7 @@ if figNamePrefix ~= 0
     set(h2,'PaperPositionMode','auto')
     print(h2,[figNamePrefix '_Ts'],'-dpng','-r0')
     set(h3,'PaperPositionMode','auto')
-    print(h3,[figNamePrefix '_sol'],'-dpng','-r0')
+    print(h3,[figNamePrefix '_calf'],'-dpng','-r0')
     set(h4,'PaperPositionMode','auto')
     print(h4,[figNamePrefix '_GRF'],'-dpng','-r0')
     set(h5,'PaperPositionMode','auto')

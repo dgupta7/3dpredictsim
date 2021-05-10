@@ -4,7 +4,6 @@ clear
 clc
 
 q_mt = linspace(-30,30,100)'*pi/180;
-ls = 0.148;
 
 %% Geometry
 % run \FootModel\solveFootmodelParameters.m to get these values
@@ -38,6 +37,7 @@ ylabel('l_{PF,fa} (mm)')
 title('PF length spanning foot arch')
 
 
+%%
 order = 2;
 stop = 0;
 
@@ -146,12 +146,27 @@ semilogy(q_mt*180/pi,abs((MA_PF_p-MA_PF)./MA_PF),'Color',p2.Color)
 
 %%
 
-figure
-plot(q_mt*180/pi,MA_PF*1e3,'DisplayName','exact')
-hold on
-grid on
-% legend('Location','northeast');
-xlabel('Midtarsal angle (°)')
-ylabel('MA_{PF,fa} (mm)')
-title('Moment arm PF')
+% figure
+% plot(q_mt*180/pi,MA_PF*1e3,'DisplayName','exact')
+% hold on
+% grid on
+% % legend('Location','northeast');
+% xlabel('Midtarsal angle (°)')
+% ylabel('MA_{PF,fa} (mm)')
+% title('Moment arm PF')
 
+
+%%
+order = 5;
+
+[mat,diff_mat_q] = n_art_mat_3(q_mt, order);
+
+coeff=[mat ; diff_mat_q]\[l_PF_fa; MA_PF];
+dM_recon = diff_mat_q*coeff;
+lMT_recon=mat*coeff;
+
+subplot(221)
+plot(q_mt*180/pi,lMT_recon*1e3)
+
+subplot(222)
+plot(q_mt*180/pi,dM_recon*1e3)

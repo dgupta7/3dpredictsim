@@ -1,4 +1,23 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This script allows to plot any of the results from the Thesis_Lars
+% branch. Select one or more folders with results to choose from. Then set
+% values to the parameters you want to filter out. Put the paramaters in
+% comment if you want to see results for any value. 
+% The filter method relies on the name of the resultfile, so this does
+% limit the possible filter criteria. 
+% Line 127-133 shows how to manually add more filter criteria. It will only
+% return filenames which contain that string. Use 'not_string' to get the
+% filenames that do not contain 'string'.
+% If no file in a folder contains a given string, that criterium will be
+% dropped, for that file only.
+%
+% Author: Lars D'Hondt (May 2021)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 clear all
+close all
+
 clc
 
 %% Paths
@@ -9,9 +28,6 @@ addpath([pathRepo '/PassiveMoments']);
 addpath([pathRepo '/FootModel']);
 
 %% Settings
-% Folder will be filtered to only plot results that satisfy all chosen
-% settings. Put an entry in comment to not use it to filter.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 plot_default = 0;
 plot_validation = 0;
 plot_report = 1;
@@ -116,7 +132,7 @@ if plot_validation || plot_default || plot_report
 
     % manually add more filter criteria
 %     criteria{end+1} = 'v27';
-%     criteria{end+1} = '300_10';
+%     criteria{end+1} = 'not_Mu1_ig24';
 %     criteria{end+1} = 'not_k10';
     criteria{end+1} = 'not_d0';
     criteria{end+1} = 'not_PFx';
@@ -149,7 +165,9 @@ if plot_validation || plot_default || plot_report
 %     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k500_MTP_T5_ig24_pp.mat'
 %     'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k800_MTP_T5_ig24_pp.mat'};
     
-
+filteredResults = {'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu5_ig23_pp.mat'
+    %'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T5_ig24_pp.mat'
+    'D:\school\WTK\thesis\model\3dpredictsim\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu5_np_ig23_pp.mat'};
 
     % specify reference results
     n = length(filteredResults);
@@ -231,11 +249,11 @@ if plot_report
     makeplot.kinetics = 1;
     makeplot.soleus = 1;
     makeplot.GRF = 1;
-    makeplot.compareLiterature = 0;
+    makeplot.compareLiterature = 1;
     makeplot.COP = 1;
 
     figNamePrefix = 0;
-%     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab\SOTA';
+    figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\SOTA';
 
     
     PlotResults_3DSim_Report(ResultsFile,LegNames,RefData,mtj,makeplot,figNamePrefix);

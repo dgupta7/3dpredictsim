@@ -4,8 +4,7 @@
 % plot a single gait simulation.
 %
 % Alternatively, the specified settings can be saved and added to a batch.
-% Preparing a full batch at once can be done from \BatchPrepareQueue.m
-% instead. To run the batch, run \BatchRunqueue.m
+% To run the batch, run \BatchRunQueue.m
 %
 % This script can also be used to run a static simulation of a single foot.
 % This foot can be hanging in the air supported at the knee, or standing on
@@ -94,7 +93,7 @@ S.sf_PF = 1;                % multiply PF force with constant factor
 S.PF_slack_length = 0.15; % (m) slack length
 
 S.R_mtth = 9.5e-3;
-% S.WLpoly = 0;
+S.WLpoly = 1;
 
 % other ligaments (long, short planter ligament, etc)
 S.MT_li_nonl = 0;       % 1: nonlinear torque-angle characteristic
@@ -113,7 +112,7 @@ S.stiffen_arch = 0;      % (Nm/rad) extra stiffness added to arch (mtj)
 S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
 S.Mu_mtp = 1;           % 0: torque actuator, 1: muscles connected to mtp
     
-S.kMTP = 1;
+S.kMTP = 5;
 % S.dMTP = 0;
 
 % List of stiffness models to use for the STATIC footmodel:
@@ -146,7 +145,7 @@ ia = 0;
 %% Initial guess
 % initial guess based on simulations without exoskeletons
 S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
-S.IGmodeID      = 4;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
+S.IGmodeID      = 3;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
 
 if S.IGmodeID == 4
     S.savename_ig   = 'NoExo';
