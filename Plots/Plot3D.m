@@ -1,4 +1,4 @@
-function [] = Plot3D(Names,meas_type,varargin)
+function [varargout] = Plot3D(Names,meas_type,varargin)
 
 if length(varargin)>=1
     if varargin{1} == 0
@@ -28,6 +28,13 @@ if plot_normal
         [~,name,~] = fileparts(Names{i});
         PlotResults_3DSim_tmt(Names{i},CsV(i,:),name,h,meas_type);
     end
+    if nargout > 0
+        varargout{1} = h;
+    end
+else
+    if nargout > 0
+        varargout{1} = 0;
+    end
 end
 
 if plot_val
@@ -37,6 +44,15 @@ if plot_val
         [~,name,~] = fileparts(Names{i});
         ValidationPlots(Names{i},CsV(i,:),name,h1);
     end
+    if nargout > 0
+        varargout{2} = h1;
+    end
+else
+    if nargout > 0
+        varargout{2} = 0;
+    end
 end
+
+
 
 end

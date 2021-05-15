@@ -36,9 +36,9 @@ AddCasadiPaths();
 %% General settings
 % Full body gait simulation
 slv = 0;                % run solver
-pp = 0;                 % postproces
+pp = 1;                 % postproces
 plot = 0;               % plot solution
-batchQueue = 1;         % save settings to run later
+batchQueue = 0;         % save settings to run later
 % Static foot simulation
 foot_standing = 0;      % load on knee
 foot_hanging = 0;       % knee position fixed, tibia and foot hanging freely
@@ -82,7 +82,7 @@ S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsifl
 % the torsion spring representing the other ligaments sufficiently stiff,
 % also set mtp to spring.
 
-S.mtj = 1;              % 1: use a model with tmt joint (will override tmt)
+S.mtj = 0;              % 1: use a model with tmt joint (will override tmt)
 % plantar fascia
 % S.PF_stiffness = 'linear'; % stiffness model for the gait simulation
 S.PF_stiffness = 'Natali2010';
@@ -145,7 +145,7 @@ ia = 0;
 %% Initial guess
 % initial guess based on simulations without exoskeletons
 S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
-S.IGmodeID      = 3;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
+S.IGmodeID      = 1;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
 
 if S.IGmodeID == 4
     S.savename_ig   = 'NoExo';
@@ -158,13 +158,13 @@ elseif S.IGmodeID == 3
     end
 end
 
-if S.IGmodeID == 1
-    if strcmp(S.subject,'s1_Poggensee')
-        S.IG_PelvisY = 0.896 + 0.0131;
-    else
-        S.IG_PelvisY = 0.9385 + 0.0131;
-    end
-end
+% if S.IGmodeID == 1
+%     if strcmp(S.subject,'s1_Poggensee')
+%         S.IG_PelvisY = 0.896 + 0.0131;
+%     else
+%         S.IG_PelvisY = 0.9385 + 0.0131;
+%     end
+% end
 
 %% Automated settings
 % Change some more settings, based on what was selected above. 

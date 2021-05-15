@@ -67,6 +67,7 @@ if isfield(S,'Windlass') && ~isempty(S.Windlass)
     end
 else
     WL = 0;
+    cWL = 0.03;
 end
 
 if isfield(S,'mtj') && ~isempty(S.mtj)
@@ -520,6 +521,7 @@ f_passiveTanhTorques = Function('f_passiveTanhTorques',{stiff1,stiff2,theta1,dam
     {passTanhTorques},{'stiff1','stiff2','theta1','damp','qin','qdotin'},{'passTanhTorques'});
 
 %% Passive torque with simplistic Windlass mechanism
+
 % stiff1	= SX.sym('stiff1',1);
 % stiff2	= SX.sym('stiff2',1);
 % damp1	= SX.sym('damp1',1);

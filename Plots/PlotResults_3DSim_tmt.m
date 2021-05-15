@@ -1385,7 +1385,6 @@ if exist(ResultsFile,'file')
     xlabel('Gait cycle (%)','Fontsize',label_fontsize);
     title('Ankle')
     
-
     subplot(3,4,6)
     hold on
     grid on
