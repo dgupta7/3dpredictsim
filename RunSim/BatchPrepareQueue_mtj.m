@@ -93,7 +93,13 @@ elseif S.IGmodeID == 3
         S.savename_ig   = 'Fal_s1_bCst_ig1';
     end
 end
-
+if S.IGmodeID == 1
+    if strcmp(S.subject,'s1_Poggensee')
+        S.IG_PelvisY = 0.896 + 0.0131;
+    else
+        S.IG_PelvisY = 0.9385 + 0.0131;
+    end
+end
 
 % select folder with polynomials
 S.PolyFolder = S.subject;

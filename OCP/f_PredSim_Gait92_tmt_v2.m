@@ -223,11 +223,11 @@ elseif S.IGsel == 2 % Data-informed initial guess
     end
 end
 
-if ~(S.IGsel==2 && S.IGmodeID==3)
-    % adapt guess to better foot model used
-    guess.Qs_all.data(:,jointi.pelvis.ty) = guess.Qs_all.data(:,jointi.pelvis.ty) + 0.0131;
-    guess.Qs(:,jointi.pelvis.ty) = guess.Qs(:,jointi.pelvis.ty) + 0.0131;
-end
+% if ~(S.IGsel==2 && S.IGmodeID==3)
+%     % adapt guess to better foot model used
+%     guess.Qs_all.data(:,jointi.pelvis.ty) = guess.Qs_all.data(:,jointi.pelvis.ty) + 0.0131;
+%     guess.Qs(:,jointi.pelvis.ty) = guess.Qs(:,jointi.pelvis.ty) + 0.0131;
+% end
 % adapt guess so that it fits within the bounds
 guess = AdaptGuess_UserInput(guess,bounds,S);
 

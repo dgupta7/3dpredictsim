@@ -37,16 +37,18 @@ pathResult_pp = fullfile([pathRepo '/Results'],batchQ.(fields{i}).S.ResultsFolde
     end
 end
 
-imax = 2; % max nr of jobs to start
+
 
 
 %%
 
 name = getenv('COMPUTERNAME');
 if strcmp(name,'GBW-D-W2711')   % simulationpc
-myCluster = parcluster('LocalProfile1_Lars_8x2');
+    myCluster = parcluster('LocalProfile1_Lars_8x2');
+    imax = 200; % max nr of jobs to start
 elseif strcmp(name,'MSI')       % Lars
-myCluster = parcluster('LocalProfile_2x2');
+    myCluster = parcluster('LocalProfile_2x2');
+    imax = 2; % max nr of jobs to start
 end
 
 %%
@@ -87,11 +89,11 @@ save([pathRepo '/Results/batchQ.mat'],'batchQ');
 
 %% rerun this section after the jobs are done to get logfiles
 
-% for i=1:length(job)
-%     if strcmp(job(1, i).State,'finished') && strcmp(job(1, i).Name(1:9),'f_PredSim')
-%         clc
-%         diary(fullfile(pathRepo,'Results',batchQ.(fields{i}).S.ResultsFolder,[batchQ.(fields{i}).S.savename '_log.txt']));
-%         job(1, i).Tasks.Diary
-%         diary off
-%     end
-% end
+for i=1:length(job)
+    if strcmp(job(1, i).State,'finished') && strcmp(job(1, i).Name(1:9),'f_PredSim')
+        clc
+        diary(fullfile(pathRepo,'Results',batchQ.(fields{i}).S.ResultsFolder,[batchQ.(fields{i}).S.savename '_log.txt']));
+        job(1, i).Tasks.Diary
+        diary off
+    end
+end

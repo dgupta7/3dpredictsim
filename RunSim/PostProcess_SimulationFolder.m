@@ -15,8 +15,8 @@ addpath([pwd,'/MuscleModel']);
 addpath([pwd,'/Debug']);
 addpath([pwd '/VariousFunctions']);
 AddCasadiPaths();
-% DataFolders = {'Final'};
-DataFolders = {'MidTarsalJoint'};
+DataFolders = {'Final'};
+% DataFolders = {'MidTarsalJoint'};
 
 
 S.OverWrite = 0;

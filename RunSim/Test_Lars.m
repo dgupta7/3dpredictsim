@@ -35,8 +35,8 @@ AddCasadiPaths();
 
 %% General settings
 % Full body gait simulation
-slv = 0;                % run solver
-pp = 1;                 % postproces
+slv = 1;                % run solver
+pp = 0;                 % postproces
 plot = 0;               % plot solution
 batchQueue = 0;         % save settings to run later
 % Static foot simulation
@@ -47,7 +47,7 @@ foot_hanging = 0;       % knee position fixed, tibia and foot hanging freely
 S.v_tgt     = 1.25;     % average speed 1.25
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 6;        % number of threads for parallel computing
-% S.max_iter  = 10;       % maximum number of iterations (comment -> 10000)
+S.max_iter  = 10;       % maximum number of iterations (comment -> 10000)
 
 % output folder
 S.ResultsFolder = 'MidTarsalJoint'; % 'MuscleModel' 'MidTarsalJoint' 'Final'
@@ -82,7 +82,7 @@ S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsifl
 % the torsion spring representing the other ligaments sufficiently stiff,
 % also set mtp to spring.
 
-S.mtj = 0;              % 1: use a model with tmt joint (will override tmt)
+S.mtj = 1;              % 1: use a model with tmt joint (will override tmt)
 % plantar fascia
 % S.PF_stiffness = 'linear'; % stiffness model for the gait simulation
 S.PF_stiffness = 'Natali2010';
@@ -110,7 +110,7 @@ S.stiffen_arch = 0;      % (Nm/rad) extra stiffness added to arch (mtj)
 
 % PF reaction torque on mtp joint
 S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
-S.Mu_mtp = 1;           % 0: torque actuator, 1: muscles connected to mtp
+S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
     
 S.kMTP = 5;
 % S.dMTP = 0;
@@ -158,13 +158,13 @@ elseif S.IGmodeID == 3
     end
 end
 
-% if S.IGmodeID == 1
-%     if strcmp(S.subject,'s1_Poggensee')
-%         S.IG_PelvisY = 0.896 + 0.0131;
-%     else
-%         S.IG_PelvisY = 0.9385 + 0.0131;
-%     end
-% end
+if S.IGmodeID == 1
+    if strcmp(S.subject,'s1_Poggensee')
+        S.IG_PelvisY = 0.896 + 0.0131;
+    else
+        S.IG_PelvisY = 0.9385 + 0.0131;
+    end
+end
 
 %% Automated settings
 % Change some more settings, based on what was selected above. 
