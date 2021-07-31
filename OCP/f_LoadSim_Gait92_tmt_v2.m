@@ -31,6 +31,9 @@ load(Outname,'w_opt','stats','Sopt','ExoVect','setup');
 S = Sopt;
 
 body_mass = S.mass;
+
+S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_spx2_pp_v2.dll';
+
 %% User inputs (typical settings structure)
 % load default CasadiFunctions
 
@@ -192,6 +195,14 @@ if strcmp(ExoImplementation,'IdealAnkle') || strcmp(ExoImplementation,'Nuckols20
         % ankle axis (from talus origin, but oriented in world frame)
         ankleAxis.r = 94:96;
         ankleAxis.l = 97:99;
+    end
+    if F1.nnz_out >= 105
+        P_HCi.calcn.r = 100;
+        P_HCi.metatarsi.r = 101;
+        P_HCi.toes.r = 102;
+        P_HCi.calcn.l = 103;
+        P_HCi.metatarsi.l = 104;
+        P_HCi.toes.l = 105;
     end
 end
 % adapt indexes GRF in Nuckols simulations
@@ -1223,6 +1234,15 @@ if F1.nnz_out >= 99
     apr = zeros(nfr,3);     aor = zeros(nfr,3); agr = zeros(nfr,1);
     apl = zeros(nfr,3);     aol = zeros(nfr,3); agl = zeros(nfr,1);
 %     GRFs_sep_opt = zeros(nfr,18);
+    if F1.nnz_out >= 105
+            P_HC_c_r = zeros(nfr,1);
+            P_HC_m_r = zeros(nfr,1);
+            P_HC_t_r = zeros(nfr,1);
+            P_HC_c_l = zeros(nfr,1);
+            P_HC_m_l = zeros(nfr,1);
+            P_HC_t_l = zeros(nfr,1);
+    end
+    
     for ind = 1:nfr
         res = full(F1([qdqdd(ind,:)'; qdd(ind,:)'])); % normal implementation
         apr(ind,:) = res(TalusOr.r);
@@ -1253,6 +1273,15 @@ if F1.nnz_out >= 99
             agl(ind,1) = norm(vec_an); % lever arm of GRF wrt ankle
         end
         
+        if F1.nnz_out >= 105
+            P_HC_c_r(ind) = res(P_HCi.calcn.r);
+            P_HC_m_r(ind) = res(P_HCi.metatarsi.r);
+            P_HC_t_r(ind) = res(P_HCi.toes.r);
+            P_HC_c_l(ind) = res(P_HCi.calcn.l);
+            P_HC_m_l(ind) = res(P_HCi.metatarsi.l);
+            P_HC_t_l(ind) = res(P_HCi.toes.l);
+        end
+        
     end
     AnkleInGround.position.r = apr;
     AnkleInGround.position.l = apl;
@@ -1261,6 +1290,15 @@ if F1.nnz_out >= 99
     AnkleInGround.leverArmGRF.r = agr;
     AnkleInGround.leverArmGRF.l = agl;
 %     GRFs_sep_opt = GRFs_sep_opt./(body_weight/100);
+    
+    if F1.nnz_out >= 105
+        P_mech_contact.vertical.calcn.r = P_HC_c_r;
+        P_mech_contact.vertical.metatarsi.r = P_HC_m_r;
+        P_mech_contact.vertical.toes.r = P_HC_t_r;
+        P_mech_contact.vertical.calcn.l = P_HC_c_l;
+        P_mech_contact.vertical.metatarsi.l = P_HC_m_l;
+        P_mech_contact.vertical.toes.l = P_HC_t_l;
+    end
     
 end
 
@@ -1623,6 +1661,9 @@ if F1.nnz_out >= 99
 end
 if exist('windlass','var')
     R.windlass = windlass;
+end
+if F1.nnz_out >= 105
+        R.P_mech_contact = P_mech_contact;
 end
 
 % nuckols 2019 results

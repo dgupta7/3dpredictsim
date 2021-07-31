@@ -12,7 +12,7 @@ set(0,'defaultTextInterpreter','tex');
 N = 1000;
 ls = 0.150;
 S.R_mtth = 9.5e-3;
-S.sf_PF = 10;
+S.sf_PF = 1;
 
 l = linspace(ls,ls+0.02,N);
 l_0 = linspace(ls-5e-4,ls+3e-3,N);
@@ -21,12 +21,13 @@ q_mt = linspace(-30,30,N)'*pi/180;
 q_mtp = linspace(-45,45,N)*pi/180;
 
 % PF_stiffness = {'Cheng2008','Gefen2002','Ker1987','Natali2010','Song2011','linear','tanh'};
-% PF_stiffness = {'Cheng2008','Gefen2002','Natali2010','Song2011','linear'};
-PF_stiffness = {'Natali2010'};
+PF_stiffness = {'Cheng2008','Gefen2002','Natali2010','Song2011','linear'};
+% PF_stiffness = {'Natali2010'};
 
 % mtj_stiffness = {'Gefen2002','Ker1987','fitted1'};
-% mtj_stiffness = {'Gefen2002','Ker1987','Song2011','signed_lin'};
-mtj_stiffness = {'Song2011','signed_lin'};
+mtj_stiffness = {'Gefen2002','Ker1987','Song2011','signed_lin'};
+% mtj_stiffness = {'Song2011','signed_lin'};
+S.MT_li_nonl = 1;
 S.kMT_li = 300;          % angular stiffness in case of linear
 S.kMT_li2 = 10;          % angular stiffness in case of linear
 k_mtj = 300;
@@ -144,7 +145,7 @@ for i=1:numel(mtj_stiffness)
     ylim([-100,100])
 end
 
-% plot(q_mt*180/pi,-q_mt*k_mtj,'DisplayName',['k = ' num2str(k_mtj) ' Nm/rad'])
+plot(q_mt*180/pi,-q_mt*k_mtj,'DisplayName',['k = ' num2str(k_mtj) ' Nm/rad'])
 
 
 
@@ -191,20 +192,20 @@ figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab\stiffness';
 % set(h1,'PaperPositionMode','auto')
 % print(h1,[figNamePrefix '_PF'],'-dpng','-r0')
     
-h2=figure;
-for i=1:numel(mtj_stiffness)
-    hold on
-    plot(q_mt*180/pi,M_li(i,:),'DisplayName',mtj_stiffness{i})
-    grid on
-    legend('Song2011 (k = 800)','k = 10 (q<0), k = 300 (q>0)')
-    xlabel('Midtarsal angle (°)')
-    ylabel('Torque (Nm)')
-    title('Midtarsal stiffness models')
-    ylim([-100,100])
-end
-
-set(h2,'PaperPositionMode','auto')
-print(h2,[figNamePrefix '_mtj2'],'-dpng','-r0')
+% h2=figure;
+% for i=1:numel(mtj_stiffness)
+%     hold on
+%     plot(q_mt*180/pi,M_li(i,:),'DisplayName',mtj_stiffness{i})
+%     grid on
+%     legend('Song2011 (k = 800)','k = 10 (q<0), k = 300 (q>0)')
+%     xlabel('Midtarsal angle (°)')
+%     ylabel('Torque (Nm)')
+%     title('Midtarsal stiffness models')
+%     ylim([-100,100])
+% end
+% 
+% set(h2,'PaperPositionMode','auto')
+% print(h2,[figNamePrefix '_mtj2'],'-dpng','-r0')
 
 % h3=figure;
 % for i=1:numel(PF_stiffness)

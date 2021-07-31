@@ -35,8 +35,8 @@ AddCasadiPaths();
 
 %% General settings
 % Full body gait simulation
-slv = 1;                % run solver
-pp = 0;                 % postproces
+slv = 0;                % run solver
+pp = 1;                 % postproces
 plot = 0;               % plot solution
 batchQueue = 0;         % save settings to run later
 % Static foot simulation
@@ -56,7 +56,7 @@ suffixName = '';
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
-S.contactStiff = 1;    % 10: contact spheres are 10x stiffer
+S.contactStiff = 2;    % 10: contact spheres are 10x stiffer
 
 % Test subject
 S.subject = 'subject1'; % barefoot
@@ -145,7 +145,7 @@ ia = 0;
 %% Initial guess
 % initial guess based on simulations without exoskeletons
 S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
-S.IGmodeID      = 1;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
+S.IGmodeID      = 4;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
 
 if S.IGmodeID == 4
     S.savename_ig   = 'NoExo';
@@ -192,7 +192,7 @@ if S.tmt == 0 && S.mtj == 0
 %             S.ExternalFunc  = 'ID_Subject1.dll';
 %             S.ExternalFunc2 = 'PredSim_3D_Fal_s1_pp_v2.dll';
             S.ExternalFunc  = 'PredSim_3D_Fal_s1_v7.dll';
-            S.ExternalFunc2 = 'PredSim_3D_Fal_s1_pp_v4.dll';
+            S.ExternalFunc2 = 'PredSim_3D_Fal_s1_pp_v6.dll';
         end
     end
     
@@ -205,13 +205,13 @@ elseif S.mtj == 1
         elseif strcmp(S.subject,'subject1')
              if S.contactStiff == 10
                 S.ExternalFunc  = 'PredSim_3D_Fal_s1_mtj_spx10_v1.dll';
-                S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_spx10_pp_v1.dll';
+                S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_spx10_pp_v2.dll';
              elseif S.contactStiff == 2
                 S.ExternalFunc  = 'PredSim_3D_Fal_s1_mtj_spx2_v1.dll';
-                S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_spx2_pp_v1.dll';
+                S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_spx2_pp_v2.dll';
              else
                 S.ExternalFunc  = 'PredSim_3D_Fal_s1_mtj_v1.dll';
-                S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v5.dll';
+                S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v6.dll';
              end
         end
     end

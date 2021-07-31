@@ -6,7 +6,8 @@
                 "${workspaceFolder}/**",
                 "D:/opensim-ad/opensim-ad-core/**",
                 "D:/opensim-ad/opensim-ad-dependencies/opensim-ad-dependencies-install/simbody/include/**",
-                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt"
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt",
+                "D:/opensim-ad/opensim-ad-core"
             ],
             "defines": [
                 "_DEBUG",

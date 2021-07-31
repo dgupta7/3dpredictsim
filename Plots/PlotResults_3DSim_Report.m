@@ -108,6 +108,8 @@ for inr=1:nr
         plot(0,R.COT,'o','Color',Cs,'MarkerFaceColor',Cs,'DisplayName',LegName);
         lh=legend('-DynamicLegend','location','northwestoutside');
         title(lh,'Legend')
+        title('Cost of transport')
+        ylabel('COT (J/kg/m)')
     else
         figure(hleg)
         plot(0,R.COT,'o','Color',Cs,'MarkerFaceColor',Cs,'DisplayName',LegName);
@@ -328,7 +330,6 @@ for inr=1:nr
                 iSol_data = find(strcmp(Dat.(type).EMGheaders,'Soleus'));
                 iGas_data = find(strcmp(Dat.(type).EMGheaders,'Gastrocnemius-medialis'));
                 iGas2_data = find(strcmp(Dat.(type).EMGheaders,'Gastrocnemius-lateralis'));
-                
                 ankle_act(:,1) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iSol_data);
                 ankle_act(:,2) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas_data);
                 ankle_act(:,3) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas2_data);
@@ -1063,26 +1064,38 @@ for inr=1:nr
     end
     
     %% foot power
-    if makeplot.power
-        if inr==1
-            h13 = figure('Position',[fpos(4,:),fsq]);
-        end
+    if makeplot.power || makeplot.work
         
         x = 1:(100-1)/(size(R.Qs,1)-1):100;
         istance = 1:1:ceil(R.Event.Stance)+10;
         xst = linspace(1,110,length(istance));
         
         imtj = find(strcmp(R.colheaders.joints,'mtj_angle_r'));
+        iknee = strcmp(R.colheaders.joints,'knee_angle_r');
         iankle = strcmp(R.colheaders.joints,'ankle_angle_r');
         isubt = strcmp(R.colheaders.joints,'subtalar_angle_r');
         imtp = find(strcmp(R.colheaders.joints,'mtp_angle_r'));
         
+        P_knee = R.Qdots(:,iknee)*pi/180.*R.Tid(:,iknee)/R.body_mass;
         P_ankle = R.Qdots(:,iankle)*pi/180.*R.Tid(:,iankle)/R.body_mass;
         P_subt = R.Qdots(:,isubt)*pi/180.*R.Tid(:,isubt)/R.body_mass;
         P_mtp = R.Qdots(:,imtp)*pi/180.*R.Tid(:,imtp)/R.body_mass;
         
+        W_knee = zeros(size(P_knee));
+        W_ankle = zeros(size(P_ankle));
+        W_subt = zeros(size(P_subt));
+        W_mtp = zeros(size(P_mtp));
+        
+        for iw=2:length(xst)
+           W_knee(iw) = trapz(R.t(1:iw),P_knee(1:iw));
+           W_ankle(iw) = trapz(R.t(1:iw),P_ankle(1:iw));
+           W_subt(iw) = trapz(R.t(1:iw),P_subt(1:iw));
+           W_mtp(iw) = trapz(R.t(1:iw),P_mtp(1:iw));
+        end
+        
         if ~isempty(imtj)
             P_mtj = R.Qdots(:,imtj)*pi/180.*R.Tid(:,imtj)/R.body_mass;
+            W_mtj = zeros(size(P_mtj));
             
             l_PF = R.windlass.l_PF;
             F_PF = R.windlass.F_PF;
@@ -1102,173 +1115,506 @@ for inr=1:nr
             P_li = qdot_mtj.*M_li/R.body_mass;
             P_mtp_WL = R.Qdots(:,imtp)*pi/180.*M_mtp/R.body_mass;
         
+            W_PF = zeros(size(P_PF));
+            W_li = zeros(size(P_li));
+            W_mtp_WL = zeros(size(P_mtp_WL));
+            
+            for iw=2:length(xst)
+                W_PF(iw) = trapz(R.t(1:iw),P_PF(1:iw));
+                W_li(iw) = trapz(R.t(1:iw),P_li(1:iw));
+                W_mtp_WL(iw) = trapz(R.t(1:iw),P_mtp_WL(1:iw));
+                W_mtj(iw) = trapz(R.t(1:iw),P_mtj(1:iw));
+            end
+            
         else
             P_mtj = zeros(size(P_mtp));
+            W_mtj = zeros(size(W_mtp));
         end
         
-        P_tot = P_mtj + P_ankle + P_subt + P_mtp;
+        P_joints = P_mtj + P_ankle + P_subt + P_mtp;
+        W_joints = W_mtj + W_ankle + W_subt + W_mtp;
 
         if isfield(R,'vT')
            P_T_Sol = -R.FT(:,iSol).*R.vT(:,iSol)/R.body_mass;
            P_T_Gas = -R.FT(:,iGas).*R.vT(:,iGas)/R.body_mass;
            P_T_Gas2 = -R.FT(:,iGas2).*R.vT(:,iGas2)/R.body_mass;
+           
+           W_T_Sol = zeros(size(P_T_Sol));
+           W_T_Gas = zeros(size(P_T_Sol));
+           W_T_Gas2 = zeros(size(P_T_Sol));
+           
+           for iw=2:length(xst)
+                W_T_Sol(iw) = trapz(R.t(1:iw),P_T_Sol(1:iw));
+                W_T_Gas(iw) = trapz(R.t(1:iw),P_T_Gas(1:iw));
+                W_T_Gas2(iw) = trapz(R.t(1:iw),P_T_Gas2(1:iw));
+           end
+           
         end
     
-        figure(h13)
+        P_M_Sol = R.MetabB.Wdot(:,iSol)/R.body_mass;
+        P_M_Gas = R.MetabB.Wdot(:,iGas)/R.body_mass;
+        P_M_Gas2 = R.MetabB.Wdot(:,iGas2)/R.body_mass;
         
-        subplot(3,4,1)
-        hold on
-        grid on
-        plot(xst,P_tot(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-        ylabel('P_{mech} (W/kg)')
-%         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        title('Total foot')
-        xlim([0,110,])
-
-        if isfield(R,'vT')
-            subplot(3,4,2)
-            hold on
-            grid on
-            plot(xst,P_T_Sol(istance),'-','Color',Cs,'linewidth',line_linewidth)
-%             ylabel('Power (W/kg)')
-%             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-            title('Tendon Soleus')
-            xlim([0,110,])
-
-            subplot(3,4,6)
-            hold on
-            grid on
-            plot(xst,P_T_Gas(istance)+P_T_Gas2(istance),'-','Color',Cs,'linewidth',line_linewidth)
-%             ylabel('Power (W/kg)')
-%             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-            title('Tendon Gastrocnemius')
-            xlim([0,110,])
+        W_M_Sol = zeros(size(P_M_Sol));
+        W_M_Gas = zeros(size(P_M_Sol));
+        W_M_Gas2 = zeros(size(P_M_Sol));
+       
+        for iw=2:length(xst)
+            W_M_Sol(iw) = trapz(R.t(1:iw),P_M_Sol(1:iw));
+            W_M_Gas(iw) = trapz(R.t(1:iw),P_M_Gas(1:iw));
+            W_M_Gas2(iw) = trapz(R.t(1:iw),P_M_Gas2(1:iw));
         end
-            
-        subplot(3,4,5)
-        hold on
-        grid on
-        plot(xst,P_ankle(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName','Ankle');
-        ylabel('P_{mech} (W/kg)')
-%         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        title('Ankle')
-        xlim([0,110,])
-
-        subplot(3,4,9)
-        hold on
-        grid on
-        plot(xst,P_subt(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-        ylabel('P_{mech} (W/kg)')
-        xlabel('Stance phase (%)','Fontsize',label_fontsize);
-        title('Subtalar')
-        xlim([0,110,])
-
-        subplot(3,4,4)
-        hold on
-        grid on
-        plot(xst,P_mtp(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-%         ylabel('Power (W/kg)')
-%         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-        title('Mtp')
-        xlim([0,110,])
-%         if inr==1
-%             lh=legend('-DynamicLegend','location','northwest');
-%             lh.Interpreter = 'none';
-%             lhPos = lh.Position;
-%             lhPos(1) = lhPos(1)+0.05;
-%             set(lh,'position',lhPos);
-%         end
-            
-        if ~isempty(imtj)
-            subplot(3,4,3)
-            hold on
-            grid on
-            plot(xst,P_mtj(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-%             ylabel('Power (W/kg)')
-%             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-            title('Midtarsal')
-            xlim([0,110,])
-
-            subplot(3,4,10)
-            hold on
-            grid on
-            plot(xst,P_PF(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-%             ylabel('Power (W/kg)')
-            xlabel('Stance phase (%)','Fontsize',label_fontsize);
-            title('Plantar fascia')
-            xlim([0,110,])
-
-            subplot(3,4,7)
-            hold on
-            grid on
-            plot(xst,P_li(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-%             ylabel('Power (W/kg)')
-%             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-            title('Mtj non-PF')
-            xlim([0,110,])
-            
-            subplot(3,4,11)
-            hold on
-            grid on
-            plot(xst,P_mtj(istance)-P_li(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-%             ylabel('Power (W/kg)')
-            xlabel('Stance phase (%)','Fontsize',label_fontsize);
-            title('Mtj PF')
-            xlim([0,110,])
-            
-            subplot(3,4,12)
-            hold on
-            grid on
-            plot(xst,P_mtp_WL(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-%             ylabel('Power (W/kg)')
-            xlabel('Stance phase (%)','Fontsize',label_fontsize);
-            title('Mtp PF')
-            xlim([0,110,])
-
-            subplot(3,4,8)
-            hold on
-            grid on
-            plot(xst,P_mtp(istance)-P_mtp_WL(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-%             ylabel('Power (W/kg)')
-%             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-            title('Mtp non-PF')
-            xlim([0,110,])
-
-
+           
+        P_HC_heel = R.P_mech_contact.vertical.calcn.r/R.body_mass;
+        P_HC_ball = R.P_mech_contact.vertical.metatarsi.r/R.body_mass;
+        P_HC_toes = R.P_mech_contact.vertical.toes.r/R.body_mass;
+        P_HC = P_HC_heel + P_HC_ball + P_HC_toes;
+        
+        W_HC_heel = zeros(size(P_HC));
+        W_HC_ball = zeros(size(P_HC));
+        W_HC_toes = zeros(size(P_HC));
+        
+        for iw=2:length(xst)
+            W_HC_heel(iw) = trapz(R.t(1:iw),R.P_mech_contact.vertical.calcn.r(1:iw))/R.body_mass;
+            W_HC_ball(iw) = trapz(R.t(1:iw),R.P_mech_contact.vertical.metatarsi.r(1:iw))/R.body_mass;
+            W_HC_toes(iw) = trapz(R.t(1:iw),R.P_mech_contact.vertical.toes.r(1:iw))/R.body_mass;
         end
         
+        W_HC = W_HC_heel + W_HC_ball + W_HC_toes;
+        P_tot = P_HC + P_joints;
+        W_tot = W_HC + W_joints;
+    end
+    
+
+
+%%
+    if makeplot.power
+        if inr==1
+            h14 = figure('Position',[fpos(4,:),fsq]);
+        end
+        
+        figure(h14)
+        
+        nh = 3;
+        nw = 4;
+        
+        pos_P_all = {P_tot, P_joints, P_HC, 'none',...
+                   P_HC_heel, P_HC_ball, P_HC_toes, 'none',...
+                   P_ankle, P_subt, P_mtj, P_mtp};
+               
+        titles_P_all = {{'Ankle-foot','\fontsize{10}\rm joints + pads'},...
+            {'Joints','\fontsize{10}\rm ankle + subt + mtj + mtp'},...
+            {'Pads','\fontsize{10}\rm hindfoot + forefoot + toes'},...
+            'none', 'Hindfoot','Forefoot','Toes','none',...
+            'Ankle','Subt','Mtj','Mtp'};
+        
+        for i_P=1:numel(pos_P_all)
+            if ~strcmp(pos_P_all{i_P},'none')
+                subplot(nh,nw,i_P)
+                hold on
+                grid on
+                plot(xst,pos_P_all{i_P}(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+                title(titles_P_all{i_P},'Fontsize',label_fontsize);
+                axis tight
+                yl = get(gca, 'ylim');
+                ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+                xlim([0,110,])
+                
+                if mod(i_P-1,nw)==0
+                    ylabel('P_{mech} (W/kg)','Fontsize',label_fontsize);
+                end
+                if i_P > nh*nw-nw
+                    xlabel('Stance phase (%)','Fontsize',label_fontsize);
+                end
+            end
+        end
+        
+       if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
+            subplot(nh,nw,8)
+            hold on
+            grid on
+            p1=plot(xst,R.GRFs_separate(istance,2),'-.','Color',Cs,'DisplayName','calcaneus');
+            p2=plot(xst,R.GRFs_separate(istance,2+3),'--','Color',Cs,'DisplayName','forefoot');
+            p3=plot(xst,R.GRFs_separate(istance,2+6),':','Color',Cs,'DisplayName','toes');
+            xlabel('% stride');
+            ylabel('% body weight')
+            title('Vertical GRF')
+            lh=legend([p1,p2,p3],'location','best');
+            lh.Interpreter = 'none';
+        end
         
         if inr==nr && ~strcmp(figNamePrefix,'none')
-            set(h13,'PaperPositionMode','auto')
-            print(h13,[figNamePrefix '_P'],'-dpng','-r0')
+            set(h14,'PaperPositionMode','auto')
+            print(h14,[figNamePrefix '_P1'],'-dpng','-r0')
         end
+        
+        %%
+        if inr==1
+            h15 = figure('Position',[fpos(3,:),fsq]);
+        end
+        
+        figure(h15)
+        
+        nh = 3;
+        nw = 4;
+        
+        pos_P_all = {P_knee, P_ankle, P_subt, P_knee+P_ankle+P_subt,...
+            P_T_Sol, P_T_Gas, P_T_Gas2,P_T_Sol+P_T_Gas+P_T_Gas2,...
+            P_M_Sol, P_M_Gas, P_M_Gas2,P_M_Sol+P_M_Gas+P_M_Gas2};
+        
+        
+               
+        titles_P_all = {'Knee','Ankle','Subt',{'Sum','\fontsize{10}\rm knee + ankle + subt'},...
+            'Soleus tendon','Gas-med tendon','Gas-lat tendon',{'Sum Tendon','\fontsize{10}\rm sol + gas-med + gas-lat'},...
+            'Soleus fibres','Gas-med fibres','Gas-lat fibres',{'Sum fibres','\fontsize{10}\rm sol + gas-med + gas-lat'}};
+        
+        for i_P=1:numel(pos_P_all)
+            if ~strcmp(pos_P_all{i_P},'none')
+                subplot(nh,nw,i_P)
+                hold on
+                grid on
+                plot(xst,pos_P_all{i_P}(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+                title(titles_P_all{i_P},'Fontsize',label_fontsize);
+                axis tight
+                yl = get(gca, 'ylim');
+                ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+                xlim([0,110,])
+                
+                if mod(i_P-1,nw)==0
+                    ylabel('P_{mech} (W/kg)','Fontsize',label_fontsize);
+                end
+                if i_P > nh*nw-nw
+                    xlabel('Stance phase (%)','Fontsize',label_fontsize);
+                end
+            end
+        end
+        
+        if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
+            subplot(nh,nw,4)
+            hold on
+            grid on
+            plot(xst,R.GRFs_separate(istance,2),'Color',Cs);
+            ylabel('% body weight','Fontsize',label_fontsize);
+            title('Vertical GRF Heel')
+            xlim([0,110,])
+
+            subplot(nh,nw,8)
+            hold on
+            grid on
+            plot(xst,R.GRFs_separate(istance,2+3),'Color',Cs);
+            ylabel('% body weight','Fontsize',label_fontsize);
+            title('Vertical GRF Forefoot')
+            xlim([0,110,])
+            
+            subplot(nh,nw,12)
+            hold on
+            grid on
+            plot(xst,R.GRFs_separate(istance,2+6),'Color',Cs);
+            xlabel('Stance phase (%)','Fontsize',label_fontsize);
+            ylabel('% body weight','Fontsize',label_fontsize);
+            title('Vertical GRF Toes')
+            xlim([0,110,])
+        end
+        
+        if inr==nr && ~strcmp(figNamePrefix,'none')
+            set(h15,'PaperPositionMode','auto')
+            print(h15,[figNamePrefix '_P_ankle'],'-dpng','-r0')
+        end
+        
+%%
+        if inr==1
+            h16 = figure('Position',[fpos(3,:),fsq]);
+        end
+        
+        figure(h16)
+        
+        nh = 3;
+        nw = 4;
+        
+        if ~isempty(imtj)
+            pos_P_all = {P_mtj, P_mtp, P_mtj+P_mtp, 'none',...
+                P_mtj-P_li, P_mtp_WL, P_PF, 'none',...
+                P_li, P_mtp-P_mtp_WL, 'none', 'none'};
+        else
+            pos_P_all = {P_mtj, P_mtp, P_mtj+P_mtp, 'none',...
+                'none', 'none', 'none', 'none',...
+                'none', 'none', 'none', 'none'};
+        end
+        
+               
+        titles_P_all = {'Mtj','Mtp',{'Sum','\fontsize{10}\rm mtj + mtj'},'none'...
+            'Mtj PF','Mtp PF','PF','none', 'Mtj non-PF','Mtp non-PF','none','none'};
+        
+        for i_P=1:numel(pos_P_all)
+            if ~strcmp(pos_P_all{i_P},'none')
+                subplot(nh,nw,i_P)
+                hold on
+                grid on
+                plot(xst,pos_P_all{i_P}(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+                title(titles_P_all{i_P},'Fontsize',label_fontsize);
+                axis tight
+                yl = get(gca, 'ylim');
+                ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+                xlim([0,110,])
+                
+                if mod(i_P-1,nw)==0
+                    ylabel('P_{mech} (W/kg)','Fontsize',label_fontsize);
+                end
+                if i_P > nh*nw-nw
+                    xlabel('Stance phase (%)','Fontsize',label_fontsize);
+                end
+            end
+        end
+        
+        if inr==nr && ~strcmp(figNamePrefix,'none')
+            set(h16,'PaperPositionMode','auto')
+            print(h16,[figNamePrefix '_P_foot'],'-dpng','-r0')
+        end
+        
+        if makeplot.power_T
+            P_dist_hindfoot = P_mtp + P_mtj + P_HC;
+            P_dist_forefoot = P_mtp + (R.P_mech_contact.vertical.metatarsi.r+R.P_mech_contact.vertical.toes.r)/R.body_mass;
+            P_dist_hallux = R.P_mech_contact.vertical.toes.r/R.body_mass;
+
+            figure
+            subplot(8,1,1:5)
+            hold on
+            grid on
+            plot(xst,P_dist_hallux(istance),'-','Color',[0, 0.5, 0],'linewidth',line_linewidth,'DisplayName','Hallux');
+            plot(xst,P_dist_forefoot(istance),'-','Color',[0.7, 0.1, 0.1],'linewidth',line_linewidth,'DisplayName','Forefoot');
+            plot(xst,P_dist_hindfoot(istance),'-','Color',[0, 0.4470, 0.7410],'linewidth',line_linewidth,'DisplayName','Hindfoot');
+            plot(xst,P_tot(istance),'-','Color','k','linewidth',line_linewidth,'DisplayName','Shank');
+            ylabel('P_{mech} (W/kg)')
+            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+    %         title('Total foot')
+            xlim([0,110,])
+            lg = legend('Location','southeast');
+            title(lg,'Distal to ...')
+
+            W_tot = trapz(R.t,P_tot);
+            W_dist_hindfoot = trapz(R.t,P_dist_hindfoot);
+            W_dist_forefoot = trapz(R.t,P_dist_forefoot);
+            W_dist_hallux = trapz(R.t,P_dist_hallux);
+
+            W_s = [W_tot,W_dist_hindfoot,W_dist_forefoot,W_dist_hallux];
+            c = categorical({'Shank','Hindfoot','Forefoot','Hallux'});
+            c = reordercats(c,[2;1;3;4]);
+
+            subplot(8,1,7:8)
+            br=bar(c,W_s);
+            grid on
+            br.FaceColor = 'flat';
+            br.CData(1,:) = [0, 0.5, 0];
+            br.CData(2,:) = [0.7, 0.1, 0.1];
+            br.CData(3,:) = [0, 0.4470, 0.7410];
+            br.CData(4,:) = [0, 0, 0];
+            ylabel('W_{mech,net} (J/kg)')
+
+        end
+        
     end
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%
+    %%
+    if makeplot.work
+        if inr==1
+            h17 = figure('Position',[fpos(4,:),fsq]);
+        end
+        
+        figure(h17)
+        
+        nh = 3;
+        nw = 4;
+        
+        pos_P_all = {W_tot, W_joints, W_HC, 'none',...
+                   W_HC_heel, W_HC_ball, W_HC_toes, 'none',...
+                   W_ankle, W_subt, W_mtj, W_mtp};
+               
+        titles_P_all = {{'Ankle-foot','\fontsize{10}\rm joints + pads'},...
+            {'Joints','\fontsize{10}\rm ankle + subt + mtj + mtp'},...
+            {'Pads','\fontsize{10}\rm hindfoot + forefoot + toes'},...
+            'none', 'Hindfoot','Forefoot','Toes','none',...
+            'Ankle','Subt','Mtj','Mtp'};
+        
+        for i_P=1:numel(pos_P_all)
+            if ~strcmp(pos_P_all{i_P},'none')
+                subplot(nh,nw,i_P)
+                hold on
+                grid on
+                plot(xst,pos_P_all{i_P}(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+                title(titles_P_all{i_P},'Fontsize',label_fontsize);
+                axis tight
+                yl = get(gca, 'ylim');
+                ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+                xlim([0,110,])
+                
+                if mod(i_P-1,nw)==0
+                    ylabel('W_{mech} (J/kg)','Fontsize',label_fontsize);
+                end
+                if i_P > nh*nw-nw
+                    xlabel('Stance phase (%)','Fontsize',label_fontsize);
+                end
+            end
+        end
+        
+       if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
+            subplot(nh,nw,8)
+            hold on
+            grid on
+            p1=plot(xst,R.GRFs_separate(istance,2),'-.','Color',Cs,'DisplayName','calcaneus');
+            p2=plot(xst,R.GRFs_separate(istance,2+3),'--','Color',Cs,'DisplayName','forefoot');
+            p3=plot(xst,R.GRFs_separate(istance,2+6),':','Color',Cs,'DisplayName','toes');
+            ylabel('% body weight')
+            title('Vertical GRF')
+            lh=legend([p1,p2,p3],'location','best');
+            lh.Interpreter = 'none';
+        end
+        
+        if inr==nr && ~strcmp(figNamePrefix,'none')
+            set(h17,'PaperPositionMode','auto')
+            print(h17,[figNamePrefix '_W1'],'-dpng','-r0')
+        end
+        
+        %%
+        if inr==1
+            h18 = figure('Position',[fpos(3,:),fsq]);
+        end
+        
+        figure(h18)
+        
+        nh = 3;
+        nw = 4;
+        
+        pos_P_all = {W_knee, W_ankle, W_subt, W_knee+W_ankle+W_subt,...
+            W_T_Sol, W_T_Gas, W_T_Gas2,W_T_Sol+W_T_Gas+W_T_Gas2,...
+            W_M_Sol, W_M_Gas, W_M_Gas2,W_M_Sol+W_M_Gas+W_M_Gas2};
+        
+        
+               
+        titles_P_all = {'Knee','Ankle','Subt',{'Sum','\fontsize{10}\rm knee + ankle + subt'},...
+            'Soleus tendon','Gas-med tendon','Gas-lat tendon',{'Sum Tendon','\fontsize{10}\rm sol + gas-med + gas-lat'},...
+            'Soleus fibres','Gas-med fibres','Gas-lat fibres',{'Sum fibres','\fontsize{10}\rm sol + gas-med + gas-lat'}};
+        
+        for i_P=1:numel(pos_P_all)
+            if ~strcmp(pos_P_all{i_P},'none')
+                subplot(nh,nw,i_P)
+                hold on
+                grid on
+                plot(xst,pos_P_all{i_P}(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+                title(titles_P_all{i_P},'Fontsize',label_fontsize);
+                axis tight
+                yl = get(gca, 'ylim');
+                ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+                xlim([0,110,])
+                
+                if mod(i_P-1,nw)==0
+                    ylabel('W_{mech} (J/kg)','Fontsize',label_fontsize);
+                end
+                if i_P > nh*nw-nw
+                    xlabel('Stance phase (%)','Fontsize',label_fontsize);
+                end
+            end
+        end
+        
+        if inr==nr && ~strcmp(figNamePrefix,'none')
+            set(h18,'PaperPositionMode','auto')
+            print(h18,[figNamePrefix '_W_ankle'],'-dpng','-r0')
+        end
+        
+%%
+        if inr==1
+            h19 = figure('Position',[fpos(3,:),fsq]);
+        end
+        
+        figure(h19)
+        
+        nh = 3;
+        nw = 4;
+        
+        if ~isempty(imtj)
+            pos_P_all = {W_mtj, W_mtp, W_mtj+W_mtp, 'none',...
+                W_mtj-W_li, W_mtp_WL, W_PF, 'none',...
+                W_li, W_mtp-W_mtp_WL, 'none', 'none'};
+        else
+            pos_P_all = {W_mtj, W_mtp, W_mtj+W_mtp, 'none',...
+                'none', 'none', 'none', 'none',...
+                'none', 'none', 'none', 'none'};
+        end
+        
+               
+        titles_P_all = {'Mtj','Mtp',{'Sum','\fontsize{10}\rm mtj + mtj'},'none'...
+            'Mtj PF','Mtp PF','PF','none', 'Mtj non-PF','Mtp non-PF','none','none'};
+        
+        for i_P=1:numel(pos_P_all)
+            if ~strcmp(pos_P_all{i_P},'none')
+                subplot(nh,nw,i_P)
+                hold on
+                grid on
+                plot(xst,pos_P_all{i_P}(istance),'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+                title(titles_P_all{i_P},'Fontsize',label_fontsize);
+                axis tight
+                yl = get(gca, 'ylim');
+                ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+                xlim([0,110,])
+                
+                if mod(i_P-1,nw)==0
+                    ylabel('W_{mech} (J/kg)','Fontsize',label_fontsize);
+                end
+                if i_P > nh*nw-nw
+                    xlabel('Stance phase (%)','Fontsize',label_fontsize);
+                end
+            end
+        end
+        
+        if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
+            subplot(nh,nw,4)
+            hold on
+            grid on
+            plot(xst,R.GRFs_separate(istance,2),'Color',Cs);
+            ylabel('% body weight','Fontsize',label_fontsize);
+            title('Vertical GRF Heel')
+            axis tight
+            yl = get(gca, 'ylim');
+            ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+            xlim([0,110,])
+
+            subplot(nh,nw,8)
+            hold on
+            grid on
+            plot(xst,R.GRFs_separate(istance,2+3),'Color',Cs);
+            ylabel('% body weight','Fontsize',label_fontsize);
+            title('Vertical GRF Forefoot')
+            axis tight
+            yl = get(gca, 'ylim');
+            ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+            xlim([0,110,])
+            
+            subplot(nh,nw,12)
+            hold on
+            grid on
+            plot(xst,R.GRFs_separate(istance,2+6),'Color',Cs);
+            xlabel('Stance phase (%)','Fontsize',label_fontsize);
+            ylabel('% body weight','Fontsize',label_fontsize);
+            title('Vertical GRF Toes')
+            axis tight
+            yl = get(gca, 'ylim');
+            ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+            xlim([0,110,])
+        end
+        
+        if inr==nr && ~strcmp(figNamePrefix,'none')
+            set(h19,'PaperPositionMode','auto')
+            print(h19,[figNamePrefix '_W_foot'],'-dpng','-r0')
+        end
+        
+    end
+        %%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
 end
 
 
-% if ~strcmp(figNamePrefix,'none')
-%     set(h1,'PaperPositionMode','auto')
-%     print(h1,[figNamePrefix '_qs'],'-dpng','-r0')
-%     set(h2,'PaperPositionMode','auto')
-%     print(h2,[figNamePrefix '_Ts'],'-dpng','-r0')
-%     set(h3,'PaperPositionMode','auto')
-%     print(h3,[figNamePrefix '_calf'],'-dpng','-r0')
-%     set(h4,'PaperPositionMode','auto')
-%     print(h4,[figNamePrefix '_GRF'],'-dpng','-r0')
-%     set(h5,'PaperPositionMode','auto')
-%     print(h5,[figNamePrefix '_qs_lit'],'-dpng','-r0')
-%     set(h6,'PaperPositionMode','auto')
-%     print(h6,[figNamePrefix '_P_lit'],'-dpng','-r0')
-%     set(h7,'PaperPositionMode','auto')
-%     print(h7,[figNamePrefix '_F_PF_lit'],'-dpng','-r0')
-%     set(h8,'PaperPositionMode','auto')
-%     print(h8,[figNamePrefix '_COP'],'-dpng','-r0')
-%     set(h9,'PaperPositionMode','auto')
-%     print(h9,[figNamePrefix '_qs_all'],'-dpng','-r0')
-%     set(h10,'PaperPositionMode','auto')
-%     print(h10,[figNamePrefix '_Ts_all'],'-dpng','-r0')
-% end
 
 end
 

@@ -190,6 +190,14 @@ if strcmp(ExoImplementation,'IdealAnkle') || strcmp(ExoImplementation,'Nuckols20
         ankleAxis.r = 110:112;
         ankleAxis.l = 113:115;
     end
+    if F1.nnz_out >= 121
+        P_HCi.calcn.r = 116;
+        P_HCi.metatarsi.r = 117;
+        P_HCi.toes.r = 118;
+        P_HCi.calcn.l = 119;
+        P_HCi.metatarsi.l = 120;
+        P_HCi.toes.l = 121;
+    end
 end
 % adapt indexes GRF in Nuckols simulations
 if strcmp(ExoImplementation,'Nuckols2019')
@@ -1214,6 +1222,15 @@ if F1.nnz_out >= 115
     apr = zeros(nfr,3);     aor = zeros(nfr,3); agr = zeros(nfr,1);
     apl = zeros(nfr,3);     aol = zeros(nfr,3); agl = zeros(nfr,1);
     GRFs_sep_opt = zeros(nfr,18);
+    if F1.nnz_out >= 121
+        P_HC_c_r = zeros(nfr,1);
+        P_HC_m_r = zeros(nfr,1);
+        P_HC_t_r = zeros(nfr,1);
+        P_HC_c_l = zeros(nfr,1);
+        P_HC_m_l = zeros(nfr,1);
+        P_HC_t_l = zeros(nfr,1);
+    end
+    
     for ind = 1:nfr
         res = full(F1([qdqdd(ind,:)'; qdd(ind,:)'])); % normal implementation
         apr(ind,:) = res(TalusOr.r);
@@ -1244,6 +1261,15 @@ if F1.nnz_out >= 115
             agl(ind,1) = norm(vec_an); % lever arm of GRF wrt ankle
         end
         
+        if F1.nnz_out >= 121
+            P_HC_c_r(ind) = res(P_HCi.calcn.r);
+            P_HC_m_r(ind) = res(P_HCi.metatarsi.r);
+            P_HC_t_r(ind) = res(P_HCi.toes.r);
+            P_HC_c_l(ind) = res(P_HCi.calcn.l);
+            P_HC_m_l(ind) = res(P_HCi.metatarsi.l);
+            P_HC_t_l(ind) = res(P_HCi.toes.l);
+        end
+        
     end
     AnkleInGround.position.r = apr;
     AnkleInGround.position.l = apl;
@@ -1253,7 +1279,17 @@ if F1.nnz_out >= 115
     AnkleInGround.leverArmGRF.l = agl;
     GRFs_sep_opt = GRFs_sep_opt./(body_weight/100);
     
+    if F1.nnz_out >= 121
+        P_mech_contact.vertical.calcn.r = P_HC_c_r;
+        P_mech_contact.vertical.metatarsi.r = P_HC_m_r;
+        P_mech_contact.vertical.toes.r = P_HC_t_r;
+        P_mech_contact.vertical.calcn.l = P_HC_c_l;
+        P_mech_contact.vertical.metatarsi.l = P_HC_m_l;
+        P_mech_contact.vertical.toes.l = P_HC_t_l;
+    end
+    
 end
+
 
 %% Metabolic cost of transport for a gait cycle
 Qs_opt_rad = Qs_GC;
@@ -1561,7 +1597,9 @@ if F1.nnz_out >= 115
     AnkleInGround.leverArmSol.l = squeeze(dM_Vect(:,34,5));
     R.AnkleInGround = AnkleInGround;
 end
-
+if F1.nnz_out >= 121
+        R.P_mech_contact = P_mech_contact;
+end
 % nuckols 2019 results
 if strcmp(ExoImplementation,'Nuckols2019')
     R.T_exo       = [TAFO_l TAFO_r];

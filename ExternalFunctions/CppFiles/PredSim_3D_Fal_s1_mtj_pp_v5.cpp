@@ -628,6 +628,46 @@ int F_generic(const T** arg, T** res) {
 	Vec3 st_Ankle_r = Vec3(-0.10501355, -0.17402245, 0.97912632);
 	Vec3 st_Ankle_Gr_r = talus_r->expressVectorInGround(*state,st_Ankle_r) - talus_or_r;
 
+	// contact sphere deformation power (mechanical)
+	/// velocities left
+    Vec3 v_HC_1_l = calcn_l->findStationVelocityInGround(*state, locSphere_1_l);
+	Vec3 v_HC_2_l = calcn_l->findStationVelocityInGround(*state, locSphere_2_l);
+	Vec3 v_HC_3_l = metatarsi_l->findStationVelocityInGround(*state, locSphere_3_l);
+	Vec3 v_HC_4_l = metatarsi_l->findStationVelocityInGround(*state, locSphere_4_l);
+	Vec3 v_HC_5_l = toes_l->findStationVelocityInGround(*state, locSphere_5_l);
+	Vec3 v_HC_6_l = toes_l->findStationVelocityInGround(*state, locSphere_6_l);
+	/// power vertical deformation left
+	osim_double_adouble P_HC_1_l_y = v_HC_1_l[1]*GRF_1_l[1][1];
+	osim_double_adouble P_HC_2_l_y = v_HC_2_l[1]*GRF_2_l[1][1];
+	osim_double_adouble P_HC_3_l_y = v_HC_3_l[1]*GRF_3_l[1][1];
+	osim_double_adouble P_HC_4_l_y = v_HC_4_l[1]*GRF_4_l[1][1];
+	osim_double_adouble P_HC_5_l_y = v_HC_5_l[1]*GRF_5_l[1][1];
+	osim_double_adouble P_HC_6_l_y = v_HC_6_l[1]*GRF_6_l[1][1];
+	/// per foot segment
+	osim_double_adouble P_calcn_l = P_HC_1_l_y + P_HC_2_l_y;
+	osim_double_adouble P_metatarsi_l = P_HC_3_l_y + P_HC_4_l_y;
+	osim_double_adouble P_toes_l = P_HC_5_l_y + P_HC_6_l_y;
+
+	///right
+	Vec3 v_HC_1_r = calcn_r->findStationVelocityInGround(*state, locSphere_1_r);
+	Vec3 v_HC_2_r = calcn_r->findStationVelocityInGround(*state, locSphere_2_r);
+	Vec3 v_HC_3_r = metatarsi_r->findStationVelocityInGround(*state, locSphere_3_r);
+	Vec3 v_HC_4_r = metatarsi_r->findStationVelocityInGround(*state, locSphere_4_r);
+	Vec3 v_HC_5_r = toes_r->findStationVelocityInGround(*state, locSphere_5_r);
+	Vec3 v_HC_6_r = toes_r->findStationVelocityInGround(*state, locSphere_6_r);
+	/// power vertical deformation left
+	osim_double_adouble P_HC_1_r_y = v_HC_1_r[1]*GRF_1_r[1][1];
+	osim_double_adouble P_HC_2_r_y = v_HC_2_r[1]*GRF_2_r[1][1];
+	osim_double_adouble P_HC_3_r_y = v_HC_3_r[1]*GRF_3_r[1][1];
+	osim_double_adouble P_HC_4_r_y = v_HC_4_r[1]*GRF_4_r[1][1];
+	osim_double_adouble P_HC_5_r_y = v_HC_5_r[1]*GRF_5_r[1][1];
+	osim_double_adouble P_HC_6_r_y = v_HC_6_r[1]*GRF_6_r[1][1];
+	/// per foot segment
+	osim_double_adouble P_calcn_r = P_HC_1_r_y + P_HC_2_r_y;
+	osim_double_adouble P_metatarsi_r = P_HC_3_r_y + P_HC_4_r_y;
+	osim_double_adouble P_toes_r = P_HC_5_r_y + P_HC_6_r_y;
+
+
 
 	// Residual forces in OpenSim order
 	T res_os[ndofr];
@@ -721,6 +761,15 @@ int F_generic(const T** arg, T** res) {
 	for (int i = 0; i < nc; ++i) {
 		res[0][i + ndof + nc * 21] = value<T>(st_Ankle_Gr_l[i]);
 	}
+
+	/// contact sphere deformation power (99-105)
+	res[0][0 + ndof + nc * 22] = value<T>(P_calcn_r);
+	res[0][1 + ndof + nc * 22] = value<T>(P_metatarsi_r);
+	res[0][2 + ndof + nc * 22] = value<T>(P_toes_r);
+
+	res[0][0 + ndof + nc * 23] = value<T>(P_calcn_l);
+	res[0][1 + ndof + nc * 23] = value<T>(P_metatarsi_l);
+	res[0][2 + ndof + nc * 23] = value<T>(P_toes_l);
 
 
 	return 0;

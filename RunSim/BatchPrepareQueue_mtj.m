@@ -18,13 +18,15 @@ AddCasadiPaths();
 %% Manual settings
 
 % kMT = [30, 50, 100, 150, 200, 250, 300, 400, 500, 800, 1000, 1500, 2000];
+% kMT = [50, 100, 150, 200, 250, 300, 400, 500, 800];
 % kMT = [250, 500, 800, 1000, 1500, 2000];
-% dMT = [0]; % 2, 5 
-% v = 1.25;
+kMT = [5000, 1e4, 1e5, 1e6];
+dMT = [0]; % 0,1,2,5
+v = 1.25;
 
-kMT = 300;
-dMT = 0;
-v = [0.8, 1, 1.2, 1.4, 1.6, 1.8, 2.7];
+% kMT = 300;
+% dMT = 0;
+% v = [0.8, 1, 1.2, 1.4, 1.6, 1.8, 2.7];
 
 
 
@@ -39,21 +41,21 @@ S.tmt = 0;
 % with mtj
 S.mtj = 1; 
 % plantar fascia
-S.PF_stiffness = 'Song2011'; %'Natali2010'
+S.PF_stiffness = 'Natali2010'; %'Natali2010'
 S.sf_PF = 1;
 S.PF_slack_length = 0.15;
 S.R_mtth = 9.5e-3;
 S.WLpoly = 1;
 % mtj
-S.MT_li_nonl = 1;
+S.MT_li_nonl = 0;
 S.mtj_stiffness = 'Song2011';
 S.kMT_li = kMT(ik);
 S.kMT_li2 = 10;
 S.dMT = dMT(id);
 % mtp
 S.WL_T_mtp = 1;
-S.Mu_mtp = 1; 
-S.kMTP = 0;
+S.Mu_mtp = 0; 
+S.kMTP = 5;
 % S.dMTP = 0;
 
 % assumption to simplify Hill-type muscle model
@@ -72,16 +74,17 @@ S.ExoImplementation = 'TorqueTibiaCalcn';
 
 
 % output folder
-S.ResultsFolder = 'Final';
+S.ResultsFolder = 'MidTarsalJoint';
 suffixCasName = '';
-suffixName = ['_v' num2str(v(iv)*10)];
+% suffixName = ['_v' num2str(v(iv)*10)];
+suffixName = '';
 
 % Folder with default functions
 S.subject = 'subject1';
 
 % initial guess based on simulations without exoskeletons
-S.IGsel         = 1;        % initial guess identifier (1: quasi random, 2: data-based)
-S.IGmodeID      = 4;        % initial guess mode identifier (1 walk, 2 run, 3 prev.solution, 4 solution from /IG/Data folder)
+S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
+S.IGmodeID      = 3;        % initial guess mode identifier (1 walk, 2 run, 3 prev.solution, 4 solution from /IG/Data folder)
 
 if S.IGmodeID == 4
     S.savename_ig   = 'NoExo';
