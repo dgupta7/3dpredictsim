@@ -32,8 +32,8 @@ S = Sopt;
 
 body_mass = S.mass;
 
-% S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_spx10_pp_v2.dll';
-% S.savename = 'Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T5_spx10_ig23';
+% S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v6.dll';
+
 
     
 %% User inputs (typical settings structure)

@@ -89,10 +89,11 @@ S.IGmodeID      = 3;        % initial guess mode identifier (1 walk, 2 run, 3 pr
 if S.IGmodeID == 4
     S.savename_ig   = 'NoExo';
 elseif S.IGmodeID == 3
-    S.ResultsF_ig   = 'MuscleModel';
     if strcmp(S.subject,'s1_Poggensee')
+        S.ResultsF_ig   = 'MuscleModel';
         S.savename_ig   = 'Pog_s1_bCst_ig24';
     else
+        S.ResultsF_ig   = 'Final';
         S.savename_ig   = 'Fal_s1_bCst_ig1';
     end
 end
@@ -122,7 +123,7 @@ if S.tmt == 0 && S.mtj == 0
 %             S.ExternalFunc  = 'ID_Subject1.dll';
 %             S.ExternalFunc2 = 'PredSim_3D_Fal_s1_pp_v2.dll';
             S.ExternalFunc  = 'PredSim_3D_Fal_s1_v7.dll';
-            S.ExternalFunc2 = 'PredSim_3D_Fal_s1_pp_v4.dll';
+            S.ExternalFunc2 = 'PredSim_3D_Fal_s1_pp_v6.dll';
         end
     end
     
@@ -141,7 +142,7 @@ elseif S.mtj == 1
                 S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_spx2_pp_v1.dll';
              else
                 S.ExternalFunc  = 'PredSim_3D_Fal_s1_mtj_v1.dll';
-                S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v5.dll';
+                S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v6.dll';
              end
         end
     end
@@ -176,6 +177,7 @@ else
     end
 end
 
+batchQ.(S.savename).job_started = 0;
 
 save([pathRepo '/Results/batchQ.mat'],'batchQ');
 

@@ -55,9 +55,10 @@ end
 fields = fieldnames(batchQ);
 imax = min(imax,numel(fields));
 
+
 for i=1:imax
     % check if this job has been started
-    if ~(isfield(batchQ.(fields{i}),'job_started') && ~isempty(batchQ.(fields{i}).job_started) && batchQ.(fields{i}).job_started)
+    if ~( isfield(batchQ.(fields{i}),'job_started') && ~isempty(batchQ.(fields{i}).job_started) && batchQ.(fields{i}).job_started )
         % make folder to store results if it doesn't exist
         pathResults = fullfile([pathRepo '/Results'],batchQ.(fields{i}).S.ResultsFolder);
         if ~isfolder(pathResults)

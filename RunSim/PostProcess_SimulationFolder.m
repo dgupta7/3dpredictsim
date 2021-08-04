@@ -19,7 +19,7 @@ AddCasadiPaths();
 DataFolders = {'MidTarsalJoint'};
 
 
-S.OverWrite = 1;
+S.OverWrite = 0;
 
 %% Post process the simulations
 
