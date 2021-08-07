@@ -31,7 +31,7 @@ S = Sopt;
 body_mass = S.mass;
 
 %%
-
+S.ExternalFunc2 = 'PredSim_3D_Fal_s1_pp_v6.dll';
 % S.ResultsFolder = ResultsFolder;
 
 %% User inputs (typical settings structure)

@@ -6,20 +6,22 @@ AddCasadiPaths();
 %% Settings
 S = GetDefaultSettings(S);
 
-plot_result = 1;
+plot_result = 0;
 save_result = 1;
 overwrite = 1;
-
+BW = S.mass*9.81;
 % mtp angles to be considered
 % Qs_mtp = [-45:15:45]*pi/180;
-Qs_mtp = [-30:30:30]*pi/180;
+% Qs_mtp = [-30:30:30]*pi/180;
 % Qs_mtp = [-20:5:30]*pi/180;
-% Qs_mtp = [0:5:30]*pi/180;
+Qs_mtp = [0:5:30]*pi/180;
+
 % vertical forces on knee
 % Fs_tib = [0:100:1000];
 % Fs_tib = [0,100,320,640,960];
+Fs_tib = [0:0.1:1.5]*10*round(BW/10);
 % Fs_tib = [0:50:300,400:100:1000,1250:250:3000];
-Fs_tib = [0:50:300,400:100:1000,1250:250:2700];
+% Fs_tib = [0:50:300,400:100:1000,1250:250:2700];
 % Fs_tib = [0:50:1000,1100:100:6000];
 
 % Qs_mtp = [0]*pi/180;
@@ -199,7 +201,7 @@ else
     tensions = getSpecificTensions(muscleNamesFoot);
 
     %% Get Boundaries
-    load('D:\school\WTK\thesis\model\3dpredictsim\Results\MuscleModel\Fal_s1_bCst_ig24_v2.mat','setup');
+    load('D:\school\WTK\thesis\model\3dpredictsim\Results\Final\Fal_s1_bCst_ig21.mat','setup');
     jointi = getJointi();
 
     bounds_qs = [[-2,2]*pi/180; % tibia rx

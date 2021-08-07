@@ -36,9 +36,9 @@ AddCasadiPaths();
 %% General settings
 % Full body gait simulation
 slv = 0;                % run solver
-pp = 1;                 % postproces
+pp =0;                 % postproces
 plot = 0;               % plot solution
-batchQueue = 0;         % save settings to run later
+batchQueue = 1;         % save settings to run later
 % Static foot simulation
 foot_standing = 0;      % load on knee
 foot_hanging = 0;       % knee position fixed, tibia and foot hanging freely
@@ -47,16 +47,16 @@ foot_hanging = 0;       % knee position fixed, tibia and foot hanging freely
 S.v_tgt     = 1.25;     % average speed 1.25
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 6;        % number of threads for parallel computing
-S.max_iter  = 10;       % maximum number of iterations (comment -> 10000)
+% S.max_iter  = 10;       % maximum number of iterations (comment -> 10000)
 
 % output folder
 S.ResultsFolder = 'MidTarsalJoint'; % 'MuscleModel' 'MidTarsalJoint' 'Final'
 suffixCasName = '';         
-suffixName = '';
+suffixName = '_PFx20';
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
-S.contactStiff = 2;    % 10: contact spheres are 10x stiffer
+S.contactStiff = 1;    % 10: contact spheres are 10x stiffer
 
 % Test subject
 S.subject = 'subject1'; % barefoot
@@ -89,7 +89,7 @@ S.PF_stiffness = 'Natali2010';
 % S.PF_stiffness = 'Song2011';
         % options:
         % 'none''linear''Gefen2002''Cheng2008''Natali2010''Song2011'
-S.sf_PF = 1;                % multiply PF force with constant factor
+S.sf_PF = 20;                % multiply PF force with constant factor
 S.PF_slack_length = 0.15; % (m) slack length
 
 S.R_mtth = 9.5e-3;
@@ -145,20 +145,21 @@ ia = 0;
 %% Initial guess
 % initial guess based on simulations without exoskeletons
 S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
-S.IGmodeID      = 4;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
+S.IGmodeID      = 3;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
 
 if S.IGmodeID == 4
     S.savename_ig   = 'NoExo';
 elseif S.IGmodeID == 3
-    S.ResultsF_ig   = 'MuscleModel';
+    S.ResultsF_ig   = 'Final';
     if strcmp(S.subject,'s1_Poggensee')
         S.savename_ig   = 'Pog_s1_bCst_ig24';
     else
-        S.savename_ig   = 'Fal_s1_bCst_ig1';
+        S.savename_ig   = 'Fal_s1_bCst_ig21';
+%         S.savename_ig   = 'Fal_s1_bCst_ig1_v27';
     end
 end
 
-if S.IGmodeID == 1
+if S.IGmodeID == 1 || S.IGsel
     if strcmp(S.subject,'s1_Poggensee')
         S.IG_PelvisY = 0.896 + 0.0131;
     else
@@ -339,9 +340,16 @@ end
 
 %% Static model of foot
 if foot_standing
-    for i=1:numel(PF_stiffness)
-        S.PF_stiffness = PF_stiffness{i};
-%         f_staticFootCompression_v2(S);
+%     for i=1:numel(PF_stiffness)
+%         S.PF_stiffness = PF_stiffness{i};
+% %         f_staticFootCompression_v2(S);
+%         f_staticFootCompression_v5(S);
+%     end
+k_MT = [10,30,50:50:800,900:100:1200,1500,2000];
+% k_MT = [10,30];
+    for i=1:length(k_MT)
+        S.PF_stiffness = PF_stiffness{1};
+        S.kMT_li = k_MT(i);
         f_staticFootCompression_v5(S);
     end
 end

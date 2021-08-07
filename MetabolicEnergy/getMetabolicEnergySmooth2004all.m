@@ -87,7 +87,7 @@ alpha = alpha + (-alpha + 0.157*fiber_force_total).*vM_pos;
 Sdot = -alpha.*vM;
 
 %% Mechanical work rate
-% No negative mechanical work allowed
+% No negative mechanical work allowed A
 Wdot = - Fce.*vM.*vM_neg;
 
 %% Total power is non-negative

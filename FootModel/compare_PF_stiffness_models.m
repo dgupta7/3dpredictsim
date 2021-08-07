@@ -21,7 +21,8 @@ q_mt = linspace(-30,30,N)'*pi/180;
 q_mtp = linspace(-45,45,N)*pi/180;
 
 % PF_stiffness = {'Cheng2008','Gefen2002','Ker1987','Natali2010','Song2011','linear','tanh'};
-PF_stiffness = {'Cheng2008','Gefen2002','Natali2010','Song2011','linear'};
+% PF_stiffness = {'Cheng2008','Gefen2002','Natali2010','Song2011','linear'};
+PF_stiffness = {'linear','Natali2010','Cheng2008','Gefen2002'};
 % PF_stiffness = {'Natali2010'};
 
 % mtj_stiffness = {'Gefen2002','Ker1987','fitted1'};
@@ -222,4 +223,22 @@ figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab\stiffness';
 % set(h3,'PaperPositionMode','auto')
 % print(h3,[figNamePrefix '_mtpj'],'-dpng','-r0')
 
+
+h4=figure;
+A0 = 49.7; % initial cross-section (mm^2)
+for i=1:numel(PF_stiffness)
+    hold on
+    plot((l-ls)/ls*100,F_PF(i,:)/A0,'DisplayName',PF_stiffness{i})
+    grid on
+end
+lg=legend('Location','northwest');
+title(lg,'Model name')
+xlabel('Engineering strain (%)')
+ylabel('Engineering stress (MPa)')
+title('Models for plantar fascia under uniaxial tension')
+ylim([0,50])
+
+% set(h4,'PaperPositionMode','auto')
+% print(h4,'D:\OneDrive\WTK\thesis\figuren\PF_stiffness_models','-dpng','-r0')
+print(h4,'D:\OneDrive\WTK\thesis\figuren\PF_stiffness_models','-depsc') %,'-tiff'
 
