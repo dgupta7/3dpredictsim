@@ -22,7 +22,6 @@ end
 
 %%
 ref{1} = fullfile([pathRepo '\Results\Final\Fal_s1_bCst_ig21_pp.mat']);
-reference_data = 'norm';
 
 %%
 
@@ -294,18 +293,21 @@ Results_PFonly = {
 
 groupNames{end+1} = 'Muscle-driven mtp';
 Results_Musc = {
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T5_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu5_ig23_pp.mat'])
     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu1_ig23_pp.mat'])
 %     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu1_ig24_pp.mat']) % local min
-    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu1_np_ig23_pp.mat'])
-    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu1_spx2_ig24_pp.mat'])
-    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu5_ig23_pp.mat'])
-    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu5_np_ig23_pp.mat'])
-    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k30_MTP_Mu2_ig24_PFx10_pp.mat'])
-    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k30_MTP_Mu5_ig24_PFx10_pp.mat'])
-    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k30_MTP_Mu5_ig24_PFx5_pp.mat'])
-    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k20_MTP_Mu5_ig24_PFx5_pp.mat'])
-    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_nl_fitted6_MTP_Mu5_ig24_pp.mat'])
-    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Song2011_ls150_MT_nl_Song2011_MTP_Mu5_ig24_pp.mat'])};
+%     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu1_np_ig23_pp.mat'])
+%     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu1_spx2_ig24_pp.mat'])
+%     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu5_np_ig23_pp.mat'])
+%     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k30_MTP_T5_ig24_PFx10_pp.mat'])
+%     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k30_MTP_Mu2_ig24_PFx10_pp.mat'])
+%     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k30_MTP_Mu5_ig24_PFx10_pp.mat'])
+%     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k30_MTP_Mu5_ig24_PFx5_pp.mat'])
+%     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k20_MTP_Mu5_ig24_PFx5_pp.mat'])
+%     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_nl_fitted6_MTP_Mu5_ig24_pp.mat'])
+%     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Song2011_ls150_MT_nl_Song2011_MTP_Mu5_ig24_pp.mat'])
+    };
     
 groupNames{end+1} = 'k_m_t_j_,_n_e_g = 10 Nm/rad';
 Results_singed_lin = {
@@ -369,16 +371,46 @@ Results_misc = {
 
 best_COT = fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T5_ig23_pp.mat']);
 
-total_improvement = {
-    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_None_ls150_MT_k1000_MTP_T17_ig24_pp.mat'])
+main_results_walking = {
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_None_ls150_MT_k500_MTP_T17_ig24_pp.mat'])
     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k30_MTP_T5_ig24_PFx10_pp.mat'])
     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T5_ig23_pp.mat'])};
+
+main_results_running = {
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_None_ls150_MT_k1000_MTP_T17_ig23_v27_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k30_MTP_T5_ig23_PFx10_v27_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T5_ig23_v27_pp.mat'])};
+
+Results_PF_models = {
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_linear_ls150_MT_k300_MTP_T5_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T5_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Cheng2008_ls150_MT_k300_MTP_T5_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Song2011_ls150_MT_k300_MTP_T5_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_k300_MTP_T5_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Song2011_ls150_MT_nl_Song2011_MTP_T5_ig24_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T5_ig23_pp.mat'])
+    };
+    
 
 PF_stiffening = {
     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k50_MTP_T5_ig24_v2_pp.mat'])
     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k50_MTP_T5_ig24_PFx2_pp.mat'])
     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k50_MTP_T5_ig24_PFx5_pp.mat'])
     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k30_MTP_T5_ig24_PFx10_pp.mat'])};
+
+Results_mtp_wrt_k_mtj = {
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Song2011_ls150_MT_k300_MTP_T5_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Song2011_ls150_MT_nl_Song2011_MTP_T5_ig24_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T5_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k800_MTP_T5_ig21_pp.mat'])};
+
+
+Results_combination = {
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T1_spx10_ig23_PFx10_spx10_pp.mat'])
+%     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu1_spx10_ig23_PFx10_pp.mat']) % wrong GRF, not sure if caused by sim of pp
+    };
+    
+
 
 %%
 
@@ -413,7 +445,12 @@ filteredResultsWithRef{end+1} = {ref{:}, Results_no_PF{:}};             % 24
 filteredResultsWithRef{end+1} = {ref{:}, Results_mtp_d0{:}};            % 25
 filteredResultsWithRef{end+1} = {ref{:}, Results_stiff_contact{:}};     % 26
 filteredResultsWithRef{end+1} = {ref{:}, Results_misc{:}};              % 27
-filteredResultsWithRef{end+1} = {ref{:}, total_improvement{:}};         % 28
+filteredResultsWithRef{end+1} = {ref{:}, main_results_walking{:}};      % 28
+filteredResultsWithRef{end+1} = {Results_vs{end}, main_results_running{:}};% 29
+filteredResultsWithRef{end+1} = {ref{:}, Results_PF_models{:}};         % 30
+filteredResultsWithRef{end+1} = {ref{:}, Results_combination{:}};       % 31
+filteredResultsWithRef{end+1} = {ref{:}, Results_mtp_wrt_k_mtj{:}};     % 32
+
 
 idx = [1,5,9,13:16,21]; % for comparison plots in function of k_mtj
 
@@ -452,8 +489,8 @@ idx = [1,5,9,13:16,21]; % for comparison plots in function of k_mtj
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Select results to plot
 
-ResultsFile = filteredResultsWithRef{23};
-% ResultsFile = {filteredResultsWithRef{20}{[1,7:10]}};
+% ResultsFile = filteredResultsWithRef{31};
+ResultsFile = {filteredResultsWithRef{31}{[2]}};
 
 % ResultsFile = {ref{:}};
 LegNames = {'Falisse 2019'};
@@ -469,23 +506,55 @@ LegNames = {'Falisse 2019'};
 % ResultsFile = filteredResultsWithRef{28};
 % LegNames = {'Falisse 2019','Elastic arch','Windlass','Elastic arch & windlass'};
 
+% ResultsFile = filteredResultsWithRef{30};
+% LegNames = {'Falisse 2019','PF: linear','PF: Natali2010','PF: Cheng2008',...
+%     'PF: Song2011','PF: Gefen2002','PF,k_m_t_j: Song2011','PF,k_m_t_j: Gefen2002'};
+
+% ResultsFile = {filteredResultsWithRef{1}{[1,end-3:-1:2]}};
+% LegNames = {'Falisse 2019','k_{mtj} = 5000Nm/rad','k_{mtj} = 2000Nm/rad','k_{mtj} = 1500Nm/rad',...
+%     'k_{mtj} = 800Nm/rad','k_{mtj} = 500Nm/rad','k_{mtj} = 400Nm/rad','k_{mtj} = 300Nm/rad',...
+%     'k_{mtj} = 250Nm/rad','k_{mtj} = 200Nm/rad','k_{mtj} = 150Nm/rad','k_{mtj} = 100Nm/rad','k_{mtj} = 50Nm/rad'};
+
+% ResultsFile = filteredResultsWithRef{32};
+% LegNames = {'Falisse 2019','PF: Song2011; k_{mtj}=300Nm/rad','PF: Song2011; k_{mtj}=800Nm/rad','PF: Natali2010; k_{mtj}=300Nm/rad','PF: Natali2010; k_{mtj}=800Nm/rad'};
+
+% ResultsFile = filteredResultsWithRef{20};
+% LegNames = {'Falisse 2019','Elastic arch & Windlass','With toe flex/ext (k_{mtp}=5)','With toe flex/ext (k_{mtp}=1)'};
+
+% ResultsFile = {filteredResultsWithRef{26}{[1,2,3]}};
+% LegNames = {'Falisse 2019','Elastic arch & Windlass','Stiffer contact spheres'};
+
+ResultsFile = filteredResultsWithRef{31};
+LegNames = {'Falisse 2019','Combination'};
+
+
+
 
 RefData = 'Fal_s1';
 mtj = 1;
+reference_data = 'norm';
+% reference_data = 'none';
 figNamePrefix = 'none';
 % figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\SOTA';
 % figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\MLA_vs_WL';
 % figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\best';
+% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\PF_stiffness';
+% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\k_mtj';
+% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\k_mtj_Song';
+% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\musc';
+% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\contact_stiff';
+% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\combination';
+
 
 %%% select figures to make
-makeplot.kinematics = 1;
-makeplot.kinetics = 1;
+makeplot.kinematics = 0;
+makeplot.kinetics = 0;
 makeplot.soleus = 0;
-makeplot.sol_all = 0;
+makeplot.sol_all = 1;
 makeplot.GRF = 0;
-makeplot.compareLiterature = 1;
+makeplot.compareLiterature = 0;
 makeplot.compareTakahashi17 = 0;
-makeplot.compareTakahashi17_mtj_only = 1;
+makeplot.compareTakahashi17_mtj_only = 0;
 % makeplot.COP = 0;
 makeplot.allQsTs = 0;
 makeplot.k_mtj_lin = 0;
@@ -496,6 +565,8 @@ makeplot.work = 0;
 makeplot.work_bar = 0;
 makeplot.power_main = 1;
 makeplot.spatiotemp = 0;
+makeplot.ankle_correlation = 0;
+makeplot.E_muscle_bar = 0;
 
 %%% make separate fiures
 if plot_full_separate
@@ -506,16 +577,22 @@ end
 % Set last argument to 0 for main figure, to 1 for cross-correlation
 % coefficient figure or to 2 for both.
 if plot_full_tabbed
-    [h_default,h_ccc] = Plot3D(ResultsFile,reference_data,0);
+    [h_default,h_ccc] = Plot3D(ResultsFile,reference_data,1);
 end
+
+%% compare ALL muscles for 2 simulation results
+ResultsFile1 = ref{1};
+ResultsFile2 = filteredResultsWithRef{28}{4};
+
+% % PlotResultsComparison_3DSim(ResultsFile1,ResultsFile2);
 
 %%
 plot_COT_k = 0;
 if plot_COT_k
-%     idx = [1,5,9,13:16,21,24];
+    idx = [1,5,9,13:16,21,25];
 %     idx = [1,5,9];
 %     idx = [1,13:16];   
-idx=1;
+% idx=1;
 
     scs = get(0,'ScreenSize');
     figure('Position',[1+scs(3)/2,scs(4)/2+20,scs(3)/2, scs(4)/2-100]);
@@ -540,15 +617,26 @@ idx=1;
                 k_COT(1,j) = R.S.kMT_li;
                 k_COT(2,j) = R.COT;
                 
+                dist_trav = R.Qs(end,strcmp(R.colheaders.joints,'pelvis_tx')) - R.Qs(1,strcmp(R.colheaders.joints,'pelvis_tx'));
                 imtj = find(strcmp(R.colheaders.joints,'mtj_angle_r'));
+                imtp = find(strcmp(R.colheaders.joints,'mtp_angle_r'));
                 qdot_mtj = R.Qdots(:,imtj)*pi/180;
                 M_li = R.windlass.M_li;
-                P_mtj_li = qdot_mtj.*M_li/R.body_mass;
+                P_mtj_li = qdot_mtj.*M_li/R.body_mass/dist_trav;
                 P_mtj_li_pos = P_mtj_li;
                 P_mtj_li_pos(P_mtj_li_pos<0) = 0;
                 W_mtj_li = trapz(R.t,P_mtj_li_pos);
-                k_COT(3,j) = max(P_mtj_li);
-                k_COT(4,j) = W_mtj_li;
+                k_COT(3,j) = W_mtj_li;
+                
+                
+                iarch_stance = find(R.GRFs_separate(:,2)>5 & R.GRFs_separate(:,8)>5);
+                ipush_off = find(R.GRFs_separate(:,2)<5 & R.GRFs_separate(:,8)>5);
+    
+                c1 = polyfit(R.Qs(iarch_stance,imtp)*pi/180,-R.Tid(iarch_stance,imtp),1);
+                k_COT(4,j) = c1(1);
+
+                c2 = polyfit(R.Qs(ipush_off,imtp)*pi/180,-R.Tid(ipush_off,imtp),1);
+                k_COT(5,j) = c2(1);
                 
             end
 
@@ -763,8 +851,13 @@ if plot_static_foot
     
 %     resultFiles = {fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2002_Gefen2002_Q-30_30_F0_3000_WLv3_ls150.mat'])
 %                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_none_Gefen2002_Q-30_30_F0_3000_WLv3_ls150.mat'])
-%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_none_Ker1987_Q-30_30_F0_3000_WLv3_ls150.mat'])};
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_none_Ker1987_Q-30_30_F0_3000_WLv3_ls150.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k300_Q-30_30_F0_3000_WLv3_ls150_sb1.mat'])};
     
+resultFiles = {fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2002_Gefen2002_Q-30_30_F0_3000_WLv3_ls150.mat'])
+                fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2002_fitted6_Q-30_30_F0_1000_WLv3_ls150_sb1_PFx2.mat'])
+                fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k300_Q-30_30_F0_3000_WLv3_ls150_sb1.mat'])};
+            
 %     resultFiles = {fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_fitted4_Q-20_30_F0_0_WLv3_ls148_mtp1.mat'])
 %                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_fitted4_Q-20_30_F0_0_WLv3_ls148_mtp2.mat'])};
     
@@ -798,31 +891,31 @@ if plot_static_foot
 %                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k5000_Q0_30_F0_960_WLv3_ls150_sb1.mat'])};
 
 
-    resultFiles =  {fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k10_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k30_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k50_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k100_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k150_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k200_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k250_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k300_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k350_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k400_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k450_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k500_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k550_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k600_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k650_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k700_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k750_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k800_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k900_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k1000_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k1100_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k1200_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k1500_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k2000_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
-                    };
+%     resultFiles =  {fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k10_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k30_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k50_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k100_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k150_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k200_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k250_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k300_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k350_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k400_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k450_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k500_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k550_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k600_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k650_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k700_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k750_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k800_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k900_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k1000_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k1100_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k1200_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k1500_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k2000_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                     };
                 
     % call plot function
     nrf = numel(resultFiles);
@@ -830,9 +923,9 @@ if plot_static_foot
     for i=1:nrf
         load(resultFiles{i},'R');
         if i==1
-            h = PlotResults_FootSim(R,CsV(i,:),0,6);
+            h = PlotResults_FootSim(R,CsV(i,:),0,4);
         else
-            PlotResults_FootSim(R,CsV(i,:),h,6);
+            PlotResults_FootSim(R,CsV(i,:),h,4);
         end
     end
     
@@ -860,53 +953,71 @@ end
 %     0.054708,0.052554,0.047983,0.045381,0.043247,0.046333,0.032625,0.026503];
 % 
 % scs = get(0,'ScreenSize');
-% h1 = figure('Position',[scs(3)/2,140,scs(3)/2, scs(4)/2-100]);
-% subplot(1,2,1)
+% h1 = figure('Position',[scs(3)/2,140,scs(3)*0.4, scs(4)/2-100]);
 % 
-% plot(k_MT,mtp_qdkl*100,'.-','MarkerSize',20,'DisplayName','Relative mtp quasi-stiffness increase with load')
-% ylabel('Relative mtp quasi-stiffness increase with load (%)')
-% xlim([-50,2050])
-%  
-% yyaxis right
+% 
+% subplot(2,4,[1,2])
 % plot(k_COT(1,2:end),k_COT(2,2:end),'.-','MarkerSize',20,'DisplayName','Cost of transport')
 % ylabel('COT (J kg^-^1 m^-^1)')
+% xlim([-50,2050])
+% xlabel('Midtarsal stiffness')
+% title('Cost of transport')
+% grid on
+% set(gca,'Box','off')
 % 
-% set(gca,'YColor',[0,0,0])
-% yyaxis left
+% subplot(2,4,[3,4])
+% plot(k_COT(1,2:end),k_COT(3,2:end),'.-','MarkerSize',20,'DisplayName','Positive Work by k_{mtj}')
+% ylabel('Work (J kg^-^1 m^-^1)')
+% xlim([-50,2050])
+% xlabel('Midtarsal stiffness')
+% title('Positive work by midtarsal joint stiffness')
+% grid on
+% set(gca,'YAxisLocation','right')
+% set(gca,'Box','off')
+% 
+% subplot(2,4,[6,7])
+% plot(k_MT,mtp_qdkl*100,'.-','MarkerSize',20,'DisplayName','Relative mtp quasi-stiffness increase with load')
+% title('Relative mtp quasi-stiffness increase with load increase')
+% ylabel('(%)')
+% xlim([-50,2050])
+% xlabel('Midtarsal stiffness')
+% grid on
+% set(gca,'Box','off')
 % 
 % mtp_qdkl_i = interp1(k_MT,mtp_qdkl,k_COT(1,2:12),'spline','extrap');
 % rr1 = xcorr(mtp_qdkl_i,k_COT(2,2:12),0,'coeff');
-% text(1500,-7,['R = ' num2str(rr1,2)])
+% text(-700,5,{'$\nwarrow$',['R = ' num2str(rr1,2)],'$\qquad \searrow$'},'Interpreter','latex')
 % 
-% legend('Location','northoutside')
-% xlabel('Midtarsal stiffness')
-% 
-% 
-% subplot(1,2,2)
-% plot(k_MT,mtp_qdkl*100,'.-','MarkerSize',20,'DisplayName','Relative mtp quasi-stiffness increase with load')
-% ylabel('Relative mtp quasi-stiffness increase with load (%)')
-% xlim([-50,2050])
-%  
-% yyaxis right
-% plot(k_COT(1,2:end),k_COT(4,2:end),'.-','MarkerSize',20,'DisplayName','Positive Work by k_{mtj}')
-% ylabel('Pos W (J/kg)')
-% 
-% set(gca,'YColor',[0,0,0])
-% yyaxis left
-% 
-% rr2 = xcorr(mtp_qdkl_i,k_COT(4,2:12),0,'coeff');
-% text(1500,-7,['R = ' num2str(rr2,2)])
-% 
-% legend('Location','northoutside')
-% xlabel('Midtarsal stiffness')
-% 
-% rr3 = xcorr(k_COT(2,2:12),k_COT(4,2:12),0,'coeff');
+% rr2 = xcorr(mtp_qdkl_i,k_COT(3,2:12),0,'coeff');
+% text(2300,5,{'$\qquad  \nearrow$',['R = ' num2str(rr2,2)],'$\swarrow$'},'Interpreter','latex')
 % 
 % 
-% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\FootSim';
+% rr3 = xcorr(k_COT(2,2:12),k_COT(3,2:12),0,'coeff');
+% text(700,30,{['$\leftarrow$ R = ' num2str(rr3,2) '$\rightarrow$']},'Interpreter','latex')
+% 
+% 
+% % subplot(2,2,4)
+% % plot(k_COT(1,5:end),k_COT(4,5:end),'.-','MarkerSize',20,'DisplayName','full support')
+% % hold on
+% % ylim([-200,200])
+% % yyaxis right
+% % plot(k_COT(1,2:end),k_COT(5,2:end),'.-','MarkerSize',20,'DisplayName','push-off')
+% % ylim([-40,40])
+% % title('Dynamic mtp quasi-stiffness (Nm/rad)')
+% % ylabel('(Nm/rad)')
+% % xlim([-50,2050])
+% % xlabel('Midtarsal stiffness')
+% % legend
+% 
+% 
+% 
+%%
+
+% h1=gcf;
+% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\k_mtj';
 % set(h1,'PaperPositionMode','auto')
-% print(h1,[figNamePrefix '_mtp_stiffening'],'-dpng','-r0')
-% print(h1,[figNamePrefix '_mtp_stiffening'],'-depsc')
+% print(h1,[figNamePrefix '_COT_curve'],'-dpng','-r0')
+% print(h1,[figNamePrefix '_COT_curve'],'-depsc')
 
 
 

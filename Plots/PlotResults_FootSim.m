@@ -347,53 +347,53 @@ if numFig <1 || numFig==4
 
     end
 
-    subplot(3,5,[1,2,6,7])
-    if R.F_PF(j,js(end))<1
-        plot((l_fa-R.L0)*1000,Fs_tib/1000,'color',CsV,'DisplayName',R.legname)
-    else
-        plot((l_fa-l_fa(1))*1000,Fs_tib/1000,'color',CsV,'DisplayName',R.legname)
-    end
-    hold on
-    if BoolFirst
-        hi1 = image([1,9.65]*0.9,flip([0,4]*0.9^2),img_Ker);
-        uistack(hi1,'bottom')
-    end
-    xlabel('Horizontal elongation (mm)')
-    ylabel('Vertical force (kN)')
-    title({'Foot arch stiffness','\rm as defined by Ker and all, 1987'})
-    lg12 = legend('Location','southeast');
-    lhPos = lg12.Position;
-    lhPos(2) = lhPos(2)-0.3;
-    set(lg12,'position',lhPos);
-
-% return
-
-    subplot(3,5,[5,10])
-    if R.F_PF(j,js(end))<1
-        plot((R.H0-h_fa)*1000,Fs_tib/1000,'color',CsV)
-    else
-        plot((h_fa(1)-h_fa)*1000,Fs_tib/1000,'color',CsV)
-    end
-    hold on
-    axis tight
-    if BoolFirst
-        hi2 = image([-2,12],flip([-0.3,6]),img_Stearne);
-        uistack(hi2,'bottom')
-    end
-    xlabel('vertical displacement (mm)')
-    ylabel('vertical force (kN)')
-    title({'Foot arch stiffness','as defined by Stearne et al, 2016'})
-
-    subplot(3,5,15)
-    if R.F_PF(j,js(end))<1
-        plot((R.H0-h_fa(Fs_tib<=300))*1000,Fs_tib(Fs_tib<=300),'color',CsV)
-    else
-        plot((h_fa(1)-h_fa(Fs_tib<=300))*1000,Fs_tib(Fs_tib<=300),'color',CsV)
-    end
-    hold on
-    xlabel('vertical displacement (mm)')
-    ylabel('vertical force (N)')
-    title('Detail view')
+%     subplot(3,5,[1,2,6,7])
+%     if R.F_PF(j,js(end))<1
+%         plot((l_fa-R.L0)*1000,Fs_tib/1000,'-o','color',CsV,'DisplayName',R.legname)
+%     else
+%         plot((l_fa-l_fa(1))*1000,Fs_tib/1000,'-o','color',CsV,'DisplayName',R.legname)
+%     end
+%     hold on
+%     if BoolFirst
+%         hi1 = image([1,9.65]*0.9,flip([0,4]*0.9^2),img_Ker);
+%         uistack(hi1,'bottom')
+%     end
+%     xlabel('Horizontal elongation (mm)')
+%     ylabel('Vertical force (kN)')
+%     title({'Foot arch stiffness','\rm as defined by Ker and all, 1987'})
+%     lg12 = legend('Location','southeast');
+%     lhPos = lg12.Position;
+%     lhPos(2) = lhPos(2)-0.3;
+%     set(lg12,'position',lhPos);
+% 
+% % return
+% 
+%     subplot(3,5,[5,10])
+%     if R.F_PF(j,js(end))<1
+%         plot((R.H0-h_fa)*1000,Fs_tib/1000,'color',CsV)
+%     else
+%         plot((h_fa(1)-h_fa)*1000,Fs_tib/1000,'color',CsV)
+%     end
+%     hold on
+%     axis tight
+%     if BoolFirst
+%         hi2 = image([-2,12],flip([-0.3,6]),img_Stearne);
+%         uistack(hi2,'bottom')
+%     end
+%     xlabel('vertical displacement (mm)')
+%     ylabel('vertical force (kN)')
+%     title({'Foot arch stiffness','as defined by Stearne et al, 2016'})
+% 
+%     subplot(3,5,15)
+%     if R.F_PF(j,js(end))<1
+%         plot((R.H0-h_fa(Fs_tib<=300))*1000,Fs_tib(Fs_tib<=300),'color',CsV)
+%     else
+%         plot((h_fa(1)-h_fa(Fs_tib<=300))*1000,Fs_tib(Fs_tib<=300),'color',CsV)
+%     end
+%     hold on
+%     xlabel('vertical displacement (mm)')
+%     ylabel('vertical force (N)')
+%     title('Detail view')
 
 
     j1 = find(R.Qs_mtp(:)==-30*pi/180);
@@ -417,19 +417,19 @@ if numFig <1 || numFig==4
         ac_max(i) = max(ac{i});
     end
 
-    subplot(3,5,[3,4,8,9])
+%     subplot(3,5,[3,4,8,9])
     hold on
     for i=1:n_i
         ac_rel = ac{i}/max(ac_max);
         plot(ac_rel(:),F_ac{i}/BW,mrk{i},'color',CsV,'DisplayName',['mtp: ' num2str(R.Qs_mtp(idx(i))*180/pi) '°'])
     end
-    if BoolFirst
-        hi3 = image([0,1],flip([0,0.9]),img_Welte);
-        uistack(hi3,'bottom')
-    end
+%     if BoolFirst
+%         hi3 = image([0,1],flip([0,0.9]),img_Welte);
+%         uistack(hi3,'bottom')
+%     end
     xlabel('arch compression (-)')
     ylabel('vertical force / body weight (-)')
-    title({'Foot arch stiffness','as defined by Welte et al, 2018'})
+    title({'Foot arch stiffness','\rm as defined by Welte and all, 2018'})
     leg = legend('Location','southeast');
     title(leg,'mtp dorsiflexion')
     xlim([0,1])

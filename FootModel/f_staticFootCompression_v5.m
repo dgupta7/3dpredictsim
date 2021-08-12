@@ -6,20 +6,20 @@ AddCasadiPaths();
 %% Settings
 S = GetDefaultSettings(S);
 
-plot_result = 0;
+plot_result = 1;
 save_result = 1;
-overwrite = 1;
+overwrite = 0;
 BW = S.mass*9.81;
 % mtp angles to be considered
 % Qs_mtp = [-45:15:45]*pi/180;
-% Qs_mtp = [-30:30:30]*pi/180;
+Qs_mtp = [-30:30:30]*pi/180;
 % Qs_mtp = [-20:5:30]*pi/180;
-Qs_mtp = [0:5:30]*pi/180;
+% Qs_mtp = [0:5:30]*pi/180;
 
 % vertical forces on knee
-% Fs_tib = [0:100:1000];
+Fs_tib = [0:100:1000];
 % Fs_tib = [0,100,320,640,960];
-Fs_tib = [0:0.1:1.5]*10*round(BW/10);
+% Fs_tib = [0:0.1:1.5]*10*round(BW/10);
 % Fs_tib = [0:50:300,400:100:1000,1250:250:3000];
 % Fs_tib = [0:50:300,400:100:1000,1250:250:2700];
 % Fs_tib = [0:50:1000,1100:100:6000];
@@ -56,6 +56,9 @@ savename = [ext_name '_' PF_stiffness '_' S.mtj_stiffness];
 savename = [savename '_Q' num2str(Qs_mtp(1)*180/pi) '_' num2str(Qs_mtp(end)*180/pi)...
     '_F' num2str(Fs_tib(1)) '_' num2str(Fs_tib(end)) '_WLv3' '_ls' num2str(S.PF_slack_length*1000) '_sb' num2str(subtR)];
 
+if S.sf_PF~=1
+    savename = [savename '_PFx' num2str(S.sf_PF)];
+end
 legname = ['PF: ' PF_stiffness ', l_s = ' num2str(S.PF_slack_length*1000) '; mtj: ' S.mtj_stiffness];
 % legname = ['subt bounds /' num2str(subtR)];
 

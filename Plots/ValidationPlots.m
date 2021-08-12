@@ -22,6 +22,13 @@ if exist(ResultsFile,'file')
         save(ResultsFile,'R');
     end
 
+    R.CrossCorrelation.joints'
+    R.CrossCorrelation.kinematics.atShift0'
+    R.CrossCorrelation.kinetics.atShift0'
+    
+%     R.CrossCorrelation.muscles.names'
+%     R.CrossCorrelation.muscles.atShift0'
+    
     boolFirst = 1;
     
     % create figure handles

@@ -35,8 +35,9 @@ print(h1,[figNamePrefix '_mtth'],'-depsc')
     
 
 %% Ker
+scs = get(0,'ScreenSize');
 set(h,'Position',[scs(3)/2,400,scs(3)/4, scs(3)/4]);
-legend({'PF: Gefen2002; mtj: Gefen2002','PF: none; mtj: Gefen2002','PF: none; mtj: Ker1987'},'Location','northwest','Box','off');
+legend({'PF: Gefen2002; mtj: Gefen2002','PF: none; mtj: Gefen2002','PF: none; mtj: Ker1987','PF: Natali2010; mtj: k = 300 Nm/rad'},'Location','northwest','Box','on');
 xlim([-0.2,9])
 ylim([-0.2,3.4])
 
@@ -44,3 +45,20 @@ figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\FootSim';
 set(h,'PaperPositionMode','auto')
 print(h,[figNamePrefix '_Ker'],'-dpng','-r0')
 print(h,[figNamePrefix '_Ker'],'-depsc')
+
+%% Welte
+scs = get(0,'ScreenSize');
+set(h,'Position',[scs(3)/2,400,scs(3)/4, scs(3)/4]);
+
+lh=legend({'PF: Gefen2002; mtj: Gefen2002 (-30° mtp dor)','PF: Gefen2002; mtj: Gefen2002 (+30° mtp dor)',...
+    'PF: 2*Gefen2002; mtj: fitted6 (-30° mtp dor)','PF: 2*Gefen2002; mtj: fitted6 (+30° mtp dor)',...
+    'PF: Natali2010; mtj: k = 300 Nm/rad (-30° mtp dor)','PF: Natali2010; mtj: k = 300 Nm/rad (+30° mtp dor)'},...
+    'Location','southoutside');
+title(lh,'');
+xlim([-0.05,1.1])
+ylim([-0.05,1.1])
+
+figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\FootSim';
+set(h,'PaperPositionMode','auto')
+print(h,[figNamePrefix '_Welte'],'-dpng','-r0')
+print(h,[figNamePrefix '_Welte'],'-depsc')

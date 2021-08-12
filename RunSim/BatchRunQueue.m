@@ -55,7 +55,6 @@ end
 fields = fieldnames(batchQ);
 imax = min(imax,numel(fields));
 
-
 for i=1:imax
     % check if this job has been started
     if ~( isfield(batchQ.(fields{i}),'job_started') && ~isempty(batchQ.(fields{i}).job_started) && batchQ.(fields{i}).job_started )
@@ -90,11 +89,11 @@ save([pathRepo '/Results/batchQ.mat'],'batchQ');
 
 %% rerun this section after the jobs are done to get logfiles
 
-for i=1:length(job)
-    if strcmp(job(1, i).State,'finished') && strcmp(job(1, i).Name(1:9),'f_PredSim')
-        clc
-        diary(fullfile(pathRepo,'Results',batchQ.(fields{i}).S.ResultsFolder,[batchQ.(fields{i}).S.savename '_log.txt']));
-        job(1, i).Tasks.Diary
-        diary off
-    end
-end
+% for i=1:length(job)
+%     if strcmp(job(1, i).State,'finished') && strcmp(job(1, i).Name(1:9),'f_PredSim')
+%         clc
+%         diary(fullfile(pathRepo,'Results',batchQ.(fields{i}).S.ResultsFolder,[batchQ.(fields{i}).S.savename '_log.txt']));
+%         job(1, i).Tasks.Diary
+%         diary off
+%     end
+% end

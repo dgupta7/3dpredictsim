@@ -1,6 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script allows to plot any of the results from the Thesis_Lars
-% branch. Select one or more folders with results to choose from. Then set
+% branch. See \3dpredictsim\Plots\make_preselected_plots.m to generate
+% figures preselected groups of results.
+% 
+% Select one or more folders with results to choose from. Then set
 % values to the parameters you want to filter out. Put the paramaters in
 % comment if you want to see results for any value. 
 % The filter method relies on the name of the resultfile, so this does
@@ -9,7 +12,7 @@
 % return filenames which contain that string. Use 'not_string' to get the
 % filenames that do not contain 'string'.
 % If no file in a folder contains a given string, that criterium will be
-% dropped, for that file only.
+% dropped, for that folder only.
 %
 % Author: Lars D'Hondt (May 2021)
 %

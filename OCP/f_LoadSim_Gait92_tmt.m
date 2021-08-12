@@ -32,9 +32,7 @@ S = Sopt;
 
 body_mass = S.mass;
 
-% S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v6.dll';
-
-
+S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_spx10_pp_v3.dll';
     
 %% User inputs (typical settings structure)
 % load default CasadiFunctions
@@ -927,10 +925,10 @@ end
 
 % GRFk_opt is at mesh points starting from k=2, we thus add 1 to IC1i
 % for the states
-if phase_tran_tgridi ~= N
+% if phase_tran_tgridi ~= N
     IC1i_c = IC1i;
     IC1i_s = IC1i + 1;
-end
+% end
 
 % Qs
 Qs_GC = zeros(N*2,size(q_opt_unsc.deg,2));
