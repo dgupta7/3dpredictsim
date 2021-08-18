@@ -1,10 +1,24 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This script allows to plot preselected groups of results from the Thesis_Lars
+% branch. See \3dpredictsim\Plots\make_any_plot.m to generate
+% figures of results, filtered by parameter values
+% 
+% 
+%
+% Author: Lars D'Hondt (May 2021)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 clear all
 close all
 clc
 
-plot_static_foot = 0;
-plot_full_separate = 1;
-plot_full_tabbed = 0;
+%% selection
+% results from the static foot compression simultion
+plot_static_foot = 1;
+% results from the dynamic whole-body gait simulation
+plot_full_separate = 0; % separate figures like  in the report
+plot_full_tabbed = 0; % single figure with different tabs
 
 
 
@@ -19,11 +33,12 @@ ResultsFolder = {'MidTarsalJoint'};
 for i=1:numel(ResultsFolder)
     pathResult{i} = fullfile([pathRepo '/Results/' ResultsFolder{i}]);
 end
+scs = get(0,'ScreenSize');
 
 %%
 ref{1} = fullfile([pathRepo '\Results\Final\Fal_s1_bCst_ig21_pp.mat']);
 
-%%
+%% groups of results
 
 % default, best COT
 groupNames{1} = 'd_m_t_j = 0 Nms/rad, k_m_t_p = 5 Nm/rad';
@@ -407,6 +422,7 @@ Results_mtp_wrt_k_mtj = {
 
 Results_combination = {
     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T1_spx10_ig23_PFx10_spx10_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T5_ig23_pp.mat'])
 %     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu1_spx10_ig23_PFx10_pp.mat']) % wrong GRF, not sure if caused by sim of pp
     };
     
@@ -453,6 +469,8 @@ filteredResultsWithRef{end+1} = {ref{:}, Results_mtp_wrt_k_mtj{:}};     % 32
 
 
 idx = [1,5,9,13:16,21]; % for comparison plots in function of k_mtj
+idx = [1,16];
+
 
 %% check for unused results
 % Results_all = {};
@@ -487,89 +505,91 @@ idx = [1,5,9,13:16,21]; % for comparison plots in function of k_mtj
 
 %% Settings
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Select results to plot
 
-% ResultsFile = filteredResultsWithRef{31};
-ResultsFile = {filteredResultsWithRef{31}{[2]}};
+% ResultsFile = filteredResultsWithRef{1};
+% ResultsFile = {filteredResultsWithRef{31}{[2]}};
 
+% uncomment ones of the groups below
+%%%
 % ResultsFile = {ref{:}};
-LegNames = {'Falisse 2019'};
+% LegNames = {'Falisse 2019'};
 
-% ResultsFile = {ref{:},best_COT};
-% LegNames = {'Falisse 2019','Elastic arch & windlass'};
-
-% ResultsFile = {best_COT};
-% LegNames = {'Elastic arch & windlass'};
-
-% ResultsFile = {ref{:},PF_stiffening{:}};
-
+%%%
 % ResultsFile = filteredResultsWithRef{28};
 % LegNames = {'Falisse 2019','Elastic arch','Windlass','Elastic arch & windlass'};
 
+%%%
 % ResultsFile = filteredResultsWithRef{30};
 % LegNames = {'Falisse 2019','PF: linear','PF: Natali2010','PF: Cheng2008',...
 %     'PF: Song2011','PF: Gefen2002','PF,k_m_t_j: Song2011','PF,k_m_t_j: Gefen2002'};
 
+%%%
 % ResultsFile = {filteredResultsWithRef{1}{[1,end-3:-1:2]}};
 % LegNames = {'Falisse 2019','k_{mtj} = 5000Nm/rad','k_{mtj} = 2000Nm/rad','k_{mtj} = 1500Nm/rad',...
 %     'k_{mtj} = 800Nm/rad','k_{mtj} = 500Nm/rad','k_{mtj} = 400Nm/rad','k_{mtj} = 300Nm/rad',...
 %     'k_{mtj} = 250Nm/rad','k_{mtj} = 200Nm/rad','k_{mtj} = 150Nm/rad','k_{mtj} = 100Nm/rad','k_{mtj} = 50Nm/rad'};
 
+%%%
 % ResultsFile = filteredResultsWithRef{32};
 % LegNames = {'Falisse 2019','PF: Song2011; k_{mtj}=300Nm/rad','PF: Song2011; k_{mtj}=800Nm/rad','PF: Natali2010; k_{mtj}=300Nm/rad','PF: Natali2010; k_{mtj}=800Nm/rad'};
 
+%%%
 % ResultsFile = filteredResultsWithRef{20};
 % LegNames = {'Falisse 2019','Elastic arch & Windlass','With toe flex/ext (k_{mtp}=5)','With toe flex/ext (k_{mtp}=1)'};
 
+%%%
 % ResultsFile = {filteredResultsWithRef{26}{[1,2,3]}};
 % LegNames = {'Falisse 2019','Elastic arch & Windlass','Stiffer contact spheres'};
 
-ResultsFile = filteredResultsWithRef{31};
-LegNames = {'Falisse 2019','Combination'};
+%%%
+% ResultsFile = {filteredResultsWithRef{31}{[1,2]}};
+% LegNames = {'Falisse 2019','Combination'};
 
+%%%
+% ResultsFile = filteredResultsWithRef{31};
+% LegNames = {'Falisse 2019','Combination','Compliant'};
 
+%%%
+% ResultsFile = {filteredResultsWithRef{28}{[1,3,4]},filteredResultsWithRef{26}{3},filteredResultsWithRef{31}{2}};
+% LegNames = {'Falisse 2019','Windlass','Elastic arch & windlass','Stiffer contact spheres','Combination'};
 
-
-RefData = 'Fal_s1';
-mtj = 1;
-reference_data = 'norm';
-% reference_data = 'none';
-figNamePrefix = 'none';
-% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\SOTA';
-% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\MLA_vs_WL';
-% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\best';
-% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\PF_stiffness';
-% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\k_mtj';
-% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\k_mtj_Song';
-% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\musc';
-% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\contact_stiff';
-% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\combination';
-
-
-%%% select figures to make
-makeplot.kinematics = 0;
-makeplot.kinetics = 0;
-makeplot.soleus = 0;
-makeplot.sol_all = 1;
-makeplot.GRF = 0;
-makeplot.compareLiterature = 0;
-makeplot.compareTakahashi17 = 0;
-makeplot.compareTakahashi17_mtj_only = 0;
-% makeplot.COP = 0;
-makeplot.allQsTs = 0;
-makeplot.k_mtj_lin = 0;
-makeplot.windlass = 0;
-makeplot.power = 0;
-makeplot.power_T = 0;
-makeplot.work = 0;
-makeplot.work_bar = 0;
-makeplot.power_main = 1;
-makeplot.spatiotemp = 0;
-makeplot.ankle_correlation = 0;
-makeplot.E_muscle_bar = 0;
-
-%%% make separate fiures
+%%
 if plot_full_separate
+    RefData = 'Fal_s1';
+    mtj = 1;
+    reference_data = 'norm';
+    figNamePrefix = 'none'; % set this to a path to save the figures
+%     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\SOTA';
+%     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\MLA_vs_WL';
+%     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\best';
+%     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\PF_stiffness';
+%     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\k_mtj';
+%     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\k_mtj_Song';
+%     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\musc';
+%     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\contact_stiff';
+%     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\combination';
+
+
+    %%% select figures to make
+    makeplot.kinematics = 1; %selected joint angles
+    makeplot.kinetics = 0; % selected joint torques
+    makeplot.soleus = 0; % triceps surae
+    makeplot.GRF = 0; % ground interaction
+    makeplot.compareLiterature = 0; % mtj and mtp Caravaggi 2018
+    makeplot.compareTakahashi17 = 0; % "distal to segment" power analysis
+    makeplot.compareTakahashi17_mtj_only = 0; % plot mtj power over experimental result
+    makeplot.allQsTs = 0; % all joint angles and torques
+    makeplot.windlass = 0; % plantar fascia and foot arch info
+    makeplot.power = 0; % datailed power decomposition
+    makeplot.work = 0; % same as power, but work over GC
+    makeplot.work_bar = 0; % positive, negative and net work bar plot
+    makeplot.power_main = 0; % main power components of foot
+    makeplot.spatiotemp = 0; % stridelength etc.
+    makeplot.ankle_correlation = 0; % correlation of ankle 
+    makeplot.E_muscle_bar = 0; % muscle metabolic energy totals
+    makeplot.toes = 0; % toe flexor and extensor muscle info
+
+    %%% call function that makes figures
     PlotResults_3DSim_Report(ResultsFile,LegNames,RefData,mtj,makeplot,figNamePrefix);
 end
 
@@ -586,10 +606,10 @@ ResultsFile2 = filteredResultsWithRef{28}{4};
 
 % % PlotResultsComparison_3DSim(ResultsFile1,ResultsFile2);
 
-%%
+%% cost of transport in function of midtarsal joint stiffness
 plot_COT_k = 0;
 if plot_COT_k
-    idx = [1,5,9,13:16,21,25];
+%     idx = [1,5,9,13:16,21,25];
 %     idx = [1,5,9];
 %     idx = [1,13:16];   
 % idx=1;
@@ -668,7 +688,7 @@ if plot_COT_k
     
 end
 
-%%
+%% stride frequency in function of midtarsal joint stiffness
 plot_frq_k = 0;
 if plot_frq_k
 %     idx = [1,5,9,13:16,19,21,24,25];
@@ -727,7 +747,7 @@ if plot_frq_k
     
 end
 
-%%
+%% peak soleus activity in function of midtarsal joint stiffness
 plot_aSol_k = 0;
 if plot_aSol_k
 %     idx = [1,5,9,13:16,19,21,24,25];
@@ -789,63 +809,6 @@ if plot_aSol_k
 end
 
 %%
-plot_COT_v = 0;
-if plot_COT_v
-    % data from http://dx.doi.org/10.1098/rsif.2019.0402
-    x_Fal = 0.73:0.1:2.73;
-    y_Fal = [4.8577,4.4555, 4.0769, 3.9148, 3.7499, 3.6131, 3.5464, 3.4393,...
-        3.3582, 3.3896, 3.4203, 3.3646, 3.4244, 3.4749, 3.5139, 3.7447,...
-        3.7519, 3.7449, 3.6630, 3.6883, 3.4600];
-
-    % data from S. Song en H. Geyer, „The Energetic Cost of Adaptive Feet in Walking,” 
-    % in International Conference on Robotics and Biomimetics, Phuket, Thailand, 2011. 
-    x_Song = 0.8:0.2:1.8;
-    y_Song_b = [4.55, 3.4, 2.95, 2.75, 2.85, 2.87];
-    y_Song_h = [5.65, 4.12, 3.55, 2.9, 3, 2.73];
-
-    for i=1:length(Results_vs)-1
-        load(Results_vs{i},'R');
-        x_Fal_mtp(i) = R.S.v_tgt;
-        y_Fal_mtp(i) = R.COT;
-    end
-    for i=1:length(Results_vs_Song)-1
-        load(Results_vs_Song{i},'R');
-        x_Fal_mtj_Song(i) = R.S.v_tgt;
-        y_Fal_mtj_Song(i) = R.COT;
-    end
-
-    scs = get(0,'ScreenSize');
-    figure('Position',[1,scs(4)/2+20,scs(3)/2, scs(4)/2-100]);
-    subplot(121)
-    hold on
-    grid on
-    plot(x_Song,y_Song_b,'o-','DisplayName','Baseline (Song 2011)')
-    plot(x_Song,y_Song_h,'d-','DisplayName','Human (Song 2011)')
-    plot(x_Fal(1:11),y_Fal(1:11),'o-','DisplayName','Baseline (Falisse 2019)')
-    plot(x_Fal_mtp,y_Fal_mtp,'v-','DisplayName','Baseline + mtp (Falisse 2019)')
-    plot(x_Fal_mtj_Song,y_Fal_mtj_Song,'d-','DisplayName','Human (parameters Song 2011)')
-    legend('Location','northeast')
-    xlabel('v (m s^{-1})')
-    ylabel('COT (J kg^{-1} m^{-1})')
-    xlim([0.7,1.85])
-    title('Cost of transport for different foot models')
-
-    rel_diff_Song = (y_Song_b-y_Song_h)./y_Song_b*100;
-    y_tmp = interp1(x_Fal,y_Fal,x_Fal_mtj_Song);
-    rel_diff = (y_tmp-y_Fal_mtj_Song)./y_tmp*100;
-
-    subplot(122)
-    bar(x_Song,[rel_diff_Song;rel_diff]')
-    hold on
-    grid on
-    legend({'Human (Song 2011) vs Baseline (Song 2011)','Human (parameters Song 2011) vs Baseline (Falisse 2019)'},'Location','southoutside')
-    xlabel('v (m s^{-1})')
-    ylabel('\delta COT (%)')
-    xlim([0.7,1.85])
-    title('Cost of transport relative to baseline model')
-end
-
-%%
 
 if plot_static_foot
     
@@ -854,9 +817,18 @@ if plot_static_foot
 %                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_none_Ker1987_Q-30_30_F0_3000_WLv3_ls150.mat'])
 %                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k300_Q-30_30_F0_3000_WLv3_ls150_sb1.mat'])};
     
-resultFiles = {fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2002_Gefen2002_Q-30_30_F0_3000_WLv3_ls150.mat'])
-                fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2002_fitted6_Q-30_30_F0_1000_WLv3_ls150_sb1_PFx2.mat'])
-                fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k300_Q-30_30_F0_3000_WLv3_ls150_sb1.mat'])};
+% resultFiles = {fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2002_Gefen2002_Q-30_30_F0_3000_WLv3_ls150.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2002_fitted6_Q-30_30_F0_1000_WLv3_ls150_sb1_PFx2.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k300_Q-30_30_F0_3000_WLv3_ls150_sb1.mat'])};
+            
+% resultFiles = {fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2002_k300_Q0_0_F0_1000_WLv3_ls150_sb1.mat'])
+%                fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt2_v1_Gefen2002_k300_Q0_0_F0_1000_WLv3_ls150_sb1.mat'])
+%                fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt3_v1_Gefen2002_k300_Q0_0_F0_1000_WLv3_ls150_sb1.mat'])};
+
+            
+% resultFiles = {fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k300_Q-30_30_F0_3000_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k300_Q-30_30_F0_1000_WLv3_ls150_sb1_PFx10.mat'])};
+
             
 %     resultFiles = {fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_fitted4_Q-20_30_F0_0_WLv3_ls148_mtp1.mat'])
 %                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_fitted4_Q-20_30_F0_0_WLv3_ls148_mtp2.mat'])};
@@ -917,15 +889,52 @@ resultFiles = {fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v
 %                     fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k2000_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
 %                     };
                 
+
+% resultFiles =  {fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k300_Q-30_30_F0_945_WLv3_ls150_sb1.mat'])
+% %                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k800_Q-30_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k300_Q-30_30_F0_945_WLv3_ls150_sb1.mat'])
+% %                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k800_Q-30_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 };
+
+
+% resultFiles =  {fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k50_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k100_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k150_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k200_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k250_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k300_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k350_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k400_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k450_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k500_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k550_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k600_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k650_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k700_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k750_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k800_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k900_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k1000_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k1100_Q0_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Song2011_k1200_Q0_30_F0_945_WLv3_ls150_sb1.mat'])};
+
+
+% resultFiles =  {fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2002_Gefen2002_Q-30_30_F0_945_WLv3_ls150_sb1.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2002_Gefen2002_Q-30_30_F0_945_WLv3_ls150_sb2.mat'])
+%                 fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Gefen2002_Gefen2002_Q-30_30_F0_945_WLv3_ls150_sb3.mat'])};
+
+resultFiles =  {fullfile([pathRepo '\Results\FootModel\Foot_3D_Fal_s1_mtj_subt1_v5_Natali2010_k300_Q-45_45_F0_0_WLv3_ls150_sb1.mat'])};
+            
+            
     % call plot function
     nrf = numel(resultFiles);
     CsV = hsv(nrf);
     for i=1:nrf
         load(resultFiles{i},'R');
         if i==1
-            h = PlotResults_FootSim(R,CsV(i,:),0,4);
+            h = PlotResults_FootSim(R,CsV(i,:),0,1);
         else
-            PlotResults_FootSim(R,CsV(i,:),h,4);
+            PlotResults_FootSim(R,CsV(i,:),h,1);
         end
     end
     
@@ -1020,4 +1029,60 @@ end
 % print(h1,[figNamePrefix '_COT_curve'],'-depsc')
 
 
+%%
+% h_GC = figure('Position',[scs(3)/2,140,scs(3)*0.4, scs(4)*0.3]);
+% set(h_GC,'Color','w');
+% 
+% subplot(3,1,[1,2])
+% pathRefImg = fullfile(pathRepo,'\Figures\gait_cycle.png');
+% img_GC = imread(pathRefImg);
+% hold on
+% % axis tight
+% axis equal
+% hi3 = image([-5,65],flip([0,12.75]),img_GC);
+% uistack(hi3,'bottom')
+% xlim([-5,100])
+% ylim([-1,14])
+% xlabel('(%GC)')
+% ax1=gca;
+% ax1.XTick = [0:10:100];
+% ax1.YTick = '';
+% ax1.YAxis.Visible = 'off';
+% ax1.XLabel.Position(1) = ax1.XLabel.Position(1) + 59;
+% ax1.XLabel.Position(2) = ax1.XLabel.Position(2) + 3.5;
+% ylim([-1,16])
+% title({'Gait cycle',''})
+% 
+% ax2 = axes('Position', get(ax1,'Position'),'XAxisLocation','top','Color','none','XColor','k');
+% ax2.XTick = [0:10:100];
+% ax2.YTick = '';
+% ax2.XLim = ax1.XLim/0.6;
+% axis equal
+% xlabel('Stance phase (%)')
+% ax2.YAxis.Visible = 'off';
+% ax2.XLabel.Position(1) = ax2.XLabel.Position(1) - 65;
+% ax2.XLabel.Position(2) = ax2.XLabel.Position(2) - 8;
+% ylim([-1,16])
+% 
+% % subplot(20,1,20)
+% ax3_pos = get(ax1,'Position');
+% ax3_pos(2) = ax3_pos(2)+0.11;
+% ax3_pos(4) = 0.001;
+% 
+% ax3 = axes('Position',ax3_pos,'Color','none','XColor','k');
+% ax3.YAxis.Visible = 'off';
+% ax3.XLim = ax1.XLim;
+% % ax3.XAxisLocation = 'top';
+% ax3.XTick = [0,10,45,60];
+% ax3.XTickLabel = {'     Heel strike','     Foot flat','     Heel lift','     Toe off'};
+% ax3.XTickLabelRotation = -90;
+% ax3.YLim = [0,1];
+% text(20,-40,'Mid stance')
+% text(47,-40,'Push-off')
+% text(75,-40,'Swing')
 
+
+% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\GC';
+% set(h_GC,'PaperPositionMode','auto')
+% print(h_GC,[figNamePrefix],'-dpng','-r0')
+% print(h_GC,[figNamePrefix],'-depsc')

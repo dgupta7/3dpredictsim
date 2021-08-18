@@ -19,7 +19,7 @@ l = SX.sym('l');
 %% 1) Default parameters
 E = 350; % Young's modulus (N/mm^2)
 % A0 = 290; % initial cross-section (mm^2)
-A0 = 49.7; % initial cross-section (mm^2)
+A0 = 50; % initial cross-section (mm^2)
 nu = 0.4; % Poisson ratio
 ls = 0.150; % slack length (m)
 k = E*A0/ls; % spring constant (N/m)
@@ -71,8 +71,8 @@ elseif strcmp(modelType,'Gefen2002')
     a4 = 6206986.7;
     a5 = -3354935.1;
     a6 = 724755.5;
-    sigma = a1*lambda^5 + a2*lambda^4 + a3*lambda^3 + a4*lambda^2 + a5*lambda + a6 -0.100; % stress
-    F_PF = sigma*A; % correction term, to make F=0 for l=ls
+    sigma = a1*lambda^5 + a2*lambda^4 + a3*lambda^3 + a4*lambda^2 + a5*lambda + a6 -0.100; % stress correction term, to make F=0 for l=ls
+    F_PF = sigma*A; 
     F = F_PF*(tanh(dl*3e3-1)+1)/2;
     
 elseif strcmp(modelType,'Cheng2008')

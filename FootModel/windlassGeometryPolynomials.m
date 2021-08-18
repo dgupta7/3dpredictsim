@@ -1,6 +1,6 @@
 % approximating windlass geometry with polynomials
 clear
-% close all
+close all
 clc
 
 q_mt = linspace(-30,30,100)'*pi/180;
@@ -26,7 +26,8 @@ MA_PF = calcnPF2mtj*mtj2mttPF./l_PF_fa.*sin(phi); % moment arm of PF to mtj
 
 %% approximating length of PF spanning foot arch
 
-figure
+scs = get(0,'ScreenSize');
+figure('Position',[1+scs(3)/2,scs(4)/2+20,scs(3)/2, scs(4)/2-100]);
 subplot(221)
 plot(q_mt*180/pi,l_PF_fa*1e3,'DisplayName','exact')
 hold on
@@ -35,7 +36,7 @@ legend('Location','southeast');
 xlabel('Midtarsal angle (°)')
 ylabel('l_{PF,fa} (mm)')
 title('PF length spanning foot arch')
-
+axis tight
 
 %%
 order = 2;
@@ -68,7 +69,7 @@ grid on
 xlabel('Midtarsal angle (°)')
 ylabel('log_{10}\deltal_{PF,fa} (-)')
 title('Relative error of the approximation')
-
+axis tight
 
 codeString1 = ['l_PF_fa = ' num2str(coeff1(1),7)];
 for ii=1:length(coeff1)-1
@@ -85,8 +86,9 @@ hold on
 grid on
 legend('Location','northeast');
 xlabel('Midtarsal angle (°)')
-ylabel('MA_{PF,fa} (mm)')
+ylabel('MA_{PF} (mm)')
 title('Moment arm PF')
+axis tight
 
 order = 2;
 stop = 0;
@@ -116,8 +118,9 @@ subplot(224)
 hold on
 grid on
 xlabel('Midtarsal angle (°)')
-ylabel('log_{10}\deltaMA_{PF,fa} (-)')
+ylabel('log_{10}\deltaMA_{PF} (-)')
 title('Relative error of the approximation')
+axis tight
 
 codeString2 = ['MA_PF = ' num2str(coeff2(1),7)];
 for ii=1:length(coeff2)-1
@@ -157,16 +160,16 @@ semilogy(q_mt*180/pi,abs((MA_PF_p-MA_PF)./MA_PF),'Color',p2.Color)
 
 
 %%
-order = 5;
-
-[mat,diff_mat_q] = n_art_mat_3(q_mt, order);
-
-coeff=[mat ; diff_mat_q]\[l_PF_fa; MA_PF];
-dM_recon = diff_mat_q*coeff;
-lMT_recon=mat*coeff;
-
-subplot(221)
-plot(q_mt*180/pi,lMT_recon*1e3)
-
-subplot(222)
-plot(q_mt*180/pi,dM_recon*1e3)
+% order = 5;
+% 
+% [mat,diff_mat_q] = n_art_mat_3(q_mt, order);
+% 
+% coeff=[mat ; diff_mat_q]\[l_PF_fa; MA_PF];
+% dM_recon = diff_mat_q*coeff;
+% lMT_recon=mat*coeff;
+% 
+% subplot(221)
+% plot(q_mt*180/pi,lMT_recon*1e3)
+% 
+% subplot(222)
+% plot(q_mt*180/pi,dM_recon*1e3)

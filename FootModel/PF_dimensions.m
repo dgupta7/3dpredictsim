@@ -2,9 +2,11 @@
 
 % calcaneal tubercle
 w = 15.45;
+w_1 = 26.85;
 t = 2.79;
-l_1 = 146.45;
+l_1 = 146.45-40;
 c1 = w*t/l_1;
+(w+w_1)/2*t
 
 % central aponeurosis bundle
 w1 = 71.2;
@@ -26,4 +28,3 @@ l5 = 40.09;
 c2 = w1*t1/l1 + w2*t2/l2 + w3*t3/l3 + w4*t4/l4 + w5*t5/l5;
 
 A0 = c1*c2/(c1+c2) *(l_1+l3);
-

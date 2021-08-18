@@ -83,7 +83,7 @@ if numFig <1 || numFig==1
 
         disp(['y = ' num2str(c(2),3) ' + ' num2str(c(1),3) ' x']);
     else
-        plot(R.Qs_mtp*180/pi,R.l_fa(:,1)*1000,'color',CsV)
+        plot(R.Qs_mtp*180/pi,R.l_fa(:,1)*1000,'-o','color',CsV)
         ylabel('arch length (mm)')
 
     end
@@ -94,14 +94,14 @@ if numFig <1 || numFig==1
 
     subplot(3,3,2)
     hold on
-    plot(R.Qs_mtp*180/pi,R.h_fa(:,1)*1000,'color',CsV)
+    plot(R.Qs_mtp*180/pi,R.h_fa(:,1)*1000,'-o','color',CsV)
     xlabel('mtp angle (°)')
     ylabel('arch height (mm)')
     title('Foot arch height')
 
     subplot(3,3,3)
     hold on
-    plot(R.Qs_mtp*180/pi,R.Qs(:,1,R.jointfi.tmt.r)*180/pi,'color',CsV,'DisplayName',R.legname)
+    plot(R.Qs_mtp*180/pi,R.Qs(:,1,R.jointfi.tmt.r)*180/pi,'-o','color',CsV,'DisplayName',R.legname)
     xlabel('mtp angle (°)')
     ylabel('mt angle (°)')
     title('Midtarsal joint angle')
@@ -112,7 +112,7 @@ if numFig <1 || numFig==1
 
     subplot(3,3,4)
     hold on
-    plot(R.Qs_mtp*180/pi,R.l_PF(:,1)*1000,'color',CsV)
+    plot(R.Qs_mtp*180/pi,R.l_PF(:,1)*1000,'-o','color',CsV)
     xlabel('mtp angle (°)')
     ylabel('PF length (mm)')
     title('Plantar fascia length')
@@ -120,7 +120,7 @@ if numFig <1 || numFig==1
     subplot(3,3,5)
     hold on
     if isfield(R,'MA_PF')
-        plot(R.Qs_mtp*180/pi,R.MA_PF(:,1)*1000,'color',CsV)
+        plot(R.Qs_mtp*180/pi,R.MA_PF(:,1)*1000,'-o','color',CsV)
     end
     xlabel('mtp angle (°)')
     ylabel('PF moment arm (mm)')
@@ -128,30 +128,30 @@ if numFig <1 || numFig==1
 
     subplot(3,3,6)
     hold on
-    plot(R.Qs_mtp*180/pi,R.M_li(:,1),'color',CsV)
+    plot(R.Qs_mtp*180/pi,R.M_li(:,1),'-o','color',CsV)
     xlabel('mtp angle (°)')
     ylabel('Torque (Nm)')
     title('mt torque (except PF)')
 
     subplot(3,3,7)
     hold on
-    plot(R.Qs_mtp*180/pi,R.F_PF(:,1),'color',CsV)
+    plot(R.Qs_mtp*180/pi,R.F_PF(:,1),'-o','color',CsV)
     xlabel('mtp angle (°)')
     ylabel('F PF (N)')
     title('Plantar fascia force')
 
     subplot(3,3,8)
     hold on
-    plot(R.Qs_mtp*180/pi,R.M_PF(:,1),'color',CsV)
+    plot(R.Qs_mtp*180/pi,R.M_PF(:,1),'-o','color',CsV)
     xlabel('mtp angle (°)')
     ylabel('Torque (Nm)')
     title('Plantar fascia torque')
 
     subplot(3,3,9)
     hold on
-    plot(R.Qs_mtp*180/pi,R.GRF_calcn(:,1,2),'-','color',CsV)
+    plot(R.Qs_mtp*180/pi,R.GRF_calcn(:,1,2),'-o','color',CsV)
     hold on
-    plot(R.Qs_mtp*180/pi,R.GRF_metatarsi(:,1,2),'-.','color',CsV)
+    plot(R.Qs_mtp*180/pi,R.GRF_metatarsi(:,1,2),'-*','color',CsV)
     xlabel('mtp angle (°)')
     ylabel('GRF_y (N)')
     title('vertical GRF')
@@ -365,9 +365,9 @@ if numFig <1 || numFig==4
 %     lhPos = lg12.Position;
 %     lhPos(2) = lhPos(2)-0.3;
 %     set(lg12,'position',lhPos);
-% 
-% % return
-% 
+
+% return
+
 %     subplot(3,5,[5,10])
 %     if R.F_PF(j,js(end))<1
 %         plot((R.H0-h_fa)*1000,Fs_tib/1000,'color',CsV)
@@ -383,7 +383,7 @@ if numFig <1 || numFig==4
 %     xlabel('vertical displacement (mm)')
 %     ylabel('vertical force (kN)')
 %     title({'Foot arch stiffness','as defined by Stearne et al, 2016'})
-% 
+
 %     subplot(3,5,15)
 %     if R.F_PF(j,js(end))<1
 %         plot((R.H0-h_fa(Fs_tib<=300))*1000,Fs_tib(Fs_tib<=300),'color',CsV)
@@ -659,13 +659,13 @@ if fig2
             range_x = [xmin-0.01,xmax+0.01];
             range_y = [ymin-0.01,ymin-0.01+norm(range_x)];
 
-            ankle_axis = squeeze(R.talus_or(j,i,:)) + [-1,1].*squeeze(R.ankle_axis(j,i,:))/100;
-            COP_calcn = squeeze(R.COP_calcn(j,i,[1,3]));
-            COP_calcn(2) = -COP_calcn(2); %to plot -z
-            COP_metatarsi = squeeze(R.COP_metatarsi(j,i,[1,3]));
-            COP_metatarsi(2) = -COP_metatarsi(2);
-            COP_R = [R.GRF_calcn(j,i,2),R.GRF_metatarsi(j,i,2)];
-            COP_R = COP_R./sum(COP_R)/30;
+%             ankle_axis = squeeze(R.talus_or(j,i,:)) + [-1,1].*squeeze(R.ankle_axis(j,i,:))/100;
+%             COP_calcn = squeeze(R.COP_calcn(j,i,[1,3]));
+%             COP_calcn(2) = -COP_calcn(2); %to plot -z
+%             COP_metatarsi = squeeze(R.COP_metatarsi(j,i,[1,3]));
+%             COP_metatarsi(2) = -COP_metatarsi(2);
+%             COP_R = [R.GRF_calcn(j,i,2),R.GRF_metatarsi(j,i,2)];
+%             COP_R = COP_R./sum(COP_R)/30;
             
             subplot(2,3,2)
             hold on
@@ -674,7 +674,7 @@ if fig2
             plot(xy(1,2),xy(2,2),'d','Color',CsV2(i,:))
             plot(xy(1,3),xy(2,3),'.','Color',CsV2(i,:))
             plot(xy(1,4),xy(2,4),'*','Color',CsV2(i,:))
-            plot(ankle_axis(1,:),ankle_axis(2,:),'--','Color',CsV2(i,:))
+%             plot(ankle_axis(1,:),ankle_axis(2,:),'--','Color',CsV2(i,:))
             axis equal
             title('sagittal plane (right)')
             xlabel('x')
@@ -692,7 +692,7 @@ if fig2
             plot(-z(1,2),xy(2,2),'d','Color',CsV2(i,:))
             plot(-z(1,3),xy(2,3),'.','Color',CsV2(i,:))
             plot(-z(1,4),xy(2,4),'*','Color',CsV2(i,:))
-            plot(-ankle_axis(3,:),ankle_axis(2,:),'--','Color',CsV2(i,:))
+%             plot(-ankle_axis(3,:),ankle_axis(2,:),'--','Color',CsV2(i,:))
             leg1(end+1) = p1;
             axis equal
             title('frontal plane (front)')
@@ -711,17 +711,17 @@ if fig2
             p3=plot(xy(1,2),-z(1,2),'d','Color',CsV2(i,:),'DisplayName','metatarsi or');
             p4=plot(xy(1,3),-z(1,3),'.','Color',CsV2(i,:),'DisplayName','calcn or');
             p5=plot(xy(1,4),-z(1,4),'*','Color',CsV2(i,:),'DisplayName','talus or');
-            p7=plot(ankle_axis(1,:),-ankle_axis(3,:),'--','Color',CsV2(i,:),'DisplayName','ankle axis');
-%             p8=plot(COP(1,2:3),-COP(3,2:3),'o','Color',CsV2(i,:),'DisplayName','centres of pressure');
-            if i>1
-                p8=viscircles(COP_calcn',COP_R(1),'Color',CsV2(i,:),'LineWidth',1,'LineStyle',':');
-                p9=viscircles(COP_metatarsi',COP_R(2),'Color',CsV2(i,:),'LineWidth',1,'LineStyle',':');
-                set(p8,'DisplayName','COP calcn')
-                set(p9,'DisplayName','COP metatarsi')
-                lg2=legend([p2,p3,p4,p5,p6,p7,p8,p9],'Location','northeast');
-            else
-                lg2=legend([p2,p3,p4,p5,p6,p7],'Location','northeast');
-            end
+%             p7=plot(ankle_axis(1,:),-ankle_axis(3,:),'--','Color',CsV2(i,:),'DisplayName','ankle axis');
+% %             p8=plot(COP(1,2:3),-COP(3,2:3),'o','Color',CsV2(i,:),'DisplayName','centres of pressure');
+%             if i>1
+%                 p8=viscircles(COP_calcn',COP_R(1),'Color',CsV2(i,:),'LineWidth',1,'LineStyle',':');
+%                 p9=viscircles(COP_metatarsi',COP_R(2),'Color',CsV2(i,:),'LineWidth',1,'LineStyle',':');
+%                 set(p8,'DisplayName','COP calcn')
+%                 set(p9,'DisplayName','COP metatarsi')
+%                 lg2=legend([p2,p3,p4,p5,p6,p7,p8,p9],'Location','northeast');
+%             else
+%                 lg2=legend([p2,p3,p4,p5,p6,p7],'Location','northeast');
+%             end
             axis equal
             title('transverse plane (top)')
             xlabel('x')

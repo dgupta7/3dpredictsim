@@ -1,4 +1,4 @@
-% close all
+close all
 clear
 clc
 
@@ -45,7 +45,7 @@ A0 = 14.7*1.7;
 lambda = l./L0;
 A = A0*lambda.^(-nu*2);
 
-% Gefen2001
+% Gefen2002
 a1 = -412640.5;
 a2 = 2235967.7;
 a3 = -4841544.8;
@@ -97,7 +97,7 @@ M_S = -E*e.*A.*h;
 
 %%
 f1 = figure;
-plot(q_mt*180/pi,M_LPL+M_SPL,'DisplayName','Gefen2001')
+plot(q_mt*180/pi,M_LPL+M_SPL,'DisplayName','Gefen2002')
 grid on
 hold on
 % plot(q_mt*180/pi,M_L+M_S,'DisplayName','E = 260MPa')
@@ -109,7 +109,7 @@ title('Equivalent ligament stiffness midtarsal joint')
 
 %%
 
-x = linspace(-25,25,500)'*pi/180;
+x = linspace(-5,20,500)'*pi/180;
 
 c1 = -8;
 c2 = 8;
@@ -120,10 +120,10 @@ y = -9*(exp(4*(x-2*pi/180))-1)*1.2;
 
 y1 = 2*exp(-10*(x+0.1));
 
-plot(x*180/pi,y,'--')
-plot(x*180/pi,y1)
+% plot(x*180/pi,y,'--')
+% plot(x*180/pi,y1)
 y2 = (y+y1);
-plot(x*180/pi,y2)
+plot(x*180/pi,y2,'DisplayName','Exponential approximation')
 
 % ylim([-20,20])
 

@@ -35,12 +35,12 @@ AddCasadiPaths();
 
 %% General settings
 % Full body gait simulation
-slv = 1;                % run solver
-pp =1;                 % postproces
-plot = 1;               % plot solution
+slv = 0;                % run solver
+pp =0;                 % postproces
+plot = 0;               % plot solution
 batchQueue = 0;         % save settings to run later
 % Static foot simulation
-foot_standing = 0;      % load on knee
+foot_standing = 1;      % load on knee
 foot_hanging = 0;       % knee position fixed, tibia and foot hanging freely
 
 % settings for optimization
@@ -51,12 +51,12 @@ S.NThreads  = 6;        % number of threads for parallel computing
 
 % output folder
 S.ResultsFolder = 'MidTarsalJoint'; % 'MuscleModel' 'MidTarsalJoint' 'Final'
-suffixCasName = '_PFx10';         
-suffixName = '_PFx10';
+suffixCasName = '';         
+suffixName = '';
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
-S.contactStiff = 10;    % 10: contact spheres are 10x stiffer
+S.contactStiff = 1;    % 10: contact spheres are 10x stiffer
 
 % Test subject
 S.subject = 'subject1'; % barefoot
@@ -87,7 +87,7 @@ S.mtj = 1;              % 1: use a model with tmt joint (will override tmt)
 S.PF_stiffness = 'Natali2010'; % stiffness model for the gait simulation
         % options:
         % 'none''linear''Gefen2002''Cheng2008''Natali2010''Song2011'
-S.sf_PF = 10;                % multiply PF force with constant factor
+S.sf_PF = 1;                % multiply PF force with constant factor
 S.PF_slack_length = 0.15; % (m) slack length
 
 S.R_mtth = 9.5e-3;
@@ -95,10 +95,10 @@ S.WLpoly = 1;
 
 % other ligaments (long, short planter ligament, etc)
 S.MT_li_nonl = 0;       % 1: nonlinear torque-angle characteristic
-% S.mtj_stiffness = 'Gefen2002';
+S.mtj_stiffness = 'Gefen2002';
 % S.mtj_stiffness = 'Ker1987';
 % S.mtj_stiffness = 'signed_lin';
-S.mtj_stiffness = 'fitted6';
+% S.mtj_stiffness = 'fitted6';
 
 S.kMT_li = 300;          % angular stiffness in case of linear
 S.kMT_li2 = 10;          % angular stiffness in case of linear
@@ -338,8 +338,11 @@ end
 
 %% Static model of foot
 if foot_standing
+    k_MT = [50:50:800,900:100:1200];
     for i=1:numel(PF_stiffness)
         S.PF_stiffness = PF_stiffness{i};
+%         for i=1:length(k_MT)
+%             S.kMT_li = k_MT(i);
 %         f_staticFootCompression_v2(S);
         f_staticFootCompression_v5(S);
     end

@@ -42,7 +42,7 @@ clc
 %%
 add_tmtj = 0;
 add_mtj = 0;
-add_mtj2 = 1;
+add_mtj2 = 1; % This is the final version
 
 %% parameters from original model
 % Pog s1
@@ -791,8 +791,8 @@ if add_mtj2
     % physical plantar fascia length (instead of force path)
     L_fa = norm(m1c.t.mtpj - [0;7.5e-3;0] - m1c.t.PF(:,1));
 %     L_fa - l_PF_fa
-    L_mtth = 7.5e-3*pi/2;
-%     L_mtth = 9.5e-3*pi/2;
+%     L_mtth = 7.5e-3*pi/2;
+    L_mtth = 9.5e-3*pi/4;
     L = L_fa+L_mtth;
     
     

@@ -176,7 +176,7 @@ plot(q_mt*180/pi,-q_mt*k_mtj,'DisplayName',['k = ' num2str(k_mtj) ' Nm/rad'])
 
 %%
 
-figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab\PF_stiffness';
+% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab\PF_stiffness';
 % 
 % h1=figure;
 % for i=1:numel(PF_stiffness)
@@ -208,95 +208,90 @@ figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab\PF_stiffness';
 % set(h2,'PaperPositionMode','auto')
 % print(h2,[figNamePrefix '_mtj2'],'-dpng','-r0')
 
-% h3=figure;
-% for i=1:numel(PF_stiffness)
-%     hold on
-%     plot(q_mtp*180/pi,T_mtp3(i,:),'DisplayName',PF_stiffness{i})
-%     grid on
-%     legend('Location','best')
-%     xlabel('Mtp angle (°)')
-%     ylabel('Torque (Nm)')
-%     title('Full mtp torque')
-% end
-% plot(q_mtp*180/pi,-17*q_mtp,'--','DisplayName','original')
+h3=figure;
+CsV = hsv(numel(PF_stiffness));
+for i=1:numel(PF_stiffness)
+    hold on
+    plot(q_mtp*180/pi,T_mtp3(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i})
+end
+grid on
+legend('Location','best')
+xlabel('Mtp angle (°)')
+ylabel('Torque (Nm)')
+title('Full mtp torque')
+plot(q_mtp*180/pi,-17*q_mtp,'--','DisplayName','Falisse 2019')
+xlim([-20,45])
+    
 
 % set(h3,'PaperPositionMode','auto')
 % print(h3,[figNamePrefix '_mtpj'],'-dpng','-r0')
 
-scs = get(0,'ScreenSize');
-fsq = [scs(3)/2, scs(4)*0.6];
-h4=figure('Position',[100,500,fsq*0.5]);
-CsV = hsv(numel(PF_stiffness)+3);
-A0 = 49.7; % initial cross-section (mm^2)
-for i=1:numel(PF_stiffness)
-    hold on
-    plot((l-ls)/ls*100,F_PF(i,:)/A0,'Color',CsV(i+1,:),'DisplayName',PF_stiffness{i})
-    grid on
-end
-lg=legend('Location','northwest');
-title(lg,'Model name')
-xlabel('Engineering strain (%)')
-ylabel('Engineering stress (MPa)')
-title('Models for plantar fascia under uniaxial tension')
-ylim([0,50])
-
-set(h4,'PaperPositionMode','auto')
-print(h4,'D:\OneDrive\WTK\thesis\figuren\matlab_final\PF_stiffness_models','-dpng','-r0')
-print(h4,'D:\OneDrive\WTK\thesis\figuren\matlab_final\PF_stiffness_models','-depsc')
+% scs = get(0,'ScreenSize');
+% fsq = [scs(3)/2, scs(4)*0.6];
+% h4=figure('Position',[100,500,fsq*0.5]);
+% CsV = hsv(numel(PF_stiffness)+3);
+% A0 = 49.7; % initial cross-section (mm^2)
+% for i=1:numel(PF_stiffness)
+%     hold on
+%     plot((l-ls)/ls*100,F_PF(i,:)/A0,'Color',CsV(i+1,:),'DisplayName',PF_stiffness{i})
+%     grid on
+% end
+% lg=legend('Location','northwest');
+% title(lg,'Model name')
+% xlabel('Engineering strain (%)')
+% ylabel('Engineering stress (MPa)')
+% title('Models for plantar fascia under uniaxial tension')
+% ylim([0,50])
+% 
+% set(h4,'PaperPositionMode','auto')
+% print(h4,'D:\OneDrive\WTK\thesis\figuren\matlab_final\PF_stiffness_models','-dpng','-r0')
+% print(h4,'D:\OneDrive\WTK\thesis\figuren\matlab_final\PF_stiffness_models','-depsc')
 
 
 %%
 % scs = get(0,'ScreenSize');
-% figure('Position',[1+scs(3)/2,scs(4)/2+20,scs(3)/2, scs(4)/2-100]);
+% figure('Position',[1+scs(3)/2,scs(4)/2+20,scs(3)/2, scs(4)/3]);
+% 
+% CsV = hsv(numel(PF_stiffness));
 % 
 % for i=1:numel(PF_stiffness)
-%     subplot(231)
+%     subplot(131)
 %     hold on
-%     plot((l_0p-ls)/ls*100,F_PF_0_ns(i,:),'--','Color',CsV(i+1,:),'DisplayName',[PF_stiffness{i} ' non-smoothed']);
-%     plot((l_0-ls)/ls*100,F_PF_0(i,:),'Color',CsV(i+1,:),'DisplayName',[PF_stiffness{i} ' smoothed']);
+%     plot((l_0p-ls)/ls*100,F_PF_0_ns(i,:),'--','Color',CsV(i,:),'DisplayName',[PF_stiffness{i} ' non-smoothed']);
+%     plot((l_0-ls)/ls*100,F_PF_0(i,:),'Color',CsV(i,:),'DisplayName',[PF_stiffness{i} ' smoothed']);
 %     grid on
 %     xlabel('Nominal strain (%)')
 %     ylabel('Force (N)')
 %     title('Plantar fascia force')
 %     xlim([-0.5,2.5])
-%     ylim([-10,2.5])
+%     ylim([-10,100])
 %     
-%     subplot(234)
-%     hold on
-%     plot((l_0p-ls)/ls*100,F_PF_0_ns(i,:),'--','Color',CsV(i+1,:),'DisplayName',[PF_stiffness{i} ' non-smoothed']);
-%     plot((l_0-ls)/ls*100,F_PF_0(i,:),'Color',CsV(i+1,:),'DisplayName',[PF_stiffness{i} ' smoothed']);
-%     grid on
-%     xlabel('Nominal strain (%)')
-%     ylabel('Force (N)')
-%     title('Plantar fascia force')
-%     xlim([-0.2,1])
-%     lh=legend('Location','northwest');
 %     
-%     subplot(232)
+%     subplot(132)
 %     hold on
-%     plot((l_0-ls)/ls*100,g_F_PF(i,:),'Color',CsV(i+1,:),'DisplayName',PF_stiffness{i})
+%     plot((l_0-ls)/ls*100,g_F_PF(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i})
 %     grid on
 %     xlabel('Nominal strain (%)')
 %     ylabel('\nablaF')
-%     title('Plantar fascia force gradient')
+%     title('gradient')
 %     xlim([-0.5,2.5])
 % 
-%     subplot(233)
+%     subplot(133)
 %     hold on
-%     plot((l_0-ls)/ls*100,H_F_PF(i,:),'Color',CsV(i+1,:),'DisplayName',PF_stiffness{i})
+%     plot((l_0-ls)/ls*100,H_F_PF(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i})
 %     grid on
 %     xlabel('Nominal strain (%)')
 %     ylabel('\nabla^2F')
-%     title('Plantar fascia force Hessian')
+%     title('Hessian')
 %     xlim([-0.5,2.5])
-%     
+%     lh=legend('Location','northeast');
 % end
 %     
 % lhPos = lh.Position;
-% lhPos(1) = lhPos(1)+0.5;
-% lhPos(2) = lhPos(2)+0.05;
+% % lhPos(1) = lhPos(1)+0.5;
+% % lhPos(2) = lhPos(2)+0.05;
 % set(lh,'position',lhPos);
-%     
+    
     
     
     

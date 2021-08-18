@@ -62,3 +62,55 @@ figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\FootSim';
 set(h,'PaperPositionMode','auto')
 print(h,[figNamePrefix '_Welte'],'-dpng','-r0')
 print(h,[figNamePrefix '_Welte'],'-depsc')
+
+
+%%
+
+scs = get(0,'ScreenSize');
+set(h,'Position',[scs(3)/2,400,scs(3)/4, scs(4)/4]);
+lh=legend({'Natali2010','Song2011'},'Location','northwest');
+
+figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\FootSim_PF_GRF';
+set(h,'PaperPositionMode','auto')
+print(h,[figNamePrefix],'-dpng','-r0')
+print(h,[figNamePrefix],'-depsc')
+ylabel('F_P_F (N)')
+
+
+%%
+
+scs = get(0,'ScreenSize');
+set(h,'Position',[scs(3)/2,400,scs(3)/4, scs(4)/4]);
+lh=legend({'Falisse 2019','Reule 2010','Parr 2012'},'Location','northeast');
+title(lh,'Subtalar axis orientation')
+
+figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\FootSim_subt';
+set(h,'PaperPositionMode','auto')
+print(h,[figNamePrefix],'-dpng','-r0')
+print(h,[figNamePrefix],'-depsc')
+% ylabel('Angle (°)')
+
+%% Welte
+scs = get(0,'ScreenSize');
+set(h,'Position',[scs(3)/2,400,scs(3)/4, scs(3)/4]);
+
+lh=legend({'Normal subtalar range (-30° mtp dor)','Normal subtalar range (+30° mtp dor)',...
+    '1/2 subtalar range (-30° mtp dor)','1/2 subtalar range (+30° mtp dor)',...
+    '1/3 subtalar range (-30° mtp dor)','1/3 subtalar range (+30° mtp dor)'},...
+    'Location','southoutside');
+title(lh,'Legend');
+xlim([-0.05,1.1])
+ylim([-0.05,1.1])
+
+figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\FootSim';
+set(h,'PaperPositionMode','auto')
+print(h,[figNamePrefix '_Welte_subt'],'-dpng','-r0')
+print(h,[figNamePrefix '_Welte_subt'],'-depsc')
+
+%%
+
+figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\FootSim';
+set(h,'PaperPositionMode','auto')
+print(h,[figNamePrefix '_balancing'],'-dpng','-r0')
+print(h,[figNamePrefix '_balancing'],'-depsc')
+
