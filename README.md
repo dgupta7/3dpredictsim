@@ -16,6 +16,22 @@ Besides that, the code was also adapted in accordance with recent (October 2020)
 - support for parallel computing
 - formulation with opti
 
+This branch exists in the context of the master's thesis "Effects of elastic foot arch and windlass mechanism on predictive simulation of human walking" by Lars D'Hondt.
+introduced adaptations are:
+
+- Inclusing of the midtarsal joint, with passive visco-elastic behaviour, and a plantar fascia in the sagittal plane.
+- Expanded post-processing with the focus on ground interactions and energetics.
+- Additional plots for analysis of energetics, and foot biomechanics.
+
+The main script, (/RunSim/Test_Lars.m), allows to select parameters to describe the foot biomechanics, and use the resulting model to run the simulation.
+To freely filter from the simulation results to plot figures, use the script (/Plots/make_any_plot.m).
+The script (/Plots/make_preselected_plots.m) allows to plot figures for readily available groups of results. This is the advised script to explore the simulation results.
+
+The implementation should be treated as a proof of concept. It is advised to rely on the OpenSim api for calculation of the plantar fascia-related lengths and distances, rather than the manual matlab code it is now.
+
+The readme from the original repository is still valid, so it remains:
+
+
 ### Create all input for the simulations
 
 When using a new/adapted musclulosketal model, you have to execute three steps to create the surrogate models and equations needed for optimization. An example of these steps are shown in the matlab script **./ConvertOsimModel/Example_PrepareOptimimzation.m** 
