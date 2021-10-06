@@ -108,6 +108,16 @@ if isfield(S,'mtj') && ~isempty(S.mtj) && S.mtj
         savenameparts{end+1} = 'np';
         casfuncfolparts{end+1} = 'np';
     end
+    if isfield(S,'PIM') && ~isempty(S.PIM) && S.PIM==1
+        savenameparts{end+1} = 'PIM';
+        casfuncfolparts{end+1} = 'PIM';
+        if isfield(S.W,'PIM') && ~isempty(S.W.PIM)
+            savenameparts{end+1} = ['w' num2str(S.W.PIM,2)];
+        end
+        if isfield(S.W,'P_PIM') && ~isempty(S.W.P_PIM)
+            savenameparts{end+1} = ['w' num2str(S.W.P_PIM,2)];
+        end
+    end
 else
     if isfield(S,'tmt') && ~isempty(S.tmt)
         if S.tmt && isfield(S,'dTMT') && ~isempty(S.dTMT) && ~S.tmt_locked

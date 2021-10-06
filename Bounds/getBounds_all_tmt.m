@@ -451,6 +451,14 @@ bounds.e_mtp.upper = ones(1,nq.mtp);
 bounds.a_mtp.lower = -ones(1,nq.mtp);
 bounds.a_mtp.upper = ones(1,nq.mtp);
 
+%% PIM excitations
+bounds.e_PIM.lower = zeros(1,nq.PIM);
+bounds.e_PIM.upper = ones(1,nq.PIM);
+
+%% PIM activations
+bounds.a_PIM.lower = zeros(1,nq.PIM);
+bounds.a_PIM.upper = ones(1,nq.PIM);
+
 %% Lumbar activations
 % Only used when no muscles actuate the lumbar joints (e.g. Rajagopal
 % model)
@@ -512,6 +520,9 @@ scaling.LumbarTau = 150;
 % Mtp torque actuators
 % Fixed scaling factor
 scaling.MtpTau = 100;
+% PIM force actuators
+% Fixed scaling factor
+scaling.PIMF = 5000; % this is too high
 % Time derivative of muscle activations
 % Fixed scaling factor
 scaling.vA = 100;

@@ -83,6 +83,9 @@ if isfield(S,'W')
     if ~isfield(S.W,'Mtp')
         S.W.Mtp     = 10^6;     % weight mtp excitations
     end
+    if ~isfield(S.W,'PIM')
+        S.W.PIM     = 10^3;     % weight PIM excitations
+    end
     if ~isfield(S.W,'u')
         S.W.u       = 0.001;    % weight on excitations arms actuators
     end
@@ -97,6 +100,7 @@ else
     S.W.A       = 2000;     % weight muscle activations
     S.W.exp_E   = 2;        % power metabolic energy
     S.W.Mtp     = 10^6;     % weight mtp excitations
+    S.W.PIM     = 10^6;     % weight PIM excitations
     S.W.u       = 0.001;    % weight on excitations arms actuators
     S.W.Lumbar  = 10^5;
 end

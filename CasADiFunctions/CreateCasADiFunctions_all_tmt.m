@@ -5,8 +5,12 @@ function [] = CreateCasADiFunctions_all_tmt(pathRepo,S)
 %
 % Author: Antoine Falisse
 % Date: 12/19/2018
-%
+
 % Adaptation of CasADiFunctions_all_mtp_createDefault
+%
+% Author: Lars D'Hondt (Oct 2021)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 pathPassiveMoments = [pathRepo,'/PassiveMoments'];
 addpath(genpath(pathPassiveMoments));
@@ -292,6 +296,20 @@ end
 f_lMT_vMT_dM = Function('f_lMT_vMT_dM',{qin,qdotin},{lMT,vMT,dM},...
     {'qin','qdotin'},{'lMT','vMT','dM'});
 
+%% Plantar Intrinsic Muscles
+if isfield(S,'PIM') && ~isempty(S.PIM) && S.PIM==1
+    % contraction velocity of muscle + tendon
+    qin1     = SX.sym('qin1',1);
+    qdotin1  = SX.sym('qdotin1',1);
+    qin2     = SX.sym('qin2',1);
+    qdotin2  = SX.sym('qdotin2',1);
+
+    [~,~,v_PF] = getPlantarFasciaLengthVelocity(qin1,qdotin1,qin2,qdotin2,S.R_mtth);
+
+    f_getPFvelocity = Function('f_vPF',{qin1,qdotin1,qin2,qdotin2},{v_PF},...
+        {'qin1','qdotin1','qin2','qdotin2'},{'v_PF'});
+
+end
 
 %% Midtarsal joint: muscle momentarms (approximation)
 qin     = SX.sym('qin',1);
@@ -543,47 +561,73 @@ if mtj
     qin2     = SX.sym('qin_pass2',1);
     qdotin1  = SX.sym('qdotin_pass1',1);
     qdotin2  = SX.sym('qdotin_pass2',1);
-    damp	= SX.sym('damp',1);
+    damp	 = SX.sym('damp',1);
+    
 
     f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(S.PF_stiffness,'ls',S.PF_slack_length);
 
+    
+
 %     passWLTorques_mtj = getPassiveMtjMomentWindlass_v2(qin1,qdotin1,qin2,f_PF_stiffness);
     [passWLTorques_mtj,passWLTorques_mtpj] = getPassiveMtjMomentWindlass_v3(qin1,qdotin1,qin2,f_PF_stiffness,S);
-    
+
     f_passiveWLTorques_mtj = Function('f_passiveWLTorques_mtj',{qin1,qdotin1,qin2}, ...
         {passWLTorques_mtj},{'qin1','qdotin1','qin2'},{'passWLTorques'});
-    
-%     if Mu_mtp
-%         passTorques_mtpj = passWLTorques_mtpj;
-%         
-%     else
+
+    if isfield(S,'WL_act_Sol') && ~isempty(S.WL_act_Sol) && S.WL_act_Sol
+        act_Sol = SX.sym('act_Sol',1);
         
-        % Adjust such that they all cross 0Nm at 0 ° mtp, for mtj=0
-        % Numbers are for PF slack length = 148mm;
-        % see \FootModel\compare_PF_stiffness_models.m
-        if strcmp(S.PF_stiffness,'Cheng2008')
-            offset = 1.11;
-        elseif strcmp(S.PF_stiffness,'Gefen2001')
-            offset = 0.14;
-        elseif strcmp(S.PF_stiffness,'Ker1987')
-            offset = 0.036;
-        elseif strcmp(S.PF_stiffness,'Natali2010')
-            offset = 0.75;
-        elseif strcmp(S.PF_stiffness,'Song2011')
-            offset = 0.037;
-        elseif strcmp(S.PF_stiffness,'linear')
-            offset = 0.97;
-        elseif strcmp(S.PF_stiffness,'tanh')
-            offset = 0.098;
-        else
-            offset = 0;
-        end
-        if Mu_mtp == 0 && WL_T_mtp == 1
-            offset = 0;
-        end
+        [passWLTorques_mtj,passWLTorques_mtpj] = getPassiveMtjMomentWindlass_v3(qin1,qdotin1,qin2,f_PF_stiffness,S,act_Sol);
+
+        f_passiveWLTorques_mtj_act = Function('f_passiveWLTorques_mtj_act',{qin1,qdotin1,qin2,act_Sol}, ...
+            {passWLTorques_mtj},{'qin1','qdotin1','qin2','act_Sol'},{'passWLTorques'});
+        
+        f_passiveWLTorques_mtp_act = Function('f_passiveWLTorques_mtp_act',{qin1,qdotin1,qin2,act_Sol}, ...
+            {passWLTorques_mtpj},{'qin1','qdotin1','qin2','act_Sol'},{'passWLTorques'});
+        
+        passWLTorques_mtpj = 0;
+    end
+    
+    if isfield(S,'PIM') && ~isempty(S.PIM) && S.PIM==1
+        force_PIM = SX.sym('force_PIM',1);
+        
+        [passWLTorques_mtj,passWLTorques_mtpj] = getPassiveMtjMomentWindlass_v3(qin1,qdotin1,qin2,f_PF_stiffness,S,force_PIM);
+
+        f_passiveWLTorques_mtj_PIM = Function('f_passiveWLTorques_mtj_act',{qin1,qdotin1,qin2,force_PIM}, ...
+            {passWLTorques_mtj},{'qin1','qdotin1','qin2','force_PIM'},{'passWLTorques'});
+        
+        f_passiveWLTorques_mtp_PIM = Function('f_passiveWLTorques_mtp_act',{qin1,qdotin1,qin2,force_PIM}, ...
+            {passWLTorques_mtpj},{'qin1','qdotin1','qin2','force_PIM'},{'passWLTorques'});
+        
+        passWLTorques_mtpj = 0;
+    end
+        
+    % Adjust such that they all cross 0Nm at 0 ° mtp, for mtj=0
+    % Numbers are for PF slack length = 148mm;
+    % see \FootModel\compare_PF_stiffness_models.m
+    if strcmp(S.PF_stiffness,'Cheng2008')
+        offset = 1.11;
+    elseif strcmp(S.PF_stiffness,'Gefen2001')
+        offset = 0.14;
+    elseif strcmp(S.PF_stiffness,'Ker1987')
+        offset = 0.036;
+    elseif strcmp(S.PF_stiffness,'Natali2010')
+        offset = 0.75;
+    elseif strcmp(S.PF_stiffness,'Song2011')
+        offset = 0.037;
+    elseif strcmp(S.PF_stiffness,'linear')
+        offset = 0.97;
+    elseif strcmp(S.PF_stiffness,'tanh')
+        offset = 0.098;
+    else
+        offset = 0;
+    end
+    if Mu_mtp == 0 && WL_T_mtp == 1
+        offset = 0;
+    end
             
-        passTorques_mtpj = passWLTorques_mtpj - stiffnessMtp*qin2 - damp * qdotin2 + offset;
-%     end
+    passTorques_mtpj = passWLTorques_mtpj - stiffnessMtp*qin2 - damp * qdotin2 + offset;
+
     
     f_passiveWLTorques_mtpj = Function('f_passiveWLTorques_mtpj',{qin1,qdotin1,qin2,qdotin2,damp}, ...
         {passTorques_mtpj},{'qin1','qdotin1','qin2','qdotin2','damp'},{'passWLTorques'});
@@ -876,6 +920,15 @@ f_MtpActivationDynamics.save(fullfile(OutPath,'f_MtpActivationDynamics'));
 f_PassiveMoments.save(fullfile(OutPath,'f_PassiveMoments'));
 f_passiveTATorques.save(fullfile(OutPath,'f_passiveTATorques'));
 f_passiveWLTorques.save(fullfile(OutPath,'f_passiveWLTorques'));
+if isfield(S,'WL_act_Sol') && ~isempty(S.WL_act_Sol) && S.WL_act_Sol
+    f_passiveWLTorques_mtj_act.save(fullfile(OutPath,'f_passiveWLTorques_mtj_act'));
+    f_passiveWLTorques_mtp_act.save(fullfile(OutPath,'f_passiveWLTorques_mtp_act'));
+end
+if isfield(S,'PIM') && ~isempty(S.PIM) && S.PIM==1
+    f_passiveWLTorques_mtj_PIM.save(fullfile(OutPath,'f_passiveWLTorques_mtj_PIM'));
+    f_passiveWLTorques_mtp_PIM.save(fullfile(OutPath,'f_passiveWLTorques_mtp_PIM'));
+    f_getPFvelocity.save(fullfile(OutPath,'f_getPFvelocity'));
+end
 f_lT_vT.save(fullfile(OutPath,'f_lT_vT'));
 f_T12.save(fullfile(OutPath,'f_T12'));
 f_T13.save(fullfile(OutPath,'f_T13'));

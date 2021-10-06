@@ -251,6 +251,10 @@ guess.e_a = 0.1*ones(N,nq.arms);
 guess.a_mtp = 0.1*ones(N,nq.mtp);
 guess.e_mtp = 0.1*ones(N,nq.mtp);
 
+%% PIM activations
+guess.a_PIM = 0.1*ones(N,nq.PIM);
+guess.e_PIM = 0.1*ones(N,nq.PIM);
+
 %% Mtp lumbar activations
 % Only used when no muscles actuate the lumbar joints (e.g. Rajagopal
 % model)
@@ -321,6 +325,7 @@ orderArmInv = [jointi.sh_flex.r:jointi.sh_rot.r,...
 guess.a_a = [guess.a_a; guess.a_a(1,orderArmInv)];
 
 guess.a_mtp = [guess.a_mtp; guess.a_mtp(1,:)];
+guess.a_PIM = [guess.a_PIM; guess.a_PIM(1,:)];
 
 %% Scaling
 guess.QsQdots = guess.QsQdots./repmat(scaling.QsQdots,N+1,1);
@@ -338,6 +343,7 @@ guess.FTtilde_col = zeros(d*N,NMuscle);
 guess.QsQdots_col = zeros(d*N,2*nq.all);
 guess.a_a_col = zeros(d*N,nq.arms);
 guess.a_mtp_col = zeros(d*N,nq.mtp);
+guess.a_PIM_col = zeros(d*N,nq.PIM);
 guess.dFTtilde_col = zeros(d*N,NMuscle);
 guess.Qdotdots_col = zeros(d*N,nq.all);
 guess.a_lumbar_col = zeros(d*N,nq.trunk);
@@ -347,6 +353,7 @@ for k=1:N
     guess.QsQdots_col((k-1)*d+1:k*d,:) = repmat(guess.QsQdots(k,:),d,1);
     guess.a_a_col((k-1)*d+1:k*d,:) = repmat(guess.a_a(k,:),d,1);
     guess.a_mtp_col((k-1)*d+1:k*d,:) = repmat(guess.a_mtp(k,:),d,1);
+    guess.a_PIM_col((k-1)*d+1:k*d,:) = repmat(guess.a_PIM(k,:),d,1);
     guess.dFTtilde_col((k-1)*d+1:k*d,:) = repmat(guess.dFTtilde(k,:),d,1);
     guess.Qdotdots_col((k-1)*d+1:k*d,:) = repmat(guess.Qdotdots(k,:),d,1);
 end

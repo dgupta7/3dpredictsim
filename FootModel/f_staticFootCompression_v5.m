@@ -11,7 +11,7 @@ save_result = 1;
 overwrite = 0;
 BW = S.mass*9.81;
 % mtp angles to be considered
-Qs_mtp = [-45:15:45]*pi/180;
+% Qs_mtp = [-45:15:45]*pi/180;
 % Qs_mtp = [-30:30:30]*pi/180;
 % Qs_mtp = [-20:5:30]*pi/180;
 % Qs_mtp = [0:5:30]*pi/180;
@@ -19,13 +19,13 @@ Qs_mtp = [-45:15:45]*pi/180;
 % vertical forces on knee
 % Fs_tib = [0:100:1000];
 % Fs_tib = [0,100,320,640,960];
-% Fs_tib = [0:0.1:1.5]*10*round(BW/10);
+Fs_tib = [0:0.1:1.5]*10*round(BW/10);
 % Fs_tib = [0:50:300,400:100:1000,1250:250:3000];
 % Fs_tib = [0:50:300,400:100:1000,1250:250:2700];
 % Fs_tib = [0:50:1000,1100:100:6000];
 
-% Qs_mtp = [0]*pi/180;
-Fs_tib = [0];
+Qs_mtp = [0]*pi/180;
+% Fs_tib = [0];
 
 n_mtp = length(Qs_mtp);
 n_tib = length(Fs_tib);
@@ -38,7 +38,8 @@ subtR = 1; % reduce subtalar mobility
 %% Build savename
 % name of external function
 if strcmp(S.subject,'s1_Poggensee')
-    ext_name = 'Foot_3D_Pog_s1_mtj_subt1_v3';
+%     ext_name = 'Foot_3D_Pog_s1_mtj_subt1_v3';
+    ext_name = 'Foot_3D_Pog_s1_mtj_v6';
 
 elseif strcmp(S.subject,'subject1')
 %     ext_name = 'Foot_3D_Fal_s1_mtj_subt1_v1';

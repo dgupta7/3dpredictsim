@@ -17,7 +17,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clear all
-% close all
+close all
 clc
 
 %% Paths
@@ -35,12 +35,12 @@ AddCasadiPaths();
 
 %% General settings
 % Full body gait simulation
-slv = 0;                % run solver
-pp =0;                 % postproces
+slv = 1;                % run solver
+pp = 1;                 % postproces
 plot = 0;               % plot solution
 batchQueue = 0;         % save settings to run later
 % Static foot simulation
-foot_standing = 1;      % load on knee
+foot_standing = 0;      % load on knee
 foot_hanging = 0;       % knee position fixed, tibia and foot hanging freely
 
 % settings for optimization
@@ -51,12 +51,12 @@ S.NThreads  = 6;        % number of threads for parallel computing
 
 % output folder
 S.ResultsFolder = 'MidTarsalJoint'; % 'MuscleModel' 'MidTarsalJoint' 'Final'
-suffixCasName = '';         
+suffixCasName = '_v2';         
 suffixName = '';
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
-S.contactStiff = 1;    % 10: contact spheres are 10x stiffer
+S.contactStiff = 10;    % 10: contact spheres are 10x stiffer
 
 % Test subject
 S.subject = 'subject1'; % barefoot
@@ -84,17 +84,24 @@ S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsifl
 
 S.mtj = 1;              % 1: use a model with tmt joint (will override tmt)
 % plantar fascia
-S.PF_stiffness = 'Natali2010'; % stiffness model for the gait simulation
+S.PF_stiffness = 'Gefen2002'; % stiffness model for the gait simulation
         % options:
         % 'none''linear''Gefen2002''Cheng2008''Natali2010''Song2011'
 S.sf_PF = 1;                % multiply PF force with constant factor
+S.WL_act_Sol = 0;
+
 S.PF_slack_length = 0.15; % (m) slack length
 
 S.R_mtth = 9.5e-3;
 S.WLpoly = 1;
 
+% Plantar Intrinsic Muscles
+S.PIM = 1;
+S.W.PIM = 10^3;
+S.W.P_PIM = 500;
+
 % other ligaments (long, short planter ligament, etc)
-S.MT_li_nonl = 0;       % 1: nonlinear torque-angle characteristic
+S.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
 S.mtj_stiffness = 'Gefen2002';
 % S.mtj_stiffness = 'Ker1987';
 % S.mtj_stiffness = 'signed_lin';
@@ -108,7 +115,7 @@ S.stiffen_arch = 0;      % (Nm/rad) extra stiffness added to arch (mtj)
 
 % PF reaction torque on mtp joint
 S.WL_T_mtp = 1;         % 0: spring mtp, 1: PF reaction on mtp
-S.Mu_mtp = 1;           % 0: torque actuator, 1: muscles connected to mtp
+S.Mu_mtp = 0;           % 0: torque actuator, 1: muscles connected to mtp
     
 S.kMTP = 1;
 % S.dMTP = 0;
@@ -303,22 +310,35 @@ else
                 batchQ.(S.savename).PredSim = 'f_PredSim_Gait92_tmt_v2';
                 batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92_tmt_v2';
             else
-                batchQ.(S.savename).PredSim = 'f_PredSim_Gait92_tmt';
-                batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92_tmt';
+                if isfield(S,'PIM') && ~isempty(S.PIM) && S.PIM==1
+                    batchQ.(S.savename).PredSim = 'f_PredSim_Gait92_mtj_PIM';
+                    batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92_mtj_PIM';
+                else
+                    batchQ.(S.savename).PredSim = 'f_PredSim_Gait92_tmt';
+                    batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92_tmt';
+                end
             end
         end
         if slv
             if S.Mu_mtp
                 f_PredSim_Gait92_tmt_v2(S);
             else
-                f_PredSim_Gait92_tmt(S);
+                if isfield(S,'PIM') && ~isempty(S.PIM) && S.PIM==1
+                    f_PredSim_Gait92_mtj_PIM(S);
+                else
+                    f_PredSim_Gait92_tmt(S);
+                end
             end
         end
         if pp
             if S.Mu_mtp
                 f_LoadSim_Gait92_tmt_v2(S.ResultsFolder,S.savename);
             else
-                f_LoadSim_Gait92_tmt(S.ResultsFolder,S.savename);
+                if isfield(S,'PIM') && ~isempty(S.PIM) && S.PIM==1
+                    f_LoadSim_Gait92_mtj_PIM(S.ResultsFolder,S.savename);
+                else
+                    f_LoadSim_Gait92_tmt(S.ResultsFolder,S.savename);
+                end
             end
         end
     end

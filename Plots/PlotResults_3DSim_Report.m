@@ -73,7 +73,6 @@ line_linewidth  = 0.5;
 NumTicks = 6;
 CsV = hsv(nr);
 
-   
         
 for inr=1:nr
     load(ResultsFile{inr},'R');
@@ -113,6 +112,18 @@ for inr=1:nr
     iquadriceps_femoris(2) = find(strcmp(R.colheaders.muscles,'vas_med_r'));
     iquadriceps_femoris(3) = find(strcmp(R.colheaders.muscles,'vas_int_r'));
     iquadriceps_femoris(4) = find(strcmp(R.colheaders.muscles,'vas_lat_r'));
+    
+    igluteus_maximus(1) = find(strcmp(R.colheaders.muscles,'glut_max1_r'));
+    igluteus_maximus(2) = find(strcmp(R.colheaders.muscles,'glut_max2_r'));
+    igluteus_maximus(3) = find(strcmp(R.colheaders.muscles,'glut_max3_r'));
+    
+    igluteus_medius(1) = find(strcmp(R.colheaders.muscles,'glut_med1_r'));
+    igluteus_medius(2) = find(strcmp(R.colheaders.muscles,'glut_med2_r'));
+    igluteus_medius(3) = find(strcmp(R.colheaders.muscles,'glut_med3_r'));
+    
+    igluteus_minimus(1) = find(strcmp(R.colheaders.muscles,'glut_min1_r'));
+    igluteus_minimus(2) = find(strcmp(R.colheaders.muscles,'glut_min2_r'));
+    igluteus_minimus(3) = find(strcmp(R.colheaders.muscles,'glut_min3_r'));
     
     % get GRFs
     GRF1 = R.GRFs_separate(:,2);
@@ -166,31 +177,59 @@ for inr=1:nr
 
         l_PF = R.windlass.l_PF;
         F_PF = R.windlass.F_PF;
+        if isfield(R.S,'PIM') && ~isempty(R.S.PIM) && R.S.PIM==1
+            F_PIM = R.windlass.F_PIM(:,2);
+        else
+            F_PIM = zeros(size(F_PF));
+        end
         qdot_mtj = R.Qdots(:,imtj)*pi/180;
-        M_li = R.windlass.M_li;
-        M_mtp = R.windlass.M_mtp;
+        M_mtj_li = R.windlass.M_li;
+        M_mtj_PF = -R.windlass.MA_PF.*F_PF;
+        M_mtj_PIM = -R.windlass.MA_PF.*F_PIM;
+        M_mtp_PF = -R.S.R_mtth*F_PF;
+        M_mtp_PIM = -R.S.R_mtth*F_PIM;
 
         dt = R.tf_step*2/length(x);
         v_PF = zeros(length(x),1);
+        v_PF_2 = v_PF;
         for ii=1:length(x)
             i2h = mod(ii+1,length(x))+1; % loop around at the end
             i1h = mod(ii+0,length(x))+1;
             i0h = mod(ii-1,length(x))+1;
             v_PF(ii) = -(l_PF(i2h) - 4*l_PF(i1h) + 3*l_PF(i0h))/(2*dt);
+            
+            [~,~,tmp]= getPlantarFasciaLengthVelocity(R.Qs(ii,imtj)*pi/180,...
+                qdot_mtj(ii),R.Qs(ii,imtp)*pi/180,R.Qdots(ii,imtp)*pi/180);
+            v_PF_2(ii) = tmp;
         end
+        
+%         figure
+%         subplot(1,2,1)
+%         plot(x,v_PF)
+%         hold on
+%         plot(x,v_PF_2,'--')
+%         plot(x,v_PF-v_PF_2,':')
+%         subplot(1,2,2)
+%         plot(x,(v_PF-v_PF_2)./v_PF_2)
+        
+        v_PF = v_PF_2;
+        
         P_PF = -v_PF.*F_PF/R.body_mass;
-        P_mtj_li = qdot_mtj.*M_li/R.body_mass;
-        P_mtj_WL = P_mtj - P_mtj_li;
-        P_mtp_WL = R.Qdots(:,imtp)*pi/180.*M_mtp/R.body_mass;
+        P_PIM = -v_PF.*F_PIM/R.body_mass;
+        P_mtj_li = qdot_mtj.*M_mtj_li/R.body_mass;
+        P_mtj_PF = qdot_mtj.*M_mtj_PF/R.body_mass;
+        P_mtj_PIM = qdot_mtj.*M_mtj_PIM/R.body_mass;
+        P_mtp_PF = R.Qdots(:,imtp)*pi/180.*M_mtp_PF/R.body_mass;
+        P_mtp_PIM = R.Qdots(:,imtp)*pi/180.*M_mtp_PF/R.body_mass;
 
         W_PF = zeros(size(P_PF));
         W_li = zeros(size(P_mtj_li));
-        W_mtp_WL = zeros(size(P_mtp_WL));
+        W_mtp_WL = zeros(size(P_mtp_PF));
 
         for iw=2:length(xst_10)
             W_PF(iw) = trapz(R.t(1:iw),P_PF(1:iw));
             W_li(iw) = trapz(R.t(1:iw),P_mtj_li(1:iw));
-            W_mtp_WL(iw) = trapz(R.t(1:iw),P_mtp_WL(1:iw));
+            W_mtp_WL(iw) = trapz(R.t(1:iw),P_mtp_PF(1:iw));
             W_mtj(iw) = trapz(R.t(1:iw),P_mtj(1:iw));
         end
 
@@ -199,8 +238,10 @@ for inr=1:nr
         P_PF = zeros(size(P_mtp));
         P_mtj = zeros(size(P_mtp));
         P_mtj_li = P_mtj;
-        P_mtj_WL = zeros(size(P_mtp));
-        P_mtp_WL = zeros(size(P_mtp));
+        P_mtj_PF = zeros(size(P_mtp));
+        P_mtj_PIM = zeros(size(P_mtp));
+        P_mtp_PF = zeros(size(P_mtp));
+        P_mtp_PIM = zeros(size(P_mtp));
         W_mtj = zeros(size(W_mtp));
     end
 
@@ -412,13 +453,13 @@ for inr=1:nr
                 xlim([0,100])
             end
             if i == 3
-                lh1=legend('-DynamicLegend','location','northwest');
-                lh1.Interpreter = 'tex';
-                lhPos = lh1.Position;
-                lhPos(1) = lhPos(1)+0.17;
-%                 lhPos(2) = lhPos(2)+0.1;
-                lh1.Box='off';
-                set(lh1,'position',lhPos);
+%                 lh1=legend('-DynamicLegend','location','northwest');
+%                 lh1.Interpreter = 'tex';
+%                 lhPos = lh1.Position;
+%                 lhPos(1) = lhPos(1)+0.17;
+% %                 lhPos(2) = lhPos(2)+0.1;
+% %                 lh1.Box='off';
+%                 set(lh1,'position',lhPos);
             end
         end
         
@@ -426,6 +467,86 @@ for inr=1:nr
             set(h1,'PaperPositionMode','auto')
             print(h1,[figNamePrefix '_qs'],'-dpng','-r0')
             print(h1,[figNamePrefix '_qs'],'-depsc')
+        end
+        
+        if inr==1
+            h1a = figure('Position',[fpos(1,:),fwide]);
+        else
+            figure(h1a);
+        end
+        j = 0;
+        label_fontsize  = 12;
+        line_linewidth  = 0.5;
+        NumTicks = 6;
+        for i = 1:length(idx_title)
+            subplot(2,4,idx_sp(i))
+            x = 1:(100-1)/(size(R.Qdots,1)-1):100;
+            % Experimental data
+            if  inr == 1 && md
+                idx_jref = strcmp(Qref.colheaders,joints_ref{idx_js(i)});
+                if sum(idx_jref) == 1
+                    meanPlusSTD = (Qref.Qdotall_mean(:,idx_jref) + 2*Qref.Qdotall_std(:,idx_jref)).*180/pi;
+                    meanMinusSTD = (Qref.Qdotall_mean(:,idx_jref) - 2*Qref.Qdotall_std(:,idx_jref)).*180/pi;
+
+                    stepQ = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
+                    intervalQ = 1:stepQ:size(R.Qs,1);
+                    sampleQ = 1:size(R.Qs,1);
+                    meanPlusSTD = interp1(intervalQ,meanPlusSTD,sampleQ);
+                    meanMinusSTD = interp1(intervalQ,meanMinusSTD,sampleQ);
+
+                    hold on
+                    fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName',['MoCap ' refName]);
+                    alpha(.25);
+                end
+            end
+
+            % Simulation results
+            x = 1:(100-1)/(size(R.Qs,1)-1):100;
+            hold on;
+            if (has_no_tmt && strcmp(joints_tit{idx_title(i)},'Tarsometatarsal R')) || ...
+                    (has_no_mtj && strcmp(joints_tit{idx_title(i)},'Midtarsal R'))
+                % skip this plot
+            else
+                j=j+1;
+                plot(x,R.Qdots(:,idx_Qs(j)),'linewidth',line_linewidth,'Color',CsV(inr,:),'DisplayName',LegName);
+
+            end
+
+            % Plot settings
+            if inr == nr
+                set(gca,'Fontsize',label_fontsize);
+                ttl_tmp = joints_tit{idx_title(i)};
+                title(ttl_tmp(1:end-2),'Fontsize',label_fontsize);
+                % Y-axis
+                if i == 1 || i == 4
+                    ylabel('Angular velocity (°)','Fontsize',label_fontsize);
+                end
+                % X-axis
+                L = get(gca,'XLim');
+                set(gca,'XTick',linspace(L(1),L(2),NumTicks))
+                if i > 3
+                    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+                end
+                axis tight
+                yl = get(gca, 'ylim');
+                ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+                xlim([0,100])
+            end
+            if i == 3
+%                 lh1=legend('-DynamicLegend','location','northwest');
+%                 lh1.Interpreter = 'tex';
+%                 lhPos = lh1.Position;
+%                 lhPos(1) = lhPos(1)+0.17;
+% %                 lhPos(2) = lhPos(2)+0.1;
+% %                 lh1.Box='off';
+%                 set(lh1,'position',lhPos);
+            end
+        end
+        
+        if inr==nr && ~strcmp(figNamePrefix,'none')
+            set(h1a,'PaperPositionMode','auto')
+            print(h1a,[figNamePrefix '_qdots'],'-dpng','-r0')
+            print(h1a,[figNamePrefix '_qdots'],'-depsc')
         end
     end
     
@@ -495,12 +616,12 @@ for inr=1:nr
 
             end
             if i == 3
-                lh2=legend('-DynamicLegend','location','northwest');
-                lh2.Interpreter = 'tex';
-                lhPos = lh2.Position;
-                lhPos(1) = lhPos(1)+0.15;
-                lhPos(2) = lhPos(2)+0.1;
-                set(lh2,'position',lhPos);
+%                 lh2=legend('-DynamicLegend','location','northwest');
+%                 lh2.Interpreter = 'tex';
+%                 lhPos = lh2.Position;
+%                 lhPos(1) = lhPos(1)+0.15;
+%                 lhPos(2) = lhPos(2)+0.1;
+%                 set(lh2,'position',lhPos);
             end
         end
         
@@ -766,6 +887,7 @@ for inr=1:nr
             hold on
             grid on
             plot(COPz,COPx,'.','Color',CsV(inr,:),'DisplayName',LegName);
+%             plot(x(istance_COPR),COPx,'.','Color',CsV(inr,:),'DisplayName',LegName);
             axis equal
             ylabel('Direction of walking (mm)')
             xlabel('Lateral (mm)')
@@ -784,7 +906,18 @@ for inr=1:nr
                 subplot(2,4,i)
                 hold on
                 if strcmp(RefData,'Fal_s1')
-                    p0=plot(Dat.(type).gc.GRF.Fmean(:,i),'-k','LineWidth',1,'DisplayName','Measured');
+%                     p0=plot(Dat.(type).gc.GRF.Fmean(:,i),'-k','LineWidth',1,'DisplayName','Measured');
+                    
+                    meanPlusSTD = Dat.Normal.gc.GRF.Fmean(:,i) + 2*Dat.Normal.gc.GRF.Fstd(:,i);
+                    meanMinusSTD = Dat.Normal.gc.GRF.Fmean(:,i) - 2*Dat.Normal.gc.GRF.Fstd(:,i);
+                    stepQ = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
+                    intervalQ = 1:stepQ:size(R.Qs,1);
+                    sampleQ = 1:size(R.Qs,1);
+                    meanPlusSTD = interp1(intervalQ,meanPlusSTD,sampleQ);
+                    meanMinusSTD = interp1(intervalQ,meanMinusSTD,sampleQ);
+                    fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName','Measured');
+                    alpha(.25);
+
                 else
                     p0=plot(Dat.(type).gc.GRF.Fmean(:,i)/(R.body_mass*9.81)*100,'-k','LineWidth',1,'Measured');
                 end
@@ -887,9 +1020,20 @@ for inr=1:nr
             file = 'PF_force_Caravaggi09.png';
             pathRefImg = fullfile(pathRepo,folder,file);
             img_F_PF = imread(pathRefImg);
-            
+            file = 'talus_metatarsal_1_Lundgren_2008.png';
+            pathRefImg = fullfile(pathRepo,folder,file);
+            img_talus_mtt1 = imread(pathRefImg);
+            file = 'talus_metatarsal_1_inv_Lundgren_2008.png';
+            pathRefImg = fullfile(pathRepo,folder,file);
+            img_talus_mtt1_inv = imread(pathRefImg);
+            file = 'talus_metatarsal_1_add_Lundgren_2008.png';
+            pathRefImg = fullfile(pathRepo,folder,file);
+            img_talus_mtt1_add = imread(pathRefImg);
             
             h5 = figure('Position',[fpos(1,:),fwide*0.5]);
+            
+            
+%             h5 = figure('Position',[fpos(1,:),fwide]);
             
 %             subplot(131)
 %             hold on
@@ -903,24 +1047,44 @@ for inr=1:nr
             subplot(121)
             hold on
             axis tight
+            ylim([-25,25])
+            xlim([0,100])
 %             hi1 = image([-12,102],flip([-72,27]+27.5),img_q_mtj);
             hi1 = image([-11,103],flip([-8,92]-42),img_q_mtj2);
             uistack(hi1,'bottom')
             xlabel('Gait cycle (%)')
             ylabel('Angle (°)')
             title('Midtarsal')
-
+            
+%             yl = get(gca,'YLim');
+%             plot([20,20],get(gca,'YLim'),'color',[1,1,1]*0.3,'LineWidth',0.2)
+%             plot([40,40],get(gca,'YLim'),'color',[1,1,1]*0.3)
+%             plot([60,60],get(gca,'YLim'),'color',[1,1,1]*0.3)
+%             plot([80,80],get(gca,'YLim'),'color',[1,1,1]*0.3)
+%             plot([0,100],[0,0],'color',[1,1,1]*0.3)
+%             plot([0,100],[-20,-20],'color',[1,1,1]*0.3)
+%             plot([0,100],[20,20],'color',[1,1,1]*0.3)
+            
             subplot(122)
             hold on
             axis tight
+            ylim([-10,60])
+            xlim([0,100])
             hi2 = image([-12,102],flip([-36,77]),img_q_mtp);
             uistack(hi2,'bottom')
             xlabel('Gait cycle (%)')
             ylabel('Angle (°)')
             title('Mtp')
+%             
+%             plot([20,20],get(gca,'YLim'),'color',[1,1,1]*0.3)
+%             plot([40,40],get(gca,'YLim'),'color',[1,1,1]*0.3)
+%             plot([60,60],get(gca,'YLim'),'color',[1,1,1]*0.3)
+%             plot([80,80],get(gca,'YLim'),'color',[1,1,1]*0.3)
+%             plot([0,100],[0,0],'color',[1,1,1]*0.3)
+%             plot([0,100],[20,20],'color',[1,1,1]*0.3)
+%             plot([0,100],[40,40],'color',[1,1,1]*0.3)
             
-            
- 
+
 %             h7 = figure('Position',[fpos(2,:),scs(3)/2, scs(4)/3]);
 %             title('Plantar fascia force, Caravaggi (2009), FE-simulation')
 %             hold on
@@ -933,6 +1097,33 @@ for inr=1:nr
 %             lh=legend('location','northwest');
 %             lh.Interpreter = 'none';
             
+
+                h5a = figure('Position',[fpos(2,:),fsq*0.6]);
+                subplot(311)
+                hold on
+                axis tight
+                xlim([0,100])
+                hi2 = image([-1,101],[-16,15],img_talus_mtt1);
+                uistack(hi2,'bottom')
+                ylabel('Dorsiflexion (°)')
+                title('First metatarsal relative to talus \rm (Lundgren and all, 2008)')
+                
+                subplot(312)
+                hold on
+                axis tight
+                xlim([0,100])
+                hi2 = image([-1,101],[-16,15],img_talus_mtt1_inv);
+                uistack(hi2,'bottom')
+                ylabel('Inversion (°)')
+                
+                subplot(313)
+                hold on
+                axis tight
+                xlim([0,100])
+                hi2 = image([-1,101],[-14,16],img_talus_mtt1_add);
+                uistack(hi2,'bottom')
+                xlabel('Stance (%)')
+                ylabel('Abduction (°)')
         end
         
         
@@ -944,16 +1135,18 @@ for inr=1:nr
         if ~isempty(imtj)
             subplot(121)
             plot(x,R.Qs(:,imtj),'linewidth',line_linewidth,'Color',CsV(inr,:),'DisplayName',LegName);
-       
+
         end
         
         subplot(122)
         plot(x,R.Qs(:,imtp),'linewidth',line_linewidth,'Color',CsV(inr,:),'DisplayName',LegName);
         
+        
+            
         if inr==nr && ~strcmp(figNamePrefix,'none')
             set(h5,'PaperPositionMode','auto')
-            print(h5,[figNamePrefix '_qs_lit'],'-dpng','-r0')
-            print(h5,[figNamePrefix '_qs_lit'],'-depsc')
+            print(h5,[figNamePrefix '_qs_lit_1'],'-dpng','-r0')
+            print(h5,[figNamePrefix '_qs_lit_1'],'-depsc')
         end
         
         %         
@@ -965,9 +1158,54 @@ for inr=1:nr
 %         end
 %             
         
+        u_ax_subt = [0.78717961, 0.60474746, -0.12094949]';
+        cr_subt = [0,-u_ax_subt(3),u_ax_subt(2); u_ax_subt(3),0,-u_ax_subt(1); -u_ax_subt(2),u_ax_subt(1),0];
+        u_ax_mtj = [0,0,1]';
+        cr_mtj = [0,-u_ax_mtj(3),u_ax_mtj(2); u_ax_mtj(3),0,-u_ax_mtj(1); -u_ax_mtj(2),u_ax_mtj(1),0];
 
+        q_subt_rad = R.Qs(:,isubt)*pi/180;
+        if ~isempty(imtj)
+            q_mtj_rad = R.Qs(:,imtj)*pi/180;
+        else
+            q_mtj_rad = zeros(size(q_subt_rad));
+        end
 
-    end
+        for i=1:length(q_mtj_rad)
+            R_subt = cos(q_subt_rad(i))*eye(3) + sin(q_subt_rad(i))*cr_subt + (1-cos(q_subt_rad(i)))*(u_ax_subt*u_ax_subt');
+            R_mtj = cos(q_mtj_rad(i))*eye(3) + sin(q_mtj_rad(i))*cr_mtj + (1-cos(q_mtj_rad(i)))*(u_ax_mtj*u_ax_mtj');
+            Rot = R_subt*R_mtj;
+
+            q_alpha(i) = atan(-Rot(1,2)/Rot(2,2))*180/pi;
+            q_beta(i) = atan(Rot(3,2)/sqrt(1-Rot(3,2)^2))*180/pi;
+            q_gamma(i) = atan(-Rot(3,1)/Rot(3,3))*180/pi;
+        end
+
+            figure(h5a)
+
+            subplot(311)
+            hold on
+%             plot(xst,q_alpha(istance0),'k','linewidth',line_linewidth);
+            plot(xst,q_alpha(istance0),'-.','linewidth',line_linewidth*2,'Color',CsV(inr,:),'DisplayName',LegName);
+            
+            subplot(312)
+            hold on
+%             plot(xst,q_beta(istance0),'k','linewidth',line_linewidth);
+            plot(xst,q_beta(istance0),'-.','linewidth',line_linewidth*2,'Color',CsV(inr,:),'DisplayName',LegName);
+            
+            
+            subplot(313)
+            hold on
+%             plot(xst,q_gamma(istance0),'k','linewidth',line_linewidth);
+            plot(xst,q_gamma(istance0),'-.','linewidth',line_linewidth*2,'Color',CsV(inr,:),'DisplayName',LegName);
+                        
+            if inr==nr && ~strcmp(figNamePrefix,'none')
+                set(h5a,'PaperPositionMode','auto')
+                print(h5a,[figNamePrefix '_qs_lit_2'],'-dpng','-r0')
+                print(h5a,[figNamePrefix '_qs_lit_2'],'-depsc')
+            end
+        
+        end
+    
         
         % P
     if makeplot.compareTakahashi17
@@ -1038,7 +1276,7 @@ for inr=1:nr
         W_s = [W_dist_hallux_pos,W_dist_hallux_neg,W_dist_hallux,...
             W_dist_forefoot_pos,W_dist_forefoot_neg,W_dist_forefoot,...
             W_dist_hindfoot_pos,W_dist_hindfoot_neg,W_dist_hindfoot,...
-            W_dist_shank_pos,W_dist_shank_neg,W_dist_shank]'
+            W_dist_shank_pos,W_dist_shank_neg,W_dist_shank]';
         
         br=bar(W_s);
         grid on
@@ -1094,7 +1332,7 @@ for inr=1:nr
         W_s = [W_dist_hindfoot_pos,W_dist_hindfoot_neg,W_dist_hindfoot,...
             W_anklesubt_pos,W_anklesubt_neg,W_ankle(istance(end))+W_subt(istance(end)),...
             W_anklesubthft_pos,W_anklesubthft_neg,W_dist_hindfoot+W_ankle(istance(end))+W_subt(istance(end)),...
-            W_dist_shank_pos,W_dist_shank_neg,W_dist_shank]'
+            W_dist_shank_pos,W_dist_shank_neg,W_dist_shank]';
         br=bar(W_s);
         grid on
         br.FaceColor = 'flat';
@@ -1196,6 +1434,150 @@ for inr=1:nr
         
     end
     
+    
+    if makeplot.compareTakahashi17_separate
+        pathmain = pwd;
+        [pathRepo,~,~]  = fileparts(pathmain);
+        folder = '\Figures';
+        file = 'foot_power_Takahashi17.png';
+        pathRefImg = fullfile(pathRepo,folder,file);
+        img_P_foot = imread(pathRefImg);
+        file = 'mtj_power_Takahashi17.png';
+        pathRefImg = fullfile(pathRepo,folder,file);
+        img_P_mtj = imread(pathRefImg);
+        file = 'ankle_power_Takahashi17.png';
+        pathRefImg = fullfile(pathRepo,folder,file);
+        img_P_ankle = imread(pathRefImg);
+            
+        
+        h6c = figure('Position',[fpos(4,:),flong*2]);
+        
+        subplot(121)
+        hold on
+        axis tight
+        hi3 = image([-4,108],flip([-1.71,3.6]),img_P_foot);
+        uistack(hi3,'bottom')
+        ylabel('Power (W/kg)');
+        xlabel('Stance phase (%)');
+        title({'Power based on experiment','\rm Takahashi and all, 2017'})
+        yl_1 = get(gca, 'ylim');
+        
+         subplot(122)
+        plot(xst_10,P_dist_hallux(istance),'-','Color',[0, 0.5, 0],'linewidth',line_linewidth,'DisplayName','Distal to Hallux');
+        hold on
+        grid on
+        plot(xst_10,P_dist_forefoot(istance),'-','Color',[0.7, 0.1, 0.1],'linewidth',line_linewidth,'DisplayName','Distal to Forefoot');
+        plot(xst_10,P_dist_hindfoot(istance),'-','Color',[0, 0.4470, 0.7410],'linewidth',line_linewidth,'DisplayName','Distal to Hindfoot');
+        plot(xst_10,P_tot(istance),'-','Color','k','linewidth',line_linewidth,'DisplayName','Distal to Shank');
+        yl_2 = get(gca, 'ylim');
+        ylim([min(yl_1(1),yl_2(1)), max(yl_1(2),yl_2(2))])
+        xlim([0,100])
+        ylabel('Power (W/kg)');
+        xlabel('Stance phase (%)');
+        title({'Power predicted in simulation','\rm this work'})
+        lh=legend('location','northwest');
+        
+        subplot(121)
+        ylim([min(yl_1(1),yl_2(1)), max(yl_1(2),yl_2(2))])
+        
+        if ~strcmp(figNamePrefix,'none')
+            set(h6c,'PaperPositionMode','auto')
+            print(h6c,[figNamePrefix '_Takahashi17_foot_' num2str(inr)],'-dpng','-r0')
+            print(h6c,[figNamePrefix '_Takahashi17_foot_' num2str(inr)],'-depsc')
+        end
+        
+        %
+        
+        h6d = figure('Position',[fpos(4,:),fwide*2]);
+        
+        subplot(121)
+        hold on
+        axis tight
+        hi4 = image([-6.5,109],flip([-1.64,1.69]),img_P_mtj);
+        uistack(hi4,'bottom')
+        ylabel('Power (W/kg)');
+        xlabel('Stance phase (%)');
+        yl_4 = get(gca, 'ylim');
+        title({'Power based on experiment','\rm Takahashi and all, 2017'})
+        
+        subplot(122)
+        plot(xst_10,P_dist_forefoot(istance),'--','Color',[0.7, 0.1, 0.1],'linewidth',line_linewidth,'DisplayName','Distal to Forefoot');
+        hold on
+        grid on
+        if ~isempty(imtj)
+            plot(xst_10,P_mtj(istance),'--','Color',[0.3010, 0.7450, 0.9330],'linewidth',line_linewidth,'DisplayName','Midtarsal joint');
+            plot(xst_10,P_mtj(istance)+P_dist_forefoot(istance),'-','Color',[0.3, 0.3, 0.3],'linewidth',line_linewidth,'DisplayName','Midtarsal joint + Distal to Forefoot');
+        end
+        plot(xst_10,P_dist_hindfoot(istance),'-','Color',[0, 0.4470, 0.7410],'linewidth',line_linewidth,'DisplayName','Distal to Hindfoot');
+        yl_5 = get(gca, 'ylim');
+        ylim([min(yl_4(1),yl_5(1)), max(yl_4(2),yl_5(2))])
+        xlim([0,100])
+        ylabel('Power (W/kg)');
+        xlabel('Stance phase (%)');
+        lh=legend('location','northwest');
+        lhPos = lh.Position;
+%         lhPos(1) = lhPos(1)+0.15;
+%         lhPos(2) = lhPos(2)+0.05;
+        set(lh,'position',lhPos);
+        title({'Power predicted in simulation','\rm this work'})
+        
+        subplot(121)
+        ylim([min(yl_4(1),yl_5(1)), max(yl_4(2),yl_5(2))])
+        
+        if ~strcmp(figNamePrefix,'none')
+            set(h6d,'PaperPositionMode','auto')
+            print(h6d,[figNamePrefix '_Takahashi17_mtj_' num2str(inr)],'-dpng','-r0')
+            print(h6d,[figNamePrefix '_Takahashi17_mtj_' num2str(inr)],'-depsc')
+        end
+        %
+        
+        h6e = figure('Position',[fpos(4,:),flong(1)*2,flong(2)*1.8*2]);
+        
+        subplot(121)
+        hold on
+        axis tight
+        hi4 = image([-8,103],flip([-1.64,3.1]),img_P_ankle);
+        uistack(hi4,'bottom')
+        ylabel('Power (W/kg)');
+        xlabel('Stance phase (%)');
+        yl_7 = get(gca, 'ylim');
+        title({'Power based on experiment','\rm Takahashi and all, 2017'})
+        
+        subplot(122)
+        plot(xst_10,P_dist_hindfoot(istance),'--','Color',[0, 0.4470, 0.7410],'linewidth',line_linewidth,'DisplayName','Distal to Hindfoot');
+        hold on
+        grid on
+        plot(xst_10,P_ankle(istance)+P_subt(istance),'--','Color',[0.4660, 0.6740, 0.1880],'linewidth',line_linewidth,'DisplayName','Ankle');
+%         plot(xst_10,P_ankle(istance),'--','Color',[0.4660, 0.6740, 0.1880],'linewidth',line_linewidth,'DisplayName','Ankle');
+        plot(xst_10,P_ankle(istance)+P_subt(istance)+P_dist_hindfoot(istance),'-','Color',[0.5, 0.5, 0.5],'linewidth',line_linewidth,'DisplayName','Ankle + Distal to Hindfoot');
+        plot(xst_10,P_tot(istance),'-','Color','k','linewidth',line_linewidth,'DisplayName','Distal to Shank');
+        yl_8 = get(gca, 'ylim');
+        ylim([min(yl_7(1),yl_8(1)), max(yl_7(2),yl_8(2))])
+        xlim([0,100])
+        ylabel('Power (W/kg)');
+        xlabel('Stance phase (%)');
+        title({'Power predicted in simulation','\rm this work'})
+        lh=legend('location','northwest');
+%         lhPos = lh.Position;
+%         lhPos(1) = lhPos(1)+0.15;
+%         lhPos(2) = lhPos(2)-0.01;
+%         set(lh,'position',lhPos);
+        
+        
+        subplot(121)
+        ylim([min(yl_7(1),yl_8(1)), max(yl_7(2),yl_8(2))])
+        
+        
+        
+        if ~strcmp(figNamePrefix,'none')
+            set(h6e,'PaperPositionMode','auto')
+            print(h6e,[figNamePrefix '_Takahashi17_ankle_' num2str(inr)],'-dpng','-r0')
+            print(h6e,[figNamePrefix '_Takahashi17_ankle_' num2str(inr)],'-depsc')
+        end
+        
+    end
+
+    
     if makeplot.compareTakahashi17_mtj_only
         if inr==1
             pathmain = pwd;
@@ -1204,7 +1586,7 @@ for inr=1:nr
             file = 'mtj_power_Takahashi17.png';
             pathRefImg = fullfile(pathRepo,folder,file);
             img_P_mtj = imread(pathRefImg);
-            h6a = figure('Position',[fpos(4,:),fsq*0.5]);
+            h6a = figure('Position',[fpos(4,:),fsq(1)*0.5*1.5,fsq(2)*0.6*1.5]);
             hold on
             axis tight
             hi4 = image([-6.5,109],flip([-1.64,1.69]),img_P_mtj);
@@ -1235,6 +1617,115 @@ for inr=1:nr
 
     end
     
+    if makeplot.compareTakahashi17_W_bar
+        h6b = figure('Position',[fpos(4,:),fwide]);
+    
+        % results from DOI:10.1038/s41598-017-15218-7
+        ref_pos_m = [0.006,0.012,0.042,0.185];
+        ref_pos_std = [0.004,0.005,0.012,0.028];
+        ref_neg_m = [-0.013,-0.095,-0.125,-0.197];
+        ref_neg_std = [0.004,0.031,0.026,0.040];
+        ref_net_m = [-0.006,-0.083,-0.083,-0.012];
+        ref_net_std = [0.005,0.032,0.021,0.054];
+        %
+        
+        W_dist_shank = trapz(R.t(istance0),P_tot(istance0));
+        W_dist_hindfoot = trapz(R.t(istance0),P_dist_hindfoot(istance0));
+        W_dist_forefoot = trapz(R.t(istance0),P_dist_forefoot(istance0));
+        W_dist_hallux = trapz(R.t(istance0),P_dist_hallux(istance0));
+        
+        [W_dist_shank_pos,W_dist_shank_neg] = getWork(P_tot(istance0),R.t(istance0));
+        [W_dist_hindfoot_pos,W_dist_hindfoot_neg] = getWork(P_dist_hindfoot(istance0),R.t(istance0));
+        [W_dist_forefoot_pos,W_dist_forefoot_neg] = getWork(P_dist_forefoot(istance0),R.t(istance0));
+        [W_dist_hallux_pos,W_dist_hallux_neg] = getWork(P_dist_hallux(istance0),R.t(istance0));
+        
+        
+        subplot(1,2,1)
+        W_pos = [W_dist_hallux_pos,W_dist_forefoot_pos,W_dist_hindfoot_pos,W_dist_shank_pos]';
+        W_neg = [W_dist_hallux_neg,W_dist_forefoot_neg,W_dist_hindfoot_neg,W_dist_shank_neg]';
+        
+        br=bar(W_pos);
+        br.FaceColor = 'flat';
+        br.CData(1,:) = [0, 0.5, 0];
+        br.CData(2,:) = [0.7, 0.1, 0.1];
+        br.CData(3,:) = [0, 0.4470, 0.7410];
+        br.CData(4,:) = [0.3, 0.3, 0.3];
+        hold on
+        
+        ebr=errorbar([1:4],ref_pos_m,-ref_pos_std,ref_pos_std);
+        ebr.Color = [0 0 0];                            
+        ebr.LineStyle = 'none';
+        
+        grid on
+        ylabel({'Work (J/kg)','Negative  Positive'})
+        tmp=gca;
+        tmp.XTickLabel = {'Hallux','Forefoot','Hindfoot','Shank'};
+        tmp.XAxisLocation = 'top';
+%         tmp.XTickLabelRotation = 90;
+        title('Work distal to...')
+        yl_1 = tmp.YLim;
+        
+        yyaxis right
+        br=bar(W_neg);
+        br.FaceColor = 'flat';
+        br.CData(1,:) = [0, 0.5, 0];
+        br.CData(2,:) = [0.7, 0.1, 0.1];
+        br.CData(3,:) = [0, 0.4470, 0.7410];
+        br.CData(4,:) = [0.3, 0.3, 0.3];
+        hold on
+        
+        ebr=errorbar([1:4],ref_neg_m,-ref_neg_std,ref_neg_std);
+        ebr.Color = [0 0 0];                            
+        ebr.LineStyle = 'none'; 
+        
+        tmp2 = gca;
+        yl_2 = tmp2.YLim;
+                
+        tmp2.YAxis(2).Color = 'k';
+        tmp2.YTickLabel = '';
+        
+        yl_12 = [min([yl_1,yl_2]), max([yl_1,yl_2])];
+        ylim(yl_12)
+        
+        yyaxis left
+        ylim(yl_12)
+        
+
+        
+        subplot(1,2,2)
+        W_net = [W_dist_hallux,W_dist_forefoot,W_dist_hindfoot,W_dist_shank]';
+        
+        br=bar(W_net);
+        br.FaceColor = 'flat';
+        br.CData(1,:) = [0, 0.5, 0];
+        br.CData(2,:) = [0.7, 0.1, 0.1];
+        br.CData(3,:) = [0, 0.4470, 0.7410];
+        br.CData(4,:) = [0.3, 0.3, 0.3];
+        hold on
+        
+        ebr=errorbar([1:4],ref_net_m,-ref_net_std,ref_net_std);
+        ebr.Color = [0 0 0];                            
+        ebr.LineStyle = 'none';
+        
+        grid on
+        ylabel('Net Work (J/kg)')
+        tmp=gca;
+        tmp.XTickLabel = {'Hallux','Forefoot','Hindfoot','Shank'};
+        tmp.XAxisLocation = 'top';
+%         tmp.XTickLabelRotation = 90;
+        title('Work distal to...')
+        ylim(yl_12)
+        
+        legend({['Simulation (' LegName ')'],'Experiment (Takahashi 2017)'},'Location','northeast')
+        
+        
+        if ~strcmp(figNamePrefix,'none')
+            set(h6b,'PaperPositionMode','auto')
+            print(h6b,[figNamePrefix '_Takahashi17_W_bar_' num2str(inr)],'-dpng','-r0')
+            print(h6b,[figNamePrefix '_Takahashi17_W_bar_' num2str(inr)],'-depsc')
+        end
+        
+    end
     
     %% centre of pressure
 %     if makeplot.COP
@@ -1497,109 +1988,109 @@ for inr=1:nr
         
     
     %%
-    x = 1:(100-1)/(size(R.Qs,1)-1):100;
-    if makeplot.k_mtj_lin
-        if inr==1
-            h11 = figure('Position',[fpos(4,:),fwide]);
-        end
-        
-        imtj = find(strcmp(R.colheaders.joints,'mtj_angle_r'));
-        iankle = strcmp(R.colheaders.joints,'ankle_angle_r');
-        isubt = strcmp(R.colheaders.joints,'subtalar_angle_r');
-        imtp = find(strcmp(R.colheaders.joints,'mtp_angle_r'));
-        
-    
-        if ~isempty(imtj) && (R.S.MT_li_nonl == 0 || strcmp(R.S.mtj_stiffness,'signed_lin'))
-        
-            W_ankle = zeros(length(x),1);
-            W_subt = zeros(length(x),1);
-            W_mtp = zeros(length(x),1);
-            W_mtj = zeros(length(x),1);
-            
-            for ii=2:length(x)
-               W_ankle(ii) = trapz(R.Qs(1:ii,iankle)*pi/180,R.Tid(1:ii,iankle));
-               W_subt(ii) = trapz(R.Qs(1:ii,isubt)*pi/180,R.Tid(1:ii,isubt));
-               W_mtp(ii) = trapz(R.Qs(1:ii,imtp)*pi/180,R.Tid(1:ii,imtp));
-               W_mtj(ii) = trapz(R.Qs(1:ii,imtj)*pi/180,R.Tid(1:ii,imtj));
-            end
-            W_mtj(2:end) = (W_mtj(2:end)-W_mtj(2))/R.body_mass;
-            W_ankle(2:end) = (W_ankle(2:end)-W_ankle(2))/R.body_mass;
-            W_subt(2:end) = (W_subt(2:end)-W_subt(2))/R.body_mass;
-            W_mtp(2:end) = (W_mtp(2:end)-W_mtp(2))/R.body_mass;
-            W_tot = W_mtj + W_ankle + W_subt + W_mtp;
-            
-            figure(h11)
-            subplot(2,4,1)
-            hold on
-            grid on
-            plot(R.S.kMT_li,W_tot(end),'o','Color',Cs,'MarkerFaceColor',Cs)
-            ylabel('Work (J/kg)')
-            title('W_{mech} foot (1 GC)')
-
-            
-
-            subplot(2,4,5)
-            hold on
-            grid on
-            plot(R.S.kMT_li,R.COT*dist_trav,'o','Color',Cs,'MarkerFaceColor',Cs)
-            xlabel('mtj stiffness (Nm/rad)')
-            ylabel('Metab. Energy (J/kg)')
-            title('E_{metab} foot (1 GC)')
-
-            subplot(2,4,2)
-            hold on
-            grid on
-            plot(R.S.kMT_li,W_tot(end)/dist_trav,'o','Color',Cs,'MarkerFaceColor',Cs)
-            ylabel('Work (J/(kg m))')
-            title({'W_{mech} foot (1 m)'})
-
-            subplot(2,4,6)
-            hold on
-            grid on
-            plot(R.S.kMT_li,R.COT,'o','Color',Cs,'MarkerFaceColor',Cs)
-            xlabel('mtj stiffness (Nm/rad)')
-            ylabel('COT (J/(kg m)')
-            title('Cost of transport')
-
-
-            subplot(2,4,3)
-            hold on
-            grid on
-            plot(R.S.kMT_li,max(R.Qs(:,imtj)),'o','Color',Cs,'MarkerFaceColor',Cs)
-            ylabel('angle (°)')
-            title({'Max mtj angle'})
-        
-            subplot(2,4,7)
-            hold on
-            grid on
-            plot(R.S.kMT_li,min(R.Qs(:,imtj)),'o','Color',Cs,'MarkerFaceColor',Cs)
-            xlabel('mtj stiffness (Nm/rad)')
-            ylabel('angle (°)')
-            title({'Min mtj angle'})
-            
-            subplot(2,4,4)
-            hold on
-            grid on
-            plot(R.S.kMT_li,max(R.Qs(:,imtp)),'o','Color',Cs,'MarkerFaceColor',Cs)
-            ylabel('angle (°)')
-            title({'Max mtp angle'})
-        
-            subplot(2,4,8)
-            hold on
-            grid on
-            plot(R.S.kMT_li,min(R.Qs(:,imtp)),'o','Color',Cs,'MarkerFaceColor',Cs)
-            xlabel('mtj stiffness (Nm/rad)')
-            ylabel('angle (°)')
-            title({'Min mtp angle'})
-            
-        end
-        
-        if inr==nr && ~strcmp(figNamePrefix,'none')
-            set(h11,'PaperPositionMode','auto')
-            print(h11,[figNamePrefix '_k_mtj_lin'],'-dpng','-r0')
-        end
-        
-    end
+%     x = 1:(100-1)/(size(R.Qs,1)-1):100;
+%     if makeplot.k_mtj_lin
+%         if inr==1
+%             h11 = figure('Position',[fpos(4,:),fwide]);
+%         end
+%         
+%         imtj = find(strcmp(R.colheaders.joints,'mtj_angle_r'));
+%         iankle = strcmp(R.colheaders.joints,'ankle_angle_r');
+%         isubt = strcmp(R.colheaders.joints,'subtalar_angle_r');
+%         imtp = find(strcmp(R.colheaders.joints,'mtp_angle_r'));
+%         
+%     
+%         if ~isempty(imtj) && (R.S.MT_li_nonl == 0 || strcmp(R.S.mtj_stiffness,'signed_lin'))
+%         
+%             W_ankle = zeros(length(x),1);
+%             W_subt = zeros(length(x),1);
+%             W_mtp = zeros(length(x),1);
+%             W_mtj = zeros(length(x),1);
+%             
+%             for ii=2:length(x)
+%                W_ankle(ii) = trapz(R.Qs(1:ii,iankle)*pi/180,R.Tid(1:ii,iankle));
+%                W_subt(ii) = trapz(R.Qs(1:ii,isubt)*pi/180,R.Tid(1:ii,isubt));
+%                W_mtp(ii) = trapz(R.Qs(1:ii,imtp)*pi/180,R.Tid(1:ii,imtp));
+%                W_mtj(ii) = trapz(R.Qs(1:ii,imtj)*pi/180,R.Tid(1:ii,imtj));
+%             end
+%             W_mtj(2:end) = (W_mtj(2:end)-W_mtj(2))/R.body_mass;
+%             W_ankle(2:end) = (W_ankle(2:end)-W_ankle(2))/R.body_mass;
+%             W_subt(2:end) = (W_subt(2:end)-W_subt(2))/R.body_mass;
+%             W_mtp(2:end) = (W_mtp(2:end)-W_mtp(2))/R.body_mass;
+%             W_tot = W_mtj + W_ankle + W_subt + W_mtp;
+%             
+%             figure(h11)
+%             subplot(2,4,1)
+%             hold on
+%             grid on
+%             plot(R.S.kMT_li,W_tot(end),'o','Color',Cs,'MarkerFaceColor',Cs)
+%             ylabel('Work (J/kg)')
+%             title('W_{mech} foot (1 GC)')
+% 
+%             
+% 
+%             subplot(2,4,5)
+%             hold on
+%             grid on
+%             plot(R.S.kMT_li,R.COT*dist_trav,'o','Color',Cs,'MarkerFaceColor',Cs)
+%             xlabel('mtj stiffness (Nm/rad)')
+%             ylabel('Metab. Energy (J/kg)')
+%             title('E_{metab} foot (1 GC)')
+% 
+%             subplot(2,4,2)
+%             hold on
+%             grid on
+%             plot(R.S.kMT_li,W_tot(end)/dist_trav,'o','Color',Cs,'MarkerFaceColor',Cs)
+%             ylabel('Work (J/(kg m))')
+%             title({'W_{mech} foot (1 m)'})
+% 
+%             subplot(2,4,6)
+%             hold on
+%             grid on
+%             plot(R.S.kMT_li,R.COT,'o','Color',Cs,'MarkerFaceColor',Cs)
+%             xlabel('mtj stiffness (Nm/rad)')
+%             ylabel('COT (J/(kg m)')
+%             title('Cost of transport')
+% 
+% 
+%             subplot(2,4,3)
+%             hold on
+%             grid on
+%             plot(R.S.kMT_li,max(R.Qs(:,imtj)),'o','Color',Cs,'MarkerFaceColor',Cs)
+%             ylabel('angle (°)')
+%             title({'Max mtj angle'})
+%         
+%             subplot(2,4,7)
+%             hold on
+%             grid on
+%             plot(R.S.kMT_li,min(R.Qs(:,imtj)),'o','Color',Cs,'MarkerFaceColor',Cs)
+%             xlabel('mtj stiffness (Nm/rad)')
+%             ylabel('angle (°)')
+%             title({'Min mtj angle'})
+%             
+%             subplot(2,4,4)
+%             hold on
+%             grid on
+%             plot(R.S.kMT_li,max(R.Qs(:,imtp)),'o','Color',Cs,'MarkerFaceColor',Cs)
+%             ylabel('angle (°)')
+%             title({'Max mtp angle'})
+%         
+%             subplot(2,4,8)
+%             hold on
+%             grid on
+%             plot(R.S.kMT_li,min(R.Qs(:,imtp)),'o','Color',Cs,'MarkerFaceColor',Cs)
+%             xlabel('mtj stiffness (Nm/rad)')
+%             ylabel('angle (°)')
+%             title({'Min mtp angle'})
+%             
+%         end
+%         
+%         if inr==nr && ~strcmp(figNamePrefix,'none')
+%             set(h11,'PaperPositionMode','auto')
+%             print(h11,[figNamePrefix '_k_mtj_lin'],'-dpng','-r0')
+%         end
+%         
+%     end
        
     %% Windlass
     if makeplot.windlass
@@ -1646,6 +2137,9 @@ for inr=1:nr
                 subplot(2,3,2)
                 hold on
                 plot(x,F_PF/(R.body_mass*9.81)*100,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+                if isfield(R.S,'PIM') && ~isempty(R.S.PIM) && R.S.PIM==1
+                    plot(x,F_PIM/(R.body_mass*9.81)*100,'--','color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+                end
                 title('Plantar fascia force')
                 xlabel('Gait cycle (%)','Fontsize',label_fontsize);
                 ylabel('Force/BW (%)','Fontsize',label_fontsize);
@@ -1835,7 +2329,7 @@ for inr=1:nr
         pos_P_all = {P_tot, P_joints, P_HC, 'none',...
                    P_HC_heel, P_HC_ball, P_HC_toes, P_leg_joints,...
                    P_ankle, P_subt, P_mtj, P_mtp,...
-                   P_hip, P_knee, P_mtj_li, P_mtp-P_mtp_WL,...
+                   P_hip, P_knee, P_mtj_li, P_mtp-P_mtp_PF,...
                    P_M_hamstrings,P_M_quadriceps_femoris,P_At,P_M_tri_sur};
                
         titles_P_all = {{'Ankle-foot','\fontsize{10}\rm joints + pads'},...
@@ -2179,7 +2673,8 @@ for inr=1:nr
             if inr == 1
                 Ws_cat = categorical({'Hip','Knee','Ankle','Subt','Mtj',...
                     'Mtp','Joints total','Heel','Forefoot','toes','Sol act',...
-                    'Gas act','Achilles tendon','Plantar fascia','Mtj non-PF'});
+                    'Gas act','Achilles tendon','Plantar fascia','Mtj ligaments',...
+                    'Plantar Intr. Mus.'});
                 Ws_pos = zeros(length(Ws_cat),nr);
                 Ws_neg = Ws_pos;
                 Ws_pos_gc = Ws_pos;
@@ -2222,22 +2717,23 @@ for inr=1:nr
             [W_sol_pos,W_sol_neg] = getWork(P_M_Sol,R.t);
             [W_gas_pos,W_gas_neg] = getWork(P_M_Gas+P_M_Gas2,R.t);
             [W_mtj_li_pos,W_mtj_li_neg] = getWork(P_mtj_li,R.t);
+            [W_mtj_PIM_pos,W_mtj_PIM_neg] = getWork(P_mtj_PIM,R.t);
 %             [E_sol_pos,E_sol_neg] = getWork(P_E_Sol,R.t);
 %             [E_gas_pos,E_gas_neg] = getWork(P_E_Gas+P_E_Gas2,R.t);
             
             Wi_pos = [W_hip_pos;W_knee_pos;W_ankle_pos;W_subt_pos;W_mtj_pos;W_mtp_pos];
             Ws_pos_gc(:,inr) = [Wi_pos;W_sum_pos;W_heel_pos;W_fft_pos;W_toes_pos;W_sol_pos;W_gas_pos;...
-                W_At_pos;W_PF_pos;W_mtj_li_pos]/dist_trav;
+                W_At_pos;W_PF_pos;W_mtj_li_pos;W_mtj_PIM_pos]/dist_trav;
             
             Wi_neg = [W_hip_neg;W_knee_neg;W_ankle_neg;W_subt_neg;W_mtj_neg;W_mtp_neg];
             Ws_neg_gc(:,inr) = [Wi_neg;W_sum_neg;W_heel_neg;W_fft_neg;W_toes_neg;W_sol_neg;W_gas_neg;...
-                W_At_neg;W_PF_neg;W_mtj_li_neg]/dist_trav;
+                W_At_neg;W_PF_neg;W_mtj_li_neg;W_mtj_PIM_neg]/dist_trav;
             
             legW{inr} = LegName;
             
             % make figures
             if inr == nr
-               Ws_cat = reordercats(Ws_cat,[6,8,2,14,9,11,7, 5,3,15, 4,13, 1,12,10]);
+               Ws_cat = reordercats(Ws_cat,[6,8,2,15,9,11,7, 5,3,16, 4,14, 1,13,12,10]);
                
 %                % stance
 %                figure
@@ -2359,6 +2855,113 @@ for inr=1:nr
             end
         end
         
+        %%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+        if makeplot.work_bar_small
+            if inr == 1
+%                 Ws_cat = categorical({'Ankle-foot joints','Foot joints','Achilles tendon','Hip'});
+                Ws_cat = categorical({'Joints distal to shank','Foot joints','Achilles tendon'});
+                Ws_pos = zeros(length(Ws_cat),nr);
+                Ws_neg = Ws_pos;
+                Ws_pos_gc = Ws_pos;
+                Ws_neg_gc = Ws_pos;
+                Ws_net_gc = Ws_pos;
+            end
+
+            % full gait cycle
+            [W_hip_pos,W_hip_neg] = getWork(P_hip,R.t);
+            W_hip_net = trapz(R.t,P_hip);
+            [W_mtjmtp_pos,W_mtjmtp_neg] = getWork(P_mtj+P_mtp,R.t);
+            W_mtjmtp_net = trapz(R.t,P_mtj+P_mtp);
+            P_sum_ds = P_ankle+P_subt+P_mtj+P_mtp;
+            [W_sum_pos,W_sum_neg] = getWork(P_sum_ds,R.t);
+            W_sum_net = trapz(R.t,P_sum_ds);
+            [W_At_pos,W_At_neg] = getWork(P_T_Sol+P_T_Gas+P_T_Gas2,R.t);
+            
+%             Ws_pos_gc(:,inr) = [W_sum_pos;W_mtjmtp_pos;W_At_pos;W_hip_pos]/dist_trav;
+%             Ws_neg_gc(:,inr) = [W_sum_neg;W_mtjmtp_neg;W_At_neg;W_hip_neg]/dist_trav;
+%             Ws_net_gc(:,inr) = [W_sum_net;W_mtjmtp_net;0;W_hip_net]/dist_trav;
+            
+            Ws_pos_gc(:,inr) = [W_sum_pos;W_mtjmtp_pos;W_At_pos]/dist_trav;
+            Ws_neg_gc(:,inr) = [W_sum_neg;W_mtjmtp_neg;W_At_neg]/dist_trav;
+            Ws_net_gc(:,inr) = [W_sum_net;W_mtjmtp_net;0]/dist_trav;
+            
+            
+            legW{inr} = LegName;
+            
+            % make figures
+            if inr == nr
+%                Ws_cat = reordercats(Ws_cat,[4,2,3,1]);
+               Ws_cat = reordercats(Ws_cat,[3,2,1]);
+
+               % full gait cycle
+               h20s = figure('Position',[fpos(2,:),fhigh1]);
+               subplot(311)
+               br1=bar(Ws_cat,Ws_pos_gc);
+               grid on
+               for ibr=1:length(br1)
+                   br1(ibr).FaceColor = 'flat';
+                   br1(ibr).CData = CsV(ibr,:);
+               end
+               title('Mechanical work right leg')
+               ylabel('positive W (Jkg^{-1}m^{-1})')
+               tmp=gca;
+%                tmp.XTickLabelRotation = 90;
+%                tmp.YTick = [0:0.02:0.12];
+%                ylim([0,0.12])
+%                ylim([0,0.25])
+
+               lh20=legend(legW,'location','northeast');
+               lhPos = lh20.Position;
+%                lhPos(1) = lhPos(1)+0.1;
+               lhPos(2) = lhPos(2)+0.05;
+               set(lh20,'position',lhPos);
+               title(lh20,'Legend')
+                
+               subplot(312)
+               br2=bar(Ws_cat,Ws_neg_gc);
+               grid on
+               for ibr=1:length(br2)
+                   br2(ibr).FaceColor = 'flat';
+                   br2(ibr).CData = CsV(ibr,:);
+               end
+               ylabel('negative W (Jkg^{-1}m^{-1})')
+               tmp=gca;
+%                tmp.XTickLabel = '';
+%                tmp.XTickLabelRotation = 90;
+%                tmp.YTick = [-0.12,-0.1,-0.08,-0.06,-0.04,-0.02,0];
+%                ylim([-0.12,0])
+%                ylim([-0.25,0])
+               
+               subplot(313)
+               br3=bar(Ws_cat,Ws_net_gc);
+               grid on
+               xl = get(gca, 'xlim');
+%                axis tight
+               yl = get(gca, 'ylim');
+               xlim(xl)
+               for ibr=1:length(br3)
+                   br3(ibr).FaceColor = 'flat';
+                   br3(ibr).CData = CsV(ibr,:);
+               end
+               ylabel('net W (Jkg^{-1}m^{-1})')
+               tmp=gca;
+%                tmp.XTickLabel = '';
+%                tmp.XTickLabelRotation = 90;
+%                tmp.YTickLabel = [0:0.02:0.12];
+%                ylim([0,0.12])
+%                ylim([-0.05,0.25])
+               
+               if inr==nr && ~strcmp(figNamePrefix,'none')
+                    set(h20s,'PaperPositionMode','auto')
+                    print(h20s,[figNamePrefix '_W_bar_s'],'-dpng','-r0')
+                    print(h20s,[figNamePrefix '_W_bar_s'],'-depsc')
+               end
+                
+            end
+        end
+        
     %%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if makeplot.power_main
@@ -2373,7 +2976,7 @@ for inr=1:nr
 
         if ~isempty(imtj) && max(P_PF)>1e-6
             pos_P_all = {'none',P_ankle, P_mtj, P_mtp, P_mtj+P_mtp,...
-                       'none', P_joints, P_mtj_WL, P_mtp_WL, P_PF};
+                       'none', P_joints, P_mtj_PF, P_mtp_PF, P_PF};
         elseif ~isempty(imtj)
             pos_P_all = {'none',P_ankle, P_mtj, P_mtp, P_mtj+P_mtp,...
                        'none',P_joints, 'none', 'none', 'none'};
@@ -2385,6 +2988,11 @@ for inr=1:nr
         titles_P_all = {'none','Ankle','Mtj','Mtp','Mtj + Mtp',...
             'none','Joints distal to shank', 'Mtj: by PF','Mtp: by PF','Plantar fascia'};
 
+        if isfield(R.S,'PIM') && ~isempty(R.S.PIM) && R.S.PIM==1
+            pos_P_all{6} = P_PIM;
+            titles_P_all{6} = 'PIM';
+        end
+        
         for i_P=1:numel(pos_P_all)
             if ~strcmp(pos_P_all{i_P},'none')
                 subplot(nh,nw,i_P)
@@ -2418,19 +3026,19 @@ for inr=1:nr
         end
         
         subplot(nh,nw,6)
-        W_leg_joints(inr)=trapz(R.t,P_leg_joints)/dist_trav;
-        bar(inr,W_leg_joints(inr),'FaceColor',Cs);
-        hold on
-        tmp=gca;
-        tmp.XTickLabel = '';
-        ylabel('Net Work (Jkg^{-1}m^{-1})')
-        title('Joint work')
-        grid on
-        
-        if inr==nr
-            ylim([0.8*min(W_leg_joints),1.1*max(W_leg_joints)]);
-
-        end
+%         W_leg_joints(inr)=trapz(R.t,P_leg_joints)/dist_trav;
+%         bar(inr,W_leg_joints(inr),'FaceColor',Cs);
+%         hold on
+%         tmp=gca;
+%         tmp.XTickLabel = '';
+%         ylabel('Net Work (Jkg^{-1}m^{-1})')
+%         title('Joint work')
+%         grid on
+%         
+%         if inr==nr
+%             ylim([0.8*min(W_leg_joints),1.1*max(W_leg_joints)]);
+% 
+%         end
 
         if inr==nr && ~strcmp(figNamePrefix,'none')
             set(h21,'PaperPositionMode','auto')
@@ -2575,7 +3183,7 @@ for inr=1:nr
         hold on
         plot(x,q_ankle_sim,'linewidth',line_linewidth,'Color',CsV(inr,:),'DisplayName',LegName);
         if inr==nr
-            plot(x(iswing(aa:end)),q_ankle_sim(iswing(1:end-aa+1)),'--','linewidth',2,'Color',CsV(inr,:),'DisplayName',['Swing shifted ' num2str(aa) '%GC']);
+%             plot(x(iswing(aa:end)),q_ankle_sim(iswing(1:end-aa+1)),'--','linewidth',2,'Color',CsV(inr,:),'DisplayName',['Swing shifted ' num2str(aa) '%GC']);
         end
         if inr==nr
             axis tight
@@ -2635,6 +3243,7 @@ for inr=1:nr
         
         for imu=1:length(iM)
             Emus(imu,inr) = trapz(R.t,R.MetabB.Etot(:,iM(imu)))/R.body_mass/dist_trav;
+%             Emus(imu,inr) = trapz(R.t,R.MetabB.Wdot(:,iM(imu)))/R.body_mass/dist_trav;
         end
         
 
@@ -2648,9 +3257,7 @@ for inr=1:nr
         legMus{inr} = LegName;
         
         if inr==nr
-            
-            
-            
+
             h24 = figure('Position',[fpos(3,:),fhigh1]);
             subplot(1,2,1)
             hold on
@@ -2849,14 +3456,210 @@ for inr=1:nr
 
     end
 
-figure(2)
-if ~isempty(imtj)
-    plot(x,R.Qs(:,imtj)+R.Qs(:,iankle),'Color',CsV(inr,:)); hold on;
-else
-    plot(x,R.Qs(:,iankle),'Color',CsV(inr,:)); hold on;
-end
-xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-ylabel('Ankle + mtj angle (°)','Fontsize',label_fontsize);
+% figure(2)
+% if ~isempty(imtj)
+%     plot(x,R.Qs(:,imtj)+R.Qs(:,iankle),'Color',CsV(inr,:)); hold on;
+% else
+%     plot(x,R.Qs(:,iankle),'Color',CsV(inr,:)); hold on;
+% end
+% xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+% ylabel('Ankle + mtj angle (°)','Fontsize',label_fontsize);
+
+
+
+%%
+
+
+    if makeplot.E_muscle_bar_small
+        if inr == 1 
+
+            mus_cat = categorical({'Hamstrings','Quadriceps femoris','Gluteus maximus','Gastrocnemius','Soleus','Gluteus medius','Gluteus minimus'});
+
+            mus_cat = reordercats(mus_cat,[length(mus_cat):-1:1]);
+            
+            Emus = zeros(length(mus_cat),nr);
+            Wmus = zeros(length(mus_cat),nr);
+
+
+        end
+        Wmus(1,inr) = trapz(R.t, sum(R.MetabB.Wdot(:,ihamstrings),2) )/R.body_mass/dist_trav;
+        Wmus(2,inr) = trapz(R.t, sum(R.MetabB.Wdot(:,iquadriceps_femoris),2) )/R.body_mass/dist_trav;
+        Wmus(3,inr) = trapz(R.t, sum(R.MetabB.Wdot(:,igluteus_maximus),2) )/R.body_mass/dist_trav;
+        Wmus(4,inr) = trapz(R.t, sum(R.MetabB.Wdot(:,[iGas, iGas2]),2) )/R.body_mass/dist_trav;
+        Wmus(5,inr) = trapz(R.t, sum(R.MetabB.Wdot(:,iSol),2) )/R.body_mass/dist_trav;
+        Wmus(6,inr) = trapz(R.t, sum(R.MetabB.Wdot(:,igluteus_medius),2) )/R.body_mass/dist_trav;
+        Wmus(7,inr) = trapz(R.t, sum(R.MetabB.Wdot(:,igluteus_minimus),2) )/R.body_mass/dist_trav;
+
+
+        Emus(1,inr) = trapz(R.t, sum(R.MetabB.Etot(:,ihamstrings),2) )/R.body_mass/dist_trav;
+        Emus(2,inr) = trapz(R.t, sum(R.MetabB.Etot(:,iquadriceps_femoris),2) )/R.body_mass/dist_trav;
+        Emus(3,inr) = trapz(R.t, sum(R.MetabB.Etot(:,igluteus_maximus),2) )/R.body_mass/dist_trav;
+        Emus(4,inr) = trapz(R.t, sum(R.MetabB.Etot(:,[iGas, iGas2]),2) )/R.body_mass/dist_trav;
+        Emus(5,inr) = trapz(R.t, sum(R.MetabB.Etot(:,iSol),2) )/R.body_mass/dist_trav;
+        Emus(6,inr) = trapz(R.t, sum(R.MetabB.Etot(:,igluteus_medius),2) )/R.body_mass/dist_trav;
+        Emus(7,inr) = trapz(R.t, sum(R.MetabB.Etot(:,igluteus_minimus),2) )/R.body_mass/dist_trav;
+
+        legMus{inr} = LegName;
+
+        if inr==nr
+
+            h26 = figure('Position',[fpos(3,:),fhigh1]);
+            subplot(2,2,1)
+            hold on
+            br1=barh(mus_cat,Emus);
+            grid on
+            for ibr=1:length(br1)
+               br1(ibr).FaceColor = 'flat';
+               br1(ibr).CData = CsV(ibr,:);
+            end
+            title('Metabolic energy of muscles')
+            xlabel('E_{metab} (Jkg^{-1}m^{-1})')
+            lh26=legend(legMus,'location','northeast');
+            lhPos = lh26.Position;
+            lhPos(1) = lhPos(1)+0.1;
+            set(lh26,'position',lhPos);
+            title(lh26,'Legend')
+
+            subplot(2,2,2)
+            hold on
+            br2=barh(mus_cat,Wmus);
+            grid on
+            for ibr=1:length(br2)
+               br2(ibr).FaceColor = 'flat';
+               br2(ibr).CData = CsV(ibr,:);
+            end
+            title('Net Work of muscles')
+            xlabel('W (Jkg^{-1}m^{-1})')
+            set(gca,'YAxisLocation','right')
+%             axis tight
+
+
+            subplot(2,2,3)
+            hold on
+            Emus_rel = (Emus-Emus(:,1))./Emus(:,1)*100;
+            br3=barh(mus_cat,Emus_rel(:,2:end));
+            grid on
+            for ibr=1:length(br3)
+               br3(ibr).FaceColor = 'flat';
+               br3(ibr).CData = CsV(ibr+1,:);
+            end
+            plot([0,0],get(gca,'YLim'),'Color',CsV(1,:),'linewidth',1)
+            title(['Relative increase w.r.t. ' legMus{1}])
+            xlabel('\delta E_{metab} (%)')
+            
+            subplot(2,2,4)
+            hold on
+            Wmus_rel = (Wmus-Wmus(:,1))./Wmus(:,1)*100;
+            br4=barh(mus_cat,Wmus_rel(:,2:end));
+            grid on
+            for ibr=1:length(br4)
+               br4(ibr).FaceColor = 'flat';
+               br4(ibr).CData = CsV(ibr+1,:);
+            end
+            plot([0,0],get(gca,'YLim'),'Color',CsV(1,:),'linewidth',1)
+            title(['Relative increase w.r.t. ' legMus{1}])
+            xlabel('\delta W (%)')
+            set(gca,'YAxisLocation','right')
+            
+            
+        end
+        if inr==nr && ~strcmp(figNamePrefix,'none')
+            set(h26,'PaperPositionMode','auto')
+            print(h26,[figNamePrefix '_musc_s'],'-dpng','-r0')
+            print(h26,[figNamePrefix '_musc_s'],'-depsc')
+        end
+    end
+
+
+
+%%
+
+
+    if makeplot.Edot_all
+        if inr==1
+            h27 = figure('Position',[fpos(3,:),fwide]);
+        end
+        iM = [47:92];
+        figure(h27);
+        hold on
+        Edot_all = sum(R.MetabB.Etot(:,iM),2)/R.body_mass;
+        plot(x,Edot_all,'-','Color',CsV(inr,:),'DisplayName',LegName);
+        legend
+    end
+
+
+
+
+%%
+
+    if makeplot.Energy_cost
+            if inr==1
+                h28 = figure('Position',[fpos(3,:),fwide]);
+                
+                obj_cat = categorical({'E_{metab}','activity','arms','mtp',...
+                    'PIM','P_{PIM}','accelerations','passive torques','da/dt'});
+                obj = zeros(length(obj_cat),nr);
+                
+                obj_cat2 = categorical({'activation','maintenance','shortening','work'});
+                obj2 = zeros(length(obj_cat2),nr);
+            end
+            
+%             obj(1,inr) = R.Obj.J;
+            obj(1,inr) = R.Obj.E;
+            obj(2,inr) = R.Obj.A;
+            obj(3,inr) = R.Obj.Arm;
+            obj(4,inr) = R.Obj.Mtp;
+            if isfield(R.Obj,'PIM')
+                obj(5,inr) = R.Obj.PIM;
+            end
+            if isfield(R.Obj,'P_PIM')
+                obj(6,inr) = R.Obj.P_PIM;
+            end
+            obj(7,inr) = R.Obj.qdd;
+            obj(8,inr) = R.Obj.Pass;
+            obj(9,inr) = R.Obj.vA;
+            
+            
+            E_sum = sum( trapz(R.t,R.MetabB.Etot,1) )/R.body_mass/dist_trav;
+            A_sum = sum( trapz(R.t,R.MetabB.Adot,1) )/R.body_mass/dist_trav;
+            M_sum = sum( trapz(R.t,R.MetabB.Mdot,1) )/R.body_mass/dist_trav;
+            S_sum = sum( trapz(R.t,R.MetabB.Sdot,1) )/R.body_mass/dist_trav;
+            W_sum = sum( trapz(R.t,R.MetabB.Wdot,1) )/R.body_mass/dist_trav;
+            
+            E_comp_sum = [A_sum,M_sum,S_sum,W_sum];
+            E_comp_sum_rel = E_comp_sum/E_sum;
+            obj2(:,inr) = E_comp_sum_rel;
+            
+            
+            if inr == nr
+                figure(h28);
+                hold on
+                subplot(1,2,1)
+                br5=bar(obj_cat,obj);
+                for ibr=1:length(br5)
+                   br5(ibr).FaceColor = 'flat';
+                   br5(ibr).CData = CsV(ibr,:);
+                end
+                
+                subplot(1,2,2)
+                hold on
+                br6=bar(obj_cat2,obj2);
+                for ibr=1:length(br6)
+                   br6(ibr).FaceColor = 'flat';
+                   br6(ibr).CData = CsV(ibr,:);
+                end
+            
+            end
+            
+            
+            
+    end
+
+    
+
+%%
+
+
 end
 
 figure(hleg)
@@ -2879,7 +3682,7 @@ plot(tmp.XLim,[0,0],'Color',CsV(1,:),'linewidth',2)
 set(gca,'YAxisLocation','right')
 % hleg.Position(3) = hleg.Position(3)*0.6;
 
-if inr==nr && ~strcmp(figNamePrefix,'none')
+if ~strcmp(figNamePrefix,'none')
     set(hleg,'PaperPositionMode','auto')
     print(hleg,[figNamePrefix '_legend'],'-dpng','-r0')
     print(hleg,[figNamePrefix '_legend'],'-depsc')

@@ -8,6 +8,8 @@ load('D:\school\WTK\thesis\model\3dpredictsim\ExperimentalData\ExperimentalData.
 Dat.Normal.gc.colheaders = ExperimentalData.Q.subject1.Qs.colheaders;
 Dat.Normal.gc.Qall_mean = ExperimentalData.Q.subject1.Qs.mean.*(pi/180);
 Dat.Normal.gc.Qall_std = ExperimentalData.Q.subject1.Qs.std.*(pi/180);
+Dat.Normal.gc.Qdotall_mean = ExperimentalData.Q.subject1.Qdots.mean.*(pi/180);
+Dat.Normal.gc.Qdotall_std = ExperimentalData.Q.subject1.Qdots.std.*(pi/180);
 Dat.Normal.gc.Tall_bio_mean = ExperimentalData.Torques.subject1.mean;
 Dat.Normal.gc.Tall_bio_std = ExperimentalData.Torques.subject1.std;
 Dat.Normal.gc.Tall_mean = ExperimentalData.Torques.subject1.mean;

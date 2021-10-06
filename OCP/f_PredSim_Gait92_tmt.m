@@ -145,6 +145,10 @@ f_T27 = Function.load(fullfile(PathDefaultFunc,'f_T27'));
 f_T6 = Function.load(fullfile(PathDefaultFunc,'f_T6'));
 f_AllPassiveTorques = Function.load(fullfile(PathDefaultFunc,'f_AllPassiveTorques'));
 fgetMetabolicEnergySmooth2004all = Function.load(fullfile(PathDefaultFunc,'fgetMetabolicEnergySmooth2004all'));
+if S.WL_act_Sol
+    f_passiveWLTorques_mtj_act = Function.load(fullfile(PathDefaultFunc,'f_passiveWLTorques_mtj_act'));
+    f_passiveWLTorques_mtp_act = Function.load(fullfile(PathDefaultFunc,'f_passiveWLTorques_mtp_act'));
+end
 
 % file with mass of muscles
 MassFile = fullfile(PathDefaultFunc,'MassM.mat');
@@ -307,7 +311,7 @@ a_a_col = opti.variable(nq.arms,d*N);
 opti.subject_to(bounds.a_a.lower'*ones(1,d*N) < a_a_col < ...
     bounds.a_a.upper'*ones(1,d*N));
 opti.set_initial(a_a_col, guess.a_a_col');
-% Arm activations at mesh points
+% Mtp activations at mesh points
 a_mtp = opti.variable(nq.mtp,N+1);
 opti.subject_to(bounds.a_mtp.lower'*ones(1,N+1) < a_mtp < ...
     bounds.a_mtp.upper'*ones(1,N+1));
@@ -480,9 +484,26 @@ for j=1:d
     Tau_passj.ankle.r = Tau_passj_all(10);
     Tau_passj.subt.l = Tau_passj_all(11);
     Tau_passj.subt.r = Tau_passj_all(12);
-    Tau_passj.tmt.l = Tau_passj_all(13);
-    Tau_passj.tmt.r = Tau_passj_all(14);
     Tau_passj.mtp.all = Tau_passj_all(15:16);
+    if S.WL_act_Sol
+        iSol_l = find(strcmp(muscleNames,'soleus_r'),1);
+        iSol_r = iSol_l + NMuscle/2;
+        
+        Tau_passj.tmt.l = f_passiveWLTorques_mtj_act(Qskj_nsc(jointi.tmt.l,j+1),...
+            Qdotskj_nsc(jointi.tmt.l,j+1),Qskj_nsc(jointi.mtp.l,j+1),akj(iSol_l,j+1));
+        Tau_passj.tmt.r = f_passiveWLTorques_mtj_act(Qskj_nsc(jointi.tmt.r,j+1),...
+            Qdotskj_nsc(jointi.tmt.r,j+1),Qskj_nsc(jointi.mtp.r,j+1),akj(iSol_r,j+1));
+        
+        Tau_passj.mtp.all(1) = Tau_passj.mtp.all(1) +...
+            f_passiveWLTorques_mtp_act(Qskj_nsc(jointi.tmt.l,j+1),...
+            Qdotskj_nsc(jointi.tmt.l,j+1),Qskj_nsc(jointi.mtp.l,j+1),akj(iSol_l,j+1));
+        Tau_passj.mtp.all(2) = Tau_passj.mtp.all(2) +...
+            f_passiveWLTorques_mtp_act(Qskj_nsc(jointi.tmt.r,j+1),...
+            Qdotskj_nsc(jointi.tmt.r,j+1),Qskj_nsc(jointi.mtp.r,j+1),akj(iSol_r,j+1));
+    else
+        Tau_passj.tmt.l = Tau_passj_all(13);
+        Tau_passj.tmt.r = Tau_passj_all(14);
+    end
     Tau_passj.trunk.ext = Tau_passj_all(17);
     Tau_passj.trunk.ben = Tau_passj_all(18);
     Tau_passj.trunk.rot = Tau_passj_all(19);

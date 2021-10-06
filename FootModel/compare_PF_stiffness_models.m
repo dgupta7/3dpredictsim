@@ -21,9 +21,9 @@ q_mt = linspace(-30,30,N)'*pi/180;
 q_mtp = linspace(-45,45,N)*pi/180;
 
 % PF_stiffness = {'Cheng2008','Gefen2002','Ker1987','Natali2010','Song2011','linear','tanh'};
-PF_stiffness = {'linear','Natali2010','Cheng2008','Song2011','Gefen2002'};
+% PF_stiffness = {'linear','Natali2010','Cheng2008','Song2011','Gefen2002'};
 % PF_stiffness = {'linear','Natali2010','Cheng2008','Gefen2002'};
-% PF_stiffness = {'Natali2010'};
+PF_stiffness = {'Natali2010','Natali2010','Natali2010','Natali2010'};
 
 % mtj_stiffness = {'Gefen2002','Ker1987','fitted1'};
 mtj_stiffness = {'Gefen2002','Ker1987','Song2011','signed_lin'};
@@ -176,22 +176,31 @@ plot(q_mt*180/pi,-q_mt*k_mtj,'DisplayName',['k = ' num2str(k_mtj) ' Nm/rad'])
 
 %%
 
-% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab\PF_stiffness';
-% 
+figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\MLA_vs_WL';
+
+scs = get(0,'ScreenSize');
+fsq = [scs(3)/2, scs(4)*0.6];
+h1=figure('Position',[100,500,fsq*0.5]);
 % h1=figure;
-% for i=1:numel(PF_stiffness)
-%     hold on
-%     plot((l-ls)*1000,F_PF(i,:),'Color',CsV(i+1,:),'DisplayName',PF_stiffness{i})
-%     grid on
+CsV = hsv(numel(PF_stiffness));
+CsV = hsv(4);
+for i=3:4%1:numel(PF_stiffness)
+    hold on
+    if i==4
+    plot((l-ls)*1000,F_PF(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i})
+    else
+         plot((l-ls)*1000,10*F_PF(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i})
+    end
+    grid on
 %     legend('Location','best')
-%     xlabel('Elongation (mm)')
-%     ylabel('Force (N)')
-%     title('Plantar fascia force')
-%     ylim([0,2000])
-% end
-% 
-% set(h1,'PaperPositionMode','auto')
-% print(h1,[figNamePrefix '_PF'],'-dpng','-r0')
+    xlabel('Elongation (mm)')
+    ylabel('Force (N)')
+    title('Plantar fascia force')
+    ylim([0,2000])
+end
+
+set(h1,'PaperPositionMode','auto')
+print(h1,[figNamePrefix '_PF'],'-dpng','-r0')
     
 % h2=figure;
 % for i=1:numel(mtj_stiffness)
@@ -208,21 +217,21 @@ plot(q_mt*180/pi,-q_mt*k_mtj,'DisplayName',['k = ' num2str(k_mtj) ' Nm/rad'])
 % set(h2,'PaperPositionMode','auto')
 % print(h2,[figNamePrefix '_mtj2'],'-dpng','-r0')
 
-h3=figure;
-CsV = hsv(numel(PF_stiffness));
-for i=1:numel(PF_stiffness)
-    hold on
-    plot(q_mtp*180/pi,T_mtp3(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i})
-end
-grid on
-legend('Location','best')
-xlabel('Mtp angle (°)')
-ylabel('Torque (Nm)')
-title('Full mtp torque')
-plot(q_mtp*180/pi,-17*q_mtp,'--','DisplayName','Falisse 2019')
-xlim([-20,45])
-    
-
+% h3=figure;
+% CsV = hsv(numel(PF_stiffness));
+% for i=1:numel(PF_stiffness)
+%     hold on
+%     plot(q_mtp*180/pi,T_mtp3(i,:),'Color',CsV(i,:),'DisplayName',PF_stiffness{i})
+% end
+% grid on
+% legend('Location','best')
+% xlabel('Mtp angle (°)')
+% ylabel('Torque (Nm)')
+% title('Full mtp torque')
+% plot(q_mtp*180/pi,-17*q_mtp,'--','DisplayName','Falisse 2019')
+% xlim([-20,45])
+%     
+% 
 % set(h3,'PaperPositionMode','auto')
 % print(h3,[figNamePrefix '_mtpj'],'-dpng','-r0')
 

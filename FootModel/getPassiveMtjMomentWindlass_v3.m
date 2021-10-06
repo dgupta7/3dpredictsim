@@ -72,6 +72,14 @@ else
         poly = S.WLpoly;
     end
 end
+F_PIM = 0;
+if length(varargin)>=2
+    if isfield(S,'PIM') && ~isempty(S.PIM) && S.PIM==1
+        F_PIM = varargin{2};
+    else
+        sf_PF = varargin{2}*20;
+    end
+end
 
 
 %% Geometry Windlass mechanism
@@ -84,24 +92,27 @@ if poly == 0
     % moment arm of PF to mtj
     MA_PF = calcnPF2mtj*mtj2mttPF/l_PF_fa*sin(phi);
     
-else
-    % see \FootModel\windlassGeometryPolynomials.m
-    % length of PF spanning arch
-    l_PF_fa = 0.1392179 + 0.0374482.*q_mt.^1 + -0.0166876.*q_mt.^2 + ...
-        -0.001758651.*q_mt.^3 + 0.0004480769.*q_mt.^4;
-    % moment arm of PF to mtj
-    MA_PF = 0.0374478 + -0.03337403.*q_mt.^1 + -0.005255987.*q_mt.^2 + ...
-        0.001767266.*q_mt.^3 + -0.0001071423.*q_mt.^4 + 9.858065e-05.*q_mt.^5;
+    % Plantar fascia length
+    l_PF = l_PF_fa + R_mtth*(pi/4+q_mtp) + 0.0042; % constant term to correct to physical length
 
+else
+%     % see \FootModel\windlassGeometryPolynomials.m
+%     % length of PF spanning arch
+%     l_PF_fa = 0.1392179 + 0.0374482.*q_mt.^1 + -0.0166876.*q_mt.^2 + ...
+%         -0.001758651.*q_mt.^3 + 0.0004480769.*q_mt.^4;
+%     % moment arm of PF to mtj
+%     MA_PF = 0.0374478 + -0.03337403.*q_mt.^1 + -0.005255987.*q_mt.^2 + ...
+%         0.001767266.*q_mt.^3 + -0.0001071423.*q_mt.^4 + 9.858065e-05.*q_mt.^5;
+
+    [MA_PF,l_PF,~] = getPlantarFasciaLengthVelocity(q_mt,0,q_mtp,0,R_mtth);
+    
 end
 
-% Plantar fascia length
-l_PF = l_PF_fa + R_mtth*(pi/4+q_mtp) + 0.0042; % constant term to correct to physical length
     
 %% Torques
 % plantar fascia
 try
-    F_PF = f_PF_stiffness(l_PF)*sf_PF;
+    F_PF = f_PF_stiffness(l_PF);
     if nargout > 2
         % convert SX to double when called from post-processing
         F_PF = full(F_PF);
@@ -110,8 +121,9 @@ catch
 %     warning('No valid function to describe the plantar fascia stiffness model, using 0 instead.')
     F_PF = 0;
 end
-
-M_PF = -F_PF*MA_PF;
+F_PF = F_PF*sf_PF;
+F_PF_tot = F_PF + F_PIM;   
+M_PF = -F_PF_tot*MA_PF;
 
 % other elastic structures
 if nl
@@ -229,7 +241,7 @@ M_d = -dMT*qdot_mt;
 M_mtj = M_PF + M_li + M_d;
 
 % Reaction torque on toes
-M_mtpj = -R_mtth*F_PF;
+M_mtpj = -R_mtth*F_PF_tot;
 
 %% Return some more outputs if the function is called from postprocessing
 if nargout > 2
