@@ -48,14 +48,15 @@ S.v_tgt     = 1.25;     % average speed 1.25
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 6;        % number of threads for parallel computing
 % S.max_iter  = 10;       % maximum number of iterations (comment -> 10000)
+% S.tol_ipopt = 3;        % stopping criterion: inf_du < 10^(-...) 
 
 % output folder
 S.ResultsFolder = 'MidTarsalJoint'; % 'MuscleModel' 'MidTarsalJoint' 'Final'
-suffixCasName = '_v2';         
+suffixCasName = ''; % _v2
 suffixName = '';
 
 % assumption to simplify Hill-type muscle model
-S.MuscModelAsmp = 0;    % 0: musc width = cst, 1: pennation angle = cst
+S.MuscModelAsmp = 0;    % 0: musc width/height = cst, 1: pennation angle = cst
 S.contactStiff = 10;    % 10: contact spheres are 10x stiffer
 
 % Test subject
@@ -84,7 +85,8 @@ S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsifl
 
 S.mtj = 1;              % 1: use a model with tmt joint (will override tmt)
 % plantar fascia
-S.PF_stiffness = 'Gefen2002'; % stiffness model for the gait simulation
+% S.PF_stiffness = 'Gefen2002'; % stiffness model for the gait simulation
+S.PF_stiffness = 'Song2011';
         % options:
         % 'none''linear''Gefen2002''Cheng2008''Natali2010''Song2011'
 S.sf_PF = 1;                % multiply PF force with constant factor
@@ -97,17 +99,18 @@ S.WLpoly = 1;
 
 % Plantar Intrinsic Muscles
 S.PIM = 1;
+S.FootMuscles = 1;
 S.W.PIM = 10^3;
-S.W.P_PIM = 500;
+S.W.P_PIM = 10^4; % 500, 10^4
 
 % other ligaments (long, short planter ligament, etc)
-S.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
+S.MT_li_nonl = 0;       % 1: nonlinear torque-angle characteristic
 S.mtj_stiffness = 'Gefen2002';
 % S.mtj_stiffness = 'Ker1987';
 % S.mtj_stiffness = 'signed_lin';
 % S.mtj_stiffness = 'fitted6';
 
-S.kMT_li = 300;          % angular stiffness in case of linear
+S.kMT_li = 200;          % angular stiffness in case of linear
 S.kMT_li2 = 10;          % angular stiffness in case of linear
 % S.dMT = 5;               % (Nms/rad) damping
 
@@ -150,7 +153,7 @@ ia = 0;
 %% Initial guess
 % initial guess based on simulations without exoskeletons
 S.IGsel         = 2;        % initial guess identifier (1: quasi random, 2: data-based)
-S.IGmodeID      = 3;        % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
+S.IGmodeID      = 3;        % initial guess mode identifier (1 walk, 2 run, 3 prev.solution, 4 solution from /IG/Data folder)
 
 if S.IGmodeID == 4
     S.savename_ig   = 'NoExo';
@@ -164,13 +167,13 @@ elseif S.IGmodeID == 3
     end
 end
 
-if S.IGmodeID == 1 || S.IGsel
-    if strcmp(S.subject,'s1_Poggensee')
-        S.IG_PelvisY = 0.896 + 0.0131;
-    else
-        S.IG_PelvisY = 0.9385 + 0.0131;
-    end
-end
+% if S.IGmodeID == 1 || S.IGsel
+%     if strcmp(S.subject,'s1_Poggensee')
+%         S.IG_PelvisY = 0.896 + 0.0131;
+%     else
+%         S.IG_PelvisY = 0.9385 + 0.0131;
+%     end
+% end
 
 %% Automated settings
 % Change some more settings, based on what was selected above. 
@@ -197,7 +200,8 @@ if S.tmt == 0 && S.mtj == 0
         if S.ExoBool == 0
 %             S.ExternalFunc  = 'ID_Subject1.dll';
 %             S.ExternalFunc2 = 'PredSim_3D_Fal_s1_pp_v2.dll';
-            S.ExternalFunc  = 'PredSim_3D_Fal_s1_v7.dll';
+            S.ExternalFunc  = 'PredSim_3D_Fal_s1_v7_test7.dll';
+%             S.ExternalFunc  = 'PredSim_3D_Fal_s1_v7.dll';
             S.ExternalFunc2 = 'PredSim_3D_Fal_s1_pp_v6.dll';
         end
     end
@@ -210,8 +214,8 @@ elseif S.mtj == 1
             
         elseif strcmp(S.subject,'subject1')
              if S.contactStiff == 10
-                S.ExternalFunc  = 'PredSim_3D_Fal_s1_mtj_spx10_v1.dll';
-                S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_spx10_pp_v3.dll';
+                S.ExternalFunc  = 'PredSim_3D_Fal_s1_mtj_spx10_v2.dll';
+                S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_spx10_pp_v4.dll';
              elseif S.contactStiff == 2
                 S.ExternalFunc  = 'PredSim_3D_Fal_s1_mtj_spx2_v1.dll';
                 S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_spx2_pp_v2.dll';
@@ -306,7 +310,10 @@ else
         end
     else
         if batchQueue
-            if S.Mu_mtp
+            if S.FootMuscles
+                batchQ.(S.savename).PredSim = 'f_PredSim_Gait92_foot_muscles';
+                batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92_foot_muscles';
+            elseif S.Mu_mtp
                 batchQ.(S.savename).PredSim = 'f_PredSim_Gait92_tmt_v2';
                 batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92_tmt_v2';
             else
@@ -320,7 +327,10 @@ else
             end
         end
         if slv
-            if S.Mu_mtp
+            if S.FootMuscles
+                f_PredSim_Gait92_foot_muscles(S);
+%                 f_PredSim_Gait92_foot_muscles_v0(S);
+            elseif S.Mu_mtp
                 f_PredSim_Gait92_tmt_v2(S);
             else
                 if isfield(S,'PIM') && ~isempty(S.PIM) && S.PIM==1
@@ -331,7 +341,10 @@ else
             end
         end
         if pp
-            if S.Mu_mtp
+            if S.FootMuscles
+                f_LoadSim_Gait92_foot_muscles(S.ResultsFolder,S.savename);
+%                 f_LoadSim_Gait92_foot_muscles_v0(S.ResultsFolder,S.savename);
+            elseif S.Mu_mtp
                 f_LoadSim_Gait92_tmt_v2(S.ResultsFolder,S.savename);
             else
                 if isfield(S,'PIM') && ~isempty(S.PIM) && S.PIM==1

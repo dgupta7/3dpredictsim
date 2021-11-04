@@ -26,6 +26,14 @@ if isfolder(S.CasadiFunc_Folders)
 end
 
 ExtPoly = '_mtp';
+ExtPoly2 = ExtPoly;
+if isfield(S,'FootMuscles') && ~isempty(S.FootMuscles) && S.FootMuscles
+    ExtPoly = '_mtj';
+    ExtPoly2 = '_mtj';
+    nq.leg = 11;
+    S.Mu_mtp = 1;
+    S.PIM = 1;
+end
 subject = S.subject;
 
 if isfield(S,'MuscModelAsmp') && ~isempty(S.MuscModelAsmp)
@@ -93,7 +101,6 @@ else
 end
 
 
-nq.leg = 10; % #joints needed for polynomials
 stiffnessArm = 0;
 dampingArm = 0.1;
 if isfield(S,'kMTP') && ~isempty(S.kMTP)
@@ -173,7 +180,6 @@ nq.abs      = length(ground_pelvisi); % ground-pelvis
 nq.trunk    = length(trunki); % trunk
 nq.arms     = length(armsi); % arms
 nq.mtp     = length(mtpi); % arms
-nq.leg      = 10; % #joints needed for polynomials
 % Second, origins bodies.
 % Calcaneus
 % calcOr.r    = 34:35;
@@ -261,8 +267,8 @@ addpath(genpath(pathMetabolicEnergy));
 pathCasADiFunctions = [pathRepo,'/CasADiFunctions'];
 addpath(genpath(pathCasADiFunctions));
 % We load some variables for the polynomial approximations
-load([pathpolynomial,'/muscle_spanning_joint_INFO_',subject,ExtPoly, '.mat']);
-load([pathpolynomial,'/MuscleInfo_',subject,ExtPoly,'.mat']);
+load([pathpolynomial,'/muscle_spanning_joint_INFO_',subject,ExtPoly2, '.mat']);
+load([pathpolynomial,'/MuscleInfo_',subject,ExtPoly2,'.mat']);
 % For the polynomials, we want all independent muscles. So we do not need
 % the muscles from both legs, since we assume bilateral symmetry, but want
 % all muscles from the back (indices 47:49).
@@ -428,6 +434,14 @@ for i=1:length(ma_temp4)
     J_sptemp4 = J_sptemp4 + ma_temp4(i,1)*ft_temp4(i,1);
 end
 f_T4 = Function('f_T4',{ma_temp4,ft_temp4},{J_sptemp4});
+% Function for 9 elements
+ma_temp9 = SX.sym('ma_temp9',9);
+ft_temp9 = SX.sym('ft_temp9',9);
+J_sptemp9 = 0;
+for i=1:length(ma_temp9)
+    J_sptemp9 = J_sptemp9 + ma_temp9(i,1)*ft_temp9(i,1);
+end
+f_T9 = Function('f_T9',{ma_temp9,ft_temp9},{J_sptemp9});
 
 %% Arm activation dynamics
 e_a = SX.sym('e_a',nq.arms); % arm excitations
@@ -848,9 +862,10 @@ elseif mtj
                 Qdot_SX(jointi.mtp.r));
             
         else % ideal torque actuator mtp
-            Tau_passj.mtp.l = f_passiveWLTorques_mtpj(Q_SX(jointi.tmt.l), ...
-                Qdot_SX(jointi.tmt.l),Q_SX(jointi.mtp.l),Qdot_SX(jointi.mtp.l),...
-                dampingMtp) + f_PassiveMoments(k_pass.mtp, theta.pass.mtp,Q_SX(jointi.mtp.l),...
+            Tau_passj.mtp.l =...
+                f_passiveWLTorques_mtpj(Q_SX(jointi.tmt.l), Qdot_SX(jointi.tmt.l),...
+                Q_SX(jointi.mtp.l),Qdot_SX(jointi.mtp.l), dampingMtp)...
+                + f_PassiveMoments(k_pass.mtp, theta.pass.mtp,Q_SX(jointi.mtp.l),...
                 Qdot_SX(jointi.mtp.l));
             Tau_passj.mtp.r = f_passiveWLTorques_mtpj(Q_SX(jointi.tmt.r), ...
                 Qdot_SX(jointi.tmt.r),Q_SX(jointi.mtp.r),Qdot_SX(jointi.mtp.r),...
@@ -935,6 +950,7 @@ f_T13.save(fullfile(OutPath,'f_T13'));
 f_T27.save(fullfile(OutPath,'f_T27'));
 f_T6.save(fullfile(OutPath,'f_T6'));
 f_T4.save(fullfile(OutPath,'f_T4'));
+f_T9.save(fullfile(OutPath,'f_T9'));
 f_AllPassiveTorques.save(fullfile(OutPath,'f_AllPassiveTorques'));
 fgetMetabolicEnergySmooth2004all.save(fullfile(OutPath,'fgetMetabolicEnergySmooth2004all'));
 

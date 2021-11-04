@@ -491,12 +491,12 @@ annotation(gcf,'textbox',[0.01,0.01,0.9,0.05],'String',str,'FitBoxToText','on');
 
 
 %%
-h1=gcf;
-figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\';
-set(h1,'PaperPositionMode','auto')
-name = 'one_figure_to_rule_them_all';
-print(h1,[figNamePrefix name],'-dpng','-r0')
-% print(h1,[figNamePrefix name],'-depsc')
+% h1=gcf;
+% figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\';
+% set(h1,'PaperPositionMode','auto')
+% name = 'one_figure_to_rule_them_all';
+% print(h1,[figNamePrefix name],'-dpng','-r0')
+% % print(h1,[figNamePrefix name],'-depsc')
 
 %%
 % figure

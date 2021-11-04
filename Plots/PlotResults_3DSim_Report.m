@@ -97,6 +97,11 @@ for inr=1:nr
     iSol = find(strcmp(R.colheaders.muscles,'soleus_r'));
     iGas = find(strcmp(R.colheaders.muscles,'lat_gas_r'));
     iGas2 = find(strcmp(R.colheaders.muscles,'med_gas_r'));
+    iTibAnt = find(strcmp(R.colheaders.muscles,'tib_ant_r'));
+    iPerL = find(strcmp(R.colheaders.muscles,'per_long_r'));
+    iPerB = find(strcmp(R.colheaders.muscles,'per_brev_r'));
+    iPerT = find(strcmp(R.colheaders.muscles,'per_tert_r'));
+    iTibPo = find(strcmp(R.colheaders.muscles,'tib_post_r'));
     if isempty(iGas)
         iGas = find(strcmp(R.colheaders.muscles,'gaslat_r'));
     end
@@ -177,7 +182,7 @@ for inr=1:nr
 
         l_PF = R.windlass.l_PF;
         F_PF = R.windlass.F_PF;
-        if isfield(R.S,'PIM') && ~isempty(R.S.PIM) && R.S.PIM==1
+        if isfield(R.windlass,'F_PIM')
             F_PIM = R.windlass.F_PIM(:,2);
         else
             F_PIM = zeros(size(F_PF));
@@ -636,7 +641,7 @@ for inr=1:nr
     %% soleus
     
         
-    if makeplot.soleus
+    if makeplot.ankle_musc
         
         if inr==1
             if makeplot.sol_all
@@ -648,23 +653,21 @@ for inr=1:nr
             figure(h3);
         end
         
-        imus = [iSol,iGas,iGas2];
-        
-        
-%         figure
-%         subplot(211)
-%         plot(R.a(:,iSol))
-%         subplot(212)
-%         plot(R.e(:,iSol))
-        
         if inr==1 && md 
             if strcmp(RefData,'Fal_s1')
                 iSol_data = find(strcmp(Dat.(type).EMGheaders,'Soleus'));
                 iGas_data = find(strcmp(Dat.(type).EMGheaders,'Gastrocnemius-medialis'));
                 iGas2_data = find(strcmp(Dat.(type).EMGheaders,'Gastrocnemius-lateralis'));
+                iTibAnt_data = find(strcmp(Dat.(type).EMGheaders,'Tibialis-anterior'));
+                iPerL_data = find(strcmp(Dat.(type).EMGheaders,'Peroneus-longus'));
+                iPerB_data = find(strcmp(Dat.(type).EMGheaders,'Peroneus-brevis'));
+                
                 ankle_act(:,1) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iSol_data);
                 ankle_act(:,2) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas_data);
                 ankle_act(:,3) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas2_data);
+                ankle_act(:,4) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iTibAnt_data);
+                ankle_act(:,5) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iPerL_data);
+                ankle_act(:,6) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iPerB_data);
                 
             else
                 iSol_data = find(strcmp(Dat.(type).EMGheaders,'soleus_r'));
@@ -674,21 +677,34 @@ for inr=1:nr
                 ankle_act(:,2) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas_data);
                 ankle_act(:,3) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas2_data);
             end
+            imusd = [iSol_data,iGas_data,iGas2_data,iTibAnt_data,iPerL_data,iPerB_data];
             ankle_a = [ankle_act(ceil(end/2):end,:); ankle_act(1:ceil(end/2)-1,:)];
             
-            if makeplot.sol_all
-                n_msc = 7;
-            else
-                n_msc = 3;
-            end
+            n_msc = 7;
+            nn_msc = length(imusd);%+2;
+
             
-            for imu=1:3
-                subplot(n_msc,3,imu); hold on;
+            for imu=1:length(imusd)
+                subplot(n_msc,nn_msc,imu); hold on;
                 yyaxis right
-                plot(ankle_a(:,imu),'-k','DisplayName','EMG data')
+                
+                meanPlusSTD = Dat.Normal.gc.lowEMG_mean(:,imusd(imu)) + 2*Dat.Normal.gc.lowEMG_std(:,imusd(imu));
+                meanMinusSTD = Dat.Normal.gc.lowEMG_mean(:,imusd(imu)) - 2*Dat.Normal.gc.lowEMG_std(:,imusd(imu));
+                stepQ = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
+                intervalQ = 1:stepQ:size(R.Qs,1);
+                sampleQ = 1:size(R.Qs,1);
+                meanPlusSTD = interp1(intervalQ,meanPlusSTD,sampleQ);
+                meanMinusSTD = interp1(intervalQ,meanMinusSTD,sampleQ);
+                p1=fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],[1,1,1]*0.8,'DisplayName','EMG data');
+                alpha(.25)
+                set(gca,'XTick',[0:20:100])
+                plot(ankle_a(:,imu),'-k','DisplayName','mean EMG data')
                 a1 = gca;
                 a1.YColor = [0,0,0];
-                if imu==3
+                if imu==1
+                    lg_a = [p1];
+                end
+                if imu==nn_msc-2
                     ylabel('EMG (mV)')
                 end
                 axis tight
@@ -702,52 +718,31 @@ for inr=1:nr
             
         end
         NumTicks = 6;
-        
-        subplot(n_msc,3,1); hold on;
-        plot(R.a(:,iSol),'-','Color',CsV(inr,:),'DisplayName',LegName);
-        title('Soleus')
-        ylabel('Activity (-)','Interpreter','latex');
-        grid on
-        L = get(gca,'XLim');
-        set(gca,'XTick',linspace(L(1),L(2),NumTicks))
-        axis tight
-        yl = get(gca, 'ylim');
-        ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
-        xlim([0,100])
-                
-        if inr==1
-            lh3=legend('-DynamicLegend','location','northwest');
-            lh3.Interpreter = 'tex';
-            lh3.Orientation = 'horizontal';
-        end
-        subplot(n_msc,3,2); hold on;
-        plot(R.a(:,iGas),'-','Color',CsV(inr,:),'DisplayName',LegName);
-        title('Gastrocnemius-medialis')
-        grid on
-        L = get(gca,'XLim');
-        set(gca,'XTick',linspace(L(1),L(2),NumTicks))
-        axis tight
-        yl = get(gca, 'ylim');
-        ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
-        xlim([0,100])
-        
-        subplot(n_msc,3,3); hold on;
-        plot(R.a(:,iGas2),'-','Color',CsV(inr,:),'DisplayName',LegName);
-        title('Gastrocnemius-lateralis')
-        grid on
-        L = get(gca,'XLim');
-        set(gca,'XTick',linspace(L(1),L(2),NumTicks))
-        axis tight
-        yl = get(gca, 'ylim');
-        ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
-        xlim([0,100])
-        
-        
-        
-        
-        for imu=1:3
+        imus = [iSol,iGas,iGas2,iTibAnt,iPerL,iPerB,iPerT,iTibPo];
+
+        for imu=1:nn_msc
             
-            subplot(n_msc,3,3+imu)
+            subplot(n_msc,nn_msc,imu); hold on;
+            p2=plot(R.a(:,imus(imu)),'-','Color',CsV(inr,:),'DisplayName',LegName);
+            
+            title(R.colheaders.muscles{imus(imu)},'Interpreter','none')
+            grid on
+            L = get(gca,'XLim');
+            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
+            axis tight
+            yl = get(gca, 'ylim');
+            ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+            xlim([0,100])
+                if imu==1
+                    ylabel('Activity (-)','Interpreter','latex');
+                    lg_a = [lg_a,p2];
+                    if inr==nr
+                        lh3=legend(lg_a,'location','northwest');
+                        lh3.Interpreter = 'tex';
+                        lh3.Orientation = 'horizontal';
+                    end
+                end
+            subplot(n_msc,nn_msc,nn_msc+imu)
             plot(R.FT(:,imus(imu)),'-','Color',CsV(inr,:),'DisplayName',LegName);
             hold on
             grid on
@@ -762,7 +757,7 @@ for inr=1:nr
             ylim([0,yl(2)+0.15*norm(yl)])
             xlim([0,100])
 
-            subplot(n_msc,3,6+imu)
+            subplot(n_msc,nn_msc,2*nn_msc+imu)
             plot(R.MetabB.Etot(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
             hold on
             grid on
@@ -778,7 +773,7 @@ for inr=1:nr
             xlim([0,100])
 
             if makeplot.sol_all
-                subplot(n_msc,3,9+imu)
+                subplot(n_msc,nn_msc,3*nn_msc+imu)
                 plot(R.MetabB.Wdot(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
                 hold on
                 grid on
@@ -794,7 +789,7 @@ for inr=1:nr
 
                 if isfield(R,'vT')
 
-                    subplot(n_msc,3,12+imu)
+                    subplot(n_msc,nn_msc,4*nn_msc+imu)
                     plot(-R.FT(:,imus(imu)).*R.vT(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
                     hold on
                     grid on
@@ -810,7 +805,7 @@ for inr=1:nr
                     xlim([0,100])
                 end
 
-                subplot(n_msc,3,15+imu)
+                subplot(n_msc,nn_msc,5*nn_msc+imu)
                 plot(R.lMtilde(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
                 hold on
                 grid on
@@ -824,7 +819,7 @@ for inr=1:nr
                 ylim([yl(1)-0.05*norm(yl),yl(2)+0.02*norm(yl)])
                 xlim([0,100])
 
-                subplot(n_msc,3,18+imu)
+                subplot(n_msc,nn_msc,6*nn_msc+imu)
                 plot(R.vMtilde(:,imus(imu)),'Color',CsV(inr,:),'DisplayName',LegName);
                 hold on
                 grid on
@@ -1474,7 +1469,7 @@ for inr=1:nr
         xlim([0,100])
         ylabel('Power (W/kg)');
         xlabel('Stance phase (%)');
-        title({'Power predicted in simulation','\rm this work'})
+        title({'Power predicted in simulation',['\rm this work (' LegName ')']})
         lh=legend('location','northwest');
         
         subplot(121)
@@ -1519,7 +1514,7 @@ for inr=1:nr
 %         lhPos(1) = lhPos(1)+0.15;
 %         lhPos(2) = lhPos(2)+0.05;
         set(lh,'position',lhPos);
-        title({'Power predicted in simulation','\rm this work'})
+        title({'Power predicted in simulation',['\rm this work (' LegName ')']})
         
         subplot(121)
         ylim([min(yl_4(1),yl_5(1)), max(yl_4(2),yl_5(2))])
@@ -1556,7 +1551,7 @@ for inr=1:nr
         xlim([0,100])
         ylabel('Power (W/kg)');
         xlabel('Stance phase (%)');
-        title({'Power predicted in simulation','\rm this work'})
+        title({'Power predicted in simulation',['\rm this work (' LegName ')']})
         lh=legend('location','northwest');
 %         lhPos = lh.Position;
 %         lhPos(1) = lhPos(1)+0.15;
@@ -2109,7 +2104,7 @@ for inr=1:nr
             h_fa = R.windlass.h_fa;
                         
             
-            subplot(2,3,4)
+            subplot(2,4,5)
             hold on
             plot(x,h_fa*1000,'color',Cs,'linewidth',line_linewidth)
             title('Foot arch height')
@@ -2121,7 +2116,7 @@ for inr=1:nr
             xlim([0,100])
         
             if max(F_PF) > 1 % else there is no PF
-                subplot(2,3,1)
+                subplot(2,4,1)
                 hold on
                 ls = R.S.PF_slack_length;
                 PF_strain = (l_PF./ls-1)*100;
@@ -2134,13 +2129,23 @@ for inr=1:nr
                 ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
                 xlim([0,100])
                 
-                subplot(2,3,2)
+                subplot(2,4,2)
                 hold on
                 plot(x,F_PF/(R.body_mass*9.81)*100,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-                if isfield(R.S,'PIM') && ~isempty(R.S.PIM) && R.S.PIM==1
-                    plot(x,F_PIM/(R.body_mass*9.81)*100,'--','color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-                end
                 title('Plantar fascia force')
+                xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+                ylabel('Force/BW (%)','Fontsize',label_fontsize);
+                axis tight
+                yl = get(gca, 'ylim');
+                ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+                xlim([0,100])
+                
+                subplot(2,4,3)
+                hold on
+                if isfield(R.S,'PIM') && ~isempty(R.S.PIM) && R.S.PIM==1
+                    plot(x,F_PIM/(R.body_mass*9.81)*100,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+                end
+                title('Plantar intr. musc. force')
                 xlabel('Gait cycle (%)','Fontsize',label_fontsize);
                 ylabel('Force/BW (%)','Fontsize',label_fontsize);
                 axis tight
@@ -2218,7 +2223,7 @@ for inr=1:nr
 %                 axis off
 %                 title('Polynomials')
 
-                subplot(2,3,3)
+                subplot(2,4,4)
                 ccc(1,inr) = xcorr(F_PF,F_At,0,'coeff');
                 ccc(2,inr) = xcorr(F_PF,R.Qs(:,imtj),0,'coeff');
                 ccc(3,inr) = xcorr(F_PF,R.Qs(:,imtp),0,'coeff');
@@ -2284,7 +2289,7 @@ for inr=1:nr
         end
    
         figure(h12)
-        subplot(2,3,5)
+        subplot(2,4,6)
         hold on
         plot(x,F_At/(R.body_mass*9.81)*100,'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
         title('Achilles tendon')
@@ -3651,15 +3656,141 @@ for inr=1:nr
             
             end
             
-            
+            if inr==nr && ~strcmp(figNamePrefix,'none')
+                set(h28,'PaperPositionMode','auto')
+                print(h28,[figNamePrefix '_musc_E'],'-dpng','-r0')
+                print(h28,[figNamePrefix '_musc_E'],'-depsc')
+            end
             
     end
 
     
 
 %%
+    if makeplot.muscle_act
+        if inr==1
+            h29 = figure('Position',[fpos(3,:),fsq]);
 
+            musc_exp = {'Gluteus-medialis','Rectus-femoris','Adductor-longus',...
+                'Peroneus-longus','Peroneus-brevis','Hamstrings-lateralis',...
+                'Hamstrings-medialis','Vastus-lateralis','Vastus-medialis',...
+                'Tibialis-anterior','Gastrocnemius-lateralis','Gastrocnemius-medialis','Soleus'};
 
+            musc_sim = {'glut_med1_r','rect_fem_r','add_long_r','per_long_r',...
+                'per_brev_r','bifemlh_r','semimem_r','vas_lat_r','vas_med_r',...
+                'tib_ant_r','lat_gas_r','med_gas_r','soleus_r'};
+
+            for i=1:numel(musc_exp)
+                subplot(5,3,i)
+                hold on
+                imus_i = find(strcmp(Dat.Normal.EMGheaders,musc_exp{i}));
+                yyaxis right
+                meanPlusSTD = Dat.Normal.gc.lowEMG_mean(:,imus_i) + 2*Dat.Normal.gc.lowEMG_std(:,imus_i);
+                meanMinusSTD = Dat.Normal.gc.lowEMG_mean(:,imus_i) - 2*Dat.Normal.gc.lowEMG_std(:,imus_i);
+                stepQ = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
+                intervalQ = 1:stepQ:size(R.Qs,1);
+                sampleQ = 1:size(R.Qs,1);
+                meanPlusSTD = interp1(intervalQ,meanPlusSTD,sampleQ);
+                meanMinusSTD = interp1(intervalQ,meanMinusSTD,sampleQ);
+                fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k');
+                alpha(.25);
+                set(gca,'XTick',[0:20:100])
+                yyaxis left
+                title(musc_sim{i})
+                axis tight
+                yl = get(gca, 'ylim');
+                ylim([0,yl(2)+0.1*norm(yl)])
+                xlim([0,100])
+               
+            end
+        end
+        figure(h29)
+        for i=1:numel(musc_exp)
+            subplot(5,3,i)
+            imus_i = find(strcmp(R.colheaders.muscles,musc_sim{i}));
+            hold on
+            plot(R.a(:,imus_i),'-','Color',CsV(inr,:),'DisplayName',LegName);
+            ylabel('Activity (-)');
+            axis tight
+            yl = get(gca, 'ylim');
+            ylim([0,yl(2)+0.1*norm(yl)])
+            xlim([0,100])
+        end
+        
+        if inr==nr && ~strcmp(figNamePrefix,'none')
+            set(h29,'PaperPositionMode','auto')
+            print(h29,[figNamePrefix '_musc_act'],'-dpng','-r0')
+            print(h29,[figNamePrefix '_musc_act'],'-depsc')
+        end
+        
+    end
+
+    %%
+
+    if makeplot.muscle_joint_power
+        if inr==1
+            h30 = figure('Position',[fpos(3,:),fsq]);
+            
+            musi_ankle = find(R.dM(1,:,5)~=0);
+            nr_musi_ankle = length(musi_ankle);
+            
+            musi_ankle = musi_ankle(nr_musi_ankle/2+1:end);
+            nr_musi_ankle = length(musi_ankle);
+        end
+        
+        figure(h30)
+        for i=1:nr_musi_ankle
+           subplot(4,nr_musi_ankle,i)
+           hold on
+           title(R.colheaders.muscles{musi_ankle(i)},'interpreter','none')
+           T_mus = R.FT(:,musi_ankle(i)) .* R.dM(:,musi_ankle(i),5);
+           plot(x,T_mus,'Color',CsV(inr,:),'DisplayName',LegName);
+           if i==1
+               ylabel('T ankle')
+           end
+           
+           subplot(4,nr_musi_ankle,nr_musi_ankle+i)
+           hold on
+           T_mus = R.FT(:,musi_ankle(i)) .* R.dM(:,musi_ankle(i),6);
+           plot(x,T_mus,'Color',CsV(inr,:),'DisplayName',LegName);
+           if i==1
+               ylabel('T subt')
+           end
+           
+           if size(R.dM,3)==11
+               subplot(4,nr_musi_ankle,2*nr_musi_ankle+i)
+               hold on
+               T_mus = R.FT(:,musi_ankle(i)) .* R.dM(:,musi_ankle(i),7);
+               plot(x,T_mus,'Color',CsV(inr,:),'DisplayName',LegName);
+               if i==1
+                   ylabel('T mtj')
+               end
+           
+               subplot(4,nr_musi_ankle,3*nr_musi_ankle+i)
+               hold on
+               T_mus = R.FT(:,musi_ankle(i)) .* R.dM(:,musi_ankle(i),8);
+               plot(x,T_mus,'Color',CsV(inr,:),'DisplayName',LegName);
+               if i==1
+                   ylabel('T mtp')
+               end
+           
+           else
+               subplot(4,nr_musi_ankle,3*nr_musi_ankle+i)
+               hold on
+               T_mus = R.FT(:,musi_ankle(i)) .* R.dM(:,musi_ankle(i),7);
+               plot(x,T_mus,':','Color',CsV(inr,:),'DisplayName',LegName);
+           
+           end
+           
+            xlabel('% GC')
+            
+        end
+        
+        
+    end
+    
+    %%
+    
 end
 
 figure(hleg)

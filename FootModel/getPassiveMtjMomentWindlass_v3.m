@@ -98,8 +98,8 @@ if poly == 0
 else
 %     % see \FootModel\windlassGeometryPolynomials.m
 %     % length of PF spanning arch
-%     l_PF_fa = 0.1392179 + 0.0374482.*q_mt.^1 + -0.0166876.*q_mt.^2 + ...
-%         -0.001758651.*q_mt.^3 + 0.0004480769.*q_mt.^4;
+    l_PF_fa = 0.1392179 + 0.0374482.*q_mt.^1 + -0.0166876.*q_mt.^2 + ...
+        -0.001758651.*q_mt.^3 + 0.0004480769.*q_mt.^4;
 %     % moment arm of PF to mtj
 %     MA_PF = 0.0374478 + -0.03337403.*q_mt.^1 + -0.005255987.*q_mt.^2 + ...
 %         0.001767266.*q_mt.^3 + -0.0001071423.*q_mt.^4 + 9.858065e-05.*q_mt.^5;

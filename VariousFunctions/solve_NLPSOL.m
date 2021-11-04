@@ -80,4 +80,5 @@ solver = nlpsol('solver', 'ipopt',prob,optionssol);
 sol = solver('x0',guess,'lbx',lbx,'ubx',ubx,'lbg',llb,'ubg',uub); 
 w_opt = full(sol.x);
 stats = solver.stats();
+
 end

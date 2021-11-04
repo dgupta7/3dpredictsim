@@ -13,13 +13,21 @@ addpath(fullfile(MainPath,'\MetabolicEnergy'));
 AddCasadiPaths();
 
 
+
 % path to Cpp file used in the optimization
-S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','PredSim_3D_Fal_s1_mtj_spx10_pp_v3.cpp');
+S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','PredSim_3D_Fal_s1_v7_test7.cpp');
 % S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','Foot_3D_Fal_s1_mtj_subt1_v5.cpp');
 
 % Number of input arguments in the cpp file
-S.CppFile_nInput = 33*3;
-% S.CppFile_nInput = 31*3;
+% S.CppFile_nInput = 33*3;
+S.CppFile_nInput = 31*3;
+
+% Folder to save the polynomials
+S.PolyFolder = 'subject1';
+% Modelpath
+S.ModelPath = fullfile(MainPath,'OpenSimModel/subject1','subject1_mtj.osim');
+% model selection options: Rajagopal, Gait92
+S.ModelName = 'Gait92_mtj';   
 
 % path information for automatically building cpp files
 OsimSource  = 'D:\opensim-ad\opensim-ad-core';
@@ -28,6 +36,11 @@ DllPath     = 'D:\school\WTK\thesis\model\3dpredictsim\ExternalFunctions';
 ExtFuncs    = 'D:\opensim-ad\external-functions';
 VSinstall   = 'C:\Program Files (x86)\Microsoft Visual Studio 14.0';
 
+%% 1: Polynomial fitting
+
+% Fit polynmial functions
+% Bool_RunMA = 1; % Boolean to select if we have to run the muscle analysis
+% FitPolynomials(MainPath,S.ModelName,S.ModelPath,S.PolyFolder,Bool_RunMA)
 
 %% Create .dll files
 % install the functions to create .dll files. you can download this matlab

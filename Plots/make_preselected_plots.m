@@ -17,8 +17,8 @@ clc
 % results from the static foot compression simultion
 plot_static_foot = 0;
 % results from the dynamic whole-body gait simulation
-plot_full_separate = 1; % separate figures like  in the report
-plot_full_tabbed = 0; % single figure with different tabs
+plot_full_separate = 0; % separate figures like  in the report
+plot_full_tabbed = 1; % single figure with different tabs
 
 
 
@@ -423,13 +423,39 @@ Results_mtp_wrt_k_mtj = {
 Results_combination = {
     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T1_spx10_ig23_PFx10_spx10_pp.mat'])
     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T5_ig23_pp.mat'])
-    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T1_spx10_ig23_PFact_pp.mat'])
-    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T1_spx10_PIM_w1e+06_ig23_pp.mat'])
-    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T1_spx10_PIM_w1e+03_ig23_pp.mat'])
-%     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu1_spx10_ig23_PFx10_pp.mat']) % wrong GRF, not sure if caused by sim of pp
+%     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu1_spx10_ig23_PFx10_pp.mat']) % wrong GRF, not sure if caused by sim or pp
 %     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_T1_spx10_ig23_PFx10_v133_pp.mat'])
     };
     
+Results_active = {
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T1_spx10_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T1_spx10_ig23_PFact_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T1_spx10_PIM_w1e+06_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T1_spx10_PIM_w1e+03_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T1_spx10_PIM_w1e+03_w5e+02_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T1_spx10_PIM_w1e+03_w1e+04_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T1_spx10_PIM_w1e+04_w1e+04_ig23_pp.mat'])
+    };
+
+Results_active_muscle = {
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T1_spx10_ig23_pp.mat'])
+%     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T1_spx10_PIM_w1e+03_w5e+02_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T1_spx10_PIM_w1e+03_w1e+04_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_Mf1_spx10_PIM_w1e+03_w1e+04_ig21_pp.mat']) % geometry errors
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_Mf1_spx10_PIM_w1e+03_w1e+04_ig23_v0_pp.mat'])
+%     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T1_spx10_PIM_w1e+04_w1e+04_ig23_pp.mat'])
+    };
+
+Results_active_muscle_v0 = {
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_T1_spx10_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_Mf1_spx10_PIM_w1e+03_w1e+04_ig23_v0_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_nl_Gefen2002_MTP_Mf1_spx10_ig23_v0_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mf1_spx10_ig23_v0_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mf1_spx10_PIM_w1e+03_w1e+04_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Gefen2002_ls150_MT_nl_Gefen2002_MTP_Mf1_spx10_PIM_w1e+03_w1e+04_ig23_pp.mat'])
+    fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Song2011_ls150_MT_k200_MTP_Mf1_spx10_PIM_w1e+03_w1e+04_ig23_pp.mat'])
+    };
+
 Results_local_min = {
     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu1_ig24_pp.mat']) % local min
     };
@@ -473,7 +499,9 @@ filteredResultsWithRef{end+1} = {ref{:}, Results_PF_models{:}};         % 30
 filteredResultsWithRef{end+1} = {ref{:}, Results_combination{:}};       % 31
 filteredResultsWithRef{end+1} = {ref{:}, Results_mtp_wrt_k_mtj{:}};     % 32
 filteredResultsWithRef{end+1} = {ref{:}, Results_local_min{:}};         % 33
-
+filteredResultsWithRef{end+1} = {ref{:}, Results_active{:}};            % 34
+filteredResultsWithRef{end+1} = {ref{:}, Results_active_muscle{:}};     % 35
+filteredResultsWithRef{end+1} = {ref{:}, Results_active_muscle_v0{:}};  % 36
 
 idx = [1,5,9,13:16,21]; % for comparison plots in function of k_mtj
 idx = [1,16];
@@ -518,12 +546,12 @@ ResultsFile = filteredResultsWithRef{29};
 
 % uncomment ones of the groups below
 %%%
-% ResultsFile = {ref{:}};
-% LegNames = {'Falisse 2019'};
+ResultsFile = {ref{:}};
+LegNames = {'Falisse 2019'};
 
 %%%
 % ResultsFile = filteredResultsWithRef{28};
-LegNames = {'Falisse 2019','Elastic arch','Windlass','Elastic arch & windlass'};
+% LegNames = {'Falisse 2019','Elastic arch','Windlass','Elastic arch & windlass'};
 
 %%%
 % ResultsFile = {best_COT};
@@ -561,8 +589,16 @@ LegNames = {'Falisse 2019','Elastic arch','Windlass','Elastic arch & windlass'};
 % LegNames = {'Falisse 2019','Combination'};
 
 %%%
-ResultsFile = filteredResultsWithRef{31};
-LegNames = {'Falisse 2019','Combination','Compliant','PF act','PIM (w=1e+6)','PIM (w=1e+3)'};
+% ResultsFile = filteredResultsWithRef{31};
+% LegNames = {'Falisse 2019','Combination','Compliant'};
+
+%%%
+% ResultsFile = filteredResultsWithRef{34};
+% LegNames = {'Falisse 2019','w/o actuator','F_{PF} * a_{sol}','PIM (w=1e+6)','PIM (w=1e+3)','PIM (w=1e+3, w_P=500)','PIM (w=1e+3, w_P=1e+4)','PIM (w=1e+4, w_P=1e+4)'};
+
+%%%
+% ResultsFile = filteredResultsWithRef{35};
+% LegNames = {'Falisse 2019','w/o actuator','PIM (w=1e+3, w_P=1e+4)','musc, PIM (w=1e+3, w_P=1e+4)'};
 
 %%%
 % ResultsFile = {filteredResultsWithRef{28}{[1,3,4]},filteredResultsWithRef{26}{3},filteredResultsWithRef{31}{2}};
@@ -575,6 +611,28 @@ LegNames = {'Falisse 2019','Combination','Compliant','PF act','PIM (w=1e+6)','PI
 %%%
 % ResultsFile = filteredResultsWithRef{33};
 % LegNames = {'Falisse 2019','Local minimum'};
+
+%%%
+% ResultsFile = {filteredResultsWithRef{1}{1},filteredResultsWithRef{1}{end}};
+% LegNames = {'no mtj','k_{mtj} = 10^6N/rad'};
+
+%%%
+% ResultsFile = {filteredResultsWithRef{35}{[1,2,end]}};
+% LegNames = {'Falisse 2019','w/o actuator','musc'};
+
+%%%
+% ResultsFile = filteredResultsWithRef{36};
+% LegNames = {'Falisse 2019','w/o actuator','musc, PF: Gefen, mtj: Gefen','musc, PF: Natali, mtj: Gefen'...
+%     ,'musc, PF: Natali, mtj: 300'};
+
+%%%
+% ResultsFile = {filteredResultsWithRef{36}{[1,end]}};
+% LegNames = {'Falisse 2019','musc, PF: Natali, mtj: 300'};
+
+%%%
+% ResultsFile = {filteredResultsWithRef{28}{[1,4]},filteredResultsWithRef{26}{3},filteredResultsWithRef{31}{2},filteredResultsWithRef{36}{end}};
+% LegNames = {'Falisse 2019','Elastic arch & windlass','EA & WL, stiff contact','Combination','musc, PF: Natali, mtj: 300'};
+
 
 %%
 % ResultsFile = {filteredResultsWithRef{1}{[1,end-4:-1:2]}};
@@ -605,32 +663,37 @@ if plot_full_separate
 %     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\active';
 %     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\local_min';
 %     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\k_mtj_d2';
+%     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\PIM';
+
 
 
     %%% select figures to make
     makeplot.kinematics                     = 0; %selected joint angles
     makeplot.kinetics                       = 0; % selected joint torques
-    makeplot.soleus                         = 0; % triceps surae
+    makeplot.ankle_musc                     = 1; % ankle muscles
     makeplot.GRF                            = 0; % ground interaction
     makeplot.compareLiterature              = 0; % mtj and mtp Caravaggi 2018
     makeplot.compareTakahashi17             = 0; % "distal to segment" power analysis
     makeplot.compareTakahashi17_separate    = 0; % "distal to segment" power analysis
-    makeplot.compareTakahashi17_mtj_only    = 0; % plot mtj power over experimental result
+    makeplot.compareTakahashi17_mtj_only    = 1; % plot mtj power over experimental result
     makeplot.compareTakahashi17_W_bar       = 0; % "distal to segment" work analysis
-    makeplot.allQsTs                        = 0; % all joint angles and torques
-    makeplot.windlass                       = 0; % plantar fascia and foot arch info
+    makeplot.allQsTs                        = 1; % all joint angles and torques
+    makeplot.windlass                       = 1; % plantar fascia and foot arch info
     makeplot.power                          = 0; % datailed power decomposition
     makeplot.work                           = 0; % same as power, but work over GC
     makeplot.work_bar                       = 0; % positive, negative and net work bar plot
     makeplot.work_bar_small                 = 0; % positive, negative and net work bar plot
-    makeplot.power_main                     = 0; % main power components of foot
+    makeplot.power_main                     = 1; % main power components of foot
     makeplot.spatiotemp                     = 0; % stridelength etc.
     makeplot.ankle_correlation              = 0; % correlation of ankle 
     makeplot.E_muscle_bar                   = 0; % muscle metabolic energy totals
     makeplot.E_muscle_bar_small             = 0; % metabolic energy and work by selected muscle groups
     makeplot.toes                           = 0; % toe flexor and extensor muscle info
     makeplot.Edot_all                       = 0; % summed metabolic energy rate
-    makeplot.Energy_cost                    = 1; % decompose metabolic cost components
+    makeplot.Energy_cost                    = 0; % decompose metabolic cost components
+    makeplot.muscle_act                     = 0; % muscle activity
+    makeplot.muscle_joint_power             = 0;
+    
 
     %%% call function that makes figures
     PlotResults_3DSim_Report(ResultsFile,LegNames,'Fal_s1',mtj,makeplot,figNamePrefix);

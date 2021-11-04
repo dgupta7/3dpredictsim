@@ -73,7 +73,10 @@ if isfield(S,'mtj') && ~isempty(S.mtj) && S.mtj
         savenameparts{end+1} = 'MTP';
         casfuncfolparts{end+1} = 'MTP';
         if S.WL_T_mtp
-            if isfield(S,'Mu_mtp') && ~isempty(S.Mu_mtp) && S.Mu_mtp
+            if isfield(S,'FootMuscles') && ~isempty(S.FootMuscles) && S.FootMuscles
+                savenameparts{end} = [savenameparts{end} '_Mf'];
+                casfuncfolparts{end} = [casfuncfolparts{end} '_Mf'];
+            elseif isfield(S,'Mu_mtp') && ~isempty(S.Mu_mtp) && S.Mu_mtp
                 savenameparts{end} = [savenameparts{end} '_Mu'];
                 casfuncfolparts{end} = [casfuncfolparts{end} '_Mu'];
             else

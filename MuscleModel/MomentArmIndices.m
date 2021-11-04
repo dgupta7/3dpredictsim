@@ -8,8 +8,13 @@
 function [Indmusi,mai] = ...
     MomentArmIndices(muscleNames,muscle_spanning_joint_INFO)
 
-DOFnames = {'hip flex','Hip add','hip rot','knee flex','ankle flex','subtalar',...
-    'mtp angle','trunk extension','trunk bending','trunk rotation'};
+if size(muscle_spanning_joint_INFO,2) == 11
+    DOFnames = {'hip flex','Hip add','hip rot','knee flex','ankle flex','subtalar',...
+        'mtj angle','mtp angle','trunk extension','trunk bending','trunk rotation'};
+else
+    DOFnames = {'hip flex','Hip add','hip rot','knee flex','ankle flex','subtalar',...
+        'mtp angle','trunk extension','trunk bending','trunk rotation'};
+end
 
 NMuscle = length(muscleNames)*2;
 for i = 1:length(muscleNames)

@@ -53,6 +53,7 @@ nq.trunk    = length(trunki); % trunk
 nq.arms     = length(armsi); % arms
 nq.mtp      = length(mtpi); % arms
 nq.leg      = 10; % #joints needed for polynomials
+nq.PIM      = 2;
 % Second, origins bodies. 
 % 33 states, so starts at 34
 % Calcaneus
