@@ -37,6 +37,11 @@ if ~isfield(S,'N') || isempty(S.N)
     S.N         = 50;       
 end
 
+% default number of mesh intervals
+if ~isfield(S,'tanh_b') || isempty(S.tanh_b)
+    S.tanh_b         = 10;       
+end
+
 %% subject settings
 if ~isfield(S,'subject') || isempty(S.subject)
     S.subject = 'subject1';

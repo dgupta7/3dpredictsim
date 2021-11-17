@@ -631,7 +631,7 @@ if add_mtj2
 
     figure
     subplot(2,1,1)
-    viscircles(locSps(1:2,:)',radSps(:),'Color','c');
+%     viscircles(locSps(1:2,:)',radSps(:),'Color','c');
     hold on
     grid on
 
@@ -653,7 +653,7 @@ if add_mtj2
     plot(m1c_j(1,:),m1c_j(2,:),'or')
     plot(m1c_c(1,:),m1c_c(2,:),'xr')
     plot(m1c.t.PF(1,:),m1c.t.PF(2,:),'-dr')
-    viscircles(m1c.t.mtpj(1:2)',7.5e-3,'Color','r')
+%     viscircles(m1c.t.mtpj(1:2)',7.5e-3,'Color','r')
 
     axis equal
     title('Right foot side view')
@@ -661,7 +661,7 @@ if add_mtj2
     ylabel('y')
 
     subplot(2,1,2)
-    viscircles(locSps([1,3],:)',radSps(:),'Color','c');
+%     viscircles(locSps([1,3],:)',radSps(:),'Color','c');
     hold on
     grid on
 

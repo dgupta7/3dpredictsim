@@ -35,6 +35,11 @@ else
     casfuncfolparts{end+1} = ['MuscModel_alphaCst'];
 end
 nr = numel(savenameparts);
+
+if isfield(S,'tanh_b') && ~isempty(S.tanh_b)
+    savenameparts{end+1} = ['tanh' num2str(S.tanh_b)];
+end
+
 if isfield(S,'mtj') && ~isempty(S.mtj) && S.mtj
     if isfield(S,'PF_stiffness') && ~isempty(S.PF_stiffness)
         savenameparts{end+1} = ['PF_' S.PF_stiffness];

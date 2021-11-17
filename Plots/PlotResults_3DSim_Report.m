@@ -321,22 +321,21 @@ for inr=1:nr
 
     if inr==1 && md
         pc_name = getenv('COMPUTERNAME');
-        if strcmp(pc_name,'MSI')
-            if strcmp(RefData,'Fal_s1')
-                load('D:\school\WTK\thesis\model\3dpredictsim\Data\Fal_s1.mat','Dat');
-            else
-                % load data Pog_s1 from struct saved during ...\Analyze_ExoData\Batch\BatchScript_LatexReport.m
-                load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
-            end
-            Qref = Dat.(type).gc;
-            
-%             ijoints_ref = [find(strcmp(Qref.colheaders,'hip_flexion_r'));,ihip2,ihip3,iknee,iankle,isubt];
-            
+        if strcmp(RefData,'Fal_s1')
+            [pathHere,~,~] = fileparts(mfilename('fullpath'));
+            [pathRepo,~,~] = fileparts(pathHere);
+            load([pathRepo '\Data\Fal_s1.mat'],'Dat');
+        elseif strcmp(pc_name,'MSI')
+            % load data Pog_s1 from struct saved during ...\Analyze_ExoData\Batch\BatchScript_LatexReport.m
+            load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
         else
             md = 0;
         end
-        
+        Qref = Dat.(type).gc;
+
+%             ijoints_ref = [find(strcmp(Qref.colheaders,'hip_flexion_r'));,ihip2,ihip3,iknee,iankle,isubt];
     end
+    
     Cs = CsV(inr,:);
     
     if inr==1
@@ -826,7 +825,7 @@ for inr=1:nr
                 L = get(gca,'XLim');
                 set(gca,'XTick',linspace(L(1),L(2),NumTicks))
                 if imu==1
-                    ylabel('$\dot{\tilde{l}^M}$ ($s^{-1}$)','Interpreter','latex');
+                    ylabel('$\dot{\tilde{l}^M}$ (-)','Interpreter','latex');
                 end
                 axis tight
                 yl = get(gca, 'ylim');
@@ -3634,24 +3633,33 @@ for inr=1:nr
             E_comp_sum = [A_sum,M_sum,S_sum,W_sum];
             E_comp_sum_rel = E_comp_sum/E_sum;
             obj2(:,inr) = E_comp_sum_rel;
+            obj3(:,inr) = E_comp_sum;
             
             
             if inr == nr
                 figure(h28);
                 hold on
-                subplot(1,2,1)
+                subplot(1,3,1)
                 br5=bar(obj_cat,obj);
                 for ibr=1:length(br5)
                    br5(ibr).FaceColor = 'flat';
                    br5(ibr).CData = CsV(ibr,:);
                 end
                 
-                subplot(1,2,2)
+                subplot(1,3,2)
                 hold on
                 br6=bar(obj_cat2,obj2);
                 for ibr=1:length(br6)
                    br6(ibr).FaceColor = 'flat';
                    br6(ibr).CData = CsV(ibr,:);
+                end
+
+                subplot(1,3,3)
+                hold on
+                br7=bar(obj_cat2,obj3);
+                for ibr=1:length(br7)
+                   br7(ibr).FaceColor = 'flat';
+                   br7(ibr).CData = CsV(ibr,:);
                 end
             
             end

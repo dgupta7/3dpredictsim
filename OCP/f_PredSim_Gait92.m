@@ -444,7 +444,7 @@ for j=1:d
     % Get metabolic energy rate Bhargava et al. (2004)
     [e_totj,~,~,~,~,~] = fgetMetabolicEnergySmooth2004all(...
         akj(:,j+1),akj(:,j+1),lMtildej,vMj,Fcej,Fpassj,...
-        MuscleMass.MassM',pctsts,Fisoj,S.mass,10);
+        MuscleMass.MassM',pctsts,Fisoj,S.mass,S.tanh_b);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Get passive joint torques
     Tau_passj_all = f_AllPassiveTorques(Qskj_nsc(:,j+1),Qdotskj_nsc(:,j+1));

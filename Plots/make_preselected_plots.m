@@ -17,8 +17,8 @@ clc
 % results from the static foot compression simultion
 plot_static_foot = 0;
 % results from the dynamic whole-body gait simulation
-plot_full_separate = 0; % separate figures like  in the report
-plot_full_tabbed = 1; % single figure with different tabs
+plot_full_separate = 1; % separate figures like  in the report
+plot_full_tabbed = 0; % single figure with different tabs
 
 
 
@@ -460,6 +460,12 @@ Results_local_min = {
     fullfile([pathRepo '\Results\MidTarsalJoint\Fal_s1_bCst_PF_Natali2010_ls150_MT_k300_MTP_Mu1_ig24_pp.mat']) % local min
     };
 
+Results_tanh = {
+    fullfile([pathRepo '\Results\Final\Fal_s1_bCst_tanh10_ig21_pp.mat'])
+    fullfile([pathRepo '\Results\Final\Fal_s1_bCst_tanh50_ig21_pp.mat'])
+    fullfile([pathRepo '\Results\Final\Fal_s1_bCst_tanh100_ig21_pp.mat'])
+    };
+
 %%
 
 filteredResultsWithRef{1}     = {ref{:}, Results_default{:}};           % 1
@@ -502,6 +508,7 @@ filteredResultsWithRef{end+1} = {ref{:}, Results_local_min{:}};         % 33
 filteredResultsWithRef{end+1} = {ref{:}, Results_active{:}};            % 34
 filteredResultsWithRef{end+1} = {ref{:}, Results_active_muscle{:}};     % 35
 filteredResultsWithRef{end+1} = {ref{:}, Results_active_muscle_v0{:}};  % 36
+filteredResultsWithRef{end+1} = {Results_tanh{:}};                      % 37
 
 idx = [1,5,9,13:16,21]; % for comparison plots in function of k_mtj
 idx = [1,16];
@@ -541,17 +548,17 @@ idx = [1,16];
 %% Settings
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-ResultsFile = filteredResultsWithRef{29};
+% ResultsFile = filteredResultsWithRef{29};
 % ResultsFile = {filteredResultsWithRef{31}{[2]}};
 
 % uncomment ones of the groups below
 %%%
-ResultsFile = {ref{:}};
-LegNames = {'Falisse 2019'};
+% ResultsFile = {ref{:}};
+% LegNames = {'Falisse 2019'};
 
 %%%
 % ResultsFile = filteredResultsWithRef{28};
-% LegNames = {'Falisse 2019','Elastic arch','Windlass','Elastic arch & windlass'};
+LegNames = {'Falisse 2019','Elastic arch','Windlass','Elastic arch & windlass'};
 
 %%%
 % ResultsFile = {best_COT};
@@ -634,7 +641,7 @@ LegNames = {'Falisse 2019'};
 % LegNames = {'Falisse 2019','Elastic arch & windlass','EA & WL, stiff contact','Combination','musc, PF: Natali, mtj: 300'};
 
 
-%%
+%%%
 % ResultsFile = {filteredResultsWithRef{1}{[1,end-4:-1:2]}};
 % LegNames = {'Falisse 2019','k_{mtj} = 2000Nm/rad','k_{mtj} = 1500Nm/rad',...
 %     'k_{mtj} = 800Nm/rad','k_{mtj} = 500Nm/rad','k_{mtj} = 400Nm/rad','k_{mtj} = 300Nm/rad',...
@@ -645,6 +652,10 @@ LegNames = {'Falisse 2019'};
 % LegNames = {'Falisse 2019','k_{mtj} = 2000Nm/rad','k_{mtj} = 1500Nm/rad',...
 %     'k_{mtj} = 800Nm/rad','k_{mtj} = 500Nm/rad','k_{mtj} = 400Nm/rad','k_{mtj} = 300Nm/rad',...
 %     'k_{mtj} = 250Nm/rad','k_{mtj} = 200Nm/rad','k_{mtj} = 150Nm/rad','k_{mtj} = 100Nm/rad','k_{mtj} = 50Nm/rad'};
+
+%%%
+ResultsFile = filteredResultsWithRef{37};
+LegNames = {'tanh, b=10 (default)','tanh, b=50','tanh, b=100'};
 
 
 %%
@@ -664,26 +675,27 @@ if plot_full_separate
 %     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\local_min';
 %     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\k_mtj_d2';
 %     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\PIM';
+%     figNamePrefix = 'C:\Users\u0150099\Documents\PhD\meetings\Optimisation_Meetings\tanh';
 
 
 
     %%% select figures to make
-    makeplot.kinematics                     = 0; %selected joint angles
+    makeplot.kinematics                     = 1; %selected joint angles
     makeplot.kinetics                       = 0; % selected joint torques
     makeplot.ankle_musc                     = 1; % ankle muscles
-    makeplot.GRF                            = 0; % ground interaction
+    makeplot.GRF                            = 1; % ground interaction
     makeplot.compareLiterature              = 0; % mtj and mtp Caravaggi 2018
     makeplot.compareTakahashi17             = 0; % "distal to segment" power analysis
     makeplot.compareTakahashi17_separate    = 0; % "distal to segment" power analysis
-    makeplot.compareTakahashi17_mtj_only    = 1; % plot mtj power over experimental result
+    makeplot.compareTakahashi17_mtj_only    = 0; % plot mtj power over experimental result
     makeplot.compareTakahashi17_W_bar       = 0; % "distal to segment" work analysis
-    makeplot.allQsTs                        = 1; % all joint angles and torques
+    makeplot.allQsTs                        = 0; % all joint angles and torques
     makeplot.windlass                       = 1; % plantar fascia and foot arch info
     makeplot.power                          = 0; % datailed power decomposition
     makeplot.work                           = 0; % same as power, but work over GC
     makeplot.work_bar                       = 0; % positive, negative and net work bar plot
     makeplot.work_bar_small                 = 0; % positive, negative and net work bar plot
-    makeplot.power_main                     = 1; % main power components of foot
+    makeplot.power_main                     = 0; % main power components of foot
     makeplot.spatiotemp                     = 0; % stridelength etc.
     makeplot.ankle_correlation              = 0; % correlation of ankle 
     makeplot.E_muscle_bar                   = 0; % muscle metabolic energy totals
@@ -696,7 +708,14 @@ if plot_full_separate
     
 
     %%% call function that makes figures
-    PlotResults_3DSim_Report(ResultsFile,LegNames,'Fal_s1',mtj,makeplot,figNamePrefix);
+%     PlotResults_3DSim_Report(ResultsFile,LegNames,'Fal_s1',mtj,makeplot,figNamePrefix);
+
+    PlotEnergySmoothing(ResultsFile,LegNames)
+
+    for i=1:3
+%         PlotEnergySmoothVsNonSmooth(ResultsFile{i},LegNames{i})
+    end
+
 end
 
 %% make tabbed figure
@@ -708,7 +727,7 @@ end
 
 %% compare ALL muscles for 2 simulation results
 ResultsFile1 = ref{1};
-ResultsFile2 = filteredResultsWithRef{28}{4};
+ResultsFile2 = filteredResultsWithRef{37}{end};
 
 % % PlotResultsComparison_3DSim(ResultsFile1,ResultsFile2);
 

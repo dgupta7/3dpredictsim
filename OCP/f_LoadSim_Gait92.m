@@ -754,7 +754,7 @@ for k=1:N
             a_col_opt_unsc(count,:)',a_col_opt_unsc(count,:)',...
             full(lMtilde_opt_all),...
             full(vM_opt_all),full(Fce_opt_all)',full(Fpass_opt_all)',...
-            MuscleMass.MassM',pctsts,full(Fiso_opt_all)',body_mass,10);
+            MuscleMass.MassM',pctsts,full(Fiso_opt_all)',body_mass,S.tanh_b);
         e_tot_opt_all = full(e_tot_all)';        
         
         % objective function
@@ -1299,6 +1299,7 @@ qdot_opt_GC_rad(:,roti)= qdot_opt_GC_rad(:,roti).*pi/180;
 % Pre-allocations
 e_mo_opt = zeros(2*N,1);
 e_mo_optb = zeros(2*N,1);
+e_mo_optb_nsm = zeros(2*N,1);
 vMtilde_opt_all = zeros(2*N, NMuscle);
 lMtilde_opt_all = zeros(2*N, NMuscle);
 vT_opt_all = zeros(2*N, NMuscle);
@@ -1308,6 +1309,11 @@ metab_Adot  = zeros(2*N, NMuscle);
 metab_Mdot  = zeros(2*N, NMuscle);
 metab_Sdot  = zeros(2*N, NMuscle);
 metab_Wdot  = zeros(2*N, NMuscle);
+metab_Etot_nsm  = zeros(2*N, NMuscle); %non-smoothed
+metab_Adot_nsm  = zeros(2*N, NMuscle);
+metab_Mdot_nsm  = zeros(2*N, NMuscle);
+metab_Sdot_nsm  = zeros(2*N, NMuscle);
+metab_Wdot_nsm  = zeros(2*N, NMuscle);
 FT_opt      = zeros(2*N, NMuscle);
 lMT_Vect    = zeros(2*N,92);
 vMT_Vect    = zeros(2*N,92);
@@ -1361,7 +1367,13 @@ for nn = 1:2*N
         fgetMetabolicEnergySmooth2004all(Acts_GC(nn,:)',...
         Acts_GC(nn,:)',full(lMtilde_opt),full(vM_opt),...
         full(Fce_optt),full(Fpass_optt),MuscleMass.MassM',pctsts,...
-        full(Fiso_optt)',body_mass,10);
+        full(Fiso_optt)',body_mass,S.tanh_b);
+
+    [energy_total_nsm,Adot_nsm,Mdot_nsm,Sdot_nsm,Wdot_nsm,eBargh_nsm] = ...
+        fgetMetabolicEnergySmooth2004all(Acts_GC(nn,:)',...
+        Acts_GC(nn,:)',full(lMtilde_opt),full(vM_opt),...
+        full(Fce_optt),full(Fpass_optt),MuscleMass.MassM',pctsts,...
+        full(Fiso_optt)',body_mass,1e9);
     
     % Umberger 2003
     vMtildeUmbk_opt = full(vM_opt)./(MTparameters_m(2,:)');
@@ -1409,11 +1421,17 @@ for nn = 1:2*N
     % store results
     e_mo_opt(nn) = full(eBargh)';
     e_mo_optb(nn) = full(eBargh)';
+    e_mo_optb_nsm(nn) = full(eBargh_nsm)';
     metab_Etot(nn,:) = full(energy_total)';
     metab_Adot(nn,:) = full(Adot)';
     metab_Mdot(nn,:) = full(Mdot)';
     metab_Sdot(nn,:) = full(Sdot)';
     metab_Wdot(nn,:) = full(Wdot)';
+    metab_Etot_nsm(nn,:) = full(energy_total_nsm)';
+    metab_Adot_nsm(nn,:) = full(Adot_nsm)';
+    metab_Mdot_nsm(nn,:) = full(Mdot_nsm)';
+    metab_Sdot_nsm(nn,:) = full(Sdot_nsm)';
+    metab_Wdot_nsm(nn,:) = full(Wdot_nsm)';
     FT_opt(nn,:)     = full(FT_optt)';
     Fce_opt(nn,:)    = full(Fce_optt)';
     
@@ -1443,9 +1461,11 @@ dist_trav_opt_GC = Qs_opt_rad(end,jointi.pelvis.tx) - ...
     Qs_opt_rad(1,jointi.pelvis.tx); % distance traveled
 time_GC = q_opt_GUI_GC(:,1);
 e_mo_opt_trb = trapz(time_GC,e_mo_optb);
+e_mo_opt_trb_nsm = trapz(time_GC,e_mo_optb_nsm);
 % Cost of transport: J/kg/m
 % Energy model from Bhargava et al. (2004)
 COT_GC = e_mo_opt_trb/body_mass/dist_trav_opt_GC;
+COT_GC_nsm = e_mo_opt_trb_nsm/body_mass/dist_trav_opt_GC;
 
 % COT for all models
 COTv.Bargh2004 = trapz(time_GC,metab_Bargh2004)/body_mass/dist_trav_opt_GC;
@@ -1545,6 +1565,7 @@ R.Tid       = Ts_opt.*body_mass;
 R.a         = Acts_GC;
 R.e         = e_GC;
 R.COT       = COT_GC;
+R.COT_non_smooth  = COT_GC_nsm;
 R.StrideLength = StrideLength_opt;
 R.StepWidth = stride_width_mean;
 R.vMtilde   = vMtilde_opt_all;
@@ -1554,6 +1575,11 @@ R.MetabB.Adot = metab_Adot;
 R.MetabB.Mdot = metab_Mdot;
 R.MetabB.Sdot = metab_Sdot;
 R.MetabB.Wdot = metab_Wdot;
+R.MetabB_non_smooth.Etot = metab_Etot_nsm;
+R.MetabB_non_smooth.Adot = metab_Adot_nsm;
+R.MetabB_non_smooth.Mdot = metab_Mdot_nsm;
+R.MetabB_non_smooth.Sdot = metab_Sdot_nsm;
+R.MetabB_non_smooth.Wdot = metab_Wdot_nsm;
 R.ExoControl  = ExoVect;
 R.S           = S;  % settings for post processing
 R.Sopt        = Sopt; % original settings used to solve the OCP
