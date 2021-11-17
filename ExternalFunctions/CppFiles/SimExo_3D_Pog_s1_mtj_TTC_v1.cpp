@@ -187,8 +187,8 @@ int F_generic(const T** arg, T** res) {
 	OpenSim::CustomJoint* ankle_l;
 	OpenSim::CustomJoint* subtalar_r;
 	OpenSim::CustomJoint* subtalar_l;
-	OpenSim::PinJoint* tmt_r;
-	OpenSim::PinJoint* tmt_l;
+	OpenSim::PinJoint* midtarsal_r;
+	OpenSim::PinJoint* midtarsal_l;
 	OpenSim::PinJoint* mtp_r;
 	OpenSim::PinJoint* mtp_l;
 	OpenSim::CustomJoint* back;

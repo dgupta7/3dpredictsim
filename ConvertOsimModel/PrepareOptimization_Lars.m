@@ -16,7 +16,7 @@ AddCasadiPaths();
 
 % path to Cpp file used in the optimization
 % S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','PredSim_3D_Fal_s1_v7_test7.cpp');
-S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','SimExo_3D_Pog_s1_mtj_TTC_pp_v1.cpp');
+S.CppFile_NLP = fullfile(MainPath,'ExternalFunctions','CppFiles','SimExo_3D_Pog_s1_mtj_TTC_v1.cpp');
 
 % Number of input arguments in the cpp file
 S.CppFile_nInput = 33*3 +2;
