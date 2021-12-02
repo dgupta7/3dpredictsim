@@ -465,6 +465,14 @@ Results_tanh = {
     fullfile([pathRepo '\Results\Final\Fal_s1_bCst_tanh50_ig21_pp.mat'])
     fullfile([pathRepo '\Results\Final\Fal_s1_bCst_tanh100_ig21_pp.mat'])
     };
+Results_tanh_v27 = {
+    fullfile([pathRepo '\Results\Final\Fal_s1_bCst_tanh10_ig1_v27_pp.mat'])
+    fullfile([pathRepo '\Results\Final\Fal_s1_bCst_tanh100_ig1_v27_pp.mat'])
+    };
+
+Results_exo = {
+    fullfile([pathRepo '\Results\Exo\Pog_s1_bCst_tanh100_PF_Natali2010_x10_ls150_MT_k300_MTP_T1_spx10_ig24_act_TTC_pp.mat'])
+    };
 
 %%
 
@@ -509,6 +517,9 @@ filteredResultsWithRef{end+1} = {ref{:}, Results_active{:}};            % 34
 filteredResultsWithRef{end+1} = {ref{:}, Results_active_muscle{:}};     % 35
 filteredResultsWithRef{end+1} = {ref{:}, Results_active_muscle_v0{:}};  % 36
 filteredResultsWithRef{end+1} = {Results_tanh{:}};                      % 37
+filteredResultsWithRef{end+1} = {Results_exo{:}};                       % 38
+filteredResultsWithRef{end+1} = {Results_tanh_v27{:}};                  % 39
+
 
 idx = [1,5,9,13:16,21]; % for comparison plots in function of k_mtj
 idx = [1,16];
@@ -548,7 +559,7 @@ idx = [1,16];
 %% Settings
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% ResultsFile = filteredResultsWithRef{29};
+ResultsFile = filteredResultsWithRef{39};
 % ResultsFile = {filteredResultsWithRef{31}{[2]}};
 
 % uncomment ones of the groups below
@@ -654,8 +665,12 @@ LegNames = {'Falisse 2019','Elastic arch','Windlass','Elastic arch & windlass'};
 %     'k_{mtj} = 250Nm/rad','k_{mtj} = 200Nm/rad','k_{mtj} = 150Nm/rad','k_{mtj} = 100Nm/rad','k_{mtj} = 50Nm/rad'};
 
 %%%
-ResultsFile = filteredResultsWithRef{37};
-LegNames = {'tanh, b=10 (default)','tanh, b=50','tanh, b=100'};
+%     ResultsFile = filteredResultsWithRef{37};
+%     LegNames = {'tanh, b=10 (default)','tanh, b=50','tanh, b=100'};
+
+%%%
+ResultsFile = filteredResultsWithRef{39};
+LegNames = {'tanh, b=10 (default)','tanh, b=100'};
 
 
 %%
@@ -676,11 +691,12 @@ if plot_full_separate
 %     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\k_mtj_d2';
 %     figNamePrefix = 'D:\OneDrive\WTK\thesis\figuren\matlab_final\PIM';
 %     figNamePrefix = 'C:\Users\u0150099\Documents\PhD\meetings\Optimisation_Meetings\tanh';
+%     figNamePrefix = 'C:\Users\u0150099\Documents\PhD\meetings\Optimisation_Meetings\v27_tanh';
 
 
 
     %%% select figures to make
-    makeplot.kinematics                     = 1; %selected joint angles
+    makeplot.kinematics                     = 0; %selected joint angles
     makeplot.kinetics                       = 0; % selected joint torques
     makeplot.ankle_musc                     = 1; % ankle muscles
     makeplot.GRF                            = 1; % ground interaction
@@ -689,8 +705,8 @@ if plot_full_separate
     makeplot.compareTakahashi17_separate    = 0; % "distal to segment" power analysis
     makeplot.compareTakahashi17_mtj_only    = 0; % plot mtj power over experimental result
     makeplot.compareTakahashi17_W_bar       = 0; % "distal to segment" work analysis
-    makeplot.allQsTs                        = 0; % all joint angles and torques
-    makeplot.windlass                       = 1; % plantar fascia and foot arch info
+    makeplot.allQsTs                        = 1; % all joint angles and torques
+    makeplot.windlass                       = 0; % plantar fascia and foot arch info
     makeplot.power                          = 0; % datailed power decomposition
     makeplot.work                           = 0; % same as power, but work over GC
     makeplot.work_bar                       = 0; % positive, negative and net work bar plot
@@ -709,6 +725,7 @@ if plot_full_separate
 
     %%% call function that makes figures
 %     PlotResults_3DSim_Report(ResultsFile,LegNames,'Fal_s1',mtj,makeplot,figNamePrefix);
+%     PlotResults_3DSim_Report(ResultsFile,LegNames,'none',mtj,makeplot,figNamePrefix);
 
     PlotEnergySmoothing(ResultsFile,LegNames)
 
@@ -722,11 +739,12 @@ end
 % Set last argument to 0 for main figure, to 1 for cross-correlation
 % coefficient figure or to 2 for both.
 if plot_full_tabbed
-    [h_default,h_ccc] = Plot3D(ResultsFile,'Fal_s1',0);
+%     [h_default,h_ccc] = Plot3D(ResultsFile,'Fal_s1',0);
+    [h_default,h_ccc] = Plot3D(ResultsFile,'none',0);
 end
 
 %% compare ALL muscles for 2 simulation results
-ResultsFile1 = ref{1};
+ResultsFile1 = filteredResultsWithRef{37}{1};
 ResultsFile2 = filteredResultsWithRef{37}{end};
 
 % % PlotResultsComparison_3DSim(ResultsFile1,ResultsFile2);

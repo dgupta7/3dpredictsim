@@ -849,7 +849,7 @@ if ~isempty(phase_tran_tgridi)
                 IC1i = phase_tran_tgridi_t;
                 HS1 = 'r';
             end
-        else
+        elseif nFramesBelow < N
             IC1i = phase_tran_tgridi + 1;
             HS1 = 'r';
         end
@@ -869,6 +869,7 @@ if ~exist('HS1','var')
                 phase_tran_tgridi_t = temp_idx;
                 IC1i = phase_tran_tgridi_t;
                 HS1 = 'l';
+
             else
                 IC1i = phase_tran_tgridi + 1;
                 HS1 = 'l';
@@ -885,10 +886,10 @@ end
 
 % GRFk_opt is at mesh points starting from k=2, we thus add 1 to IC1i
 % for the states
-if phase_tran_tgridi ~= N
+% if phase_tran_tgridi ~= N
     IC1i_c = IC1i;
     IC1i_s = IC1i + 1;
-end
+% end
 
 % Qs
 Qs_GC = zeros(N*2,size(q_opt_unsc.deg,2));

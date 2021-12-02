@@ -37,24 +37,24 @@ AddCasadiPaths();
 % Full body gait simulation
 slv = 0;                % run solver
 pp = 1;                 % postproces
-plot = 0;               % plot solution
+plot = 1;               % plot solution
 batchQueue = 0;         % save settings to run later
 % Static foot simulation
 foot_standing = 0;      % load on knee
 foot_hanging = 0;       % knee position fixed, tibia and foot hanging freely
 
 % settings for optimization
-S.v_tgt     = 1.25;     % average speed 1.25
+S.v_tgt     = 2.7;     % average speed 1.25
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 6;        % number of threads for parallel computing
 % S.max_iter  = 10;       % maximum number of iterations (comment -> 10000)
 % S.tol_ipopt = 3;        % stopping criterion: inf_du < 10^(-...) 
-S.tanh_b = 10;          % smoothness factor for tanh smoothing (lower b is smoother)
+S.tanh_b = 100;          % smoothness factor for tanh smoothing (lower b is smoother)
 
 % output folder
 S.ResultsFolder = 'Final'; % 'MuscleModel' 'MidTarsalJoint' 'Final'
 suffixCasName = ''; % _v2
-suffixName = '';
+suffixName = '_v27';
 
 % assumption to simplify Hill-type muscle model
 S.MuscModelAsmp = 0;    % 0: musc width/height = cst, 1: pennation angle = cst
@@ -87,7 +87,7 @@ S.cWL = 0.03;           % relative change in foot arch length at mtp 20° dorsifl
 S.mtj = 0;              % 1: use a model with tmt joint (will override tmt)
 % plantar fascia
 % S.PF_stiffness = 'Gefen2002'; % stiffness model for the gait simulation
-S.PF_stiffness = 'Song2011';
+S.PF_stiffness = 'Natali2010';
         % options:
         % 'none''linear''Gefen2002''Cheng2008''Natali2010''Song2011'
 S.sf_PF = 1;                % multiply PF force with constant factor
@@ -99,8 +99,8 @@ S.R_mtth = 9.5e-3;
 S.WLpoly = 1;
 
 % Plantar Intrinsic Muscles
-S.PIM = 1;
-S.FootMuscles = 1;
+S.PIM = 0;
+S.FootMuscles = 0;
 S.W.PIM = 10^3;
 S.W.P_PIM = 10^4; % 500, 10^4
 
@@ -111,7 +111,7 @@ S.mtj_stiffness = 'Gefen2002';
 % S.mtj_stiffness = 'signed_lin';
 % S.mtj_stiffness = 'fitted6';
 
-S.kMT_li = 200;          % angular stiffness in case of linear
+S.kMT_li = 300;          % angular stiffness in case of linear
 S.kMT_li2 = 10;          % angular stiffness in case of linear
 % S.dMT = 5;               % (Nms/rad) damping
 
@@ -154,7 +154,7 @@ ia = 0;
 %% Initial guess
 % initial guess based on simulations without exoskeletons
     % initial guess identifier (1: quasi random, 2: data-based)
-S.IGsel         = 2;
+S.IGsel         = 1;
     % initial guess mode identifier (1 walk, 2 run, 3 prev.solution, 4 solution from /IG/Data folder)
 S.IGmodeID      = 1;
 
@@ -219,6 +219,12 @@ elseif S.mtj == 1
                 S.ExternalFunc  = 'PredSim_3D_Fal_s1_mtj_v1.dll';
                 S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_pp_v6.dll';
              end
+        end
+    else
+        if strcmp(S.subject,'s1_Poggensee') && S.contactStiff == 10 ...
+                && strcmp(S.ExoImplementation,'TorqueTibiaCalcn')
+            S.ExternalFunc  = 'SimExo_3D_Pog_s1_mtj_TTC_v1.dll';
+            S.ExternalFunc2 = 'SimExo_3D_Pog_s1_mtj_TTC_pp_v2.dll';
         end
     end
     
@@ -361,7 +367,8 @@ end
 if plot
     h = figure();
     set(h,'Position',[82 151 1497 827]);
-    PlotResults_3DSim_tmt(fullfile(pathResults,[S.savename '_pp.mat']),[1 0 0],savename,h);
+    PlotResults_3DSim_tmt(fullfile(pathResults,[S.savename '_pp.mat']),[1 0 0],savename,h,'none');
+%     PlotResults_3DSim_tmt(fullfile(pathResults,[S.savename '_pp.mat']),[0.1 0.8 0.2],'"combination" footmodel',h,'act');
 end
 
 

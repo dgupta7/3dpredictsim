@@ -60,6 +60,7 @@ scs = get(0,'ScreenSize');
 fwide = [scs(3)/2, scs(4)/2-100];
 fsq = [scs(3)/2, scs(4)*0.6];
 fhigh = [scs(3)/2, scs(4)-120];
+ffull = [scs(3), scs(4)-120];
 flong = [scs(3)/2, scs(4)/4];
 fhigh1 = [scs(3)*0.4, scs(4)-120];
 
@@ -644,7 +645,7 @@ for inr=1:nr
         
         if inr==1
             if makeplot.sol_all
-                h3 = figure('Position',[fpos(3,:),fhigh]);
+                h3 = figure('Position',[fpos(2,:),ffull]);
             else
                 h3 = figure('Position',[fpos(3,:),fwide]);
             end
@@ -652,6 +653,9 @@ for inr=1:nr
             figure(h3);
         end
         
+        nn_msc = 6;
+        n_msc = 7;
+
         if inr==1 && md 
             if strcmp(RefData,'Fal_s1')
                 iSol_data = find(strcmp(Dat.(type).EMGheaders,'Soleus'));
@@ -679,7 +683,7 @@ for inr=1:nr
             imusd = [iSol_data,iGas_data,iGas2_data,iTibAnt_data,iPerL_data,iPerB_data];
             ankle_a = [ankle_act(ceil(end/2):end,:); ankle_act(1:ceil(end/2)-1,:)];
             
-            n_msc = 7;
+           
             nn_msc = length(imusd);%+2;
 
             
@@ -734,7 +738,11 @@ for inr=1:nr
             xlim([0,100])
                 if imu==1
                     ylabel('Activity (-)','Interpreter','latex');
-                    lg_a = [lg_a,p2];
+                    if ~md && inr==1
+                        lg_a = p2;
+                    else
+                        lg_a = [lg_a,p2];
+                    end
                     if inr==nr
                         lh3=legend(lg_a,'location','northwest');
                         lh3.Interpreter = 'tex';

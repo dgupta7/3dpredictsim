@@ -27,6 +27,7 @@ end
 
 ExtPoly = '_mtp';
 ExtPoly2 = ExtPoly;
+nq.leg = 10;
 if isfield(S,'FootMuscles') && ~isempty(S.FootMuscles) && S.FootMuscles
     ExtPoly = '_mtj';
     ExtPoly2 = '_mtj';

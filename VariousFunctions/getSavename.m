@@ -44,6 +44,10 @@ if isfield(S,'mtj') && ~isempty(S.mtj) && S.mtj
     if isfield(S,'PF_stiffness') && ~isempty(S.PF_stiffness)
         savenameparts{end+1} = ['PF_' S.PF_stiffness];
         casfuncfolparts{end+1} = ['PF_' S.PF_stiffness];
+        if isfield(S,'sf_PF') && ~isempty(S.sf_PF) && S.sf_PF~=1
+            savenameparts{end+1} = ['x' num2str(S.sf_PF)];
+            casfuncfolparts{end+1} = ['x' num2str(S.sf_PF)];
+        end
     end
     if isfield(S,'PF_slack_length') && ~isempty(S.PF_slack_length)
         savenameparts{end+1} = ['ls' num2str(S.PF_slack_length*1000)];

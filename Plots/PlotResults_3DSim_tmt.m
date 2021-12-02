@@ -163,17 +163,19 @@ if exist(ResultsFile,'file')
     axes('parent', tab1);
     
     if boolFirst && md
-        pc_name = getenv('COMPUTERNAME');
-        if strcmp(pc_name,'MSI')
+        [pathHere,~,~] = fileparts(mfilename('fullpath'));
+        [pathRepo,~,~] = fileparts(pathHere);
+        try
             if strcmp(subject,'Fal_s1')
-                load('D:\school\WTK\thesis\model\3dpredictsim\Data\Fal_s1.mat','Dat');
+                load([pathRepo '\Data\Fal_s1.mat'],'Dat');
             else
-                % load data Pog_s1 from struct saved during ...\Analyze_ExoData\Batch\BatchScript_LatexReport.m
-                load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
+                load([pathRepo '\Data\Pog_s1.mat'],'Dat');
             end
             Qref = Dat.(type).gc;
-        else
+        catch
             md = 0;
+            disp('Reference data not found')
+
         end
         
     end
@@ -281,7 +283,7 @@ if exist(ResultsFile,'file')
                 meanPlusSTD = interp1(intervalID,meanPlusSTD,sampleID);
                 meanMinusSTD = interp1(intervalID,meanMinusSTD,sampleID);
                 hold on
-                fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName',['MoCap ' subject]);
+                fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName',['MoCap ' subject '(' type ')']);
                 alpha(.25);
             end
         end

@@ -32,7 +32,7 @@ S = Sopt;
 
 body_mass = S.mass;
 
-S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_spx10_pp_v3.dll';
+% S.ExternalFunc2 = 'PredSim_3D_Fal_s1_mtj_spx10_pp_v3.dll';
     
 %% User inputs (typical settings structure)
 % load default CasadiFunctions
@@ -645,7 +645,7 @@ for i = 1:N
     Tau_passk_opt_all(i,:) = full(f_AllPassiveTorques(q_opt_unsc_all.rad(i+1,:),qdot_opt_unsc_all.rad(i+1,:)));
 end
 GRFk_opt = Foutk_opt(:,GRFi.all);
-if F1.nnz_out > 45
+if F1.nnz_out > 45 && isfield(GRFi,'separate')
     GRFk_separate_opt = Foutk_opt(:,GRFi.separate);
 end
 

@@ -6,6 +6,7 @@ if numel(LegNames) == nr
 else
     LN = 0;
 end
+set(0,'defaultTextInterpreter','tex');
 
 CsV = hsv(nr);
 scs = get(0,'ScreenSize');
@@ -166,7 +167,7 @@ for inr=1:nr
     ylabel('A (Wkg^{-1}m^{-1})'); grid on
     ax1 = gca;
     ax1.XAxis.Visible = 'off';
-    ylim([0,0.8])
+%     ylim([0,0.8])
 
     subplot(5,4,3+8)
     bar(inr*2-1,COT_M,'FaceColor',Cs,'LineStyle','-'); hold on;
@@ -174,7 +175,7 @@ for inr=1:nr
     ylabel('M (Wkg^{-1}m^{-1})'); grid on
     ax1 = gca;
     ax1.XAxis.Visible = 'off';
-    ylim([0,1.2])
+%     ylim([0,1.2])
 
     subplot(5,4,3+12)
     bar(inr*2-1,COT_S,'FaceColor',Cs,'LineStyle','-'); hold on;
@@ -182,7 +183,7 @@ for inr=1:nr
     ylabel('S (Wkg^{-1}m^{-1})'); grid on
     ax1 = gca;
     ax1.XAxis.Visible = 'off';
-    ylim([0,0.5])
+%     ylim([0,0.5])
 
     subplot(5,4,3+16)
     bar(inr*2-1,COT_W,'FaceColor',Cs,'LineStyle','-'); hold on;
@@ -190,7 +191,7 @@ for inr=1:nr
     ylabel('W (Wkg^{-1}m^{-1})'); grid on
     ax1 = gca;
     ax1.XAxis.Visible = 'off';
-    ylim([0,1.6])
+%     ylim([0,1.6])
 
     subplot(5,4,[4,8])
     bar(inr*2-1,R.COT,'FaceColor',Cs,'LineStyle','-'); hold on;
@@ -198,7 +199,7 @@ for inr=1:nr
     ylabel('COT (Wkg^{-1}m^{-1})'); grid on
     ax1 = gca;
     ax1.XAxis.Visible = 'off';
-    ylim([0,5])
+%     ylim([0,5])
 
     subplot(5,4,[12,16])
     bar(inr*2-1,R.COT,'FaceColor',Cs,'LineStyle','-','DisplayName',['Smoothed (b=' num2str(R.S.tanh_b) ')']); hold on;

@@ -92,7 +92,7 @@ if isfield(S,'W')
         S.W.PIM     = 10^3;     % weight PIM excitations
     end
     if ~isfield(S.W,'u')
-        S.W.u       = 0.001;    % weight on excitations arms actuators
+        S.W.u       = 0.001;    % weight on slack controls
     end
     if ~isfield(S.W,'Lumbar')
         S.W.Lumbar  = 10^5;
@@ -216,7 +216,7 @@ if ~isfield(S,'Symmetric')
     S.Symmetric = true;
 end
 
-% oeriodic motion
+% periodic motion
 if ~isfield(S,'Periodic')
     S.Periodic = false;
 end
