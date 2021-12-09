@@ -603,8 +603,8 @@ LegNames = {'Falisse 2019','Elastic arch','Windlass','Elastic arch & windlass'};
 % LegNames = {'Falisse 2019','Elastic arch & Windlass','Stiffer contact spheres'};
 
 %%%
-% ResultsFile = {filteredResultsWithRef{31}{[1,2]}};
-% LegNames = {'Falisse 2019','Combination'};
+ResultsFile = {filteredResultsWithRef{31}{[1,2]}};
+LegNames = {'Falisse 2019','Combination'};
 
 %%%
 % ResultsFile = filteredResultsWithRef{31};
@@ -669,8 +669,8 @@ LegNames = {'Falisse 2019','Elastic arch','Windlass','Elastic arch & windlass'};
 %     LegNames = {'tanh, b=10 (default)','tanh, b=50','tanh, b=100'};
 
 %%%
-ResultsFile = filteredResultsWithRef{39};
-LegNames = {'tanh, b=10 (default)','tanh, b=100'};
+% ResultsFile = filteredResultsWithRef{39};
+% LegNames = {'tanh, b=10 (default)','tanh, b=100'};
 
 
 %%
@@ -698,20 +698,20 @@ if plot_full_separate
     %%% select figures to make
     makeplot.kinematics                     = 0; %selected joint angles
     makeplot.kinetics                       = 0; % selected joint torques
-    makeplot.ankle_musc                     = 1; % ankle muscles
-    makeplot.GRF                            = 1; % ground interaction
+    makeplot.ankle_musc                     = 0; % ankle muscles
+    makeplot.GRF                            = 0; % ground interaction
     makeplot.compareLiterature              = 0; % mtj and mtp Caravaggi 2018
     makeplot.compareTakahashi17             = 0; % "distal to segment" power analysis
     makeplot.compareTakahashi17_separate    = 0; % "distal to segment" power analysis
     makeplot.compareTakahashi17_mtj_only    = 0; % plot mtj power over experimental result
     makeplot.compareTakahashi17_W_bar       = 0; % "distal to segment" work analysis
-    makeplot.allQsTs                        = 1; % all joint angles and torques
+    makeplot.allQsTs                        = 0; % all joint angles and torques
     makeplot.windlass                       = 0; % plantar fascia and foot arch info
-    makeplot.power                          = 0; % datailed power decomposition
-    makeplot.work                           = 0; % same as power, but work over GC
-    makeplot.work_bar                       = 0; % positive, negative and net work bar plot
+    makeplot.power                          = 1; % datailed power decomposition
+    makeplot.work                           = 1; % same as power, but work over GC
+    makeplot.work_bar                       = 1; % positive, negative and net work bar plot
     makeplot.work_bar_small                 = 0; % positive, negative and net work bar plot
-    makeplot.power_main                     = 0; % main power components of foot
+    makeplot.power_main                     = 1; % main power components of foot
     makeplot.spatiotemp                     = 0; % stridelength etc.
     makeplot.ankle_correlation              = 0; % correlation of ankle 
     makeplot.E_muscle_bar                   = 0; % muscle metabolic energy totals
@@ -724,10 +724,10 @@ if plot_full_separate
     
 
     %%% call function that makes figures
-%     PlotResults_3DSim_Report(ResultsFile,LegNames,'Fal_s1',mtj,makeplot,figNamePrefix);
+    PlotResults_3DSim_Report(ResultsFile,LegNames,'Fal_s1',mtj,makeplot,figNamePrefix);
 %     PlotResults_3DSim_Report(ResultsFile,LegNames,'none',mtj,makeplot,figNamePrefix);
 
-    PlotEnergySmoothing(ResultsFile,LegNames)
+%     PlotEnergySmoothing(ResultsFile,LegNames)
 
     for i=1:3
 %         PlotEnergySmoothVsNonSmooth(ResultsFile{i},LegNames{i})

@@ -173,7 +173,7 @@ for inr=1:nr
     W_subt = zeros(size(P_subt));
     W_mtp = zeros(size(P_mtp));
 
-    for iw=2:length(x)
+    for iw=2:length(xst_10)
        W_hip(iw) = trapz(R.t(1:iw),P_hip(1:iw));
        W_knee(iw) = trapz(R.t(1:iw),P_knee(1:iw));
        W_ankle(iw) = trapz(R.t(1:iw),P_ankle(1:iw));
@@ -239,7 +239,7 @@ for inr=1:nr
         W_li = zeros(size(P_mtj_li));
         W_mtp_WL = zeros(size(P_mtp_PF));
 
-        for iw=2:length(x)
+        for iw=2:length(xst_10)
             W_PF(iw) = trapz(R.t(1:iw),P_PF(1:iw));
             W_li(iw) = trapz(R.t(1:iw),P_mtj_li(1:iw));
             W_mtp_WL(iw) = trapz(R.t(1:iw),P_mtp_PF(1:iw));
@@ -270,7 +270,7 @@ for inr=1:nr
        W_T_Gas = zeros(size(P_T_Sol));
        W_T_Gas2 = zeros(size(P_T_Sol));
 
-       for iw=2:length(x)
+       for iw=2:length(xst_10)
             W_T_Sol(iw) = trapz(R.t(1:iw),P_T_Sol(1:iw));
             W_T_Gas(iw) = trapz(R.t(1:iw),P_T_Gas(1:iw));
             W_T_Gas2(iw) = trapz(R.t(1:iw),P_T_Gas2(1:iw));
@@ -293,7 +293,7 @@ for inr=1:nr
     W_M_Gas = zeros(size(P_M_Sol));
     W_M_Gas2 = zeros(size(P_M_Sol));
 
-    for iw=2:length(x)
+    for iw=2:length(xst_10)
         W_M_Sol(iw) = trapz(R.t(1:iw),P_M_Sol(1:iw));
         W_M_Gas(iw) = trapz(R.t(1:iw),P_M_Gas(1:iw));
         W_M_Gas2(iw) = trapz(R.t(1:iw),P_M_Gas2(1:iw));
@@ -315,7 +315,7 @@ for inr=1:nr
     W_HC_ball = zeros(size(P_HC));
     W_HC_toes = zeros(size(P_HC));
 
-    for iw=2:length(x)
+    for iw=2:length(xst_10)
         W_HC_heel(iw) = trapz(R.t(1:iw),R.P_mech_contact.vertical.calcn.r(1:iw))/R.body_mass;
         W_HC_ball(iw) = trapz(R.t(1:iw),R.P_mech_contact.vertical.metatarsi.r(1:iw))/R.body_mass;
         W_HC_toes(iw) = trapz(R.t(1:iw),R.P_mech_contact.vertical.toes.r(1:iw))/R.body_mass;
@@ -329,7 +329,7 @@ for inr=1:nr
     P_tot = P_HC + P_joints;
     W_tot = W_HC + W_joints;
     P_leg_joints = P_hip + P_knee + P_ankle + P_subt + P_mtj + P_mtp;
-    W_leg_joints = W_hip + W_knee + W_ankle + W_subt +W_mtj + W_mtp;
+
     
     
 %%
@@ -458,7 +458,7 @@ for inr=1:nr
                 title(ttl_tmp(1:end-2),'Fontsize',label_fontsize);
                 % Y-axis
                 if i == 1 || i == 4
-                    ylabel('Angle (°)','Fontsize',label_fontsize);
+                    ylabel('Angle (Â°)','Fontsize',label_fontsize);
                 end
                 % X-axis
                 L = get(gca,'XLim');
@@ -538,7 +538,7 @@ for inr=1:nr
                 title(ttl_tmp(1:end-2),'Fontsize',label_fontsize);
                 % Y-axis
                 if i == 1 || i == 4
-                    ylabel('Angular velocity (°)','Fontsize',label_fontsize);
+                    ylabel('Angular velocity (Â°)','Fontsize',label_fontsize);
                 end
                 % X-axis
                 L = get(gca,'XLim');
@@ -1057,7 +1057,7 @@ for inr=1:nr
 %             hi1 = image([-13,103],flip([-72,28]+30),img_q_ankle);
 %             uistack(hi1,'bottom')
 %             xlabel('Gait cycle (%)')
-%             ylabel('Angle (°)')
+%             ylabel('Angle (Â°)')
 %             title('Ankle')
             
             subplot(121)
@@ -1069,7 +1069,7 @@ for inr=1:nr
             hi1 = image([-11,103],flip([-8,92]-42),img_q_mtj2);
             uistack(hi1,'bottom')
             xlabel('Gait cycle (%)')
-            ylabel('Angle (°)')
+            ylabel('Angle (Â°)')
             title('Midtarsal')
             
 %             yl = get(gca,'YLim');
@@ -1089,7 +1089,7 @@ for inr=1:nr
             hi2 = image([-12,102],flip([-36,77]),img_q_mtp);
             uistack(hi2,'bottom')
             xlabel('Gait cycle (%)')
-            ylabel('Angle (°)')
+            ylabel('Angle (Â°)')
             title('Mtp')
 %             
 %             plot([20,20],get(gca,'YLim'),'color',[1,1,1]*0.3)
@@ -1121,7 +1121,7 @@ for inr=1:nr
                 xlim([0,100])
                 hi2 = image([-1,101],[-16,15],img_talus_mtt1);
                 uistack(hi2,'bottom')
-                ylabel('Dorsiflexion (°)')
+                ylabel('Dorsiflexion (Â°)')
                 title('First metatarsal relative to talus \rm (Lundgren and all, 2008)')
                 
                 subplot(312)
@@ -1130,7 +1130,7 @@ for inr=1:nr
                 xlim([0,100])
                 hi2 = image([-1,101],[-16,15],img_talus_mtt1_inv);
                 uistack(hi2,'bottom')
-                ylabel('Inversion (°)')
+                ylabel('Inversion (Â°)')
                 
                 subplot(313)
                 hold on
@@ -1139,7 +1139,7 @@ for inr=1:nr
                 hi2 = image([-1,101],[-14,16],img_talus_mtt1_add);
                 uistack(hi2,'bottom')
                 xlabel('Stance (%)')
-                ylabel('Abduction (°)')
+                ylabel('Abduction (Â°)')
         end
         
         
@@ -1896,7 +1896,7 @@ for inr=1:nr
                 title(joints_tit{idx_title(i)},'Fontsize',label_fontsize);
                 % Y-axis
                 if i == 1 || i == 4 || i == 7 || i == 10 || i == 13 || i == 16
-                    ylabel('Angle (°)','Fontsize',label_fontsize);
+                    ylabel('Angle (Â°)','Fontsize',label_fontsize);
                 end
                 % X-axis
                 L = get(gca,'XLim');
@@ -2073,7 +2073,7 @@ for inr=1:nr
 %             hold on
 %             grid on
 %             plot(R.S.kMT_li,max(R.Qs(:,imtj)),'o','Color',Cs,'MarkerFaceColor',Cs)
-%             ylabel('angle (°)')
+%             ylabel('angle (Â°)')
 %             title({'Max mtj angle'})
 %         
 %             subplot(2,4,7)
@@ -2081,14 +2081,14 @@ for inr=1:nr
 %             grid on
 %             plot(R.S.kMT_li,min(R.Qs(:,imtj)),'o','Color',Cs,'MarkerFaceColor',Cs)
 %             xlabel('mtj stiffness (Nm/rad)')
-%             ylabel('angle (°)')
+%             ylabel('angle (Â°)')
 %             title({'Min mtj angle'})
 %             
 %             subplot(2,4,4)
 %             hold on
 %             grid on
 %             plot(R.S.kMT_li,max(R.Qs(:,imtp)),'o','Color',Cs,'MarkerFaceColor',Cs)
-%             ylabel('angle (°)')
+%             ylabel('angle (Â°)')
 %             title({'Max mtp angle'})
 %         
 %             subplot(2,4,8)
@@ -2096,7 +2096,7 @@ for inr=1:nr
 %             grid on
 %             plot(R.S.kMT_li,min(R.Qs(:,imtp)),'o','Color',Cs,'MarkerFaceColor',Cs)
 %             xlabel('mtj stiffness (Nm/rad)')
-%             ylabel('angle (°)')
+%             ylabel('angle (Â°)')
 %             title({'Min mtp angle'})
 %             
 %         end
@@ -2294,7 +2294,7 @@ for inr=1:nr
             hold on
             
             plot(R.Qs(ipush_off,imtp)-R.Qs(ipush_off(1),imtp),(h_fa(ipush_off)-h_fa(ipush_off(1)))*1e3,'-','Color',Cs)
-            xlabel('\Delta mtp angle (°)')
+            xlabel('\Delta mtp angle (Â°)')
             ylabel('\Delta arch height (mm)')
             grid on
             set(gca,'YAxisLocation','right')
@@ -2533,7 +2533,7 @@ for inr=1:nr
                 subplot(nh,nw,i_P)
                 hold on
                 grid on
-                plot(x,pos_P_all{i_P}*R.body_mass,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+                plot(xst_10,pos_P_all{i_P}(istance)*R.body_mass,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
                 title(titles_P_all{i_P},'Fontsize',label_fontsize);
                 axis tight
                 yl = get(gca, 'ylim');
@@ -2544,34 +2544,11 @@ for inr=1:nr
                     ylabel('W_{mech} (J)','Fontsize',label_fontsize);
                 end
                 if i_P > nh*nw-nw
-                    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+                    xlabel('Stance phase (%)','Fontsize',label_fontsize);
                 end
             end
         end
         
-        subplot(nh,nw,nw)
-        hold on
-        grid on
-        plot(x,(W_leg_joints+W_HC)*R.body_mass,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-        title('Right leg','Fontsize',label_fontsize);
-        axis tight
-        yl = get(gca, 'ylim');
-        ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
-        xlim([0,110,])
-%         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-
-        subplot(nh,nw,nw*2)
-        hold on
-        grid on
-        plot(x,(W_all_joints)*R.body_mass,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-        plot(x,(W_leg_joints)*R.body_mass,'--','Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-        plot(x,(W_all_joints-W_leg_joints)*R.body_mass,':','Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
-        title('All joints','Fontsize',label_fontsize);
-        axis tight
-        yl = get(gca, 'ylim');
-        ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
-        xlim([0,110,])
-%         xlabel('Gait cycle (%)','Fontsize',label_fontsize);
         
         if inr==nr && ~strcmp(figNamePrefix,'none')
             set(h17,'PaperPositionMode','auto')
@@ -2604,7 +2581,7 @@ for inr=1:nr
                 subplot(nh,nw,i_P)
                 hold on
                 grid on
-                plot(x,pos_P_all{i_P}*R.body_mass,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+                plot(xst_10,pos_P_all{i_P}(istance)*R.body_mass,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
                 title(titles_P_all{i_P},'Fontsize',label_fontsize);
                 axis tight
                 yl = get(gca, 'ylim');
@@ -2615,7 +2592,7 @@ for inr=1:nr
                     ylabel('W_{mech} (J)','Fontsize',label_fontsize);
                 end
                 if i_P > nh*nw-nw
-                    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+                    xlabel('Stance phase (%)','Fontsize',label_fontsize);
                 end
             end
         end
@@ -2655,7 +2632,7 @@ for inr=1:nr
                 subplot(nh,nw,i_P)
                 hold on
                 grid on
-                plot(x,pos_P_all{i_P}*R.body_mass,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+                plot(xst_10,pos_P_all{i_P}(istance)*R.body_mass,'Color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
                 title(titles_P_all{i_P},'Fontsize',label_fontsize);
                 axis tight
                 yl = get(gca, 'ylim');
@@ -2666,7 +2643,7 @@ for inr=1:nr
                     ylabel('W_{mech} (J)','Fontsize',label_fontsize);
                 end
                 if i_P > nh*nw-nw
-                    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+                    xlabel('Stance phase (%)','Fontsize',label_fontsize);
                 end
             end
         end
@@ -3241,7 +3218,7 @@ for inr=1:nr
             ylim(yl)
             xlim([0,100])
             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-            ylabel('Angle (°)','Fontsize',label_fontsize);
+            ylabel('Angle (Â°)','Fontsize',label_fontsize);
 %             title('Ankle with events')
             
 %             plot([1,1]*0,yl,'-ok','DisplayName','Heel strike');
@@ -3512,7 +3489,7 @@ for inr=1:nr
 %     plot(x,R.Qs(:,iankle),'Color',CsV(inr,:)); hold on;
 % end
 % xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-% ylabel('Ankle + mtj angle (°)','Fontsize',label_fontsize);
+% ylabel('Ankle + mtj angle (Â°)','Fontsize',label_fontsize);
 
 
 
