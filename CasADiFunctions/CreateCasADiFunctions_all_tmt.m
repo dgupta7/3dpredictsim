@@ -8,7 +8,7 @@ function [] = CreateCasADiFunctions_all_tmt(pathRepo,S)
 
 % Adaptation of CasADiFunctions_all_mtp_createDefault
 %
-% Author: Lars D'Hondt (Oct 2021)
+% Author: Lars D'Hondt (Oct 2020)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

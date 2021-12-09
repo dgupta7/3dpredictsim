@@ -1,7 +1,7 @@
 function [] = f_staticFootCompression_v5(S)
 
 
-AddCasadiPaths();
+import casadi.*
 
 %% Settings
 S = GetDefaultSettings(S);
