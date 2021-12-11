@@ -6,45 +6,62 @@
 %
 
 clear
+close all
 clc
 
 %% Inputs
-
-% OpenSim file name
-OsimFileName = 'subject1_mtj.osim';
-% model selection options: Rajagopal, Gait92, Gait92_mtj
-ModelName = 'Gait92_mtj';
+% OpenSim model information
+Subject = 'Fal_s1'; % (= subject1 from Falisse et al.) fixed for now
+FootModel = 'mtp'; % mtp or mtj
+FootScaling = 'default'; % default, custom, personalised
 
 % Boolean to select if we have to run the muscle analysis
-Bool_RunMA = 1; 
+Bool_RunMA = 0; 
 
 
 %% Path information
 [pathHere,~,~] = fileparts(mfilename('fullpath'));
 [pathRepo,~,~] = fileparts(pathHere);
 addpath(fullfile(pathRepo,'\VariousFunctions'));
-% addpath(fullfile(pathRepo,'\CasADiFunctions'));
 addpath(fullfile(pathRepo,'\Polynomials'));
-% addpath(fullfile(pathRepo,'\MetabolicEnergy'));
-% AddCasadiPaths();
+
+
+%%
+% OpenSim file name
+OsimFileName = [Subject '_' FootModel];
+if strcmp(FootScaling,'default')
+    OsimFileName = [OsimFileName '_sd'];
+elseif strcmp(FootScaling,'custom')
+    OsimFileName = [OsimFileName '_sc'];
+elseif strcmp(FootScaling,'personalised')
+    OsimFileName = [OsimFileName '_sp'];
+end
+
+% OsimFileName = 'subject1_mtp';
 
 % Modelpath
-ModelPath = fullfile(pathRepo,'OpenSimModel/subject1',OsimFileName);
+ModelPath = fullfile(pathRepo,'OpenSimModel/subject1',[OsimFileName '.osim']);
 
-% Folder to save the polynomials
-PolyFolder = OsimFileName(1:end-5);
+% Path to save the polynomials
+PolyFolder = OsimFileName;
 pathPoly = fullfile(pathRepo,'Polynomials',PolyFolder);
 if ~isfolder(pathPoly)
     mkdir(pathPoly);
 end
+% Path to save the muscle parameters
 pathMusc = fullfile(pathRepo,'MuscleModel',PolyFolder);
 if ~isfolder(pathMusc)
     mkdir(pathMusc);
 end
 
 %% Fit polynomial functions to length and moment arms of muscles and ligaments
+ModelName = 'Gait92';
+if contains(OsimFileName,'_mtj')
+    ModelName = [ModelName '_mtj'];
+end
+% run analysis and fit polynomials
 FitPolynomials(pathRepo,ModelName,ModelPath,PolyFolder,Bool_RunMA)
-getPlantarFasciaGeometry(pathRepo,Modelpath,PolyFolder)
+getPlantarFasciaGeometry(pathRepo,ModelPath,PolyFolder)
 
 %% Get muscle parameters
 % muscles are hard coded
@@ -61,7 +78,6 @@ muscleNames = {'glut_med1_r','glut_med2_r','glut_med3_r',...
     'intobl_l','extobl_l'};
 
 MTparameters = getMTparameters(ModelPath,muscleNames);
-
 save(fullfile(pathMusc,'MTparameters.mat'),'MTparameters');
 
 

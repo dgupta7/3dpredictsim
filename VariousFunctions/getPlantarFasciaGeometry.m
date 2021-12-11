@@ -47,11 +47,11 @@ end
 
 %% Create dummy motion
 % Boundaries on dofs, format: name, min, max (°)
-bounds = {'mtp_angle_r',-20,45;
+bounds = {'mtp_angle_r',-30,50;
         'mtj_angle_r',-20,20;
         'tmt_angle_r',-10,10};
 % Random table
-n = 5000;
+n = 500;
 p = length(idx_PF);
 X = lhsdesign(n,p);
 % Apply bounds
@@ -102,10 +102,10 @@ LigamentData.dM = d_PF;
 LigamentData.q = Angles;
 
 %% Call PolynomialFit
-    [ligament_spanning_joint_INFO,LigamentInfo] = PolynomialFit(LigamentData);
-    save(fullfile(SubjFolder,'LigamentData_subject1.mat'),'LigamentData')
-    save(fullfile(SubjFolder,'ligament_spanning_joint_INFO_subject1.mat'),'ligament_spanning_joint_INFO')
-    save(fullfile(SubjFolder,'LigamentInfo_subject1.mat'),'LigamentInfo');
+    [ligament_spanning_joint_INFO,LigamentInfo] = PolynomialFit_mtp(LigamentData);
+    save(fullfile(SubjFolder,'LigamentData.mat'),'LigamentData')
+    save(fullfile(SubjFolder,'ligament_spanning_joint_INFO.mat'),'ligament_spanning_joint_INFO')
+    save(fullfile(SubjFolder,'LigamentInfo.mat'),'LigamentInfo');
 
 
 

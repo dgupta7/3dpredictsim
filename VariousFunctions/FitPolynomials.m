@@ -11,8 +11,10 @@ import org.opensim.modeling.*
 % Output folder for this subject
 OutFolder = PolyFolder;
 SubjFolder = fullfile(MainPath,'Polynomials',OutFolder);
-MA_path=fullfile(SubjFolder,'MuscleAnalysis');
-
+MA_path = fullfile(SubjFolder,'MuscleAnalysis');
+if ~isfolder(MA_path)
+    mkdir(MA_path);
+end
 %% Create dummy motion and run muscle analysis
 if Bool_RunMA
     
@@ -66,7 +68,8 @@ if Bool_RunMA
         Bound_LumbExt = [-30 30];
         Bound_LumbBend = [-30 30];
         Bound_LumbRot = [-30 30];
-        
+        Bound_knee = [-90 0];
+
         % create the dummy motion
         n=5000; p=10;
         X = lhsdesign(n,p);
@@ -84,7 +87,7 @@ if Bool_RunMA
         data=zeros(length(time),length(headers));
         data(:,1)=time;
         data(:,IndexAngles) = Angles;   % right leg
-        data(:,IndexAngles+8) = Angles; % left leg
+%         data(:,IndexAngles+8) = Angles; % left leg
         pathDummyMotion = fullfile(SubjFolder,'dummy_motion.mot');
         generateMotFile(data,headers,pathDummyMotion);
         
@@ -117,8 +120,8 @@ if Bool_RunMA
         data=zeros(length(time),length(headers));
         data(:,1)=time;
         data(:,IndexAngles) = Angles;   % right leg
-        data(:,IndexAngles(1:end-3)+9) = Angles(:,1:end-3); % left leg
-        pathDummyMotion = fullfile(SubjFolder,'dummy_motion_mtj.mot');
+%         data(:,IndexAngles(1:end-3)+9) = Angles(:,1:end-3); % left leg
+        pathDummyMotion = fullfile(SubjFolder,'dummy_motion.mot');
         generateMotFile(data,headers,pathDummyMotion);
         
         % select coordinate names to run muscle analysis
@@ -131,7 +134,8 @@ end
 
 %% import the muscle analysis data
 % subject pre-fix
-SubjPre = 'dummy_motion_mtj';
+SubjPre = 'dummy_motion';
+
 lMT = importdata([MA_path,'/',SubjPre '_MuscleAnalysis_Length.sto']);
 MA.hip.flex = importdata([MA_path,'/',SubjPre '_MuscleAnalysis_MomentArm_hip_flexion_r.sto']);
 MA.hip.add = importdata([MA_path,'/',SubjPre '_MuscleAnalysis_MomentArm_hip_adduction_r.sto']);
@@ -140,7 +144,13 @@ MA.knee.flex = importdata([MA_path,'/',SubjPre '_MuscleAnalysis_MomentArm_knee_a
 MA.ankle.flex = importdata([MA_path,'/',SubjPre '_MuscleAnalysis_MomentArm_ankle_angle_r.sto']);
 MA.sub = importdata([MA_path,'/',SubjPre '_MuscleAnalysis_MomentArm_subtalar_angle_r.sto']);
 MA.mtp = importdata([MA_path,'/',SubjPre '_MuscleAnalysis_MomentArm_mtp_angle_r.sto']);
-if strcmp(ModelName,'Gait92') || strcmp(ModelName,'Gait92_mtj')
+if strcmp(ModelName,'Gait92')
+    % lumbar joint
+    MA.trunk.ext = importdata([MA_path,'/',SubjPre,'_MuscleAnalysis_MomentArm_lumbar_extension.sto']);
+    MA.trunk.ben = importdata([MA_path,'/',SubjPre,'_MuscleAnalysis_MomentArm_lumbar_bending.sto']);
+    MA.trunk.rot = importdata([MA_path,'/',SubjPre,'_MuscleAnalysis_MomentArm_lumbar_rotation.sto']);
+end
+if strcmp(ModelName,'Gait92_mtj')
     % lumbar joint
     MA.mtj = importdata([MA_path,'/',SubjPre '_MuscleAnalysis_MomentArm_mtj_angle_r.sto']);
     MA.trunk.ext = importdata([MA_path,'/',SubjPre,'_MuscleAnalysis_MomentArm_lumbar_extension.sto']);
@@ -195,12 +205,19 @@ if strcmp(ModelName,'Rajagopal')
     save(fullfile(SubjFolder,'MuscleInfo.mat'),'MuscleInfo');
     
 elseif strcmp(ModelName,'Gait92')
-    name_dummymotion = 'dummy_motion_mtp.mot';
-    dummy_motion = importdata([path_dummymotion,name_dummymotion]);
+    name_dummymotion = 'dummy_motion.mot';
+    dummy_motion = importdata([SubjFolder,'/',name_dummymotion]);
+    if ~isfield(dummy_motion,'colheaders')
+        dummy_motion.colheaders = strsplit(dummy_motion.textdata{end});
+    end
+%     order_Qs_names = {'hip_flexion_r','hip_adduction_r','hip_rotation_r',...
+%         'knee_angle_r','ankle_angle_r','subtalar_angle_r','mtp_angle_r',...
+%         'lumbar_extension','lumbar_bending','lumbar_rotation'};
+
     % Order of dofs: hip flex r, hip add r, hip rot r, knee flex r, ankle flex
     % r, hip flex l, hip add l, hip rot l, knee flex l, ankle flex l, lumbar
     % ext, lumbar bend, lumbar rot, subtalar r, subtalar l, mtp_r, mtp_l
-    order_Qs = [5:9,18,20,15:17];
+    order_Qs = [7 8 9 10 11 12 13 21 22 23]+1;
     q = dummy_motion.data(:,order_Qs).*(pi/180);
     
     MuscleData.dof_names = dummy_motion.colheaders(order_Qs);
@@ -230,7 +247,7 @@ elseif strcmp(ModelName,'Gait92')
         MuscleData.dM(:,m,10)    = MA.trunk.rot.data(:,strcmp(lMT.colheaders,muscleNames{m}));  % lumbar rot
     end
     MuscleData.q = q;
-    MuscleData.qdot = qdot;
+%     MuscleData.qdot = qdot;
     
     %% Call PolynomialFit
     [muscle_spanning_joint_INFO,MuscleInfo] = ...
@@ -241,7 +258,7 @@ elseif strcmp(ModelName,'Gait92')
     
 
 elseif strcmp(ModelName,'Gait92_mtj')
-    name_dummymotion = 'dummy_motion_mtj.mot';
+    name_dummymotion = 'dummy_motion.mot';
     dummy_motion = importdata([SubjFolder,'/',name_dummymotion]);
     % Order of dofs:
     % time, pelvis_tilt, pelvis_list, pelvis_rotation, pelvis_tx, pelvis_ty, pelvis_tz, hip_flexion_r

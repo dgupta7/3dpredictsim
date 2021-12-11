@@ -7,8 +7,7 @@
 % Author: Antoine Falisse
 % Date: 12/19/2018
 % 
-function guess = getGuess_DI_opti_int(Qs,nq,N,time_IC,NMuscle,jointi,scaling,...
-    v_tgt,d)
+function guess = getGuess_DI_opti_int(Qs,nq,N,time_IC,NMuscle,jointi,scaling,v_tgt,d,mtj)
 
 %% Spline approximation of Qs to get Qdots and Qdotdots
 Qs_spline.data = zeros(size(Qs.allfilt));
@@ -55,6 +54,34 @@ guess.Qs_all.data(:,jointi.ankle.r) = Qs_spline.data(:,strcmp(Qs.colheaders(1,:)
 % Subtalar
 guess.Qs_all.data(:,jointi.subt.l) = Qs_spline.data(:,strcmp(Qs.colheaders(1,:),'subtalar_angle_l'));
 guess.Qs_all.data(:,jointi.subt.r) = Qs_spline.data(:,strcmp(Qs.colheaders(1,:),'subtalar_angle_r'));
+% Mtj
+if mtj
+    has_mtj_l = sum(strcmp(Qs.colheaders(1,:),'mtj_angle_l'));
+    if has_mtj_l
+        guess.Qs_all.data(:,jointi.mtj.l) = Qs_spline.data(:,strcmp(Qs.colheaders(1,:),'mtj_angle_l'));
+    else
+        guess.Qs_all.data(:,jointi.mtj.l) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+    end
+    has_mtj_r = sum(strcmp(Qs.colheaders(1,:),'mtj_angle_r'));
+    if has_mtj_r
+        guess.Qs_all.data(:,jointi.mtj.r) = Qs_spline.data(:,strcmp(Qs.colheaders(1,:),'mtj_angle_r'));
+    else
+        guess.Qs_all.data(:,jointi.mtj.r) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+    end
+end
+% Mtp
+has_mtp_l = sum(strcmp(Qs.colheaders(1,:),'mtp_angle_l'));
+if has_mtp_l
+    guess.Qs_all.data(:,jointi.mtp.l) = Qs_spline.data(:,strcmp(Qs.colheaders(1,:),'mtp_angle_l'));
+else
+    guess.Qs_all.data(:,jointi.mtp.l) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+end
+has_mtp_r = sum(strcmp(Qs.colheaders(1,:),'mtp_angle_r'));
+if has_mtp_r
+    guess.Qs_all.data(:,jointi.mtp.r) = Qs_spline.data(:,strcmp(Qs.colheaders(1,:),'mtp_angle_r'));
+else
+    guess.Qs_all.data(:,jointi.mtp.r) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+end
 % Trunk extension
 guess.Qs_all.data(:,jointi.trunk.ext) = Qs_spline.data(:,strcmp(Qs.colheaders(1,:),'lumbar_extension'));
 % Trunk bending
@@ -114,6 +141,30 @@ guess.Qdots_all.data(:,jointi.ankle.r) = Qdots_spline.data(:,strcmp(Qs.colheader
 % Subtalar
 guess.Qdots_all.data(:,jointi.subt.l) = Qdots_spline.data(:,strcmp(Qs.colheaders(1,:),'subtalar_angle_l'));
 guess.Qdots_all.data(:,jointi.subt.r) = Qdots_spline.data(:,strcmp(Qs.colheaders(1,:),'subtalar_angle_r'));
+% Mtj
+if mtj
+    if has_mtj_l
+        guess.Qdots_all.data(:,jointi.mtj.l) = Qdots_spline.data(:,strcmp(Qs.colheaders(1,:),'mtj_angle_l'));
+    else
+        guess.Qdots_all.data(:,jointi.mtj.l) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+    end
+    if has_mtj_r
+        guess.Qdots_all.data(:,jointi.mtj.r) = Qdots_spline.data(:,strcmp(Qs.colheaders(1,:),'mtj_angle_r'));
+    else
+        guess.Qdots_all.data(:,jointi.mtj.r) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+    end
+end
+% Mtp
+if has_mtp_l
+    guess.Qdots_all.data(:,jointi.mtp.l) = Qdots_spline.data(:,strcmp(Qs.colheaders(1,:),'mtp_angle_l'));
+else
+    guess.Qdots_all.data(:,jointi.mtp.l) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+end
+if has_mtp_r
+    guess.Qdots_all.data(:,jointi.mtp.r) = Qdots_spline.data(:,strcmp(Qs.colheaders(1,:),'mtp_angle_r'));
+else
+    guess.Qdots_all.data(:,jointi.mtp.r) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+end
 % Trunk extension
 guess.Qdots_all.data(:,jointi.trunk.ext) = Qdots_spline.data(:,strcmp(Qs.colheaders(1,:),'lumbar_extension'));
 % Trunk bending
@@ -172,6 +223,30 @@ guess.Qdotdots_all.data(:,jointi.ankle.r) = Qdotdots_spline.data(:,strcmp(Qs.col
 % Subtalar
 guess.Qdotdots_all.data(:,jointi.subt.l) = Qdotdots_spline.data(:,strcmp(Qs.colheaders(1,:),'subtalar_angle_l'));
 guess.Qdotdots_all.data(:,jointi.subt.r) = Qdotdots_spline.data(:,strcmp(Qs.colheaders(1,:),'subtalar_angle_r'));
+% Mtj
+if mtj
+    if has_mtj_l
+        guess.Qdotdots_all.data(:,jointi.mtj.l) = Qdotdots_spline.data(:,strcmp(Qs.colheaders(1,:),'mtj_angle_l'));
+    else
+        guess.Qdotdots_all.data(:,jointi.mtj.l) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+    end
+    if has_mtj_r
+        guess.Qdotdots_all.data(:,jointi.mtj.r) = Qdotdots_spline.data(:,strcmp(Qs.colheaders(1,:),'mtj_angle_r'));
+    else
+        guess.Qdotdots_all.data(:,jointi.mtj.r) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+    end
+end
+% Mtp
+if has_mtp_l
+    guess.Qdotdots_all.data(:,jointi.mtp.l) = Qdotdots_spline.data(:,strcmp(Qs.colheaders(1,:),'mtp_angle_l'));
+else
+    guess.Qdotdots_all.data(:,jointi.mtp.l) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+end
+if has_mtp_r
+    guess.Qdotdots_all.data(:,jointi.mtp.r) = Qdotdots_spline.data(:,strcmp(Qs.colheaders(1,:),'mtp_angle_r'));
+else
+    guess.Qdotdots_all.data(:,jointi.mtp.r) = zeros(size(guess.Qs_all.data(:,jointi.subt.l),1),1);
+end
 % Trunk extension
 guess.Qdotdots_all.data(:,jointi.trunk.ext) = Qdotdots_spline.data(:,strcmp(Qs.colheaders(1,:),'lumbar_extension'));
 % Trunk bending
@@ -204,11 +279,21 @@ guess.dFTtilde = 0.01*ones(N,NMuscle);
 guess.a_a = 0.1*ones(N,nq.arms);
 guess.e_a = 0.1*ones(N,nq.arms);
 
+%% Mtp activations
+guess.a_mtp = 0.1*ones(N,2);
+guess.e_mtp = 0.1*ones(N,2);
+
+%% PIM activations
+guess.a_PIM = 0.1*ones(N,2);
+guess.e_PIM = 0.1*ones(N,2);
+
 %% Mtp lumbar activations
 % Only used when no muscles actuate the lumbar joints (e.g. Rajagopal
 % model)
 guess.a_lumbar = 0.1*ones(N+1,nq.trunk);
 guess.e_lumbar = 0.1*ones(N,nq.trunk);
+
+
 
 %% Final time
 % The final time is function of the imposed speed
@@ -228,20 +313,43 @@ guess.tf = all_tf(idx_speed);
 % plus dist traveled.
 % Trunk: lumbar ext should be equal, lumbar bend and lumbar rot
 % should be of opposite.     
-orderQsInv = [jointi.pelvis.tilt:2*jointi.pelvis.tz,...
-    2*jointi.hip_flex.r-1:2*jointi.hip_rot.r,...
-    2*jointi.hip_flex.l-1:2*jointi.hip_rot.l,...
-    2*jointi.knee.r-1:2*jointi.knee.r,...
-    2*jointi.knee.l-1:2*jointi.knee.l,...
-    2*jointi.ankle.r-1:2*jointi.ankle.r,...
-    2*jointi.ankle.l-1:2*jointi.ankle.l,...
-    2*jointi.subt.r-1:2*jointi.subt.r,...
-    2*jointi.subt.l-1:2*jointi.subt.l,...
-    2*jointi.trunk.ext-1:2*jointi.trunk.rot,...
-    2*jointi.sh_flex.r-1:2*jointi.sh_rot.r,...
-    2*jointi.sh_flex.l-1:2*jointi.sh_rot.l,...
-    2*jointi.elb.r-1:2*jointi.elb.r,...
-    2*jointi.elb.l-1:2*jointi.elb.l];        
+if mtj
+    orderQsInv = [jointi.pelvis.tilt:2*jointi.pelvis.tz,...
+        2*jointi.hip_flex.r-1:2*jointi.hip_rot.r,...
+        2*jointi.hip_flex.l-1:2*jointi.hip_rot.l,...
+        2*jointi.knee.r-1:2*jointi.knee.r,...
+        2*jointi.knee.l-1:2*jointi.knee.l,...
+        2*jointi.ankle.r-1:2*jointi.ankle.r,...
+        2*jointi.ankle.l-1:2*jointi.ankle.l,...
+        2*jointi.subt.r-1:2*jointi.subt.r,...
+        2*jointi.subt.l-1:2*jointi.subt.l,...
+        2*jointi.mtj.r-1:2*jointi.mtj.r,...
+        2*jointi.mtj.l-1:2*jointi.mtj.l,...
+        2*jointi.mtp.r-1:2*jointi.mtp.r,...
+        2*jointi.mtp.l-1:2*jointi.mtp.l,...
+        2*jointi.trunk.ext-1:2*jointi.trunk.rot,...
+        2*jointi.sh_flex.r-1:2*jointi.sh_rot.r,...
+        2*jointi.sh_flex.l-1:2*jointi.sh_rot.l,...
+        2*jointi.elb.r-1:2*jointi.elb.r,...
+        2*jointi.elb.l-1:2*jointi.elb.l];   
+else
+    orderQsInv = [jointi.pelvis.tilt:2*jointi.pelvis.tz,...
+        2*jointi.hip_flex.r-1:2*jointi.hip_rot.r,...
+        2*jointi.hip_flex.l-1:2*jointi.hip_rot.l,...
+        2*jointi.knee.r-1:2*jointi.knee.r,...
+        2*jointi.knee.l-1:2*jointi.knee.l,...
+        2*jointi.ankle.r-1:2*jointi.ankle.r,...
+        2*jointi.ankle.l-1:2*jointi.ankle.l,...
+        2*jointi.subt.r-1:2*jointi.subt.r,...
+        2*jointi.subt.l-1:2*jointi.subt.l,...
+        2*jointi.mtp.r-1:2*jointi.mtp.r,...
+        2*jointi.mtp.l-1:2*jointi.mtp.l,...
+        2*jointi.trunk.ext-1:2*jointi.trunk.rot,...
+        2*jointi.sh_flex.r-1:2*jointi.sh_rot.r,...
+        2*jointi.sh_flex.l-1:2*jointi.sh_rot.l,...
+        2*jointi.elb.r-1:2*jointi.elb.r,...
+        2*jointi.elb.l-1:2*jointi.elb.l];        
+end
 orderQsOpp = [2*jointi.pelvis.list-1:2*jointi.pelvis.list,...   
     2*jointi.pelvis.rot-1:2*jointi.pelvis.rot,...
     2*jointi.pelvis.tz-1:2*jointi.pelvis.tz,...
@@ -267,6 +375,9 @@ orderArmInv = [jointi.sh_flex.r:jointi.sh_rot.r,...
     jointi.elb.l:jointi.elb.l]-jointi.sh_flex.l+1;
 guess.a_a = [guess.a_a; guess.a_a(1,orderArmInv)];
 
+guess.a_mtp = [guess.a_mtp; guess.a_mtp(1,:)];
+guess.a_PIM = [guess.a_PIM; guess.a_PIM(1,:)];
+
 %% Scaling
 guess.QsQdots = guess.QsQdots./repmat(scaling.QsQdots,N+1,1);
 guess.Qdotdots = guess.Qdotdots./repmat(scaling.Qdotdots,N,1);
@@ -275,21 +386,25 @@ guess.FTtilde   = (guess.FTtilde)./repmat(scaling.FTtilde,N+1,1);
 guess.vA        = (guess.vA)./repmat(scaling.vA,N,size(guess.vA,2));
 guess.dFTtilde  = (guess.dFTtilde)./repmat(scaling.dFTtilde,N,...
     size(guess.dFTtilde,2));
-guess.a_lumbar_col = zeros(d*N,nq.trunk);
 
 
 %% Collocation points
-    guess.a_col = zeros(d*N,NMuscle);
-    guess.FTtilde_col = zeros(d*N,NMuscle);
-    guess.QsQdots_col = zeros(d*N,2*nq.all);
-    guess.a_a_col = zeros(d*N,nq.arms);
-    guess.dFTtilde_col = zeros(d*N,NMuscle);
-    guess.Qdotdots_col = zeros(d*N,nq.all);
+guess.a_col = zeros(d*N,NMuscle);
+guess.FTtilde_col = zeros(d*N,NMuscle);
+guess.QsQdots_col = zeros(d*N,2*nq.all);
+guess.a_a_col = zeros(d*N,nq.arms);
+guess.a_mtp_col = zeros(d*N,nq.mtp);
+guess.a_PIM_col = zeros(d*N,nq.PIM);
+guess.dFTtilde_col = zeros(d*N,NMuscle);
+guess.Qdotdots_col = zeros(d*N,nq.all);
+guess.a_lumbar_col = zeros(d*N,nq.trunk);
 for k=1:N
     guess.a_col((k-1)*d+1:k*d,:) = repmat(guess.a(k,:),d,1); 
     guess.FTtilde_col((k-1)*d+1:k*d,:) = repmat(guess.FTtilde(k,:),d,1);
     guess.QsQdots_col((k-1)*d+1:k*d,:) = repmat(guess.QsQdots(k,:),d,1);
     guess.a_a_col((k-1)*d+1:k*d,:) = repmat(guess.a_a(k,:),d,1);
+    guess.a_mtp_col((k-1)*d+1:k*d,:) = repmat(guess.a_mtp(k,:),d,1);
+    guess.a_PIM_col((k-1)*d+1:k*d,:) = repmat(guess.a_PIM(k,:),d,1);
     guess.dFTtilde_col((k-1)*d+1:k*d,:) = repmat(guess.dFTtilde(k,:),d,1);
     guess.Qdotdots_col((k-1)*d+1:k*d,:) = repmat(guess.Qdotdots(k,:),d,1);
 end

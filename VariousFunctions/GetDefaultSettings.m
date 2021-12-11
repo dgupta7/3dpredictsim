@@ -39,16 +39,16 @@ end
 
 % default number of mesh intervals
 if ~isfield(S,'tanh_b') || isempty(S.tanh_b)
-    S.tanh_b         = 10;       
+    S.tanh_b         = 100;       
 end
 
 %% subject settings
 if ~isfield(S,'subject') || isempty(S.subject)
-    S.subject = 'subject1';
+    S.subject = 'Fal_s1';
 end
 
 if ~isfield(S,'mass') || isempty(S.mass)
-    S.mass = 64;
+    S.mass = 62;
 end
 
 % quasi random initial guess
@@ -62,10 +62,10 @@ end
 
 % default settings walking speed
 if ~isfield(S,'v_tgt') || isempty(S.v_tgt)
-    S.v_tgt = 1.25;
+    S.v_tgt = 1.33;
 end
 
-% default weights
+%% default weights
 if isfield(S,'W')
     if ~isfield(S.W,'E')
         S.W.E       = 500;      % weight metabolic energy rate
@@ -105,7 +105,7 @@ else
     S.W.A       = 2000;     % weight muscle activations
     S.W.exp_E   = 2;        % power metabolic energy
     S.W.Mtp     = 10^6;     % weight mtp excitations
-    S.W.PIM     = 10^6;     % weight PIM excitations
+    S.W.PIM     = 10^3;     % weight PIM excitations
     S.W.u       = 0.001;    % weight on excitations arms actuators
     S.W.Lumbar  = 10^5;
 end
@@ -209,44 +209,31 @@ else
     S.PercStance.bool = 0;
 end
 
-
-
 % symmetric motion ?
 if ~isfield(S,'Symmetric')
     S.Symmetric = true;
 end
 
-% oeriodic motion
+% periodic motion
 if ~isfield(S,'Periodic')
     S.Periodic = false;
 end
 
-% model selection
-if ~isfield(S,'ModelName')
-    S.ModelName = 'Gait92';
-end
-
-% model has tarsometatarsal joint?
-if ~isfield(S,'tmt')
-    S.tmt = 0;
-end
-
-
 
 % default IK file to determine bounds
 if ~isfield(S,'IKfile_Bounds')
-    if S.tmt || S.mtj
-        S.IKfile_Bounds = 'OpenSimModel\IK_Bounds_Default_tmt.mat';
-    else
+    if strcmp(S.Foot.Model,'mtj')
+        S.IKfile_Bounds = 'OpenSimModel\IK_Bounds_Default_mtj.mat';
+    elseif strcmp(S.Foot.Model,'mtp')
         S.IKfile_Bounds = 'OpenSimModel\IK_Bounds_Default.mat';
     end
 end
 
 % default IK file for initial guess (when used data-informed guess)
 if ~isfield(S,'S.IKfile_guess')
-    if S.tmt || S.mtj
-        S.IKfile_guess = 'OpenSimModel\IK_Guess_Default_tmt.mat';
-    else
+    if strcmp(S.Foot.Model,'mtj')
+        S.IKfile_guess = 'OpenSimModel\IK_Guess_Default_mtj.mat';
+    elseif strcmp(S.Foot.Model,'mtp')
         S.IKfile_guess = 'OpenSimModel\IK_Guess_Default.mat';
     end
 end
@@ -271,22 +258,16 @@ if ~isfield(S,'ExoController')
     S.ExoController = 's1 Pog';
 end
 
-% how the exo torque is transfered to the ankle
-if ~isfield(S,'ExoImplementation')
-    S.ExoImplementation = 'TorqueTibiaCalcn';
+%%
+if ~isfield(S,'AchillesTendonScaleFactor') || isempty(S.AchillesTendonScaleFactor)
+    S.AchillesTendonScaleFactor = 1;
 end
 
-% max motor torque for ideal assistance
-if ~isfield(S,'T_max_ankle_exo')
-    S.T_max_ankle_exo = 0;
+if ~isfield(S.Foot,'kMTP') || isempty(S.Foot.kMTP)
+    S.Foot.kMTP = 1.5/(pi/180)/5;
 end
-if ~isfield(S,'T_min_ankle_exo')
-    S.T_min_ankle_exo = -S.T_max_ankle_exo; % symmetric if not specified
-end
-
-% max average motor power for ideal assistance
-if ~isfield(S,'P_max_ankle_exo')
-    S.P_max_ankle_exo = 0;
+if ~isfield(S.Foot,'dMTP') || isempty(S.Foot.dMTP)
+    S.Foot.dMTP = 0.5;
 end
 
 % Print the settings to the screen

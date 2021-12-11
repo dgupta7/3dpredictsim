@@ -7,7 +7,9 @@
 % Author: Antoine Falisse
 % Date: 12/19/2018
 %
-function [bounds,scaling] = getBounds_all(Qs,NMuscle,nq,jointi,v_tgt)
+function [bounds,scaling] = getBounds_all(Qs,NMuscle,nq,jointi,v_tgt,midtarsal)
+
+
 
 %% Spline approximation of Qs to get Qdots and Qdotdots
 Qs_spline.data = zeros(size(Qs.allfilt));
@@ -131,6 +133,18 @@ bounds.Qs.lower(jointi.pelvis.ty) = 0.75;
 % Pelvis_tz
 bounds.Qs.upper(jointi.pelvis.tz) = 0.1;
 bounds.Qs.lower(jointi.pelvis.tz) = -0.1;
+% Mtp
+bounds.Qs.upper(jointi.mtp.l) = 1.05;
+bounds.Qs.lower(jointi.mtp.l) = -0.5;
+bounds.Qs.upper(jointi.mtp.r) = 1.05;
+bounds.Qs.lower(jointi.mtp.r) = -0.5;
+% Mtj
+if midtarsal
+    bounds.Qs.upper(jointi.mtj.l) = 30*pi/180;
+    bounds.Qs.lower(jointi.mtj.l) = -30*pi/180;
+    bounds.Qs.upper(jointi.mtj.r) = 30*pi/180;
+    bounds.Qs.lower(jointi.mtj.r) = -30*pi/180;
+end
 % Elbow
 bounds.Qs.lower(jointi.elb.l) = 0;
 bounds.Qs.lower(jointi.elb.r) = 0;
@@ -255,6 +269,18 @@ bounds.Qdots.lower(jointi.elb.r) = bounds.Qdots.lower(jointi.elb.l);
 Qdots_range = abs(bounds.Qdots.upper - bounds.Qdots.lower);
 bounds.Qdots.lower = bounds.Qdots.lower - 3*Qdots_range;
 bounds.Qdots.upper = bounds.Qdots.upper + 3*Qdots_range;
+% Mtp
+bounds.Qdots.upper(jointi.mtp.l) = 13;
+bounds.Qdots.lower(jointi.mtp.l) = -13;
+bounds.Qdots.upper(jointi.mtp.r) = 13;
+bounds.Qdots.lower(jointi.mtp.r) = -13;
+% Mtj
+if midtarsal
+    bounds.Qdots.upper(jointi.mtj.l) = 13;
+    bounds.Qdots.lower(jointi.mtj.l) = -13;
+    bounds.Qdots.upper(jointi.mtj.r) = 13;
+    bounds.Qdots.lower(jointi.mtj.r) = -13;
+end
 % We adjust some bounds when we increase the speed to allow for the
 % generation of running motions.
 if v_tgt > 1.33
@@ -366,7 +392,18 @@ bounds.Qdotdots.lower(jointi.elb.r) = bounds.Qdotdots.lower(jointi.elb.l);
 Qdotdots_range = abs(bounds.Qdotdots.upper - bounds.Qdotdots.lower);
 bounds.Qdotdots.lower = bounds.Qdotdots.lower - 3*Qdotdots_range;
 bounds.Qdotdots.upper = bounds.Qdotdots.upper + 3*Qdotdots_range;
-
+% Mtp
+bounds.Qdotdots.upper(jointi.mtp.l) = 500;
+bounds.Qdotdots.lower(jointi.mtp.l) = -500;
+bounds.Qdotdots.upper(jointi.mtp.r) = 500;
+bounds.Qdotdots.lower(jointi.mtp.r) = -500;
+% Mtj
+if midtarsal
+    bounds.Qdotdots.upper(jointi.mtj.l) = 500;
+    bounds.Qdotdots.lower(jointi.mtj.l) = -500;
+    bounds.Qdotdots.upper(jointi.mtj.r) = 500;
+    bounds.Qdotdots.lower(jointi.mtj.r) = -500;
+end
 %% Muscle activations
 bounds.a.lower = 0.05*ones(1,NMuscle);
 bounds.a.upper = ones(1,NMuscle);
@@ -393,9 +430,38 @@ bounds.a_a.upper = ones(1,nq.arms);
 bounds.e_a.lower = -ones(1,nq.arms);
 bounds.e_a.upper = ones(1,nq.arms);
 
+%% Mtp excitations
+bounds.e_mtp.lower = -ones(1,2);
+bounds.e_mtp.upper = ones(1,2);
+
+%% Mtp activations
+bounds.a_mtp.lower = -ones(1,2);
+bounds.a_mtp.upper = ones(1,2);
+
+%% PIM excitations
+bounds.e_PIM.lower = zeros(1,2);
+bounds.e_PIM.upper = ones(1,2);
+
+%% PIM activations
+bounds.a_PIM.lower = zeros(1,2);
+bounds.a_PIM.upper = ones(1,2);
+
+%% Lumbar activations
+% Only used when no muscles actuate the lumbar joints (e.g. Rajagopal
+% model)
+bounds.a_lumbar.lower = -ones(1,nq.trunk);
+bounds.a_lumbar.upper = ones(1,nq.trunk);
+
+%% Lumbar excitations
+% Only used when no muscles actuate the lumbar joints (e.g. Rajagopal
+% model)
+bounds.e_lumbar.lower = -ones(1,nq.trunk);
+bounds.e_lumbar.upper = ones(1,nq.trunk);
+
 %% Final time
 bounds.tf.lower = 0.1;
 bounds.tf.upper = 1;
+
 
 %% Scaling
 % Qs
@@ -426,6 +492,14 @@ bounds.Qdotdots.upper(isnan(bounds.Qdotdots.upper)) = 0;
 % Arm torque actuators
 % Fixed scaling factor
 scaling.ArmTau = 150;
+% Fixed scaling factor
+scaling.LumbarTau = 150;
+% Mtp torque actuators
+% Fixed scaling factor
+scaling.MtpTau = 100;
+% PIM force actuators
+% Fixed scaling factor
+scaling.PIMF = 10000; % this is too high
 % Time derivative of muscle activations
 % Fixed scaling factor
 scaling.vA = 100;
