@@ -65,6 +65,9 @@ if ~isfield(S,'v_tgt') || isempty(S.v_tgt)
     S.v_tgt = 1.33;
 end
 
+
+S.ModelName = 'Gait92';
+
 %% default weights
 if isfield(S,'W')
     if ~isfield(S.W,'E')

@@ -1,4 +1,4 @@
-function [] = CreateCasADiFunctions(pathRepo,S)
+function [] = CreateCasadiFunctions(pathRepo,S)
 
 % This function creates and saves several CasADi-based functions that are
 % used when formulating the OCPs.
@@ -34,6 +34,11 @@ addpath(genpath(pathMetabolicEnergy));
 
 pathCasADiFunctions = [pathRepo,'/CasADiFunctions'];
 addpath(genpath(pathCasADiFunctions));
+
+pathExternalFunctions = [pathRepo,'/ExternalFunctions'];
+cd(pathExternalFunctions)
+load(['F_' S.ExternalFunc '_IO.mat'],'IO');
+cd(pathRepo);
 
 % info from settings
 if isfield(S,'MuscModelAsmp') && ~isempty(S.MuscModelAsmp)
@@ -305,8 +310,8 @@ f_ArmActivationDynamics = ...
     {'e','a'},{'dadt'});
 
 %% Mtp activation dynamics
-e_mtp = SX.sym('e_mtp',nq.mtp); % mtp excitations
-a_mtp = SX.sym('a_mtp',nq.mtp); % mtp activations
+e_mtp = SX.sym('e_mtp',2); % mtp excitations
+a_mtp = SX.sym('a_mtp',2); % mtp activations
 dmtpdt = ArmActivationDynamics(e_mtp,a_mtp);
 f_MtpActivationDynamics = ...
     Function('f_MtpActivationDynamics',{e_mtp,a_mtp},{dmtpdt},...
@@ -429,7 +434,7 @@ b_SX            = SX.sym('b_SX',1); % Parameter determining tanh smoothness
     energy_model_sm_SX] = getMetabolicEnergySmooth2004all(exc_SX,act_SX,...
     lMtilde_SX,vM_SX,Fce_SX,Fpass_SX,musclemass_SX,pctst_SX,Fiso_SX,...
     MTparameters_m(1,:)',modelmass_SX,b_SX);
-fgetMetabolicEnergySmooth2004all = ...
+f_getMetabolicEnergySmooth2004all = ...
     Function('fgetMetabolicEnergySmooth2004all',...
     {exc_SX,act_SX,lMtilde_SX,vM_SX,Fce_SX,Fpass_SX,musclemass_SX,...
     pctst_SX,Fiso_SX,modelmass_SX,b_SX},{energy_total_sm_SX,...
@@ -601,7 +606,7 @@ if mtj
     f_passiveMoment_mtj.save(fullfile(OutPath,'f_passiveMoment_mtj'));
 end
 
-fgetMetabolicEnergySmooth2004all.save(fullfile(OutPath,'fgetMetabolicEnergySmooth2004all'));
+f_getMetabolicEnergySmooth2004all.save(fullfile(OutPath,'f_getMetabolicEnergySmooth2004all'));
 
 f_J2.save(fullfile(OutPath,'f_J2'));
 f_J8.save(fullfile(OutPath,'f_J8'));

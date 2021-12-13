@@ -158,25 +158,26 @@ end
 IO.coord_namesi = coord_names;
 
 % Second, origins bodies. 
+% 33 states, so starts at 34
 % Calcaneus
-calcOr.r    = double(IO.origin.calcn_r([1,3])); % x and z coordinate
-calcOr.l    = double(IO.origin.calcn_l([1,3])); % x and z coordinate
+calcOr.r    = IO.origin.calcn_r([1,3]); % x and z coordinate
+calcOr.l    = IO.origin.calcn_l([1,3]); % x and z coordinate
 calcOr.all  = [calcOr.r,calcOr.l];
 % Femurs
-femurOr.r   = double(IO.origin.femur_r([1,3])); % x and z coordinate
-femurOr.l   = double(IO.origin.femur_l([1,3])); % x and z coordinate
+femurOr.r   = IO.origin.femur_r([1,3]); % x and z coordinate
+femurOr.l   = IO.origin.femur_l([1,3]); % x and z coordinate
 femurOr.all = [femurOr.r,femurOr.l];
 % Hands
-handOr.r    = double(IO.origin.hand_r([1,3])); % x and z coordinate
-handOr.l    = double(IO.origin.hand_l([1,3])); % x and z coordinate
+handOr.r    = IO.origin.hand_r([1,3]); % x and z coordinate
+handOr.l    = IO.origin.hand_l([1,3]); % x and z coordinate
 handOr.all  = [handOr.r,handOr.l];
 % Tibias
-tibiaOr.r   = double(IO.origin.tibia_r([1,3])); % x and z coordinate
-tibiaOr.l   = double(IO.origin.tibia_l([1,3])); % x and z coordinate
+tibiaOr.r   = IO.origin.tibia_r([1,3]); % x and z coordinate
+tibiaOr.l   = IO.origin.tibia_l([1,3]); % x and z coordinate
 tibiaOr.all = [tibiaOr.r,tibiaOr.l];
 % toe joints
-toesOr.r   = double(IO.origin.toes_r([1,3])); % x and z coordinate
-toesOr.l   = double(IO.origin.toes_l([1,3])); % x and z coordinate
+toesOr.r   = IO.origin.toes_r([1,3]); % x and z coordinate
+toesOr.l   = IO.origin.toes_l([1,3]); % x and z coordinate
 toesOr.all = [toesOr.r,toesOr.l];
 
 %% Get bounds and initial guess
@@ -450,16 +451,7 @@ end
 if S.Foot.mtp_muscles
     MAj_fieldnames{end+1} = 'mtp';
 end
-MAj_dof_idx = zeros(length(MAj_fieldnames),1);
-for i=1:nq.leg-3
-        coord_i = MuscleData.dof_names{i};
-        for j=1:length(MAj_fieldnames)
-            MAj_fieldname_j = MAj_fieldnames{j};
-            if contains(coord_i,MAj_fieldname_j)
-                MAj_dof_idx(i) = j;
-            end
-        end
-end
+
 % Loop over collocation points
 for j=1:d
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -483,9 +475,12 @@ for j=1:d
     qinj_l          = Qskj_nsc(IndexLeft, j+1);
     qdotinj_l       = Qdotskj_nsc(IndexLeft, j+1);
     [lMTj_l,vMTj_l,MAj_l] =  f_lMT_vMT_dM(qinj_l,qdotinj_l);
-    for i=1:length(MAj_dof_idx)
-        fieldname_i = MAj_fieldnames{MAj_dof_idx(i)};
-        MAj.(fieldname_i).l   =  MAj_l(mai(i).mus.l',i);
+    for i=1:nq.leg-3
+        coord_i = MuscleData.dof_names{i};
+        if contains(coord_i,MAj_fieldnames(:))
+            fieldname_i = MAj_fieldnames{strfind(coord_i,MAj_fieldnames(:))};
+            MAj.(fieldname_i).l   =  MAj_l(mai(i).mus.l',i);
+        end
     end
     % For the back muscles, we want left and right together: left
     % first, right second. In MuscleInfo, we first have the right
@@ -500,9 +495,12 @@ for j=1:d
     qdotinj_r   = Qdotskj_nsc(IndexRight,j+1);
     [lMTj_r,vMTj_r,MAj_r] = f_lMT_vMT_dM(qinj_r,qdotinj_r);
     % Here we take the indices from left since the vector is 1:49
-    for i=1:length(MAj_dof_idx)
-        fieldname_i = MAj_fieldnames{MAj_dof_idx(i)};
-        MAj.(fieldname_i).r   =  MAj_r(mai(i).mus.l',i);
+    for i=1:nq.leg-3
+        coord_i = MuscleData.dof_names{i};
+        if contains(coord_i,MAj_fieldnames(:))
+            fieldname_i = MAj_fieldnames{contains(coord_i,MAj_fieldnames(:))};
+            MAj.(fieldname_i).r   =  MAj_r(mai(i).mus.l',i);
+        end
     end
     % Both legs
     % In MuscleInfo, we first have the right back muscles (44:46) and
@@ -768,7 +766,7 @@ for j=1:d
         T_mtp_l         = f_T4(MAj.mtp.l,Ft_mtp_l);
         T_mtp_tmp_l     = T_mtp_tmp_l + T_mtp_l;
     end
-    if mtj && (~strcmp(S.Foot.PF_stiffness,'none') || S.Foot.PIM)
+    if ~strcmp(S.Foot.PF_stiffness,'none') || S.Foot.PIM
         T_mtpPF_l       = MA_PFj.mtp.l*F_PF_PIMj.l;
         T_mtp_tmp_l     = T_mtp_tmp_l + T_mtpPF_l;
     end
@@ -783,7 +781,7 @@ for j=1:d
         T_mtp_r         = f_T4(MAj.mtp.r,Ft_mtp_r);
         T_mtp_tmp_r     = T_mtp_tmp_r + T_mtp_r;
     end
-    if mtj && (~strcmp(S.Foot.PF_stiffness,'none') || S.Foot.PIM)
+    if ~strcmp(S.Foot.PF_stiffness,'none') || S.Foot.PIM
             T_mtpPF_r       = MA_PFj.mtp.r*F_PF_PIMj.r;
             T_mtp_tmp_r     = T_mtp_tmp_r + T_mtpPF_r;
     end

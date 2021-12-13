@@ -35,7 +35,7 @@ AddCasadiPaths();
 
 %% General settings
 % Full body gait simulation
-slv = 0;                % run solver
+slv = 1;                % run solver
 pp = 0;                 % postproces
 batchQueue = 0;         % save settings to run later
 
@@ -43,7 +43,7 @@ batchQueue = 0;         % save settings to run later
 S.v_tgt     = 1.33;     % average speed
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 6;        % number of threads for parallel computing
-% S.max_iter  = 10;       % maximum number of iterations (comment -> 10000)
+S.max_iter  = 10;       % maximum number of iterations (comment -> 10000)
 % S.tol_ipopt = 3;        % stopping criterion: inf_du < 10^(-...) 
 
 

@@ -55,14 +55,13 @@ else
     % Create the casadifunctions if they do not exist yet
     if ~isfolder([pathRepo '\CasADiFunctions\' S.CasadiFunc_Folders])
         disp('Creating casadifunctions...');
-        CreateCasADiFunctions(pathRepo,S);
+        CreateCasadiFunctions(pathRepo,S);
         disp('...casadifunctions created');
     end
 
 end
 
 %% Run
-
 
 if batchQueue
     batchQ.(S.savename).PredSim = 'f_PredSim_Gait92_FootModel';
