@@ -37,4 +37,53 @@ P_mech_std = std(P_mech,0,3);
 
 
 %%
-save([pathRepo '\Data\Fal_s1.mat','Dat']);
+% save([pathRepo '\Data\Fal_s1.mat'],'Dat');
+
+
+Data.IK_original.colheaders = ExperimentalData.Q.subject1.Qs.colheaders;
+Data.IK_original.Qall_mean = ExperimentalData.Q.subject1.Qs.mean;
+Data.IK_original.Qall_std = ExperimentalData.Q.subject1.Qs.std;
+Data.IK_original.Qdotall_mean = ExperimentalData.Q.subject1.Qdots.mean;
+Data.IK_original.Qdotall_std = ExperimentalData.Q.subject1.Qdots.std;
+
+load('C:\Users\u0150099\Documents\master_thesis\ReferenceData\ModelScaling\reference_data\Analysis\Qref_subject1_withMTJ_locked_scaled_default.mat');
+Data.IK_mtp_default.colheaders = Qref.subject1.colheaders;
+Data.IK_mtp_default.Qall_mean = Qref.subject1.Qs.mean;
+Data.IK_mtp_default.Qall_std = Qref.subject1.Qs.std;
+Data.IK_mtp_default.Qdotall_mean = Qref.subject1.Qdots.mean;
+Data.IK_mtp_default.Qdotall_std = Qref.subject1.Qdots.std;
+
+load('C:\Users\u0150099\Documents\master_thesis\ReferenceData\ModelScaling\reference_data\Analysis\Qref_subject1_withMTJ_locked_scaled_custom.mat');
+Data.IK_mtp_custom.colheaders = Qref.subject1.colheaders;
+Data.IK_mtp_custom.Qall_mean = Qref.subject1.Qs.mean;
+Data.IK_mtp_custom.Qall_std = Qref.subject1.Qs.std;
+Data.IK_mtp_custom.Qdotall_mean = Qref.subject1.Qdots.mean;
+Data.IK_mtp_custom.Qdotall_std = Qref.subject1.Qdots.std;
+
+
+load('C:\Users\u0150099\Documents\master_thesis\ReferenceData\ModelScaling\reference_data\Analysis\Qref_subject1_withMTJ_scaled_default.mat');
+Data.IK_mtj_default.colheaders = Qref.subject1.colheaders;
+Data.IK_mtj_default.Qall_mean = Qref.subject1.Qs.mean;
+Data.IK_mtj_default.Qall_std = Qref.subject1.Qs.std;
+Data.IK_mtj_default.Qdotall_mean = Qref.subject1.Qdots.mean;
+Data.IK_mtj_default.Qdotall_std = Qref.subject1.Qdots.std;
+
+load('C:\Users\u0150099\Documents\master_thesis\ReferenceData\ModelScaling\reference_data\Analysis\Qref_subject1_withMTJ_scaled_custom.mat');
+Data.IK_mtj_custom.colheaders = Qref.subject1.colheaders;
+Data.IK_mtj_custom.Qall_mean = Qref.subject1.Qs.mean;
+Data.IK_mtj_custom.Qall_std = Qref.subject1.Qs.std;
+Data.IK_mtj_custom.Qdotall_mean = Qref.subject1.Qdots.mean;
+Data.IK_mtj_custom.Qdotall_std = Qref.subject1.Qdots.std;
+
+Data.ID_original.colheaders = ExperimentalData.Q.subject1.Qs.colheaders;
+Data.ID_original.Tall_mean = ExperimentalData.Torques.subject1.mean;
+Data.ID_original.Tall_std = ExperimentalData.Torques.subject1.std;
+
+Data.EMGheaders = ExperimentalData.EMG.subject1.colheaders;
+Data.lowEMG_mean = ExperimentalData.EMG.subject1.mean;
+Data.lowEMG_std = ExperimentalData.EMG.subject1.std;
+
+Data.GRF.Fmean = ExperimentalData.GRFs.subject1.mean;
+Data.GRF.Fstd = ExperimentalData.GRFs.subject1.std;
+
+save([pathRepo '\Data\Fal_s1.mat'],'Data');

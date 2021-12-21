@@ -708,9 +708,9 @@ if plot_full_separate
     
 
     %%% call function that makes figures
-%     PlotResults_3DSim_Report(ResultsFile,LegNames,'Fal_s1',mtj,makeplot,figNamePrefix);
+    PlotResults_3DSim_Report(ResultsFile,LegNames,'Fal_s1',mtj,makeplot,figNamePrefix);
 
-    PlotEnergySmoothing(ResultsFile,LegNames)
+%     PlotEnergySmoothing(ResultsFile,LegNames)
 
     for i=1:3
 %         PlotEnergySmoothVsNonSmooth(ResultsFile{i},LegNames{i})

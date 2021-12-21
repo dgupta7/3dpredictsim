@@ -5,19 +5,21 @@ function PredSim(S,slv,pp,batchQueue)
 
 S = GetDefaultSettings(S);
 
-% construct OpenSim model file name
-OsimFileName = [S.subject '_' S.Foot.Model];
-if strcmp(S.Foot.Scaling,'default')
-    OsimFileName = [OsimFileName '_sd'];
-elseif strcmp(S.Foot.Scaling,'custom')
-    OsimFileName = [OsimFileName '_sc'];
-elseif strcmp(S.Foot.Scaling,'personalised')
-    OsimFileName = [OsimFileName '_sp'];
+%% construct OpenSim model file name
+if ~isfield(S,'OsimFileName')
+    OsimFileName = [S.subject '_' S.Foot.Model];
+    if strcmp(S.Foot.Scaling,'default')
+        OsimFileName = [OsimFileName '_sd'];
+    elseif strcmp(S.Foot.Scaling,'custom')
+        OsimFileName = [OsimFileName '_sc'];
+    elseif strcmp(S.Foot.Scaling,'personalised')
+        OsimFileName = [OsimFileName '_sp'];
+    end
+    S.OsimFileName = OsimFileName;
 end
-S.OsimFileName = OsimFileName;
 
-% construct external function file name
-ExternalFunc = OsimFileName;
+%% construct external function file name
+ExternalFunc = S.OsimFileName;
 if S.Foot.contactStiffnessFactor == 10
     ExternalFunc = [ExternalFunc '_cspx10'];
 end
@@ -31,21 +33,31 @@ S.ExternalFunc = ExternalFunc;
 
 
 
-% build standardised names
+%% build standardised names
 [savename, casfuncfol] = getSavename(S);
 S.CasadiFunc_Folders = casfuncfol;
 S.savename = savename;
 
 
+%% Prepare the simulation to run as part of a batch
+% Casadi functions are made when
 if batchQueue
+    % Store the settings
+    fieldname = S.savename(max(1,end-63):end);
     if (exist([pathRepo '/Results/batchQ.mat'],'file')==2) 
         load([pathRepo '/Results/batchQ.mat'],'batchQ');
     else
-        batchQ.(S.savename) = struct('S',[]);
+        batchQ.(fieldname) = struct('S',[]);
     end
-    batchQ.(S.savename).S = S;
-    
+    batchQ.(fieldname).S = S;
+    % Specify function to use
+    batchQ.(fieldname).PredSim = 'f_PredSim_Gait92_FootModel';
+    batchQ.(fieldname).LoadSim = 'f_LoadSim_Gait92_FootModel';
+
+    save([pathRepo '/Results/batchQ.mat'],'batchQ');
 else
+
+
     % make folder to store results if it doesn't exist
     pathResults = fullfile([pathRepo '/Results'],S.ResultsFolder);
     if ~isfolder(pathResults)
@@ -58,26 +70,24 @@ else
         CreateCasadiFunctions(pathRepo,S);
         disp('...casadifunctions created');
     end
+    % run the optimization
+    if slv
+        f_PredSim_Gait92_FootModel(S);
+    end
+    % post-proces simulation results
+    if pp
+        f_LoadSim_Gait92_FootModel(S.ResultsFolder,S.savename);
+    end
 
 end
 
-%% Run
-
-if batchQueue
-    batchQ.(S.savename).PredSim = 'f_PredSim_Gait92_FootModel';
-    batchQ.(S.savename).LoadSim = 'f_LoadSim_Gait92_FootModel';
-end
-if slv        % run the optimization
-    f_PredSim_Gait92_FootModel(S);
-end
-if pp           % post-proces simulation results
-    f_LoadSim_Gait92_FootModel(S.ResultsFolder,S.savename);
-end
 
 
-if batchQueue
-    save([pathRepo '/Results/batchQ.mat'],'batchQ');
-end
+
+
+
+
+
 
 
 

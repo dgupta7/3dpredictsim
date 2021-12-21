@@ -116,17 +116,22 @@ MTparameters_m = [MTparameters(:,musi),MTparameters(:,musi)];
 % We load some variables for the polynomial approximations
 load([pathpolynomial,'/muscle_spanning_joint_INFO.mat'],'muscle_spanning_joint_INFO');
 load([pathpolynomial,'/MuscleInfo.mat'],'MuscleInfo');
-load([pathpolynomial,'/ligament_spanning_joint_INFO.mat'],'ligament_spanning_joint_INFO');
-load([pathpolynomial,'/LigamentInfo.mat'],'LigamentInfo');
 % For the polynomials, we want all independent muscles. So we do not need
 % the muscles from both legs, since we assume bilateral symmetry, but want
 % all muscles from the back (indices 47:49).
 musi_pol = [musi,47,48,49];
 NMuscle_pol = NMuscle/2+3;
 nq.leg = size(muscle_spanning_joint_INFO,2);
-ligi_pol = 1;
-NLig_pol = 1;
-nq.PF = size(ligament_spanning_joint_INFO,2);
+try
+    load([pathpolynomial,'/ligament_spanning_joint_INFO.mat'],'ligament_spanning_joint_INFO');
+    load([pathpolynomial,'/LigamentInfo.mat'],'LigamentInfo');
+    ligi_pol = 1;
+    NLig_pol = 1;
+    nq.PF = size(ligament_spanning_joint_INFO,2);
+catch
+    nq.PF = 0;
+end
+
 
 % Polynomial approximation muscles
 muscle_spanning_info_m = muscle_spanning_joint_INFO(musi_pol,:);
@@ -155,32 +160,34 @@ end
 f_lMT_vMT_dM = Function('f_lMT_vMT_dM',{qin,qdotin},{lMT,vMT,dM},...
     {'qin','qdotin'},{'lMT','vMT','dM'});
 
-% Polynomial approximation ligaments
-ligament_spanning_info_m = ligament_spanning_joint_INFO(ligi_pol,:);
-LigamentInfo_m.muscle    = LigamentInfo.muscle(ligi_pol);
-qin     = SX.sym('qin',1,nq.PF);
-qdotin  = SX.sym('qdotin',1,nq.PF);
-lLi     = SX(NLig_pol,1);
-vLi     = SX(NLig_pol,1);
-dM      = SX(NLig_pol,nq.PF);
-for i=1:NLig_pol
-    index_dof_crossing  = find(ligament_spanning_info_m(i,:)==1);
-    order               = LigamentInfo_m.muscle(i).order;
-    [mat,diff_mat_q]    = n_art_mat_3_cas_SX(qin(1,index_dof_crossing),...
-        order);
-    lLi(i,1)            = mat*LigamentInfo_m.muscle(i).coeff;
-    vLi(i,1)            = 0;
-    dM(i,1:nq.PF)      = 0;
-    nr_dof_crossing     = length(index_dof_crossing);
-    for dof_nr = 1:nr_dof_crossing
-        dM(i,index_dof_crossing(dof_nr)) = ...
-            (-(diff_mat_q(:,dof_nr)))'*LigamentInfo_m.muscle(i).coeff;
-        vLi(i,1) = vLi(i,1) + (-dM(i,index_dof_crossing(dof_nr))*...
-            qdotin(1,index_dof_crossing(dof_nr)));
+if nq.PF
+    % Polynomial approximation ligaments
+    ligament_spanning_info_m = ligament_spanning_joint_INFO(ligi_pol,:);
+    LigamentInfo_m.muscle    = LigamentInfo.muscle(ligi_pol);
+    qin     = SX.sym('qin',1,nq.PF);
+    qdotin  = SX.sym('qdotin',1,nq.PF);
+    lLi     = SX(NLig_pol,1);
+    vLi     = SX(NLig_pol,1);
+    dM      = SX(NLig_pol,nq.PF);
+    for i=1:NLig_pol
+        index_dof_crossing  = find(ligament_spanning_info_m(i,:)==1);
+        order               = LigamentInfo_m.muscle(i).order;
+        [mat,diff_mat_q]    = n_art_mat_3_cas_SX(qin(1,index_dof_crossing),...
+            order);
+        lLi(i,1)            = mat*LigamentInfo_m.muscle(i).coeff;
+        vLi(i,1)            = 0;
+        dM(i,1:nq.PF)      = 0;
+        nr_dof_crossing     = length(index_dof_crossing);
+        for dof_nr = 1:nr_dof_crossing
+            dM(i,index_dof_crossing(dof_nr)) = ...
+                (-(diff_mat_q(:,dof_nr)))'*LigamentInfo_m.muscle(i).coeff;
+            vLi(i,1) = vLi(i,1) + (-dM(i,index_dof_crossing(dof_nr))*...
+                qdotin(1,index_dof_crossing(dof_nr)));
+        end
     end
+    f_lLi_vLi_dM = Function('f_lLi_vLi_dM',{qin,qdotin},{lLi,vLi,dM},...
+        {'qin','qdotin'},{'lLi','vLi','dM'});
 end
-f_lLi_vLi_dM = Function('f_lLi_vLi_dM',{qin,qdotin},{lLi,vLi,dM},...
-    {'qin','qdotin'},{'lLi','vLi','dM'});
 
 %% Normalized sum of squared values
 % Function for 8 elements
@@ -588,8 +595,10 @@ end
 
 % save functions
 f_lMT_vMT_dM.save(fullfile(OutPath,'f_lMT_vMT_dM'));
-f_lLi_vLi_dM.save(fullfile(OutPath,'f_lLi_vLi_dM'));
 f_lT_vT.save(fullfile(OutPath,'f_lT_vT'));
+if nq.PF
+    f_lLi_vLi_dM.save(fullfile(OutPath,'f_lLi_vLi_dM'));
+end
 
 f_FiberLength_TendonForce_tendon.save(fullfile(OutPath,'f_FiberLength_TendonForce_tendon'));
 f_FiberVelocity_TendonForce_tendon.save(fullfile(OutPath,'f_FiberVelocity_TendonForce_tendon'));

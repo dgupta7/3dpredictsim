@@ -1,6 +1,6 @@
 function [] = PlotResults_3DSim_Report(ResultsFile,LegNames,RefData,mtj,makeplot,figNamePrefix)
 
-set(0,'defaultTextInterpreter','tex');
+
 makeplot.sol_all = 1;
     
 if strcmp(RefData,'none')
@@ -26,8 +26,10 @@ nr = length(ResultsFile);
 
 if numel(LegNames) == nr
     LN = 1;
+    set(0,'defaultTextInterpreter','tex');
 else
     LN = 0;
+    set(0,'defaultTextInterpreter','none');
 end
 
 if strcmp(RefData,'Fal_s1')
@@ -320,20 +322,25 @@ for inr=1:nr
 %%
 
     if inr==1 && md
-        pc_name = getenv('COMPUTERNAME');
-        if strcmp(RefData,'Fal_s1')
-            [pathHere,~,~] = fileparts(mfilename('fullpath'));
-            [pathRepo,~,~] = fileparts(pathHere);
-            load([pathRepo '\Data\Fal_s1.mat'],'Dat');
-        elseif strcmp(pc_name,'MSI')
-            % load data Pog_s1 from struct saved during ...\Analyze_ExoData\Batch\BatchScript_LatexReport.m
-            load('D:\school\WTK\thesis\model\3dpredictsim\Data\Pog_s1.mat','Dat');
-        else
-            md = 0;
-        end
-        Qref = Dat.(type).gc;
 
-%             ijoints_ref = [find(strcmp(Qref.colheaders,'hip_flexion_r'));,ihip2,ihip3,iknee,iankle,isubt];
+        [pathHere,~,~] = fileparts(mfilename('fullpath'));
+        [pathRepo,~,~] = fileparts(pathHere);
+        load([pathRepo '\Data\Fal_s1.mat'],'Data');
+        
+        data_field = ['IK_' R.S.Foot.Model '_' R.S.Foot.Scaling];
+        if isfield(Data,data_field)
+            Qref = Data.(data_field);
+        else
+            Qref = Data.IK_original;
+        end
+
+        data_field = ['ID_' R.S.Foot.Model '_' R.S.Foot.Scaling];
+        if isfield(Data,data_field)
+            Tref = Data.(data_field);
+        else
+            Tref = Data.ID_original;
+        end
+
     end
     
     Cs = CsV(inr,:);
@@ -409,8 +416,8 @@ for inr=1:nr
             if  inr == 1 && md
                 idx_jref = strcmp(Qref.colheaders,joints_ref{idx_js(i)});
                 if sum(idx_jref) == 1
-                    meanPlusSTD = (Qref.Qall_mean(:,idx_jref) + 2*Qref.Qall_std(:,idx_jref)).*180/pi;
-                    meanMinusSTD = (Qref.Qall_mean(:,idx_jref) - 2*Qref.Qall_std(:,idx_jref)).*180/pi;
+                    meanPlusSTD = (Qref.Qall_mean(:,idx_jref) + 2*Qref.Qall_std(:,idx_jref));
+                    meanMinusSTD = (Qref.Qall_mean(:,idx_jref) - 2*Qref.Qall_std(:,idx_jref));
 
                     stepQ = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
                     intervalQ = 1:stepQ:size(R.Qs,1);
@@ -489,8 +496,8 @@ for inr=1:nr
             if  inr == 1 && md
                 idx_jref = strcmp(Qref.colheaders,joints_ref{idx_js(i)});
                 if sum(idx_jref) == 1
-                    meanPlusSTD = (Qref.Qdotall_mean(:,idx_jref) + 2*Qref.Qdotall_std(:,idx_jref)).*180/pi;
-                    meanMinusSTD = (Qref.Qdotall_mean(:,idx_jref) - 2*Qref.Qdotall_std(:,idx_jref)).*180/pi;
+                    meanPlusSTD = (Qref.Qdotall_mean(:,idx_jref) + 2*Qref.Qdotall_std(:,idx_jref));
+                    meanMinusSTD = (Qref.Qdotall_mean(:,idx_jref) - 2*Qref.Qdotall_std(:,idx_jref));
 
                     stepQ = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
                     intervalQ = 1:stepQ:size(R.Qs,1);
@@ -571,10 +578,10 @@ for inr=1:nr
             x = 1:(100-1)/(size(R.Qs,1)-1):100;
             % Experimental data
             if  inr == 1 && md
-                idx_jref = strcmp(Qref.colheaders,joints_ref{idx_js(i)});
+                idx_jref = strcmp(Tref.colheaders,joints_ref{idx_js(i)});
                 if sum(idx_jref) == 1
-                    meanPlusSTD = Qref.Tall_mean(:,idx_jref) + 2*Qref.Tall_std(:,idx_jref);
-                    meanMinusSTD = Qref.Tall_mean(:,idx_jref) - 2*Qref.Tall_std(:,idx_jref);
+                    meanPlusSTD = Tref.Tall_mean(:,idx_jref) + 2*Tref.Tall_std(:,idx_jref);
+                    meanMinusSTD = Tref.Tall_mean(:,idx_jref) - 2*Tref.Tall_std(:,idx_jref);
                     stepID = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
                     intervalID = 1:stepID:size(R.Qs,1);
                     sampleID = 1:size(R.Qs,1);
@@ -651,44 +658,39 @@ for inr=1:nr
         else
             figure(h3);
         end
-        
+
+        n_msc = 7;
+%         nn_msc = 6;
+
         if inr==1 && md 
-            if strcmp(RefData,'Fal_s1')
-                iSol_data = find(strcmp(Dat.(type).EMGheaders,'Soleus'));
-                iGas_data = find(strcmp(Dat.(type).EMGheaders,'Gastrocnemius-medialis'));
-                iGas2_data = find(strcmp(Dat.(type).EMGheaders,'Gastrocnemius-lateralis'));
-                iTibAnt_data = find(strcmp(Dat.(type).EMGheaders,'Tibialis-anterior'));
-                iPerL_data = find(strcmp(Dat.(type).EMGheaders,'Peroneus-longus'));
-                iPerB_data = find(strcmp(Dat.(type).EMGheaders,'Peroneus-brevis'));
-                
-                ankle_act(:,1) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iSol_data);
-                ankle_act(:,2) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas_data);
-                ankle_act(:,3) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas2_data);
-                ankle_act(:,4) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iTibAnt_data);
-                ankle_act(:,5) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iPerL_data);
-                ankle_act(:,6) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iPerB_data);
-                
-            else
-                iSol_data = find(strcmp(Dat.(type).EMGheaders,'soleus_r'));
-                iGas_data = find(strcmp(Dat.(type).EMGheaders,'gas_med_r'));
-                iGas2_data = find(strcmp(Dat.(type).EMGheaders,'gas_lat_r'));
-                ankle_act(:,1) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iSol_data);
-                ankle_act(:,2) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas_data);
-                ankle_act(:,3) = Dat.(type).gc.lowEMG_mean([51:end,1:50],iGas2_data);
-            end
+            iSol_data = find(strcmp(Data.EMGheaders,'Soleus'));
+            iGas_data = find(strcmp(Data.EMGheaders,'Gastrocnemius-medialis'));
+            iGas2_data = find(strcmp(Data.EMGheaders,'Gastrocnemius-lateralis'));
+            iTibAnt_data = find(strcmp(Data.EMGheaders,'Tibialis-anterior'));
+            iPerL_data = find(strcmp(Data.EMGheaders,'Peroneus-longus'));
+            iPerB_data = find(strcmp(Data.EMGheaders,'Peroneus-brevis'));
+            
+            ankle_act(:,1) = Data.lowEMG_mean([51:end,1:50],iSol_data);
+            ankle_act(:,2) = Data.lowEMG_mean([51:end,1:50],iGas_data);
+            ankle_act(:,3) = Data.lowEMG_mean([51:end,1:50],iGas2_data);
+            ankle_act(:,4) = Data.lowEMG_mean([51:end,1:50],iTibAnt_data);
+            ankle_act(:,5) = Data.lowEMG_mean([51:end,1:50],iPerL_data);
+            ankle_act(:,6) = Data.lowEMG_mean([51:end,1:50],iPerB_data);
+
             imusd = [iSol_data,iGas_data,iGas2_data,iTibAnt_data,iPerL_data,iPerB_data];
             ankle_a = [ankle_act(ceil(end/2):end,:); ankle_act(1:ceil(end/2)-1,:)];
             
-            n_msc = 7;
-            nn_msc = length(imusd);%+2;
+            
+%             nn_msc = length(imusd);%+2;
+            nn_msc = 4;
 
             
-            for imu=1:length(imusd)
+            for imu=1:nn_msc
                 subplot(n_msc,nn_msc,imu); hold on;
                 yyaxis right
-                
-                meanPlusSTD = Dat.Normal.gc.lowEMG_mean(:,imusd(imu)) + 2*Dat.Normal.gc.lowEMG_std(:,imusd(imu));
-                meanMinusSTD = Dat.Normal.gc.lowEMG_mean(:,imusd(imu)) - 2*Dat.Normal.gc.lowEMG_std(:,imusd(imu));
+                hold on
+                meanPlusSTD = Data.lowEMG_mean(:,imusd(imu)) + 2*Data.lowEMG_std(:,imusd(imu));
+                meanMinusSTD = Data.lowEMG_mean(:,imusd(imu)) - 2*Data.lowEMG_std(:,imusd(imu));
                 stepQ = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
                 intervalQ = 1:stepQ:size(R.Qs,1);
                 sampleQ = 1:size(R.Qs,1);
@@ -722,8 +724,9 @@ for inr=1:nr
         for imu=1:nn_msc
             
             subplot(n_msc,nn_msc,imu); hold on;
+            hold on
             p2=plot(R.a(:,imus(imu)),'-','Color',CsV(inr,:),'DisplayName',LegName);
-            
+            hold on
             title(R.colheaders.muscles{imus(imu)},'Interpreter','none')
             grid on
             L = get(gca,'XLim');
@@ -734,7 +737,11 @@ for inr=1:nr
             xlim([0,100])
                 if imu==1
                     ylabel('Activity (-)','Interpreter','latex');
-                    lg_a = [lg_a,p2];
+                    if md
+                        lg_a(end+1) = p2;
+                    else
+                        lg_a = [p2];
+                    end
                     if inr==nr
                         lh3=legend(lg_a,'location','northwest');
                         lh3.Interpreter = 'tex';
@@ -873,48 +880,44 @@ for inr=1:nr
             figure(h4);
         end
         
-        if isfield(R,'AnkleInGround')
-            istance_COPR = find(R.GRFs(:,2)>5);
-            COPz = R.COPR(istance_COPR,3)*1e3;
-            COPx = (R.COPR(istance_COPR,1)-R.COPR(istance_COPR(1),1))*1e3;
-            subplot(2,5,[5;10])
-            hold on
-            grid on
-            plot(COPz,COPx,'.','Color',CsV(inr,:),'DisplayName',LegName);
+        
+        istance_COPR = find(R.GRFs(:,2)>5);
+        COPz = R.COPR(istance_COPR,3)*1e3;
+        COPx = (R.COPR(istance_COPR,1)-R.COPR(istance_COPR(1),1))*1e3;
+        subplot(2,5,[5;10])
+        hold on
+        grid on
+        plot(COPz,COPx,'.','Color',CsV(inr,:),'DisplayName',LegName);
 %             plot(x(istance_COPR),COPx,'.','Color',CsV(inr,:),'DisplayName',LegName);
-            axis equal
-            ylabel('Direction of walking (mm)')
-            xlabel('Lateral (mm)')
-            title('Centre of pressure')
-            if inr==nr
+        axis equal
+        ylabel('Direction of walking (mm)')
+        xlabel('Lateral (mm)')
+        title('Centre of pressure')
+        if inr==nr
 %                 lh=legend('location','northwest');
 %                 lhPos = lh.Position;
 %                 lhPos(1) = lhPos(1)-0.15;
 %                 set(lh,'position',lhPos);
-                set(gca,'YAxisLocation','right')
-            end
+            set(gca,'YAxisLocation','right')
         end
+        
         
         if inr==1 && md
             for i=1:3
                 subplot(2,4,i)
                 hold on
-                if strcmp(RefData,'Fal_s1')
-%                     p0=plot(Dat.(type).gc.GRF.Fmean(:,i),'-k','LineWidth',1,'DisplayName','Measured');
-                    
-                    meanPlusSTD = Dat.Normal.gc.GRF.Fmean(:,i) + 2*Dat.Normal.gc.GRF.Fstd(:,i);
-                    meanMinusSTD = Dat.Normal.gc.GRF.Fmean(:,i) - 2*Dat.Normal.gc.GRF.Fstd(:,i);
-                    stepQ = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
-                    intervalQ = 1:stepQ:size(R.Qs,1);
-                    sampleQ = 1:size(R.Qs,1);
-                    meanPlusSTD = interp1(intervalQ,meanPlusSTD,sampleQ);
-                    meanMinusSTD = interp1(intervalQ,meanMinusSTD,sampleQ);
-                    fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName','Measured');
-                    alpha(.25);
 
-                else
-                    p0=plot(Dat.(type).gc.GRF.Fmean(:,i)/(R.body_mass*9.81)*100,'-k','LineWidth',1,'Measured');
-                end
+                meanPlusSTD = Data.GRF.Fmean(:,i) + 2*Data.GRF.Fstd(:,i);
+                meanMinusSTD = Data.GRF.Fmean(:,i) - 2*Data.GRF.Fstd(:,i);
+                stepQ = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
+                intervalQ = 1:stepQ:size(R.Qs,1);
+                sampleQ = 1:size(R.Qs,1);
+                meanPlusSTD = interp1(intervalQ,meanPlusSTD,sampleQ);
+                meanMinusSTD = interp1(intervalQ,meanMinusSTD,sampleQ);
+                fill([x fliplr(x)],[meanPlusSTD fliplr(meanMinusSTD)],'k','DisplayName','Measured');
+                alpha(.25);
+
+
             end
 
         end
@@ -948,7 +951,7 @@ for inr=1:nr
             subplot(2,4,5)
             hold on
             grid on
-            plot(R.GRFs_separate(:,2),'Color',Cs);
+            plot(sum(R.GRFs_separate(:,[2,5]),2),'Color',Cs);
             ylabel({'Ground reaction force','(% body weight)'})
             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
             title('Vertical GRF Heel')
@@ -960,7 +963,7 @@ for inr=1:nr
             subplot(2,4,6)
             hold on
             grid on
-            plot(R.GRFs_separate(:,2+3),'Color',Cs);
+            plot(sum(R.GRFs_separate(:,[8,11,14]),2),'Color',Cs);
             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
             title('Vertical GRF Forefoot')
             axis tight
@@ -971,7 +974,7 @@ for inr=1:nr
             subplot(2,4,7)
             hold on
             grid on
-            plot(R.GRFs_separate(:,2+6),'Color',Cs);
+            plot(R.GRFs_separate(:,17),'Color',Cs);
             xlabel('Gait cycle (%)','Fontsize',label_fontsize);
             title('Vertical GRF Toes')
             axis tight
@@ -1838,10 +1841,8 @@ for inr=1:nr
             if  inr == 1 && md
                 idx_jref = strcmp(Qref.colheaders,joints_ref{i});
                 if sum(idx_jref) == 1
-    %                 meanPlusSTD = Qref.(subject).Qs.mean(:,idx_jref) + 2*Qref.(subject).Qs.std(:,idx_jref);
-    %                 meanMinusSTD = Qref.(subject).Qs.mean(:,idx_jref) - 2*Qref.(subject).Qs.std(:,idx_jref);
-                    meanPlusSTD = (Qref.Qall_mean(:,idx_jref) + 2*Qref.Qall_std(:,idx_jref)).*180/pi;
-                    meanMinusSTD = (Qref.Qall_mean(:,idx_jref) - 2*Qref.Qall_std(:,idx_jref)).*180/pi;
+                    meanPlusSTD = (Qref.Qall_mean(:,idx_jref) + 2*Qref.Qall_std(:,idx_jref));
+                    meanMinusSTD = (Qref.Qall_mean(:,idx_jref) - 2*Qref.Qall_std(:,idx_jref));
 
                     stepQ = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
                     intervalQ = 1:stepQ:size(R.Qs,1);
@@ -1907,14 +1908,10 @@ for inr=1:nr
             x = 1:(100-1)/(size(R.Qs,1)-1):100;
             % Experimental data
             if  inr == 1 && md
-    %             IDref = ExperimentalData.Torques;
-    %             idx_jref = strcmp(IDref.(subject).colheaders,joints_ref{i});
-                idx_jref = strcmp(Qref.colheaders,joints_ref{i});
+                idx_jref = strcmp(Tref.colheaders,joints_ref{i});
                 if sum(idx_jref) == 1
-    %                 meanPlusSTD = IDref.(subject).mean(:,idx_jref) + 2*IDref.(subject).std(:,idx_jref);
-    %                 meanMinusSTD = IDref.(subject).mean(:,idx_jref) - 2*IDref.(subject).std(:,idx_jref);
-                    meanPlusSTD = Qref.Tall_mean(:,idx_jref) + 2*Qref.Tall_std(:,idx_jref);
-                    meanMinusSTD = Qref.Tall_mean(:,idx_jref) - 2*Qref.Tall_std(:,idx_jref);
+                    meanPlusSTD = Tref.Tall_mean(:,idx_jref) + 2*Tref.Tall_std(:,idx_jref);
+                    meanMinusSTD = Tref.Tall_mean(:,idx_jref) - 2*Tref.Tall_std(:,idx_jref);
 
                     stepID = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
                     intervalID = 1:stepID:size(R.Qs,1);
@@ -3691,10 +3688,10 @@ for inr=1:nr
             for i=1:numel(musc_exp)
                 subplot(5,3,i)
                 hold on
-                imus_i = find(strcmp(Dat.Normal.EMGheaders,musc_exp{i}));
+                imus_i = find(strcmp(Data.EMGheaders,musc_exp{i}));
                 yyaxis right
-                meanPlusSTD = Dat.Normal.gc.lowEMG_mean(:,imus_i) + 2*Dat.Normal.gc.lowEMG_std(:,imus_i);
-                meanMinusSTD = Dat.Normal.gc.lowEMG_mean(:,imus_i) - 2*Dat.Normal.gc.lowEMG_std(:,imus_i);
+                meanPlusSTD = Data.lowEMG_mean(:,imus_i) + 2*Data.lowEMG_std(:,imus_i);
+                meanMinusSTD = Data.lowEMG_mean(:,imus_i) - 2*Data.lowEMG_std(:,imus_i);
                 stepQ = (size(R.Qs,1)-1)/(size(meanPlusSTD,1)-1);
                 intervalQ = 1:stepQ:size(R.Qs,1);
                 sampleQ = 1:size(R.Qs,1);

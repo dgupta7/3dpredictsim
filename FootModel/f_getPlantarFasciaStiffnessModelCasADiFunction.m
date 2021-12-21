@@ -1,4 +1,4 @@
-function [f_PF_stiffness, varargout] = f_getPlantarFasciaStiffnessModelCasADiFunction(modelType,varargin)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This function returns a casADi function object that describes the tensile
 % force of the plantar fascia in function of its length.
 %
@@ -10,16 +10,18 @@ function [f_PF_stiffness, varargout] = f_getPlantarFasciaStiffnessModelCasADiFun
 % that most model types use different parameters.
 %
 % Author: Lars D'Hondt (March 2021)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function [f_PF_stiffness, varargout] = f_getPlantarFasciaStiffnessModelCasADiFunction(modelType,varargin)
 
 
-% variable
 import casadi.*
-l = SX.sym('l');
+l = SX.sym('l'); % length as casadi variable
 
 %% 1) Default parameters
 E = 350; % Young's modulus (N/mm^2)
-% A0 = 290; % initial cross-section (mm^2)
-A0 = 50; % initial cross-section (mm^2)
+A0 = 60; % initial cross-section (mm^2)
 nu = 0.4; % Poisson ratio
 ls = 0.150; % slack length (m)
 k = E*A0/ls; % spring constant (N/m)
@@ -49,7 +51,6 @@ end
 %% 3) Calculate force 
 % intermediate variables
 dl = l-ls; % elongation
-% dl = dl_1*cf; % positive elongation
 lambda = l/ls; % stretch ratio
 A = A0*lambda^(-nu*2); % actual cross-section
 
@@ -96,7 +97,7 @@ elseif strcmp(modelType,'Cheng2008')
     F_PF = sigma_e*A0;
     F = F_PF*(tanh(dl*5e3-1)+1)/2;
     
-elseif strcmp(modelType,'Barrett2018') || strcmp(modelType,'toein_gaussian')
+elseif strcmp(modelType,'Barrett2018')
     % data from DOI 10.1007/s00276-011-0873-z
     e_0 = 0.03; % nominal strain at 0 stress when extrapolating linear region (-)
     sigma_0 = 0.5; % nominal strain at e_0 (MPa)
@@ -116,8 +117,7 @@ elseif strcmp(modelType,'Barrett2018') || strcmp(modelType,'toein_gaussian')
     
 elseif strcmp(modelType,'Natali2010')
     % https://doi.org/10.3109/03008200903389127
-%     mu = 14.449; % (MPa)
-    mu = 0;
+    mu = 14.449; % (MPa)
     k = 254.02; % (MPa)
     alpha = 10.397; % (-)
     sigma = mu*(lambda^2 - 1/lambda) + k/(2*alpha) *(exp(alpha*(lambda^2-1))-1)*lambda^2; % Cauchy stress
@@ -135,26 +135,30 @@ elseif strcmp(modelType,'Song2011')
     F_PF = k*dl^2;
     F = F_PF*(tanh(dl*1e4-1)+1)/2;
 
-else
+elseif strcmp(modelType,'none')
     % plantar fascia fully released
+    F = 0;
+else
     F = 0;
     warning('No valid function to describe the plantar fascia stiffness model, using 0 instead.')
 end  
 
-% F = F_PF*cf; % F >= 0
 
 
-%% 4) Build function
+%% 4) Define outputs
+% force-length function
 f_PF_stiffness = Function('f_PF_stiffness',{l},{F},{'l'},{'F'});
 
+% When asked, the funcion returns additional arguments for analysis
 if nargout == 4
+    % Hessian
     [H,g] = hessian(F,l);
     g_f = Function('gradient',{l},{g},{'l'},{'g'});
     varargout{1} = g_f;
-    
+    % gradient
     H_f = Function('hessian',{l},{H},{'l'},{'H'});
     varargout{2} = H_f;
-
+    % force-length without tanh-smoothing
     f_PF_stiffness_nonsmoothed = Function('f_PF_stiffness_nonsmoothed',{l},{F_PF},{'l'},{'F'});
     varargout{3} = f_PF_stiffness_nonsmoothed;
 end

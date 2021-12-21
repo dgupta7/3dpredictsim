@@ -233,7 +233,7 @@ if ~isfield(S,'IKfile_Bounds')
 end
 
 % default IK file for initial guess (when used data-informed guess)
-if ~isfield(S,'S.IKfile_guess')
+if ~isfield(S,'IKfile_guess')
     if strcmp(S.Foot.Model,'mtj')
         S.IKfile_guess = 'OpenSimModel\IK_Guess_Default_mtj.mat';
     elseif strcmp(S.Foot.Model,'mtp')

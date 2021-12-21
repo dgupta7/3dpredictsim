@@ -16,10 +16,16 @@ function [muscle_spanning_joint_INFO,MuscleInfo] = PolynomialFit_mtp(MuscleData)
         end
     end
     
-    muscle_spanning_joint_INFO = squeeze(nanmean(MuscleData.dM, 1));
+
+    muscle_spanning_joint_INFO = squeeze(nanmean(abs(MuscleData.dM), 1));
     muscle_spanning_joint_INFO(muscle_spanning_joint_INFO<=0.0001 & muscle_spanning_joint_INFO>=-0.0001) = 0;
     muscle_spanning_joint_INFO(muscle_spanning_joint_INFO~=0) = 1;
-    
+
+    % If there is only 1 muscle, "squeeze" gives a transposed result
+    if size(muscle_spanning_joint_INFO,2)==1
+        muscle_spanning_joint_INFO = muscle_spanning_joint_INFO';
+    end
+
     maxdofs = max(sum(muscle_spanning_joint_INFO,2));
     disp(['max ndofs for a muscle :' num2str(maxdofs)]);
       

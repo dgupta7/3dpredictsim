@@ -83,7 +83,7 @@ if numFig <1 || numFig==1
 
         disp(['y = ' num2str(c(2),3) ' + ' num2str(c(1),3) ' x']);
     else
-        plot(R.Qs_mtp*180/pi,R.l_fa(:,1)*1000,'-o','color',CsV)
+        plot(R.Qs_mtp*180/pi,R.l_fa_ext(:,1)*1000,'-o','color',CsV)
         ylabel('arch length (mm)')
 
     end
@@ -94,14 +94,14 @@ if numFig <1 || numFig==1
 
     subplot(3,3,2)
     hold on
-    plot(R.Qs_mtp*180/pi,R.h_fa(:,1)*1000,'-o','color',CsV)
+    plot(R.Qs_mtp*180/pi,R.h_fa_ext(:,1)*1000,'-o','color',CsV)
     xlabel('mtp angle (°)')
     ylabel('arch height (mm)')
     title('Foot arch height')
 
     subplot(3,3,3)
     hold on
-    plot(R.Qs_mtp*180/pi,R.Qs(:,1,R.jointfi.tmt.r)*180/pi,'-o','color',CsV,'DisplayName',R.legname)
+    plot(R.Qs_mtp*180/pi,R.Qs(:,1,R.jointfi.mtj.r)*180/pi,'-o','color',CsV,'DisplayName',R.legname)
     xlabel('mtp angle (°)')
     ylabel('mt angle (°)')
     title('Midtarsal joint angle')
@@ -151,7 +151,7 @@ if numFig <1 || numFig==1
     hold on
     plot(R.Qs_mtp*180/pi,R.GRF_calcn(:,1,2),'-o','color',CsV)
     hold on
-    plot(R.Qs_mtp*180/pi,R.GRF_metatarsi(:,1,2),'-*','color',CsV)
+    plot(R.Qs_mtp*180/pi,R.GRF_forefoot(:,1,2),'-*','color',CsV)
     xlabel('mtp angle (°)')
     ylabel('GRF_y (N)')
     title('vertical GRF')
@@ -179,14 +179,14 @@ if numFig <1 || numFig==2
 
         subplot(2,3,1)
         hold on
-        plot(Fs_tib,R.l_fa(i,js)*1000,mrk{i},'Color',CsV)
+        plot(Fs_tib,R.l_fa_ext(i,js)*1000,mrk{i},'Color',CsV)
         xlabel('tibia force (N)')
         ylabel('arch length (mm)')
         title('Foot arch length (sagittal)')
 
         subplot(2,3,2)
         hold on
-        plot(Fs_tib,R.h_fa(i,js)*1000,mrk{i},'Color',CsV)
+        plot(Fs_tib,R.h_fa_ext(i,js)*1000,mrk{i},'Color',CsV)
         xlabel('tibia force (N)')
         ylabel('arch height (mm)')
         title('Foot arch height (sagittal)')
@@ -254,7 +254,7 @@ if numFig <1 || numFig==3
 
         subplot(3,3,3)
         hold on
-        plot(Fs_tib,R.Qs(i,js,R.jointfi.tmt.r)*180/pi,mrk{i},'Color',CsV,...
+        plot(Fs_tib,R.Qs(i,js,R.jointfi.mtj.r)*180/pi,mrk{i},'Color',CsV,...
             'DisplayName',[num2str(R.Qs_mtp(i)*180/pi) '°, ' R.legname])
         xlabel('tibia force (N)')
         ylabel('angle (°)')
@@ -291,7 +291,7 @@ if numFig <1 || numFig==3
 
         subplot(3,3,8)
         hold on
-        plot(Fs_tib,R.GRF_metatarsi(i,js,2),mrk{i},'Color',CsV)
+        plot(Fs_tib,R.GRF_forefoot(i,js,2),mrk{i},'Color',CsV)
         xlabel('tibia force (N)')
         ylabel('GRF_y (N)')
         title('vertical GRF metatarsi')
@@ -327,8 +327,8 @@ if numFig <1 || numFig==4
 
     js = find(R.failed(j,:)==0);
     Fs_tib = R.Fs_tib(js);
-    l_fa = R.l_fa(j,js);
-    h_fa = R.h_fa(j,js);
+    l_fa = R.l_fa_ext(j,js);
+    h_fa = R.h_fa_ext(j,js);
 
     if BoolFirst
         % load reference graph images
@@ -348,11 +348,11 @@ if numFig <1 || numFig==4
     end
 
     subplot(3,5,[1,2,6,7])
-    if R.F_PF(j,js(end))<1
+%     if R.F_PF(j,js(end))<1
         plot((l_fa-R.L0)*1000,Fs_tib/1000,'-o','color',CsV,'DisplayName',R.legname)
-    else
-        plot((l_fa-l_fa(1))*1000,Fs_tib/1000,'-o','color',CsV,'DisplayName',R.legname)
-    end
+%     else
+%         plot((l_fa-l_fa(1))*1000,Fs_tib/1000,'-o','color',CsV,'DisplayName',R.legname)
+%     end
     hold on
     if BoolFirst
         hi1 = image([1,9.65]*0.9,flip([0,4]*0.9^2),img_Ker);
@@ -369,11 +369,11 @@ if numFig <1 || numFig==4
 % return
 
     subplot(3,5,[5,10])
-    if R.F_PF(j,js(end))<1
+%     if R.F_PF(j,js(end))<1
         plot((R.H0-h_fa)*1000,Fs_tib/1000,'color',CsV)
-    else
-        plot((h_fa(1)-h_fa)*1000,Fs_tib/1000,'color',CsV)
-    end
+%     else
+%         plot((h_fa(1)-h_fa)*1000,Fs_tib/1000,'color',CsV)
+%     end
     hold on
     axis tight
     if BoolFirst
@@ -385,11 +385,11 @@ if numFig <1 || numFig==4
     title({'Foot arch stiffness','as defined by Stearne et al, 2016'})
 
     subplot(3,5,15)
-    if R.F_PF(j,js(end))<1
+%     if R.F_PF(j,js(end))<1
         plot((R.H0-h_fa(Fs_tib<=300))*1000,Fs_tib(Fs_tib<=300),'color',CsV)
-    else
-        plot((h_fa(1)-h_fa(Fs_tib<=300))*1000,Fs_tib(Fs_tib<=300),'color',CsV)
-    end
+%     else
+%         plot((h_fa(1)-h_fa(Fs_tib<=300))*1000,Fs_tib(Fs_tib<=300),'color',CsV)
+%     end
     hold on
     xlabel('vertical displacement (mm)')
     ylabel('vertical force (N)')
@@ -411,22 +411,22 @@ if numFig <1 || numFig==4
 
         idx_ac = find(R.failed(idx(i),:)==0 & R.Fs_tib<=BW);
         F_ac{i} = R.Fs_tib(idx_ac);
-        h0_ac = R.h_fa(idx(i),1);
-        tmp = h0_ac - R.h_fa(idx(i),idx_ac);
+        h0_ac = R.h_fa_ext(idx(i),1);
+        tmp = h0_ac - R.h_fa_ext(idx(i),idx_ac);
         ac{i} = tmp;
         ac_max(i) = max(ac{i});
     end
 
-%     subplot(3,5,[3,4,8,9])
+    subplot(3,5,[3,4,8,9])
     hold on
     for i=1:n_i
         ac_rel = ac{i}/max(ac_max);
         plot(ac_rel(:),F_ac{i}/BW,mrk{i},'color',CsV,'DisplayName',['mtp: ' num2str(R.Qs_mtp(idx(i))*180/pi) '°'])
     end
-%     if BoolFirst
-%         hi3 = image([0,1],flip([0,0.9]),img_Welte);
-%         uistack(hi3,'bottom')
-%     end
+    if BoolFirst
+        hi3 = image([0,1],flip([0,0.9]),img_Welte);
+        uistack(hi3,'bottom')
+    end
     xlabel('arch compression (-)')
     ylabel('vertical force / body weight (-)')
     title({'Foot arch stiffness','\rm as defined by Welte and all, 2018'})
@@ -435,6 +435,8 @@ if numFig <1 || numFig==4
     xlim([0,1])
 
 end
+
+return
 
 %%
 if numFig <1
@@ -459,7 +461,7 @@ if numFig <1 || numFig==5
 
         subplot(2,3,2)
         hold on
-        plot(R.Qs_mtp(js)*180/pi,R.Qs(js,i,R.jointfi.tmt.r)*180/pi,mrk{i},'Color',CsV,...
+        plot(R.Qs_mtp(js)*180/pi,R.Qs(js,i,R.jointfi.mtj.r)*180/pi,mrk{i},'Color',CsV,...
             'DisplayName',[num2str(R.Fs_tib(i)) 'N, ' R.legname])
         xlabel('mtp angle wrt ground(°)')
         ylabel('angle(°)')

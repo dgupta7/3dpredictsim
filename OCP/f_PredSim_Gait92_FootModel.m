@@ -1,24 +1,21 @@
 function [] = f_PredSim_Gait92_FootModel(S)
-% This is an adaptation to f_PredSim_Gait92, to include the midtarsal
+% This is an adaptation to f_PredSim_Gait92, to possibly include the midtarsal
 % joint, and the Plantar Intrinsic Muscles.
 
 
 %% Adding the casadi path seems to be needed to run processes in batch
 AddCasadiPaths();
 
-%% Default settings
+%% User inputs (typical settings structure)
+% settings for optimization
+N           = S.N;          % number of mesh intervals
+W           = S.W;          % weights optimization
 
-S = GetDefaultSettings(S);
 if strcmp(S.Foot.Model,'mtj')
     mtj = 1;
 else
     mtj = 0;
 end
-
-%% User inputs (typical settings structure)
-% settings for optimization
-N           = S.N;          % number of mesh intervals
-W           = S.W;          % weights optimization
 
 %% Load external function
 import casadi.*
@@ -69,7 +66,12 @@ pathpolynomial = fullfile(pathRepo,'Polynomials',S.OsimFileName);
 load([pathpolynomial,'/muscle_spanning_joint_INFO.mat'],'muscle_spanning_joint_INFO');
 load([pathpolynomial,'/MuscleData.mat'],'MuscleData');
 [~,mai] = MomentArmIndices(muscleNames(1:end-3),muscle_spanning_joint_INFO);
-load([pathpolynomial,'/ligament_spanning_joint_INFO.mat'],'ligament_spanning_joint_INFO');
+try
+    load([pathpolynomial,'/ligament_spanning_joint_INFO.mat'],'ligament_spanning_joint_INFO');
+    nq.PF       = size(ligament_spanning_joint_INFO,2);
+catch
+    nq.PF = 0;
+end
 % Parameters for activation dynamics
 tact = 0.015; % Activation time constant
 tdeact = 0.06; % Deactivation time constant
@@ -88,8 +90,9 @@ pctsts = [pctst;pctst];
 pathCasADiFunctions = [pathRepo,'/CasADiFunctions'];
 PathDefaultFunc = fullfile(pathCasADiFunctions,S.CasadiFunc_Folders);
 f_lMT_vMT_dM = Function.load(fullfile(PathDefaultFunc,'f_lMT_vMT_dM'));
-f_lLi_vLi_dM = Function.load(fullfile(PathDefaultFunc,'f_lLi_vLi_dM'));
-f_lT_vT = Function.load(fullfile(PathDefaultFunc,'f_lT_vT'));
+if nq.PF
+    f_lLi_vLi_dM = Function.load(fullfile(PathDefaultFunc,'f_lLi_vLi_dM'));
+end
 
 f_FiberLength_TendonForce_tendon = Function.load(fullfile(PathDefaultFunc,'f_FiberLength_TendonForce_tendon'));
 f_FiberVelocity_TendonForce_tendon = Function.load(fullfile(PathDefaultFunc,'f_FiberVelocity_TendonForce_tendon'));
@@ -147,7 +150,7 @@ nq.abs      = length(ground_pelvisi); % ground-pelvis
 nq.trunk    = length(trunki); % trunk
 nq.arms     = length(armsi); % arms
 nq.leg      = size(muscle_spanning_joint_INFO,2);
-nq.PF       = size(ligament_spanning_joint_INFO,2);
+
 
 coord_names = cell(2,nq.all);
 coord_names_tmp = fieldnames(IO.coordi);
@@ -516,14 +519,14 @@ for j=1:d
         qinPFj_l          = Qskj_nsc([jointi.mtj.l,jointi.mtp.l], j+1);
         qdotinPFj_l       = Qdotskj_nsc([jointi.mtj.l,jointi.mtp.l], j+1);
         [l_PFj_l,v_PFj_l,MA_PFj_l] =  f_lLi_vLi_dM(qinPFj_l,qdotinPFj_l);
-        MA_PFj.mtj.l = MA_PFj_l(1,1);
-        MA_PFj.mtp.l = MA_PFj_l(1,2);
+        MA_PFj.mtj.l = MA_PFj_l(1);
+        MA_PFj.mtp.l = MA_PFj_l(2);
         % Right leg
         qinPFj_r          = Qskj_nsc([jointi.mtj.r,jointi.mtp.r], j+1);
         qdotinPFj_r       = Qdotskj_nsc([jointi.mtj.r,jointi.mtp.r], j+1);
         [l_PFj_r,v_PFj_r,MA_PFj_r] =  f_lLi_vLi_dM(qinPFj_r,qdotinPFj_r);
-        MA_PFj.mtj.r = MA_PFj_r(1,1);
-        MA_PFj.mtp.r = MA_PFj_r(1,2);
+        MA_PFj.mtj.r = MA_PFj_r(1);
+        MA_PFj.mtp.r = MA_PFj_r(2);
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Get muscle-tendon forces and derive Hill-equilibrium

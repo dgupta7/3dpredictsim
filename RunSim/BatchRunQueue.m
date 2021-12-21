@@ -22,7 +22,6 @@ addpath([pathRepo '/Polynomials']);
 addpath([pathRepo '/FootModel']);
 
 StartPath = pwd;
-ExoPath = fullfile(pathRepo,'Data','Poggensee_2020');
 pathExternalFunctions = fullfile(pathRepo,'ExternalFunctions');
 
 %% Load queue
@@ -43,11 +42,16 @@ end
 %%
 
 name = getenv('COMPUTERNAME');
-if strcmp(name,'GBW-D-W2711')   % simulationpc
+if strcmp(name,'GBW-D-W2711')       % desktop
     myCluster = parcluster('LocalProfile1_Lars_8x2');
     imax = 200; % max nr of jobs to start
-elseif strcmp(name,'MSI')       % Lars
+
+elseif strcmp(name,'MSI')           % laptop 
     myCluster = parcluster('LocalProfile_2x2');
+    imax = 2; % max nr of jobs to start
+
+elseif strcmp(name,'GBW-L-W2122')   % laptop
+    myCluster = parcluster('local');
     imax = 2; % max nr of jobs to start
 end
 
@@ -67,7 +71,7 @@ for i=1:imax
         % Create the casadifunctions if they do not exist yet
         if ~isfolder([pathRepo '\CasADiFunctions\' batchQ.(fields{i}).S.CasadiFunc_Folders])
             disp('Creating casadifunctions...');
-            CreateCasADiFunctions_all_tmt(pathRepo,batchQ.(fields{i}).S);
+            CreateCasadiFunctions(pathRepo,batchQ.(fields{i}).S);
             disp('...casadifunctions created');
         end
 
@@ -77,7 +81,7 @@ for i=1:imax
         batchQ.(fields{i}).S.NThreads  = 2;
 
         job(i) = batch(myCluster,batchQ.(fields{i}).PredSim,0,{batchQ.(fields{i}).S},'CurrentFolder',StartPath,...
-                'AdditionalPaths',{CasadiFiles,PathPolynomials,ExoPath,pathExternalFunctions});
+                'AdditionalPaths',{CasadiFiles,PathPolynomials,pathExternalFunctions});
 
         % mark this job as started
         batchQ.(fields{i}).job_started = 1;
