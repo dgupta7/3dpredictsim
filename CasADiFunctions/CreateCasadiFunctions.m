@@ -408,10 +408,16 @@ f_passiveTATorques = Function('f_passiveTATorques',{stiff,damp,qin,qdotin}, ...
 
 %% Passive torque with better Windlass mechanism
 if mtj
-    qin1     = SX.sym('qin_pass1',1);
-    qdotin1  = SX.sym('qdotin_pass1',1);
 
-    M_mtj = getMidtarsalJointPassiveMoment(qin1,qdotin1,S);
+    qin1     = MX.sym('qin_pass1',1);
+    qdotin1  = MX.sym('qdotin_pass1',1);
+
+    if strcmp(S.Foot.mtj_stiffness,'MG_exp_table')
+        f_getMtjLigamentMoment = Function.load((fullfile(pathpolynomial,'f_getMtjLigamentMoment_exp')));
+        M_mtj = f_getMtjLigamentMoment(qin1)*S.Foot.mtj_sf - (S.Foot.dMT-0.1)*qdotin1; % compensate damping from passive torques
+    else
+        M_mtj = getMidtarsalJointPassiveMoment(qin1,qdotin1,S);
+    end
 
     f_passiveMoment_mtj = Function('f_passiveTorques_mtj',{qin1,qdotin1}, ...
         {M_mtj},{'qin1','qdotin1'},{'M_mtj'});
@@ -464,8 +470,8 @@ k_pass.ankle = [-2.03 38.11 0.18 -12.12]';
 theta.pass.ankle = [-0.74 0.52]';
 k_pass.subt = [-60.21 16.32 60.21 -16.32]';
 theta.pass.subt = [-0.65 0.65]';
-k_pass.mtj = [0 0 0 0]'; % TO DO
-theta.pass.mtj = [0 0]';
+k_pass.mtj = [-50 15 60 -30]';
+theta.pass.mtj = [-0.4 0.5]';
 k_pass.mtp = [-0.9 14.87 0.18 -70.08]';
 theta.pass.mtp = [0 65/180*pi]';
 k_pass.trunk.ext = [-0.35 30.72 0.25 -20.36]';
@@ -551,13 +557,13 @@ Tau_passj.arm = [Tau_passj.sh_flex.l, Tau_passj.sh_add.l, ...
 
 
 Tau_passj.mtp.l = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
-    Q_SX(jointi.mtp.l), Qdot_SX(jointi.mtp.l))...
-    + f_PassiveMoments(k_pass.mtp, theta.pass.mtp,Q_SX(jointi.mtp.l),...
-    Qdot_SX(jointi.mtp.l));
+    Q_SX(jointi.mtp.l), Qdot_SX(jointi.mtp.l)); %...
+%     + f_PassiveMoments(k_pass.mtp, theta.pass.mtp,Q_SX(jointi.mtp.l),...
+%     Qdot_SX(jointi.mtp.l));
 Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
-    Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r))...
-    + f_PassiveMoments(k_pass.mtp, theta.pass.mtp, Q_SX(jointi.mtp.r),...
-    Qdot_SX(jointi.mtp.r));
+    Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r)); %...
+%     + f_PassiveMoments(k_pass.mtp, theta.pass.mtp, Q_SX(jointi.mtp.r),...
+%     Qdot_SX(jointi.mtp.r));
 Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
 
 if mtj

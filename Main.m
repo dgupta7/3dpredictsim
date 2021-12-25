@@ -37,14 +37,14 @@ addpath([pathRepo '/RunSim']);
 %-------------------------------------------------------------------------%
 % Full body gait simulation
 run_simulation = 1;         % run solver
-post_process_results = 0;   % postproces
+post_process_results = 1;   % postproces
 add_to_batch_queue = 0;     % save settings to run later
 
 % settings for optimization
 S.v_tgt     = 1.33;     % average speed
 S.N         = 50;       % number of mesh intervals
 S.NThreads  = 6;        % number of threads for parallel computing
-S.max_iter  = 10;       % maximum number of iterations (comment -> 10000)
+% S.max_iter  = 10;       % maximum number of iterations (comment -> 10000)
 % S.tol_ipopt = 3;        % stopping criterion: < 10^(-...) 
 
 % output folder
@@ -70,28 +70,29 @@ S.Foot.contactSphereOffset1X = 0;   % heel contact sphere offset in x-direction
 S.Foot.mtp_actuator = 0;    % use an ideal torque actuator
 S.Foot.mtp_muscles = 1;     % extrinsic toe flexors and extensors act on mtp joint
 S.Foot.kMTP = 1;            % additional stiffness of the joint (Nm/rad)
-% S.Foot.dMTP = 0.3;          % additional damping of the joint (Nms/rad)
+S.Foot.dMTP = 0.1;          % additional damping of the joint (Nms/rad)
 
 %% midtarsal joint 
 % (only used if Model = mtj)
 S.Foot.mtj_muscles = 1;  % joint interacts with- extrinsic foot muscles
 % lumped ligaments (long, short planter ligament, etc)
 S.Foot.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
-S.Foot.mtj_stiffness = 'Gefen2002';
+S.Foot.mtj_stiffness = 'MG_exp_table';
+S.Foot.mtj_sf = 1; 
 
 S.Foot.kMT_li = 200;        % angular stiffness in case of linear
 S.Foot.kMT_li2 = 10;        % angular stiffness in case of signed linear
-% S.dMT = 1;                % (Nms/rad) damping
+S.dMT = 0.1;                % (Nms/rad) damping
 
 % plantar fascia
-S.Foot.PF_stiffness = 'Gefen2002'; % 'none''linear''Gefen2002''Cheng2008''Natali2010''Song2011'
-S.Foot.PF_sf = 1;   
-S.Foot.PF_slack_length = 0.15; % (m) slack length
+S.Foot.PF_stiffness = 'Natali2010'; % 'none''linear''Gefen2002''Cheng2008''Natali2010''Song2011'
+S.Foot.PF_sf = 10;   
+S.Foot.PF_slack_length = 0.146; % (m) slack length
 
 % Plantar Intrinsic Muscles represented by and ideal force actuator
 S.Foot.PIM = 0;     % include PIM actuator
-S.W.PIM = 10^3;     % weight on the excitations for cost function
-S.W.P_PIM = 10^4;   % weight on the net Work for cost function
+S.W.PIM = 1e5;     % weight on the excitations for cost function
+S.W.P_PIM = 1e5;   % weight on the net Work for cost function
 
 
 %% Initial guess

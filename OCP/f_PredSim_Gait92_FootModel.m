@@ -330,12 +330,12 @@ opti.set_initial(a_a_col, guess.a_a_col');
 % Mtp actuator
 if S.Foot.mtp_actuator
     % Mtp activations at mesh points
-    a_mtp = opti.variable(nq.mtp,N+1);
+    a_mtp = opti.variable(2,N+1);
     opti.subject_to(bounds.a_mtp.lower'*ones(1,N+1) < a_mtp < ...
         bounds.a_mtp.upper'*ones(1,N+1));
     opti.set_initial(a_mtp, guess.a_mtp');
     % Mtp activations at collocation points
-    a_mtp_col = opti.variable(nq.mtp,d*N);
+    a_mtp_col = opti.variable(2,d*N);
     opti.subject_to(bounds.a_mtp.lower'*ones(1,d*N) < a_mtp_col < ...
         bounds.a_mtp.upper'*ones(1,d*N));
     opti.set_initial(a_mtp_col, guess.a_mtp_col');
@@ -343,12 +343,12 @@ end
 % Plantar Intrinsic Muscles actuator
 if S.Foot.PIM
     % PIM activations at mesh points
-    a_PIM = opti.variable(nq.PIM,N+1);
+    a_PIM = opti.variable(2,N+1);
     opti.subject_to(bounds.a_PIM.lower'*ones(1,N+1) < a_PIM < ...
         bounds.a_PIM.upper'*ones(1,N+1));
     opti.set_initial(a_PIM, guess.a_PIM');
     % PIM activations at collocation points
-    a_PIM_col = opti.variable(nq.PIM,d*N);
+    a_PIM_col = opti.variable(2,d*N);
     opti.subject_to(bounds.a_PIM.lower'*ones(1,d*N) < a_PIM_col < ...
         bounds.a_PIM.upper'*ones(1,d*N));
     opti.set_initial(a_PIM_col, guess.a_PIM_col');
@@ -367,14 +367,14 @@ opti.subject_to(bounds.e_a.lower'*ones(1,N) < e_a < ...
 opti.set_initial(e_a, guess.e_a');
 % Mtp excitations
 if S.Foot.mtp_actuator
-    e_mtp = opti.variable(nq.mtp, N);
+    e_mtp = opti.variable(2, N);
     opti.subject_to(bounds.e_mtp.lower'*ones(1,N) < e_mtp < ...
         bounds.e_mtp.upper'*ones(1,N));
     opti.set_initial(e_mtp, guess.e_mtp');
 end
 % PIM excitations
 if S.Foot.PIM
-    e_PIM = opti.variable(nq.PIM, N);
+    e_PIM = opti.variable(2, N);
     opti.subject_to(bounds.e_PIM.lower'*ones(1,N) < e_PIM < ...
         bounds.e_PIM.upper'*ones(1,N));
     opti.set_initial(e_PIM, guess.e_PIM');
@@ -420,13 +420,13 @@ if S.Foot.mtp_actuator
     a_mtpk      = MX.sym('a_mtpk',2);
     a_mtpj      = MX.sym('a_mtpkmesh',2,d);
     a_mtpkj     = [a_mtpk a_mtpj];
-    e_mtpk  = MX.sym('e_mtpk',nq.mtp);
+    e_mtpk  = MX.sym('e_mtpk',2);
 end
 if S.Foot.PIM
     a_PIMk      = MX.sym('a_PIMk',2);
     a_PIMj      = MX.sym('a_PIMkmesh',2,d);
     a_PIMkj     = [a_PIMk a_PIMj];
-    e_PIMk  = MX.sym('e_PIMk',nq.PIM);
+    e_PIMk  = MX.sym('e_PIMk',2);
 end
 
 % Define CasADi variables for "slack" controls
@@ -541,7 +541,13 @@ for j=1:d
         T_passj.mtj.r = f_passiveMoment_mtj(Qskj_nsc(jointi.mtj.r),Qdotskj_nsc(jointi.mtj.r));
 
         if strcmp(S.Foot.PF_stiffness,'none')
-            if S.Foot.PIM
+            if S.Foot.PIM == 2
+                % no PF, only PIM + prevent PIM force at low lengths
+                F_PIMj.l = a_PIMkj(1,j+1)*scaling.PIMF*(0.5+0.5*tanh(100*(l_PFj_l/S.Foot.PF_slack_length)-96));
+                F_PIMj.r = a_PIMkj(2,j+1)*scaling.PIMF*(0.5+0.5*tanh(100*(l_PFj_r/S.Foot.PF_slack_length)-96));
+                F_PF_PIMj.l = F_PIMj.l;
+                F_PF_PIMj.r = F_PIMj.r;
+            elseif S.Foot.PIM
                 % no PF, only PIM
                 F_PIMj.l = a_PIMkj(1,j+1)*scaling.PIMF;
                 F_PIMj.r = a_PIMkj(2,j+1)*scaling.PIMF;
@@ -549,17 +555,24 @@ for j=1:d
                 F_PF_PIMj.r = F_PIMj.r;
             end
         else
-            F_PFj = f_PF_stiffness([l_PFj_l,l_PFj_r])*S.Foot.PF_sf;
-            if S.Foot.PIM
+            F_PFj_l = f_PF_stiffness(l_PFj_l)*S.Foot.PF_sf;
+            F_PFj_r = f_PF_stiffness(l_PFj_r)*S.Foot.PF_sf;
+            if S.Foot.PIM == 2
+                % no PF, only PIM + prevent PIM force at low lengths
+                F_PIMj.l = a_PIMkj(1,j+1)*scaling.PIMF*(0.5+0.5*tanh(100*(l_PFj_l/S.Foot.PF_slack_length)-96));
+                F_PIMj.r = a_PIMkj(2,j+1)*scaling.PIMF*(0.5+0.5*tanh(100*(l_PFj_r/S.Foot.PF_slack_length)-96));
+                F_PF_PIMj.l = F_PIMj.l + F_PFj_l;
+                F_PF_PIMj.r = F_PIMj.r + F_PFj_r;
+            elseif S.Foot.PIM
                 % PF and PIM
                 F_PIMj.l = a_PIMkj(1,j+1)*scaling.PIMF;
                 F_PIMj.r = a_PIMkj(2,j+1)*scaling.PIMF;
-                F_PF_PIMj.l = F_PIMj.l + F_PFj(1);
-                F_PF_PIMj.r = F_PIMj.r + F_PFj(2);
+                F_PF_PIMj.l = F_PIMj.l + F_PFj_l;
+                F_PF_PIMj.r = F_PIMj.r + F_PFj_r;
             else
                 % only PF, no PIM
-                F_PF_PIMj.l = F_PFj(1);
-                F_PF_PIMj.r = F_PFj(2);
+                F_PF_PIMj.l = F_PFj_l;
+                F_PF_PIMj.r = F_PFj_r;
             end
         end
     end

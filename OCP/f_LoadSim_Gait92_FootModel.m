@@ -193,31 +193,35 @@ IO.coord_namesi = coord_names;
 
 % Body origins 
 % Calcaneus
-calcOrall.r    = double(IO.origin.calcn_r); % x and z coordinate
-calcOrall.l    = double(IO.origin.calcn_l); % x and z coordinate
+calcOrall.r    = double(IO.origin.calcn_r);
+calcOrall.l    = double(IO.origin.calcn_l);
 calcOrall.all  = [calcOrall.r,calcOrall.l];
 % Femurs
-femurOrall.r   = double(IO.origin.femur_r); % x and z coordinate
-femurOrall.l   = double(IO.origin.femur_l); % x and z coordinate
+femurOrall.r   = double(IO.origin.femur_r);
+femurOrall.l   = double(IO.origin.femur_l);
 femurOrall.all = [femurOrall.r,femurOrall.l];
 % Hands
-handOrall.r    = double(IO.origin.hand_r); % x and z coordinate
-handOrall.l    = double(IO.origin.hand_l); % x and z coordinate
+handOrall.r    = double(IO.origin.hand_r);
+handOrall.l    = double(IO.origin.hand_l);
 handOrall.all  = [handOrall.r,handOrall.l];
 % Tibias
-tibiaOrall.r   = double(IO.origin.tibia_r); % x and z coordinate
-tibiaOrall.l   = double(IO.origin.tibia_l); % x and z coordinate
+tibiaOrall.r   = double(IO.origin.tibia_r);
+tibiaOrall.l   = double(IO.origin.tibia_l);
 tibiaOrall.all = [tibiaOrall.r,tibiaOrall.l];
 % toe joints
-toesOrall.r   = double(IO.origin.toes_r); % x and z coordinate
-toesOrall.l   = double(IO.origin.toes_l); % x and z coordinate
+toesOrall.r   = double(IO.origin.toes_r);
+toesOrall.l   = double(IO.origin.toes_l);
 toesOrall.all = [toesOrall.r,toesOrall.l];
+% midfoot
+midfootOrall.r   = double(IO.origin.midfoot_r);
+midfootOrall.l   = double(IO.origin.midfoot_l);
+midfootOrall.all = [midfootOrall.r,midfootOrall.l];
 
 % Ground Reaction Forces
 GRFi.r = IO.GRFs.right_foot;
 GRFi.l = IO.GRFs.left_foot;
-GRFi.all    = [GRFi.r,GRFi.l];
-NGRF        = length(GRFi.all);
+GRFi.all = [GRFi.r,GRFi.l];
+NGRF = length(GRFi.all);
 
 GRFi.calcn.r = [IO.GRFs.contact_sphere_1,IO.GRFs.contact_sphere_2];
 GRFi.metatarsi.r = [IO.GRFs.contact_sphere_3,IO.GRFs.contact_sphere_4,IO.GRFs.contact_sphere_5];
@@ -232,15 +236,15 @@ GRFTi.r = IO.GRMs.right_total;
 GRFTi.l = IO.GRMs.left_total;
 
 % Contact sphere deformation power
-if isfield(IO,'deformation_power')
-    P_HCi.calcn.r = [IO.deformation_power.contact_sphere_1,IO.deformation_power.contact_sphere_2];
-    P_HCi.metatarsi.r = [IO.deformation_power.contact_sphere_3,IO.deformation_power.contact_sphere_4,...
-        IO.deformation_power.contact_sphere_5];
-    P_HCi.toes.r = [IO.deformation_power.contact_sphere_6];
-    P_HCi.calcn.l = [IO.deformation_power.contact_sphere_7,IO.deformation_power.contact_sphere_8];
-    P_HCi.metatarsi.l = [IO.deformation_power.contact_sphere_9,IO.deformation_power.contact_sphere_10,...
-        IO.deformation_power.contact_sphere_11];
-    P_HCi.toes.l = [IO.deformation_power.contact_sphere_12];
+if isfield(IO,'P_contact_deformation_y')
+    P_HCi.calcn.r = [IO.P_contact_deformation_y.contact_sphere_1,IO.P_contact_deformation_y.contact_sphere_2];
+    P_HCi.metatarsi.r = [IO.P_contact_deformation_y.contact_sphere_3,IO.P_contact_deformation_y.contact_sphere_4,...
+        IO.P_contact_deformation_y.contact_sphere_5];
+    P_HCi.toes.r = [IO.P_contact_deformation_y.contact_sphere_6];
+    P_HCi.calcn.l = [IO.P_contact_deformation_y.contact_sphere_7,IO.P_contact_deformation_y.contact_sphere_8];
+    P_HCi.metatarsi.l = [IO.P_contact_deformation_y.contact_sphere_9,IO.P_contact_deformation_y.contact_sphere_10,...
+        IO.P_contact_deformation_y.contact_sphere_11];
+    P_HCi.toes.l = [IO.P_contact_deformation_y.contact_sphere_12];
     P_HCi.separate = P_HCi.calcn.r(1):P_HCi.toes.l(end);
 end
 
@@ -615,18 +619,23 @@ for k=1:N
         
         if S.Foot.PIM
             % Left leg
-            qinPF_l_opt_all = Xj_Qs_Qdots_opt(count,IndexLeft*2-1);
-            qdotinPF_l_opt_all = Xj_Qs_Qdots_opt(count,IndexLeft*2);
-            [~,v_PFk_l_opt_all,~] = ...
+            qinPF_l_opt_all = Xj_Qs_Qdots_opt(count,[jointi.mtj.l,jointi.mtp.l]*2-1);
+            qdotinPF_l_opt_all = Xj_Qs_Qdots_opt(count,[jointi.mtj.l,jointi.mtp.l]*2);
+
+            [l_PFk_l,v_PFk_l_opt_all,~] = ...
                 f_lLi_vLi_dM(qinPF_l_opt_all,qdotinPF_l_opt_all);
             % Right leg
-            qinPF_r_opt_all = Xj_Qs_Qdots_opt(count,IndexLeft*2-1);
-            qdotinPF_r_opt_all = Xj_Qs_Qdots_opt(count,IndexLeft*2);
-            [~,v_PFk_r_opt_all,~] = ...
-                f_rLi_vLi_dM(qinPF_r_opt_all,qdotinPF_r_opt_all);
+            qinPF_r_opt_all = Xj_Qs_Qdots_opt(count,[jointi.mtj.r,jointi.mtp.r]*2-1);
+            qdotinPF_r_opt_all = Xj_Qs_Qdots_opt(count,[jointi.mtj.r,jointi.mtp.r]*2);
+            [l_PFk_r,v_PFk_r_opt_all,~] = ...
+                f_lLi_vLi_dM(qinPF_r_opt_all,qdotinPF_r_opt_all);
 
             % PIMs
             F_PIM_col = a_PIM_col_opt_unsc(count,:)*scaling.PIMF;
+            if S.Foot.PIM == 2
+                F_PIM_col(1) = F_PIM_col(1)*(0.5+0.5*tanh(100*(full(l_PFk_l)/S.Foot.PF_slack_length)-96));
+                F_PIM_col(2) = F_PIM_col(2)*(0.5+0.5*tanh(100*(full(l_PFk_r)/S.Foot.PF_slack_length)-96));
+            end
             P_PIM_2 = -[v_PFk_l_opt_all,v_PFk_r_opt_all].*F_PIM_col;
             
             J_2_opt = J_2_opt + B(j+1) * sum(P_PIM_2)/body_mass*h_opt;
@@ -1106,14 +1115,14 @@ if writeIKmotion
 end
 
 
-if isfield(IO,'GRMs') || isfield(IO,'deformation_power')
+if isfield(IO,'GRMs') || isfield(IO,'P_contact_deformation_y')
     % compute COP information
     nfr = length(Qs_GC(:,1));
     qdqdd = zeros(nfr,nq.all*2);
     qdqdd(:,1:2:nq.all*2) = Qs_GC;
     qdqdd(:,2:2:nq.all*2) = Qdots_GC;
     qdd = Qdotdots_GC;
-    qdqdd(:,roti) = qdqdd(:,roti)*pi./180;        
+    qdqdd(:,[roti*2-1,roti*2]) = qdqdd(:,[roti*2-1,roti*2])*pi./180;        
 %     qdqdd(:,11) = qdqdd(:,11);
     COPR = zeros(nfr,3);    FR = zeros(nfr,3);  MR = zeros(nfr,3);
     COPL = zeros(nfr,3);    FL = zeros(nfr,3);  ML = zeros(nfr,3);  
@@ -1125,9 +1134,11 @@ if isfield(IO,'GRMs') || isfield(IO,'deformation_power')
     P_HC_m_l = zeros(nfr,1);
     P_HC_t_l = zeros(nfr,1);
 
+    l_fa_ext = zeros(nfr,1);
+    h_fa_ext = zeros(nfr,1);
     
     for ind = 1:nfr
-        res = full(F([qdqdd(ind,:)'; qdd(ind,:)'])); % normal implementation
+        res = full(F([qdqdd(ind,:)'; qdd(ind,:)']));
         if isfield(IO,'GRMs')
             % compute the COP position
             FR(ind,:) = res(GRFi.r);
@@ -1142,14 +1153,29 @@ if isfield(IO,'GRMs') || isfield(IO,'deformation_power')
             end
         end
 
-        if isfield(IO,'deformation_power')
-            P_HC_c_r(ind) = res(P_HCi.calcn.r);
-            P_HC_m_r(ind) = res(P_HCi.metatarsi.r);
-            P_HC_t_r(ind) = res(P_HCi.toes.r);
-            P_HC_c_l(ind) = res(P_HCi.calcn.l);
-            P_HC_m_l(ind) = res(P_HCi.metatarsi.l);
-            P_HC_t_l(ind) = res(P_HCi.toes.l);
+        if isfield(IO,'P_contact_deformation_y')
+            P_HC_c_r(ind) = sum(res(P_HCi.calcn.r));
+            P_HC_m_r(ind) = sum(res(P_HCi.metatarsi.r));
+            P_HC_t_r(ind) = sum(res(P_HCi.toes.r));
+            P_HC_c_l(ind) = sum(res(P_HCi.calcn.l));
+            P_HC_m_l(ind) = sum(res(P_HCi.metatarsi.l));
+            P_HC_t_l(ind) = sum(res(P_HCi.toes.l));
         end
+
+        toes_or = res(toesOrall.r);
+        calcn_or = res(calcOrall.r);
+        midfoot_or = res(midfootOrall.r);
+
+        % calculate arch length
+        l_fa_ext(ind) = norm(squeeze(toes_or-calcn_or));
+
+        % calculate arch height (orthogonal decomposition)
+        vec_a = squeeze(midfoot_or - toes_or); % mtpj to tmtj/mtj
+        vec_b = squeeze(calcn_or - toes_or); % mtpj to heel
+        vec_ap = dot(vec_a,vec_b)/dot(vec_b,vec_b)*vec_b; % orthogonal projection of a onto b
+        vec_an = vec_a - vec_ap; % component of a that is normal to b 
+
+        h_fa_ext(ind) = abs(norm(vec_an));
         
     end
     
@@ -1184,7 +1210,7 @@ metab_Wdot  = zeros(2*N, NMuscle);
 FT_opt      = zeros(2*N, NMuscle);
 lMT_Vect    = zeros(2*N,92);
 vMT_Vect    = zeros(2*N,92);
-dM_Vect     = zeros(2*N,92,10);
+dM_Vect     = zeros(2*N,92,nq.leg);
 Fce_opt     = zeros(2*N, NMuscle);
 vM_Vect     = zeros(2*N, NMuscle);
 Fpass_opt   = zeros(2*N, NMuscle);
@@ -1384,27 +1410,34 @@ COT_GC = e_mo_opt_trb/body_mass/dist_trav_opt_GC;
 if mtj
 
     M_li = f_passiveMoment_mtj(Qs_GC(:,jointi.mtj.r)*pi/180,Qs_GC(:,jointi.mtj.r)*pi/180);
-    windlass.M_li = M_li;
+    windlass.M_li = full(M_li);
 
     if ~strcmp(S.Foot.PF_stiffness,'none') || S.Foot.PIM
-        [l_PF,v_PF,MA_PF_r] =  f_lLi_vLi_dM(Qs_GC(:,[jointi.mtj.r,jointi.mtp.r])*pi/180,...
-            Qdots_GC(:,[jointi.mtj.r,jointi.mtp.r])*pi/180);
-        MA_PF.mtj = MA_PF_r(:,1);
-        MA_PF.mtp = MA_PF_r(:,2);
+        for i=1:N*2
+            [l_PFi,v_PFi,MA_PFi] =  f_lLi_vLi_dM(Qs_GC(i,[jointi.mtj.r,jointi.mtp.r])*pi/180,...
+                Qdots_GC(i,[jointi.mtj.r,jointi.mtp.r])*pi/180);
+            l_PF(i) = full(l_PFi);
+            v_PF(i) = full(v_PFi);
+            MA_PF_2(i,:) = full(MA_PFi);
+        end
+        MA_PF.mtj = MA_PF_2(:,1);
+        MA_PF.mtp = MA_PF_2(:,2);
         windlass.MA_PF = MA_PF;
-        windlass.l_PF = l_PF;
-        windlass.v_PF = v_PF;
+        windlass.l_PF = l_PF';
+        windlass.v_PF = v_PF';
     end
 
     if S.Foot.PIM
         F_PIM = a_PIM_GC*scaling.PIMF;
+        if S.Foot.PIM == 2
+            F_PIM = F_PIM.*(0.5+0.5*tanh(100*(l_PF'/S.Foot.PF_slack_length)-96));
+        end
         windlass.F_PIM = F_PIM;
     end
     
     if ~strcmp(S.Foot.PF_stiffness,'none')
-        F_PF_rr = f_PF_stiffness([l_PF_r,l_PF_r])*S.Foot.PF_sf;
-        F_PF = F_PF_rr(:,2);
-        windlass.F_PF = F_PF;
+        F_PF = f_PF_stiffness(l_PF)*S.Foot.PF_sf;
+        windlass.F_PF = full(F_PF');
     end
     
 %     windlass.l_fa = l_fa;
@@ -1473,6 +1506,9 @@ R.COPL = COPL;
 R.COPR = COPR; 
 
 if exist('windlass','var')
+    windlass.foot_arch_height  = h_fa_ext;
+    windlass.foot_arch_length  = l_fa_ext;
+
     R.windlass = windlass;
 end
 

@@ -33,17 +33,24 @@ addpath([pathRepo '/FootModel']);
 
 %% Folder(s) with results
 ResultsFolder = {'debug'};
-% ResultsFolder = {'CP'};
 
 %% General information
 
 % S.suffixName = 'v4';
 
 S.subject = 'Fal_s1';
-S.Foot.Model = 'mtp';
+S.Foot.Model = 'mtj';
 S.Foot.Scaling = 'custom';
 
 % S.Foot.kMTP = 17;
+
+% S.Foot.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
+% S.Foot.mtj_stiffness = 'MG_exp_table';
+
+% S.Foot.PIM = 1;
+
+
+
 
 
 % initial guess
@@ -58,51 +65,78 @@ S.Foot.Scaling = 'custom';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 
-% get file names
-for i=1:numel(ResultsFolder)
-    pathResult{i} = fullfile([pathRepo '/Results/' ResultsFolder{i}]);
+% results = {
+% %     '\debug\Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_PIM_w1e+03_w1e+04_ig21'
+% %     '\debug\Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_PIM_w1e+03_w1e+05_ig21'
+%     '\debug\Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_PIM_w1e+04_w1e+05_ig21'
+%     '\debug\Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_PIM_w1e+05_w1e+05_ig21'
+% %     '\debug\Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_PIM_w2e+04_w1e+05_ig21'
+%     '\debug\Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_PIM2_w1e+05_w1e+05_ig21'
+%     };
+
+
+if exist('results','var') && ~isempty(results)
+    filteredResults = {length(results)};
+    for i=1:length(results)
+        filteredResults{i} = fullfile(pathRepo, 'Results', [results{i} '_pp.mat']);
+    end
+else
+
+    % get file names
+    pathResult = {numel(ResultsFolder)};
+    for i=1:numel(ResultsFolder)
+        pathResult{i} = fullfile([pathRepo '/Results/' ResultsFolder{i}]);
+    end
+    
+    
+    % get filter criteria
+    [~,~,criteria] = getSavename(S);
+    
+    criteria{end+1} = 'cspx10_oy';
+    criteria{end+1} = 'not_PIM';
+    
+    
+    % filter filenames
+    [filteredResults] = filterResultfolderByParameters(pathResult,criteria);
+    
+    for i=1:numel(filteredResults)
+        rfpathi = filteredResults{i};
+        idx_i = strfind(rfpathi,'\');
+        disp(rfpathi(idx_i(end-1):end));
+    end
+
 end
+ref = {};
+
+% ref{end+1} = fullfile([pathRepo '/Results/debug\Fal_s1_mtp_sd_MTPp_k17_d05_ig21_pp.mat']);
+% ref{end+1} = fullfile([pathRepo '/Results/debug\Fal_s1_mtp_sc_MTPp_k17_d05_ig21_pp.mat']);
+% ref{end+1} = fullfile([pathRepo '/Results/debug\Fal_s1_mtp_sd_MTPm_k1_d05_ig21_pp.mat']);
 
 
-% get filter criteria
-[~,~,criteria] = getSavename(S);
+% filteredResultsWithRef = filteredResults';
+% filteredResultsWithRef = [ref, filteredResults]';
+filteredResultsWithRef = [filteredResults, ref]';
 
-% criteria{end+1} = 'not_cspx';
-
-
-% filter filenames
-[filteredResults] = filterResultfolderByParameters(pathResult,criteria);
-
-for i=1:numel(filteredResults)
-    disp(filteredResults{i});
-end
-
-ref = {fullfile([pathRepo '/Results/debug\Fal_s1_mtp_sd_MTPp_k17_d05_ig21_pp.mat'])};
-
-
-
-filteredResultsWithRef = {ref{:}, filteredResults{:}};
-% filteredResultsWithRef = filteredResults;
 
 ResultsFile = filteredResultsWithRef;
 
-LegNames = {'Scaled generic model','MRI based model (old)','MRI based model (rerun)'};
+LegNames = {''};
 
-mtj = -1;
+mtj = 1;
 figNamePrefix = 'none';
 
 %%% select figures to make
-makeplot.kinematics                     = 0; %selected joint angles
+makeplot.kinematics                     = 1; % selected joint angles
 makeplot.kinetics                       = 0; % selected joint torques
-makeplot.ankle_musc                     = 0; % ankle muscles
+makeplot.ankle_musc                     = 1; % ankle muscles
 makeplot.GRF                            = 0; % ground interaction
 makeplot.compareLiterature              = 0; % mtj and mtp Caravaggi 2018
 makeplot.compareTakahashi17             = 0; % "distal to segment" power analysis
 makeplot.compareTakahashi17_separate    = 0; % "distal to segment" power analysis
 makeplot.compareTakahashi17_mtj_only    = 0; % plot mtj power over experimental result
 makeplot.compareTakahashi17_W_bar       = 0; % "distal to segment" work analysis
-makeplot.allQsTs                        = 1; % all joint angles and torques
-makeplot.windlass                       = 0; % plantar fascia and foot arch info
+makeplot.allQsTs                        = 0; % all joint angles and torques
+makeplot.windlass                       = 1; % plantar fascia and foot arch info
 makeplot.power                          = 0; % datailed power decomposition
 makeplot.work                           = 0; % same as power, but work over GC
 makeplot.work_bar                       = 0; % positive, negative and net work bar plot
@@ -116,10 +150,10 @@ makeplot.toes                           = 0; % toe flexor and extensor muscle in
 makeplot.Edot_all                       = 0; % summed metabolic energy rate
 makeplot.Energy_cost                    = 0; % decompose metabolic cost components
 makeplot.muscle_act                     = 0; % muscle activity
-makeplot.muscle_joint_power             = 0;
+makeplot.muscle_joint_moment            = 1; % moments of muscles around ankle-foot joints
+makeplot.muscle_joint_power             = 0; % powers of muscles around ankle-foot joints
+makeplot.Objective_cost                 = 0; % cost function decomposition
 
-
-
-PlotResults_3DSim_Report(ResultsFile,LegNames,'none',mtj,makeplot,figNamePrefix);
+PlotResults_3DSim_Report(ResultsFile,LegNames,'Fal_s1',mtj,makeplot,figNamePrefix);
 
 

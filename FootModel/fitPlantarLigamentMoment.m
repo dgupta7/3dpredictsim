@@ -8,8 +8,8 @@ pathmain = pwd;
 
 
 %%
-Modelpath = [pathRepo '\OpenSimModel\subject1\DetailedFootModel_pinMTJ_sd.osim'];
-PolyFolder = [pathRepo '\Polynomials\Fal_s1_mtj_sd'];
+Modelpath = [pathRepo '\OpenSimModel\subject1\DetailedFootModel_pinMTJ_sc.osim'];
+PolyFolder = [pathRepo '\Polynomials\Fal_s1_mtj_sc'];
 
 ligament_names = {'LongPlantar1_r','LongPlantar2_r','LongPlantar3_r','LongPlantar4_r',... % long plantar ligament
     'CalcaneoCuboidPlantar1Mus_r','CalcaneoCuboidPlantar2Mus_r',... % short plantar ligament
@@ -20,8 +20,10 @@ ligament_names = {'LongPlantar1_r','LongPlantar2_r','LongPlantar3_r','LongPlanta
 p = length(ligament_names);
 n = 500;
 
-q_mtj = linspace(-25,15,n)*pi/180;
+q_mtj = linspace(-30,30,n)*pi/180;
 
+CsV = hsv(p);
+mrk = {'-','--',':','-.'};
 
 %% Initialise model
 import org.opensim.modeling.*;
@@ -80,8 +82,21 @@ M_mtj = sum(M_lig,2);
 
 
 %%
-CsV = hsv(p);
-mrk = {'-','--',':','-.'};
+
+fg0=figure;
+for i=1:p
+
+    plot(q_mtj*180/pi,l_lig(:,i)/l_0(i),'Color',CsV(i,:),'LineStyle',mrk{rem(i,4)+1})
+    hold on
+
+    xlabel('Mtj angle (°)')
+    ylabel('\lambda (-)')
+end
+ylim([1,1.5])
+
+legend(ligament_names,'Interpreter','none','Location','northeastoutside')
+
+%%
 
 fg1=figure;
 subplot(3,1,1)
@@ -133,13 +148,29 @@ end
 q_max = q_mtj(min(idx_max))*180/pi;
 E_mean_M = max(F_rel_max)/0.1;
 
+%%
+lambda1 = linspace(1,1.15,500)';
+modelfun_G_exp = @(coeff,x) coeff(1)*(exp( coeff(2)*(x-coeff(3)) ) - 1);
+coeff_0 = [6.7,9,1];
 
+x_fit = lambda1;
+y_fit = getLigamentGefen2002(lambda1);
+
+mdl = fitnlm(x_fit,y_fit,modelfun_G_exp,coeff_0);
+coeff_sol = table2array(mdl.Coefficients(:,1));
+
+f_getMtjLigamentMoment_G_exp = @(lm) modelfun_G_exp(coeff_sol,lm);
+
+df_dl = @(lm) coeff_sol(1)*coeff_sol(2)*exp(coeff_sol(2)*(lm-coeff_sol(3)));
+
+%%
 lambda = linspace(1,1.1,500)';
 sigma = getLigamentGefen2002(lambda);
-
+sigma_exp = f_getMtjLigamentMoment_G_exp(lambda);
 nu = 0.4;
 
 sigma_eng = sigma.*lambda.^(-nu*2);
+sigma_exp_eng = sigma_exp.*lambda.^(-nu*2);
 
 fg3=figure;
 plot(lambda,sigma)
@@ -163,6 +194,12 @@ hold on
 plot([1,1.1],[0,0.1*E_mean_M],'--')
 plot([1,1.1],[0,0.1*E_mean_G1*sf],'--')
 plot(lambda,sigma_eng*sf,'--k')
+
+E_tan_exp = df_dl(1.1);
+sf2 = E_mean_M/E_tan_exp;
+figure(fg2)
+hold on
+plot(lambda,sigma_exp_eng*sf2,'-.k')
 
 %%
 F_lig_G = zeros(size(F_lig));
@@ -200,6 +237,55 @@ for i=1:p
     ylabel('Tension (N)')
 end
 legend(ligament_names,'Interpreter','none','Location','northeastoutside')
+
+
+%%
+F_lig_G_exp = zeros(size(F_lig));
+
+for j=1:p
+    lambda_j = l_lig(:,j)/l_0(1,j);
+    sigma_j = f_getMtjLigamentMoment_G_exp(lambda_j);
+    sigma_j(lambda_j(:)<1) = 0;
+
+    idx_12 = find(lambda_j(:)>1.2);
+    if ~isempty(idx_12)
+        sigma_j_12 = f_getMtjLigamentMoment_G_exp(1.2);
+        sigma_j(idx_12) = (lambda_j(idx_12)-1.2)*df_dl(1.2) + sigma_j_12;
+    end
+    F_lig_G_exp(:,j) = sigma_j*sf2*pcsa_0(j);
+end
+
+F_lig_G_exp(:,5) = F_lig_G_exp(:,5)*0.5;
+
+M_lig_G_exp = d_lig.*F_lig_G_exp;
+M_mtj_G_exp = sum(M_lig_G_exp,2);
+
+
+fg4a=figure;
+sgtitle('Exponential fit of Gefen 2002 model')
+subplot(3,1,1)
+plot(q_mtj*180/pi,M_mtj_G_exp)
+hold on
+plot(q_mtj*180/pi,M_mtj,'--k')
+xlabel('Mtj angle (°)')
+ylabel('Mtj logament moment (Nm)')
+
+for i=1:p
+    subplot(3,1,2)
+    plot(q_mtj*180/pi,M_lig_G_exp(:,i),'Color',CsV(i,:),'LineStyle',mrk{rem(i,4)+1})
+    hold on
+    xlabel('Mtj angle (°)')
+    ylabel('Mtj logament moment (Nm)')
+    
+    subplot(3,1,3)
+    plot(l_lig(:,i)/l_0(i),F_lig_G_exp(:,i),'Color',CsV(i,:),'LineStyle',mrk{rem(i,4)+1})
+    hold on
+%     xlim([0.99,1.1])
+    xlabel('\lambda (-)')
+    ylabel('Tension (N)')
+end
+legend(ligament_names,'Interpreter','none','Location','northeastoutside')
+
 
 %%
 
@@ -257,9 +343,30 @@ legend('Location','best','Interpreter','none')
 % figure(fg5)
 % plot(q_mtj*180/pi,M_li,'-.','DisplayName','5e-th order polynomial')
 
+%% 
+% Adapt the moment to not fall back to 0 after a peak, but maintain its
+% peak value. We do not consider
+M_mtj_G2 = M_mtj_G;
+
+M_mtj_qn = M_mtj_G(q_mtj<0);
+[M_max,idx_max] = max(M_mtj_qn);
+q_n = q_mtj(q_mtj<0);
+q_max = q_n(idx_max);
+M_mtj_G2(q_mtj<q_max) = M_max;
+
+M_mtj_qp = M_mtj_G(q_mtj>0);
+[M_min,idx_min] = min(M_mtj_qp);
+q_p = q_mtj(q_mtj>0);
+q_min = q_p(idx_min);
+M_mtj_G2(q_mtj>q_min) = M_min;
+
+figure(fg5)
+plot(q_mtj*180/pi,M_mtj_G2,'--','DisplayName','plateau-ed')
+ylim([M_min,M_max]*1.1)
+
 %%
 import casadi.*
-f_getMtjLigamentMoment = interpolant('f_getMtjLigamentMoment','bspline',{q_mtj},M_mtj_G);
+f_getMtjLigamentMoment = interpolant('f_getMtjLigamentMoment','bspline',{q_mtj},M_mtj_G2);
 
 figure(fg5)
 M_mtj_cas = f_getMtjLigamentMoment(q_mtj);
@@ -269,11 +376,37 @@ f_getMtjLigamentMoment.save((fullfile(PolyFolder,'f_getMtjLigamentMoment')));
 
 %%
 import casadi.*
-f_test = Function.load((fullfile(PolyFolder,'f_getMtjLigamentMoment')));
+f_getMtjLigamentMoment_exp = interpolant('f_getMtjLigamentMoment_exp','bspline',{q_mtj},M_mtj_G_exp);
 
 figure(fg5)
-M_mtj_cas_t = f_test(q_mtj);
-plot(q_mtj*180/pi,full(M_mtj_cas_t),'--','DisplayName','casadi function 1')
+M_mtj_cas = f_getMtjLigamentMoment_exp(q_mtj);
+plot(q_mtj*180/pi,full(M_mtj_cas),'--','DisplayName','casadi function')
+
+f_getMtjLigamentMoment_exp.save((fullfile(PolyFolder,'f_getMtjLigamentMoment_exp')));
+
+% assume long plantar ligament removed
+M_mtj_G_exp_d = sum(M_lig_G_exp(:,5:end),2);
+f_getMtjLigamentMoment_exp_d = interpolant('f_getMtjLigamentMoment_exp_d','bspline',{q_mtj},M_mtj_G_exp_d);
+f_getMtjLigamentMoment_exp_d.save((fullfile(PolyFolder,'f_getMtjLigamentMoment_exp_d')));
+
+% assume short plantar ligament also removed
+M_mtj_G_exp_e = sum(M_lig_G_exp(:,7:end),2);
+f_getMtjLigamentMoment_exp_e = interpolant('f_getMtjLigamentMoment_exp_e','bspline',{q_mtj},M_mtj_G_exp_e);
+f_getMtjLigamentMoment_exp_e.save((fullfile(PolyFolder,'f_getMtjLigamentMoment_exp_e')));
+
+% assume spring ligament also removed
+M_mtj_G_exp_f = sum(M_lig_G_exp(:,10:end),2);
+f_getMtjLigamentMoment_exp_f = interpolant('f_getMtjLigamentMoment_exp_f','bspline',{q_mtj},M_mtj_G_exp_f);
+f_getMtjLigamentMoment_exp_f.save((fullfile(PolyFolder,'f_getMtjLigamentMoment_exp_f')));
+
+
+%%
+
+% f_test = Function.load((fullfile(PolyFolder,'f_getMtjLigamentMoment')));
+% 
+% figure(fg5)
+% M_mtj_cas_t = f_test(q_mtj);
+% plot(q_mtj*180/pi,full(M_mtj_cas_t),'--','DisplayName','casadi function 1')
 
 %%
 

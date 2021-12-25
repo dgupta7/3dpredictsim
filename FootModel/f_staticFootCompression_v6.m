@@ -30,9 +30,6 @@ n_tib = length(Fs_tib);
 
 
 %% Build savename
-% name of external function
-
-ext_name = 'Foot_Fal_s1_mtj_sc_cspx10_oy';
 
 if S.Foot.MT_li_nonl
     mtj_stiffness = S.Foot.mtj_stiffness;
@@ -40,8 +37,29 @@ else
     mtj_stiffness = ['k' num2str(S.kMT_li)];
 end
     
-legname = ['PF: ' S.Foot.PF_stiffness ', l_s = ' num2str(S.Foot.PF_slack_length*1000) '; mtj: ' mtj_stiffness];
+
+legname = ['PF: ' S.Foot.PF_stiffness];
+if ~strcmp(S.Foot.PF_stiffness,'none')
+    legname = [legname ', l_s = ' num2str(S.Foot.PF_slack_length*1000)];
+end
+legname = [legname '; mtj: ' mtj_stiffness];
   
+%%
+pathCasADiFunctions = [pathRepo,'/CasADiFunctions'];
+if strcmp(S.Foot.Scaling,'custom')
+    PathDefaultFunc = fullfile(pathCasADiFunctions,...
+        'Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d05_MTJm_nl_Gefen2002_PF_Gefen2002_ls150');
+    PolyFolder = [pathRepo '\Polynomials\Fal_s1_mtj_sc'];
+    ext_name = 'Foot_Fal_s1_mtj_sc_cspx10_oy';
+    pathMusc = fullfile(pathRepo,'MuscleModel','Fal_s1_mtj_sc');
+
+elseif strcmp(S.Foot.Scaling,'default')
+    PathDefaultFunc = fullfile(pathCasADiFunctions,...
+        'Fal_s1_mtj_sd_cspx10_oy_MTPm_k1_d05_MTJm_nl_Gefen2002_PF_Gefen2002_ls150');
+    PolyFolder = [pathRepo '\Polynomials\Fal_s1_mtj_sd'];
+    ext_name = 'Foot_Fal_s1_mtj_sd_cspx10_oy';
+    pathMusc = fullfile(pathRepo,'MuscleModel','Fal_s1_mtj_sd');
+end
 
 %% Load external functions
 % The external function performs inverse dynamics through the
@@ -59,9 +77,6 @@ cd(pathmain);
 
 %% CasADi functions
 % We create several CasADi functions for later use
-pathCasADiFunctions = [pathRepo,'/CasADiFunctions'];
-PathDefaultFunc = fullfile(pathCasADiFunctions,...
-    'Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d05_MTJm_nl_Gefen2002_PF_Gefen2002_ls150');
 
 f_lMT_vMT_dM = Function.load(fullfile(PathDefaultFunc,'f_lMT_vMT_dM'));
 f_lLi_vLi_dM = Function.load(fullfile(PathDefaultFunc,'f_lLi_vLi_dM'));
@@ -69,24 +84,69 @@ f_forceEquilibrium_FtildeState_all_tendon = Function.load(fullfile(PathDefaultFu
     'f_forceEquilibrium_FtildeState_all_tendon'));
 f_AllPassiveTorques = Function.load(fullfile(PathDefaultFunc,'f_AllPassiveTorques'));
 
-
 f_T4 = Function.load(fullfile(PathDefaultFunc,'f_T4'));
 f_T9 = Function.load(fullfile(PathDefaultFunc,'f_T9'));
 f_T12 = Function.load(fullfile(PathDefaultFunc,'f_T12'));
 
-PolyFolder = [pathRepo '\Polynomials\Fal_s1_mtj_sc'];
-f_getMtjLigamentMoment = Function.load((fullfile(PolyFolder,'f_getMtjLigamentMoment')));
+if strcmp(S.Foot.mtj_stiffness,'MG_table')
+    f_getMtjLigamentMoment = Function.load((fullfile(PolyFolder,'f_getMtjLigamentMoment')));
+elseif strcmp(S.Foot.mtj_stiffness,'MG_exp_table')
+    f_getMtjLigamentMoment = Function.load((fullfile(PolyFolder,'f_getMtjLigamentMoment_exp')));
+elseif strcmp(S.Foot.mtj_stiffness,'MG_exp_d_table')
+    f_getMtjLigamentMoment = Function.load((fullfile(PolyFolder,'f_getMtjLigamentMoment_exp_d')));
+elseif strcmp(S.Foot.mtj_stiffness,'MG_exp_e_table')
+    f_getMtjLigamentMoment = Function.load((fullfile(PolyFolder,'f_getMtjLigamentMoment_exp_e')));
+elseif strcmp(S.Foot.mtj_stiffness,'MG_exp_f_table')
+    f_getMtjLigamentMoment = Function.load((fullfile(PolyFolder,'f_getMtjLigamentMoment_exp_f')));
+end
 
-%% Get PF model
+%% Define specific casadi functions
 f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(S.Foot.PF_stiffness,'ls',S.Foot.PF_slack_length);
 
 qin1     = MX.sym('qin_pass1',1);
 
 % M_mtj = getMidtarsalJointPassiveMoment(qin1,qdotin1,S);
-M_mtj = f_getMtjLigamentMoment(qin1);
+M_mtj_MX = f_getMtjLigamentMoment(qin1)*S.Foot.mtj_sf;
 
-f_passiveMoment_mtj = Function('f_passiveTorques_mtj',{qin1},{M_mtj},{'qin1'},{'M_mtj'});
+f_passiveMoment_mtj = Function('f_passiveMoment_mtj',{qin1},{M_mtj_MX},{'qin1'},{'M_mtj'});
 
+K_pass = [-50 15 60 -30]';
+theta_pass = [-0.4 0.5]';
+
+qin1     = SX.sym('qin_pass1',1);
+
+Tau_pass_1 = K_pass(1,1)*exp(K_pass(2,1)*(qin1-theta_pass(2,1)));
+Tau_pass_2 = K_pass(3,1)*exp(K_pass(4,1)*(qin1-theta_pass(1,1)));
+Tau_pass_SX = Tau_pass_1 + Tau_pass_2;
+f_passiveTorque_mtj = Function('f_passiveTorque_mtj',{qin1},{Tau_pass_SX},{'qin1'},{'Tau_pass_mtj'});
+
+if S.Foot.FDB
+    load([pathMusc,'/FDBparameters.mat'],'FDBparameters');
+    % Parameters of force-length-velocity curves
+    load('Fvparam.mat','Fvparam')
+    load('Fpparam.mat','Fpparam')
+    load('Faparam.mat','Faparam')
+    % Function for Hill-equilibrium
+    FTtilde     = SX.sym('FTtilde',1); % Normalized tendon forces
+    a           = SX.sym('a',1); % Muscle activations
+    dFTtilde    = SX.sym('dFTtilde',1); % Time derivative tendon forces
+    lMT         = SX.sym('lMT',1); % Muscle-tendon lengths
+    vMT         = SX.sym('vMT',1); % Muscle-tendon velocities
+    tension_SX  = SX.sym('tension',1); % Tensions
+    
+    [Hilldiff_SX,FT_SX,Fce_SX,Fpass_SX,Fiso_SX,vMmax_SX,massM_SX] = ...
+        ForceEquilibrium_FtildeState_all_tendon(a,FTtilde,...
+        dFTtilde,lMT,vMT,FDBparameters(:,1),Fvparam,Fpparam,...
+        Faparam,tension_SX,35,0,0);
+    
+    f_forceEquilibrium_FtildeState_all_tendon_FDB = ...
+        Function('f_forceEquilibrium_FtildeState_all_tendon',{a,FTtilde,...
+        dFTtilde,lMT,vMT,tension_SX},{Hilldiff_SX,FT_SX,Fce_SX,Fpass_SX,Fiso_SX,vMmax_SX,massM_SX},...
+        {'a','FTtilde','dFTtilde','lMT','vMT','tension_SX'},...
+        {'Hilldiff','FT','Fce','Fpass','Fiso','vMmax','massM'});
+
+
+end
 
 %% Indices external function
 % External function: F
@@ -218,6 +278,9 @@ Q_ankle = MX.sym('Q_ankle',1);
 Q_subt = MX.sym('Q_subt',1);
 Q_mtj = MX.sym('Q_mtj',1);
 FT_tilde = MX.sym('FT_tilde',NMf,1);
+if S.Foot.FDB
+    FT_tilde_FDB = MX.sym('FT_tilde',1,1);
+end
 T_mtp_ext = MX.sym('T_mtp_ext',1);
 
 % parameters
@@ -278,6 +341,7 @@ for i=1:NMf
     FT(i) = FTj(46+musif(i));
 end
 
+
 % Right leg
 Qs_PF = [Q_mtj_nsc;Q_mtp_nsc];
 Qdots_PF = MX.zeros(size(Qs_PF));
@@ -288,6 +352,12 @@ MA_PFj.mtp.r = MA_PFj_r(2);
 F_PFj = f_PF_stiffness([l_PFj_r,l_PFj_r])*S.Foot.PF_sf;
 F_PF_PIMj.r = F_PFj(2);
 
+
+if S.Foot.FDB
+    [Hilldiffj_FDB,FTj_FDB,~,~,~] = f_forceEquilibrium_FtildeState_all_tendon_FDB(akj(1,1),...
+        FTtildekj_nsc(:,1),dFTtildej_nsc(:,1),lMTj_lr,vMTj_lr,tensionsj_lr);
+
+end
 
 % Get passive torques
 Qs_Tau_pass = MX.zeros(33,1);
@@ -300,8 +370,9 @@ Qdots_Tau_pass = MX.zeros(33,1);
 Tau_passj_all = f_AllPassiveTorques(Qs_Tau_pass,Qdots_Tau_pass);
 Tau_pass_ankle = Tau_passj_all(10);
 Tau_pass_subt = Tau_passj_all(12);
-Tau_pass_mtj = Tau_passj_all(14);
-Tau_pass_mtp = Tau_passj_all(16);
+% Tau_pass_mtj = Tau_passj_all(14);
+Tau_pass_mtj = f_passiveTorque_mtj(Q_mtj_nsc);
+% Tau_pass_mtp = Tau_passj_all(16);
 
 T_pass_mtj = f_passiveMoment_mtj(Q_mtj_nsc);
 
@@ -344,10 +415,9 @@ T_mtj_tmp_r     = T_mtj_tmp_r + T_mtjPF_r;
 f3 = Tj(jointfi.mtj.r,1)-(T_mtj_tmp_r);
 mai_i = mai_i+1;
 % Mtp torque
-T_mtp_tmp_r = Tau_pass_mtp;
 Ft_mtp_r        = FTj(mai(mai_i).mus.r',1);
 T_mtp_r         = f_T4(MAj.mtp.r,Ft_mtp_r);
-T_mtp_tmp_r     = T_mtp_tmp_r + T_mtp_r;
+T_mtp_tmp_r     = T_mtp_r;
 T_mtpPF_r       = MA_PFj.mtp.r*F_PF_PIMj.r;
 T_mtp_tmp_r     = T_mtp_tmp_r + T_mtpPF_r;
 f4 = Tj(jointfi.mtp.r,1)-(T_mtp_ext + T_mtp_tmp_r);
@@ -366,7 +436,7 @@ fo1 = (Tj(jointfi.calcn_or(2),1) - Tj(jointfi.toes_or(2),1) - 0.01)^2; % square 
 fo2 = Tj(jointfi.midfoot_or(1),1)^2 + Tj(jointfi.midfoot_or(3),1)^2; % Knee position above navicular bone
 %     fo2 = Tj(jointfi.talus_or(1),1)^2 + Tj(jointfi.talus_or(3),1)^2; % Knee position above talus
 
-fo = fo1 + fo2;
+fo = fo1*1e2 + fo2;
 
 
 %     % knee should be above arch, so on line connecting calcn and toes
@@ -401,19 +471,22 @@ talus_or = zeros(n_mtp,n_tib,3);
 tibia_or = zeros(n_mtp,n_tib,3);
 l_fa_ext = zeros(n_mtp,n_tib);
 h_fa_ext = zeros(n_mtp,n_tib);
-M = zeros(n_mtp,n_tib);
-M_PF = zeros(n_mtp,n_tib);
-M_li = zeros(n_mtp,n_tib);
+M_mtj = zeros(n_mtp,n_tib);
+M_mtj_PF = zeros(n_mtp,n_tib);
+M_mtj_li = zeros(n_mtp,n_tib);
 F_PF = zeros(n_mtp,n_tib);
 l_PF = zeros(n_mtp,n_tib);
 MA_PF = zeros(n_mtp,n_tib);
-M_mtp = zeros(n_mtp,n_tib);
-T_mtp = zeros(n_mtp,n_tib);
+M_mtp_PF = zeros(n_mtp,n_tib);
+T_mtp_ext = zeros(n_mtp,n_tib);
 failed = zeros(n_mtp,n_tib);
 T_ankle = zeros(n_mtp,n_tib);
 tau_ankle = zeros(n_mtp,n_tib);
 T_subt = zeros(n_mtp,n_tib);
 tau_subt = zeros(n_mtp,n_tib);
+T_mtj = zeros(n_mtp,n_tib);
+tau_mtj = zeros(n_mtp,n_tib);
+T_mtp = zeros(n_mtp,n_tib);
 T_ankle_ext = zeros(n_mtp,n_tib);
 T_subt_ext = zeros(n_mtp,n_tib);
 for i=1:NMf
@@ -490,7 +563,7 @@ for i=1:n_mtp
             Qs(i,j,jointfi.ankle.r) = qs_sol(4);
             Qs(i,j,jointfi.subt.r) = qs_sol(5);
             Qs(i,j,jointfi.mtj.r) = qs_sol(6);
-            T_mtp(i,j) = T_mtp_sol;
+            T_mtp_ext(i,j) = T_mtp_sol;
 
             QsQdots(i,j,1:2:end) = Qs(i,j,:);
             QsQdots(i,j,2:2:end) = Qdots(i,j,:);
@@ -505,15 +578,19 @@ for i=1:n_mtp
             tau_ankle(i,j) = full(ta);
             T_subt(i,j) = full(Ts);
             tau_subt(i,j) = full(ts);
+            T_mtj(i,j) = full(Tmtj);
+            tau_mtj(i,j) = full(tmtj);
+            T_mtp(i,j) = full(Tmtp);
+
             Qs(i,j,jointfi.mtp.r) = full(q_mtp);
             
-            M_li(i,j) = full(M_lii);
+            M_mtj_li(i,j) = full(M_lii);
             F_PF(i,j) = full(F_PFi);
             l_PF(i,j) = full(l_PFi);
             MA_PF(i,j) = full(MA_PFi);
-            M_mtp(i,j) = full(M_mtpi);
-            M_PF(i,j) = MA_PF(i,j)*F_PF(i,j);
-            M(i,j) = M_li(i,j) + M_PF(i,j);
+            M_mtp_PF(i,j) = full(M_mtpi);
+            M_mtj_PF(i,j) = MA_PF(i,j)*F_PF(i,j);
+            M_mtj(i,j) = M_mtj_li(i,j) + M_mtj_PF(i,j);
 
             % call external function
             [T_res] = full(F([vertcat(squeeze(QsQdots(i,j,:)));vertcat(squeeze(Qddots(i,j,:)))]));
@@ -531,6 +608,9 @@ for i=1:n_mtp
             midfoot_or(i,j,:) = T_res(jointfi.midfoot_or);
             calcn_or(i,j,:) = T_res(jointfi.calcn_or);
             talus_or(i,j,:) = T_res(jointfi.talus_or);
+            tibia_or(i,j,1) = Qs(i,j,jointfi.tibia.tx);
+            tibia_or(i,j,2) = Qs(i,j,jointfi.tibia.ty);
+            tibia_or(i,j,3) = Qs(i,j,jointfi.tibia.tz);
             
             % calculate arch length
             l_fa_ext(i,j) = norm(squeeze(toes_or(i,j,:)-calcn_or(i,j,:)));
@@ -545,7 +625,7 @@ for i=1:n_mtp
 
         catch errmsg
             failed(i,j) = 1;
-            disp(errmsg)
+%             disp(errmsg)
         end
 
     end
@@ -561,20 +641,16 @@ R.jointfi = jointfi;
 R.Fs_tib = Fs_tib;
 R.GRF_calcn = GRF_calcn;
 R.GRF_forefoot = GRF_forefoot;
-R.M_WL = M;
-R.M_PF = M_PF;
-R.T_mtp = T_mtp;
-R.M_li = M_li;
 R.F_PF = F_PF;
 R.l_PF = l_PF;
 R.l_fa_ext = l_fa_ext;
 R.L0 = L0;
 R.H0 = H0;
-R.M_mtp = M_mtp;
+R.M_mtp = M_mtp_PF;
 R.h_fa_ext = h_fa_ext;
 R.MA_PF = MA_PF;
 R.toes_or = toes_or;
-R.metatarsi_or = midfoot_or;
+R.midfoot_or = midfoot_or;
 R.calcn_or = calcn_or;
 R.talus_or = talus_or;
 R.tibia_or = tibia_or;
@@ -586,6 +662,15 @@ R.T_ankle.ext = T_ankle_ext;
 R.T_subt.muscle = T_subt;
 R.T_subt.pass = tau_subt;
 R.T_subt.ext = T_subt_ext;
+R.T_mtj.muscle = T_mtj;
+R.T_mtj.pass = tau_mtj;
+R.T_mtj.lig = M_mtj_li;
+R.T_mtj.PF = M_mtj_PF;
+R.T_mtp.muscle = T_mtp;
+R.T_mtp.PF = M_mtp_PF;
+R.M_WL = M_mtj;
+R.T_mtp_ext = T_mtp_ext;
+
 R.PF_stiffness = S.Foot.PF_stiffness;
 R.legname = legname;
 

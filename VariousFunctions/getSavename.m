@@ -42,7 +42,7 @@ if isfield(S,'Foot')
     elseif isfield(S,'Foot.mtp_actuator') && S.Foot.mtp_actuator
         savenameparts{end} = [savenameparts{end} 'a'];
         casfuncfolparts{end} = [casfuncfolparts{end} 'a'];
-    else
+    elseif isfield(S.Foot,'mtp_muscles') || isfield(S,'Foot.mtp_actuator')
         savenameparts{end} = [savenameparts{end} 'p'];
         casfuncfolparts{end} = [casfuncfolparts{end} 'p'];
     end
@@ -58,11 +58,11 @@ if isfield(S,'Foot')
     
     
     % mtj related settings
-    if strcmp(S.Foot.Model,'mtj')
-        if S.Foot.mtj_muscles
+    if ~isfield(S.Foot,'Model') || strcmp(S.Foot.Model,'mtj')
+        if isfield(S.Foot,'mtj_muscles') && S.Foot.mtj_muscles
             savenameparts{end+1} = ['MTJm'];
             casfuncfolparts{end+1} = ['MTJm'];
-        else
+        elseif isfield(S.Foot,'mtj_muscles')
             savenameparts{end+1} = ['MTJp'];
             casfuncfolparts{end+1} = ['MTJp'];
         end
@@ -96,22 +96,24 @@ if isfield(S,'Foot')
             savenameparts{end+1} = ['PF_' S.Foot.PF_stiffness];
             casfuncfolparts{end+1} = ['PF_' S.Foot.PF_stiffness];
         end
-        if S.Foot.PF_sf~=1
+        if isfield(S.Foot,'PF_sf') && S.Foot.PF_sf~=1
             savenameparts{end} = [savenameparts{end} '_x' num2str(S.Foot.PF_sf)];
-            casfuncfolparts{end} = [casfuncfolparts{end} '_x' num2str(S.Foot.PF_sf)];
         end
         if isfield(S.Foot,'PF_slack_length') && ~isempty(S.Foot.PF_slack_length)
             savenameparts{end+1} = ['ls' num2str(S.Foot.PF_slack_length*1000)];
             casfuncfolparts{end+1} = ['ls' num2str(S.Foot.PF_slack_length*1000)];
         end
     
-        if S.Foot.PIM==1
+        if isfield(S.Foot,'PIM') && S.Foot.PIM
             savenameparts{end+1} = 'PIM';
             casfuncfolparts{end+1} = 'PIM';
-            if isfield(S.W,'PIM') && ~isempty(S.W.PIM)
+            if S.Foot.PIM == 2
+                savenameparts{end} = [savenameparts{end} '2'];
+            end
+            if isfield(S,'W') && isfield(S.W,'PIM') && ~isempty(S.W.PIM)
                 savenameparts{end+1} = ['w' num2str(S.W.PIM,2)];
             end
-            if isfield(S.W,'P_PIM') && ~isempty(S.W.P_PIM)
+            if isfield(S,'W') && isfield(S.W,'P_PIM') && ~isempty(S.W.P_PIM)
                 savenameparts{end+1} = ['w' num2str(S.W.P_PIM,2)];
             end
         end

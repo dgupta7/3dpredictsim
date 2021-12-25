@@ -11480,9 +11480,9 @@
 				</ContactSphere>
 				<ContactSphere name="s3_r">
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
-					<socket_frame>/bodyset/midfoot_r</socket_frame>
+					<socket_frame>/bodyset/forefoot_r</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.086975999999999998 -0.035451999999999997 0.027993000000000001</location>
+					<location>0.063970169355678008 -0.019867468881249975 0.022748652190000006</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->
@@ -11502,9 +11502,9 @@
 				</ContactSphere>
 				<ContactSphere name="s4_r">
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
-					<socket_frame>/bodyset/midfoot_r</socket_frame>
+					<socket_frame>/bodyset/forefoot_r</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.086975999999999998 -0.035451999999999997 -0.0031897000000000002</location>
+					<location>0.063970169355678008 -0.019867468881249975 -0.0084340478099999942</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->
@@ -11612,9 +11612,9 @@
 				</ContactSphere>
 				<ContactSphere name="s3_l">
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
-					<socket_frame>/bodyset/midfoot_l</socket_frame>
+					<socket_frame>/bodyset/forefoot_l</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.086975999999999998 -0.035451999999999997 -0.027993000000000001</location>
+					<location>0.063970169355678008 -0.019867468881249975 -0.022748652190000006</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->
@@ -11634,9 +11634,9 @@
 				</ContactSphere>
 				<ContactSphere name="s4_l">
 					<!--Path to a Component that satisfies the Socket 'frame' of type PhysicalFrame (description: The frame to which this geometry is attached.).-->
-					<socket_frame>/bodyset/midfoot_l</socket_frame>
+					<socket_frame>/bodyset/forefoot_l</socket_frame>
 					<!--Location of geometry center in the PhysicalFrame.-->
-					<location>0.086975999999999998 -0.035451999999999997 0.0031897000000000002</location>
+					<location>0.063970169355678008 -0.019867468881249975 0.0084340478099999942</location>
 					<!--Orientation of geometry in the PhysicalFrame (body-fixed XYZ Euler angles).-->
 					<orientation>0 0 0</orientation>
 					<!--Default appearance for this Geometry-->

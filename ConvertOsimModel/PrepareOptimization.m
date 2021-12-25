@@ -61,8 +61,10 @@ ModelName = 'Gait92';
 if contains(OsimFileName,'_mtj')
     ModelName = [ModelName '_mtj'];
 end
+
 % run muscle analysis and fit polynomials
 FitPolynomials(pathRepo,ModelName,ModelPath,PolyFolder,Bool_RunMA)
+
 % fit polynomials to plantar fascia geometry
 getPlantarFasciaGeometry(pathRepo,ModelPath,PolyFolder)
 

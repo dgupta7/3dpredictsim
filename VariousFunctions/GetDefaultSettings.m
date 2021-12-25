@@ -273,6 +273,10 @@ if ~isfield(S.Foot,'dMTP') || isempty(S.Foot.dMTP)
     S.Foot.dMTP = 0.5;
 end
 
+if ~isfield(S.Foot,'dMT') || isempty(S.Foot.dMT)
+    S.Foot.dMT = 0.1;
+end
+
 % Print the settings to the screen
 disp(S);
 
