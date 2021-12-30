@@ -47,11 +47,11 @@ pathMusc = fullfile(pathRepo,'MuscleModel','Fal_s1_mtj_sc');
 % save(fullfile(pathMusc,'FDBparameters.mat'),'FDBparameters');
 
 %%
-lMT = 0.95*lMT0;
-
-lM = sqrt((lMo.*sin(alphao)).^2+(lMT-lTs.*1).^2);
-
-lMtilde = lM/lMo
+% lMT = 0.95*lMT0;
+% 
+% lM = sqrt((lMo.*sin(alphao)).^2+(lMT-lTs.*1).^2);
+% 
+% lMtilde = lM/lMo
 
 
 

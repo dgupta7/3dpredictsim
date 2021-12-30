@@ -59,15 +59,6 @@ dampingArm = 0.1;
 stiffnessMtp = S.Foot.kMTP;
 dampingMtp = S.Foot.dMTP;
 
-
-% define general settings for default objective functions
-% By default, the tendon stiffness is 35 and the shift is 0.
-NMuscle = 92;
-aTendon = 35*ones(NMuscle,1);
-IndexCalf = [32 33 34 78 79 80];    % adjust stiffness of the calf muscles
-aTendon(IndexCalf) = 35*S.AchillesTendonScaleFactor;
-shift = getShift(aTendon);
-
 %% get indices and helper information
 if mtj == 1
     jointi = getJointi_mtj();
@@ -90,17 +81,19 @@ nq.arms     = length(armsi); % arms
 
 %% Muscle-tendon parameters
 % Muscles from one leg and from the back
-muscleNames = {'glut_med1_r','glut_med2_r','glut_med3_r',...
-    'glut_min1_r','glut_min2_r','glut_min3_r','semimem_r',...
-    'semiten_r','bifemlh_r','bifemsh_r','sar_r','add_long_r',...
-    'add_brev_r','add_mag1_r','add_mag2_r','add_mag3_r','tfl_r',...
-    'pect_r','grac_r','glut_max1_r','glut_max2_r','glut_max3_r',......
-    'iliacus_r','psoas_r','quad_fem_r','gem_r','peri_r',...
-    'rect_fem_r','vas_med_r','vas_int_r','vas_lat_r','med_gas_r',...
-    'lat_gas_r','soleus_r','tib_post_r','flex_dig_r','flex_hal_r',...
-    'tib_ant_r','per_brev_r','per_long_r','per_tert_r','ext_dig_r',...
-    'ext_hal_r','ercspn_r','intobl_r','extobl_r','ercspn_l',...
-    'intobl_l','extobl_l'};
+% muscleNames = {'glut_med1_r','glut_med2_r','glut_med3_r',...
+%     'glut_min1_r','glut_min2_r','glut_min3_r','semimem_r',...
+%     'semiten_r','bifemlh_r','bifemsh_r','sar_r','add_long_r',...
+%     'add_brev_r','add_mag1_r','add_mag2_r','add_mag3_r','tfl_r',...
+%     'pect_r','grac_r','glut_max1_r','glut_max2_r','glut_max3_r',......
+%     'iliacus_r','psoas_r','quad_fem_r','gem_r','peri_r',...
+%     'rect_fem_r','vas_med_r','vas_int_r','vas_lat_r','med_gas_r',...
+%     'lat_gas_r','soleus_r','tib_post_r','flex_dig_r','flex_hal_r',...
+%     'tib_ant_r','per_brev_r','per_long_r','per_tert_r','ext_dig_r',...
+%     'ext_hal_r','ercspn_r','intobl_r','extobl_r','ercspn_l',...
+%     'intobl_l','extobl_l'};
+load([pathpolynomial,'/MuscleData.mat'],'MuscleData');
+muscleNames = MuscleData.muscle_names;
 % Muscle indices for later use (1:end-3), since we do not want to count twice the back muscles
 musi = 1:length(muscleNames(1:end-3));
 % Total number of muscles
@@ -110,7 +103,15 @@ NMuscle = length(muscleNames(1:end-3))*2;
 % angles; Row 5: maximal contraction velocities
 load([pathmusclemodel,'/MTparameters.mat'],'MTparameters');
 MTparameters_m = [MTparameters(:,musi),MTparameters(:,musi)];
-% Indices of the muscles actuating the different joints for later use
+
+% By default, the tendon stiffness is 35 and the shift is 0.
+aTendon = 35*ones(NMuscle,1);
+% adjust stiffness of the calf muscles
+% IndexCalf = [32 33 34 78 79 80]; 
+IndexCalf = find(contains(muscleNames,'_gas') | contains(muscleNames,'soleus'));
+IndexCalf = [IndexCalf,IndexCalf+musi(end)];
+aTendon(IndexCalf) = 35*S.AchillesTendonScaleFactor;
+shift = getShift(aTendon);
 
 %% Musculoskeletal geometry
 % We load some variables for the polynomial approximations
@@ -119,7 +120,7 @@ load([pathpolynomial,'/MuscleInfo.mat'],'MuscleInfo');
 % For the polynomials, we want all independent muscles. So we do not need
 % the muscles from both legs, since we assume bilateral symmetry, but want
 % all muscles from the back (indices 47:49).
-musi_pol = [musi,47,48,49];
+musi_pol = [musi,musi(end)+1,musi(end)+2,musi(end)+3];
 NMuscle_pol = NMuscle/2+3;
 nq.leg = size(muscle_spanning_joint_INFO,2);
 try
@@ -215,12 +216,12 @@ end
 Jtemp23 = Jtemp23/23;
 f_J23 = Function('f_J23',{etemp23},{Jtemp23});
 % Function for 92 elements
-etemp92 = SX.sym('etemp92',92);
+etemp92 = SX.sym('etemp92',NMuscle);
 Jtemp92 = 0;
 for i=1:length(etemp92)
     Jtemp92 = Jtemp92 + etemp92(i).^2;
 end
-Jtemp92 = Jtemp92/92;
+Jtemp92 = Jtemp92/NMuscle;
 f_J92 = Function('f_J92',{etemp92},{Jtemp92});
 % Function for 2 elements
 etemp2 = SX.sym('etemp2',2);
@@ -249,13 +250,13 @@ f_Jnn2 = Function('f_Jnn2',{etemp2},{Jtemp2});
 
 %% Normalized sum of values to a certain power
 % Function for 92 elements
-etemp92exp  = SX.sym('etemp92exp',92);
+etemp92exp  = SX.sym('etemp92exp',NMuscle);
 expo        = SX.sym('exp',1);
 Jtemp92exp = 0;
 for i=1:length(etemp92exp)
     Jtemp92exp = Jtemp92exp + etemp92exp(i).^expo;
 end
-Jtemp92exp = Jtemp92exp/92;
+Jtemp92exp = Jtemp92exp/NMuscle;
 f_J92exp = Function('f_J92exp',{etemp92exp,expo},{Jtemp92exp});
 
 %% Sum of products
@@ -299,6 +300,14 @@ for i=1:length(ma_temp4)
     J_sptemp4 = J_sptemp4 + ma_temp4(i,1)*ft_temp4(i,1);
 end
 f_T4 = Function('f_T4',{ma_temp4,ft_temp4},{J_sptemp4});
+% Function for 5 elements
+ma_temp5 = SX.sym('ma_temp5',5);
+ft_temp5 = SX.sym('ft_temp5',5);
+J_sptemp5 = 0;
+for i=1:length(ma_temp5)
+    J_sptemp5 = J_sptemp5 + ma_temp5(i,1)*ft_temp5(i,1);
+end
+f_T5 = Function('f_T5',{ma_temp5,ft_temp5},{J_sptemp5});
 % Function for 9 elements
 ma_temp9 = SX.sym('ma_temp9',9);
 ft_temp9 = SX.sym('ft_temp9',9);
@@ -307,6 +316,14 @@ for i=1:length(ma_temp9)
     J_sptemp9 = J_sptemp9 + ma_temp9(i,1)*ft_temp9(i,1);
 end
 f_T9 = Function('f_T9',{ma_temp9,ft_temp9},{J_sptemp9});
+% Function for 10 elements
+ma_temp10 = SX.sym('ma_temp10',10);
+ft_temp10 = SX.sym('ft_temp10',10);
+J_sptemp10 = 0;
+for i=1:length(ma_temp10)
+    J_sptemp10 = J_sptemp10 + ma_temp10(i,1)*ft_temp10(i,1);
+end
+f_T10 = Function('f_T10',{ma_temp10,ft_temp10},{J_sptemp10});
 
 %% Arm activation dynamics
 e_a = SX.sym('e_a',nq.arms); % arm excitations
@@ -555,16 +572,27 @@ Tau_passj.arm = [Tau_passj.sh_flex.l, Tau_passj.sh_add.l, ...
     Tau_passj.sh_rot.l, Tau_passj.sh_flex.r, Tau_passj.sh_add.r, ...
     Tau_passj.sh_rot.r, Tau_passj.elb.l, Tau_passj.elb.r];
 
-
-Tau_passj.mtp.l = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
-    Q_SX(jointi.mtp.l), Qdot_SX(jointi.mtp.l)); %...
-%     + f_PassiveMoments(k_pass.mtp, theta.pass.mtp,Q_SX(jointi.mtp.l),...
-%     Qdot_SX(jointi.mtp.l));
-Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
-    Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r)); %...
-%     + f_PassiveMoments(k_pass.mtp, theta.pass.mtp, Q_SX(jointi.mtp.r),...
-%     Qdot_SX(jointi.mtp.r));
-Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
+if S.Foot.mtp_tau_pass
+    Tau_passj.mtp.l = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
+        Q_SX(jointi.mtp.l), Qdot_SX(jointi.mtp.l))...
+        + f_PassiveMoments(k_pass.mtp, theta.pass.mtp,Q_SX(jointi.mtp.l),...
+        Qdot_SX(jointi.mtp.l));
+    Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
+        Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r))...
+        + f_PassiveMoments(k_pass.mtp, theta.pass.mtp, Q_SX(jointi.mtp.r),...
+        Qdot_SX(jointi.mtp.r));
+    Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
+else
+    Tau_passj.mtp.l = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
+        Q_SX(jointi.mtp.l), Qdot_SX(jointi.mtp.l)); %...
+    %     + f_PassiveMoments(k_pass.mtp, theta.pass.mtp,Q_SX(jointi.mtp.l),...
+    %     Qdot_SX(jointi.mtp.l));
+    Tau_passj.mtp.r = f_passiveTATorques(stiffnessMtp, dampingMtp, ...
+        Q_SX(jointi.mtp.r), Qdot_SX(jointi.mtp.r)); %...
+    %     + f_PassiveMoments(k_pass.mtp, theta.pass.mtp, Q_SX(jointi.mtp.r),...
+    %     Qdot_SX(jointi.mtp.r));
+    Tau_passj.mtp.all = [Tau_passj.mtp.l, Tau_passj.mtp.r];
+end
 
 if mtj
     Tau_passj.mtj.l = f_PassiveMoments(k_pass.mtj, theta.pass.mtj,...
@@ -633,8 +661,10 @@ f_Jnn2.save(fullfile(OutPath,'f_Jnn2'));
 f_Jnn3.save(fullfile(OutPath,'f_Jnn3'));
 
 f_T4.save(fullfile(OutPath,'f_T4'));
+f_T5.save(fullfile(OutPath,'f_T5'));
 f_T6.save(fullfile(OutPath,'f_T6'));
 f_T9.save(fullfile(OutPath,'f_T9'));
+f_T10.save(fullfile(OutPath,'f_T10'));
 f_T12.save(fullfile(OutPath,'f_T12'));
 f_T13.save(fullfile(OutPath,'f_T13'));
 f_T27.save(fullfile(OutPath,'f_T27'));

@@ -15,11 +15,17 @@ if ~isfield(S,'OsimFileName')
     elseif strcmp(S.Foot.Scaling,'personalised')
         OsimFileName = [OsimFileName '_sp'];
     end
+    ExternalFunc = OsimFileName;
+    if S.Foot.FDB
+        OsimFileName = [OsimFileName '_FDB'];
+    end
+    if S.tib_ant_Rajagopal2015
+        OsimFileName = [OsimFileName '_TAR'];
+    end
     S.OsimFileName = OsimFileName;
 end
 
 %% construct external function file name
-ExternalFunc = S.OsimFileName;
 if S.Foot.contactStiffnessFactor == 10
     ExternalFunc = [ExternalFunc '_cspx10'];
 end
@@ -27,17 +33,15 @@ if S.Foot.contactSphereOffsetY
     ExternalFunc = [ExternalFunc '_oy'];
 end
 if S.Foot.contactSphereOffset1X
-    ExternalFunc = [ExternalFunc '_o1x'];
+    ExternalFunc = [ExternalFunc '_o1x' num2str(S.Foot.contactSphereOffset1X*1e3)];
 end
 S.ExternalFunc = ExternalFunc;
-
 
 
 %% build standardised names
 [savename, casfuncfol] = getSavename(S);
 S.CasadiFunc_Folders = casfuncfol;
 S.savename = savename;
-
 
 %% Prepare the simulation to run as part of a batch
 % Casadi functions are made when

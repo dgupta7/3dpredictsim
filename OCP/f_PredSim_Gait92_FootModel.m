@@ -46,23 +46,26 @@ method = 'radau'; % collocation method
 
 %% Muscle information
 % Muscles from one leg and from the back
-muscleNames = {'glut_med1_r','glut_med2_r','glut_med3_r',...
-    'glut_min1_r','glut_min2_r','glut_min3_r','semimem_r',...
-    'semiten_r','bifemlh_r','bifemsh_r','sar_r','add_long_r',...
-    'add_brev_r','add_mag1_r','add_mag2_r','add_mag3_r','tfl_r',...
-    'pect_r','grac_r','glut_max1_r','glut_max2_r','glut_max3_r',......
-    'iliacus_r','psoas_r','quad_fem_r','gem_r','peri_r',...
-    'rect_fem_r','vas_med_r','vas_int_r','vas_lat_r','med_gas_r',...
-    'lat_gas_r','soleus_r','tib_post_r','flex_dig_r','flex_hal_r',...
-    'tib_ant_r','per_brev_r','per_long_r','per_tert_r','ext_dig_r',...
-    'ext_hal_r','ercspn_r','intobl_r','extobl_r','ercspn_l',...
-    'intobl_l','extobl_l'};
+% muscleNames = {'glut_med1_r','glut_med2_r','glut_med3_r',...
+%     'glut_min1_r','glut_min2_r','glut_min3_r','semimem_r',...
+%     'semiten_r','bifemlh_r','bifemsh_r','sar_r','add_long_r',...
+%     'add_brev_r','add_mag1_r','add_mag2_r','add_mag3_r','tfl_r',...
+%     'pect_r','grac_r','glut_max1_r','glut_max2_r','glut_max3_r',......
+%     'iliacus_r','psoas_r','quad_fem_r','gem_r','peri_r',...
+%     'rect_fem_r','vas_med_r','vas_int_r','vas_lat_r','med_gas_r',...
+%     'lat_gas_r','soleus_r','tib_post_r','flex_dig_r','flex_hal_r',...
+%     'tib_ant_r','per_brev_r','per_long_r','per_tert_r','ext_dig_r',...
+%     'ext_hal_r','ercspn_r','intobl_r','extobl_r','ercspn_l',...
+%     'intobl_l','extobl_l'};
 % Muscle indices for later use
 pathmusclemodel = fullfile(pathRepo,'MuscleModel',S.OsimFileName);
+pathpolynomial = fullfile(pathRepo,'Polynomials',S.OsimFileName);
 addpath(genpath(pathmusclemodel));
+% Muscles from one leg and from the back
+load([pathpolynomial,'/MuscleData.mat'],'MuscleData');
+muscleNames = MuscleData.muscle_names;
 % Total number of muscles
 NMuscle = length(muscleNames(1:end-3))*2;
-pathpolynomial = fullfile(pathRepo,'Polynomials',S.OsimFileName);
 load([pathpolynomial,'/muscle_spanning_joint_INFO.mat'],'muscle_spanning_joint_INFO');
 load([pathpolynomial,'/MuscleData.mat'],'MuscleData');
 [~,mai] = MomentArmIndices(muscleNames(1:end-3),muscle_spanning_joint_INFO);
@@ -122,7 +125,10 @@ f_T9 = Function.load(fullfile(PathDefaultFunc,'f_T9'));
 f_T12 = Function.load(fullfile(PathDefaultFunc,'f_T12'));
 f_T13 = Function.load(fullfile(PathDefaultFunc,'f_T13'));
 f_T27 = Function.load(fullfile(PathDefaultFunc,'f_T27'));
-
+if S.Foot.FDB
+    f_T4 = Function.load(fullfile(PathDefaultFunc,'f_T5'));
+    f_T9 = Function.load(fullfile(PathDefaultFunc,'f_T10'));
+end
 % file with mass of muscles
 MassFile = fullfile(PathDefaultFunc,'MassM.mat');
 MuscleMass = load(MassFile);
@@ -150,7 +156,6 @@ nq.abs      = length(ground_pelvisi); % ground-pelvis
 nq.trunk    = length(trunki); % trunk
 nq.arms     = length(armsi); % arms
 nq.leg      = size(muscle_spanning_joint_INFO,2);
-
 
 coord_names = cell(2,nq.all);
 coord_names_tmp = fieldnames(IO.coordi);
@@ -420,13 +425,13 @@ if S.Foot.mtp_actuator
     a_mtpk      = MX.sym('a_mtpk',2);
     a_mtpj      = MX.sym('a_mtpkmesh',2,d);
     a_mtpkj     = [a_mtpk a_mtpj];
-    e_mtpk  = MX.sym('e_mtpk',2);
+    e_mtpk      = MX.sym('e_mtpk',2);
 end
 if S.Foot.PIM
     a_PIMk      = MX.sym('a_PIMk',2);
     a_PIMj      = MX.sym('a_PIMkmesh',2,d);
     a_PIMkj     = [a_PIMk a_PIMj];
-    e_PIMk  = MX.sym('e_PIMk',2);
+    e_PIMk      = MX.sym('e_PIMk',2);
 end
 
 % Define CasADi variables for "slack" controls
@@ -495,9 +500,9 @@ for j=1:d
     % muscles (44:46) and then the left muscles (47:49). Since the back
     % muscles only depend on back dofs, we do not care if we extract
     % them "from the left or right leg" so here we just picked left.
-    MAj.trunk_ext    =  MAj_l([47:49,mai(nq.leg-2).mus.l]',nq.leg-2);
-    MAj.trunk_ben    =  MAj_l([47:49,mai(nq.leg-1).mus.l]',nq.leg-1);
-    MAj.trunk_rot    =  MAj_l([47:49,mai(nq.leg).mus.l]',nq.leg);
+    MAj.trunk_ext    =  MAj_l([end-2:end,mai(nq.leg-2).mus.l]',nq.leg-2);
+    MAj.trunk_ben    =  MAj_l([end-2:end,mai(nq.leg-1).mus.l]',nq.leg-1);
+    MAj.trunk_rot    =  MAj_l([end-2:end,mai(nq.leg).mus.l]',nq.leg);
     % Right leg
     qinj_r      = Qskj_nsc(IndexRight,j+1);
     qdotinj_r   = Qdotskj_nsc(IndexRight,j+1);
@@ -511,8 +516,8 @@ for j=1:d
     % In MuscleInfo, we first have the right back muscles (44:46) and
     % then the left back muscles (47:49). Here we re-organize so that
     % we have first the left muscles and then the right muscles.
-    lMTj_lr = [lMTj_l([1:43,47:49],1);lMTj_r(1:46,1)];
-    vMTj_lr = [vMTj_l([1:43,47:49],1);vMTj_r(1:46,1)];
+    lMTj_lr = [lMTj_l([1:end-6,end-2:end],1);lMTj_r(1:end-3,1)];
+    vMTj_lr = [vMTj_l([1:end-6,end-2:end],1);vMTj_r(1:end-3,1)];
     % Get plantar fascia length, velocity, and moment arm
     if mtj && (~strcmp(S.Foot.PF_stiffness,'none') || S.Foot.PIM)
         % Left leg
@@ -574,6 +579,9 @@ for j=1:d
                 F_PF_PIMj.l = F_PFj_l;
                 F_PF_PIMj.r = F_PFj_r;
             end
+        end
+        if S.Foot.FDB
+
         end
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

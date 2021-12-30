@@ -207,6 +207,14 @@ NMf = length(musif);
 for i=1:NMf
     muscleNamesFoot{i} = muscleNames{musif(i)};
 end
+
+if S.Foot.FDB
+    NM_f = NMf+1;
+    muscleNamesFoot{NM_f} = 'FDB';
+else
+    NM_f = NMf;
+end
+
 tensions = getSpecificTensions(muscleNamesFoot);
 
 %% Get Boundaries
@@ -227,8 +235,8 @@ for i=1:size(bounds_qs,1)
     bounds_qs(i,:) = bounds_qs(i,:)./scale_qs(i);
 end
 
-bounds_FTs = [zeros(NMf,1),ones(NMf,1)];
-scale_FTs = 5*ones(NMf,1);
+bounds_FTs = [zeros(NM_f,1),ones(NM_f,1)];
+scale_FTs = 5*ones(NM_f,1);
 
 bounds_scaled = bounds_qs.*scale_qs;
 
@@ -277,10 +285,7 @@ Q_tib_ty = MX.sym('Q_tib_ty',1);
 Q_ankle = MX.sym('Q_ankle',1);
 Q_subt = MX.sym('Q_subt',1);
 Q_mtj = MX.sym('Q_mtj',1);
-FT_tilde = MX.sym('FT_tilde',NMf,1);
-if S.Foot.FDB
-    FT_tilde_FDB = MX.sym('FT_tilde',1,1);
-end
+FT_tilde = MX.sym('FT_tilde',NM_f,1);
 T_mtp_ext = MX.sym('T_mtp_ext',1);
 
 % parameters
@@ -334,13 +339,12 @@ end
 [Hilldiffj,FTj,~,~,~] = f_forceEquilibrium_FtildeState_all_tendon(akj(:,1),...
         FTtildekj_nsc(:,1),dFTtildej_nsc(:,1),lMTj_lr,vMTj_lr,tensionsj_lr);
 
-Hilldiff = MX.zeros(NMf,1);
-FT = MX.zeros(NMf,1);
+Hilldiff = MX.zeros(NM_f,1);
+FT = MX.zeros(NM_f,1);
 for i=1:NMf
     Hilldiff(i) = Hilldiffj(46+musif(i));
     FT(i) = FTj(46+musif(i));
 end
-
 
 % Right leg
 Qs_PF = [Q_mtj_nsc;Q_mtp_nsc];
@@ -355,9 +359,14 @@ F_PF_PIMj.r = F_PFj(2);
 
 if S.Foot.FDB
     [Hilldiffj_FDB,FTj_FDB,~,~,~] = f_forceEquilibrium_FtildeState_all_tendon_FDB(akj(1,1),...
-        FTtildekj_nsc(:,1),dFTtildej_nsc(:,1),lMTj_lr,vMTj_lr,tensionsj_lr);
+        FT_tilde(NM_f)*scale_FTs(NM_f),0,l_PFj_r,0,tensions(NM_f));
 
+    Hilldiff(NM_f) = Hilldiffj_FDB;
+    FT(NM_f) = FTj_FDB;
+
+    F_PF_PIMj.r = F_PF_PIMj.r + FTj_FDB;
 end
+
 
 % Get passive torques
 Qs_Tau_pass = MX.zeros(33,1);
@@ -489,7 +498,7 @@ tau_mtj = zeros(n_mtp,n_tib);
 T_mtp = zeros(n_mtp,n_tib);
 T_ankle_ext = zeros(n_mtp,n_tib);
 T_subt_ext = zeros(n_mtp,n_tib);
-for i=1:NMf
+for i=1:NM_f
     F_tendon.(muscleNamesFoot{i}) = zeros(n_mtp,n_tib);
 end
 
@@ -500,7 +509,7 @@ qs_opti = opti.variable(6,1);
 opti.subject_to(bounds_qs(:,1) <= qs_opti(:,1));
 opti.subject_to(qs_opti(:,1) <= bounds_qs(:,2));
 % muscle-tendon forces
-FTtilde_opti = opti.variable(NMf,1);
+FTtilde_opti = opti.variable(NM_f,1);
 opti.subject_to(bounds_FTs(:,1) <= FTtilde_opti(:,1));
 opti.subject_to(FTtilde_opti(:,1) <= bounds_FTs(:,2));
 % torque from GRF on toes
@@ -528,7 +537,7 @@ temp = [];
 for i=1:n_mtp
     % get initial guess
     qs_init = [0;0;0.45;0;0;0]./scale_qs;
-    FTs_init = zeros(NMf,1);
+    FTs_init = zeros(NM_f,1);
 
     for j=1:n_tib
         %% solve the static situation
@@ -571,7 +580,7 @@ for i=1:n_mtp
             % call post-processing function
             [Fm,Ta,ta,Ts,ts,Tmtj,tmtj,M_lii,Tmtp,q_mtp,MA_PFi,l_PFi,F_PFi,M_mtpi] =...
                 f_foot_pp([qs_sol./scale_qs;FTs_sol./scale_FTs;T_mtp_sol],Qs_mtp(i),Fs_tib(j));
-            for ii=1:NMf
+            for ii=1:NM_f
                 F_tendon.(muscleNamesFoot{ii})(i,j) = full(Fm(ii));
             end
             T_ankle(i,j) = full(Ta);

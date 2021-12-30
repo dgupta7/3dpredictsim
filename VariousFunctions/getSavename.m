@@ -30,6 +30,15 @@ end
 if isfield(S,'AchillesTendonScaleFactor') && S.AchillesTendonScaleFactor~=1
     savenameparts{end+1} = ['ATx' num2str(S.AchillesTendonScaleFactor*100)];
     casfuncfolparts{end+1} = ['ATx' num2str(S.AchillesTendonScaleFactor*100)];
+elseif isfield(S,'AchillesTendonScaleFactor') && S.AchillesTendonScaleFactor==1
+     not{end+1} = 'not_ATx';
+end
+
+if isfield(S,'tib_ant_Rajagopal2015') && S.tib_ant_Rajagopal2015
+    savenameparts{end+1} = 'TAR';
+    casfuncfolparts{end+1} = 'TAR';
+elseif isfield(S,'tib_ant_Rajagopal2015') && ~S.tib_ant_Rajagopal2015
+    not{end+1} = 'not_TAR';
 end
 
 if isfield(S,'Foot')
@@ -104,6 +113,11 @@ if isfield(S,'Foot')
             casfuncfolparts{end+1} = ['ls' num2str(S.Foot.PF_slack_length*1000)];
         end
     
+        if isfield(S.Foot,'FDB') && S.Foot.FDB
+            savenameparts{end+1} = 'FDB';
+            casfuncfolparts{end+1} = 'FDB';
+        end
+
         if isfield(S.Foot,'PIM') && S.Foot.PIM
             savenameparts{end+1} = 'PIM';
             casfuncfolparts{end+1} = 'PIM';
@@ -117,8 +131,10 @@ if isfield(S,'Foot')
                 savenameparts{end+1} = ['w' num2str(S.W.P_PIM,2)];
             end
         end
+
+
     end
-        
+      
 end
 
 

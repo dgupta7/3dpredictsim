@@ -31,7 +31,7 @@ addpath([pathRepo '/Polynomials']);
 addpath([pathRepo '/Debug']);
 addpath([pathRepo '/FootModel']);
 addpath([pathRepo '/RunSim']);
-% AddCasadiPaths();
+AddCasadiPaths();
 
 %% General settings
 %-------------------------------------------------------------------------%
@@ -61,16 +61,23 @@ S.Foot.Model = 'mtj';
    % 'mtj': foot with mtp and midtarsal joint
 S.Foot.Scaling = 'custom'; % default, custom, personalised
 
+% Achilles tendon
+S.AchillesTendonScaleFactor = 1;
+
+% Tibialis anterior according to Rajagopal et al. (2015)
+S.tib_ant_Rajagopal2015 = 1;
+
 % Contact spheres
 S.Foot.contactStiffnessFactor = 10;  % 1 or 10, 10: contact spheres are 10x stiffer
 S.Foot.contactSphereOffsetY = 1;    % contact spheres are offset in y-direction to match static trial IK
-S.Foot.contactSphereOffset1X = 0;   % heel contact sphere offset in x-direction
+S.Foot.contactSphereOffset1X = 0;   % heel contact sphere offset in x-direction (0.025)
 
 %% metatarsophalangeal (mtp) joint
 S.Foot.mtp_actuator = 0;    % use an ideal torque actuator
 S.Foot.mtp_muscles = 1;     % extrinsic toe flexors and extensors act on mtp joint
 S.Foot.kMTP = 1;            % additional stiffness of the joint (Nm/rad)
 S.Foot.dMTP = 0.1;          % additional damping of the joint (Nms/rad)
+S.Foot.mtp_tau_pass = 1;    % use passive bushing torque
 
 %% midtarsal joint 
 % (only used if Model = mtj)
@@ -80,29 +87,31 @@ S.Foot.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
 S.Foot.mtj_stiffness = 'MG_exp_table';
 S.Foot.mtj_sf = 1; 
 
-S.Foot.kMT_li = 200;        % angular stiffness in case of linear
+S.Foot.kMT_li = 300;        % angular stiffness in case of linear
 S.Foot.kMT_li2 = 10;        % angular stiffness in case of signed linear
-S.dMT = 0.1;                % (Nms/rad) damping
+S.Foot.dMT = 0.1;                % (Nms/rad) damping
 
 % plantar fascia
-S.Foot.PF_stiffness = 'Natali2010'; % 'none''linear''Gefen2002''Cheng2008''Natali2010''Song2011'
-S.Foot.PF_sf = 10;   
+S.Foot.PF_stiffness = 'Gefen2002'; % 'none''linear''Gefen2002''Cheng2008''Natali2010''Song2011'
+S.Foot.PF_sf = 1;   
 S.Foot.PF_slack_length = 0.146; % (m) slack length
 
-% Plantar Intrinsic Muscles represented by and ideal force actuator
-S.Foot.PIM = 0;     % include PIM actuator
-S.W.PIM = 1e5;     % weight on the excitations for cost function
-S.W.P_PIM = 1e5;   % weight on the net Work for cost function
+% Plantar Intrinsic Muscles represented by an ideal force actuator
+S.Foot.PIM = 0;             % include PIM actuator
+S.W.PIM = 5e4;              % weight on the excitations for cost function
+S.W.P_PIM = 1e4;            % weight on the net Work for cost function
 
+% Plantar Intrinsic Muscles represented by Flexor Digitorum Brevis
+S.Foot.FDB = 1;             % include Flexor Digitorum Brevis
 
 %% Initial guess
 %-------------------------------------------------------------------------%
 
-% initial guess based on simulations without exoskeletons
-    % initial guess identifier (1: quasi random, 2: data-based)
-S.IGsel         = 2;
-    % initial guess mode identifier (1 walk, 2 run, 3 prev.solution, 4 solution from /IG/Data folder)
-S.IGmodeID      = 1;
+
+% initial guess identifier                  
+S.IGsel         = 2;   % (1: quasi random, 2: data-based)
+% initial guess mode identifier
+S.IGmodeID      = 1;   % (1 walk, 2 run, 3 prev.solution, 4 solution from /IG/Data folder)
 
 if S.IGmodeID == 4
     S.savename_ig   = 'NoExo';

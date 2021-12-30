@@ -26,30 +26,61 @@ clc
 [pathHere,~,~] = fileparts(mfilename('fullpath'));
 [pathRepo,~,~] = fileparts(pathHere);
 addpath([pathRepo '/VariousFunctions']);
-addpath([pathRepo '/PassiveMoments']);
 addpath([pathRepo '/FootModel']);
-
 
 
 %% Folder(s) with results
 ResultsFolder = {'debug'};
 
 %% General information
-
-% S.suffixName = 'v4';
-
 S.subject = 'Fal_s1';
+
+% S.suffixCasName = 'v3';     % suffix for name of folder with casadifunctions
+% S.suffixName = 'v4';        % suffix for name of file with results
+
+%% Foot model
+%-------------------------------------------------------------------------%
+% General
 S.Foot.Model = 'mtj';
-S.Foot.Scaling = 'custom';
+   % 'mtp': foot with mtp joint
+   % 'mtj': foot with mtp and midtarsal joint
+S.Foot.Scaling = 'custom'; % default, custom, personalised
 
-% S.Foot.kMTP = 17;
+% Achilles tendon
+S.AchillesTendonScaleFactor = 1;
 
+% Contact spheres
+S.Foot.contactStiffnessFactor = 10;  % 1 or 10, 10: contact spheres are 10x stiffer
+S.Foot.contactSphereOffsetY = 1;    % contact spheres are offset in y-direction to match static trial IK
+S.Foot.contactSphereOffset1X = 0;   % heel contact sphere offset in x-direction
+
+%% metatarsophalangeal (mtp) joint
+% S.Foot.mtp_actuator = 0;    % use an ideal torque actuator
+% S.Foot.mtp_muscles = 0;     % extrinsic toe flexors and extensors act on mtp joint
+% S.Foot.kMTP = 1;            % additional stiffness of the joint (Nm/rad)
+% S.Foot.dMTP = 0.1;          % additional damping of the joint (Nms/rad)
+
+%% midtarsal joint 
+% (only used if Model = mtj)
+% S.Foot.mtj_muscles = 0;  % joint interacts with- extrinsic foot muscles
+% lumped ligaments (long, short planter ligament, etc)
 % S.Foot.MT_li_nonl = 1;       % 1: nonlinear torque-angle characteristic
 % S.Foot.mtj_stiffness = 'MG_exp_table';
+% S.Foot.mtj_sf = 1; 
 
-% S.Foot.PIM = 1;
+% S.Foot.kMT_li = 200;        % angular stiffness in case of linear
+% S.Foot.kMT_li2 = 10;        % angular stiffness in case of signed linear
+% S.dMT = 0.1;                % (Nms/rad) damping
 
+% plantar fascia
+% S.Foot.PF_stiffness = 'Gefen2002'; % 'none''linear''Gefen2002''Cheng2008''Natali2010''Song2011'
+% S.Foot.PF_sf = 1;   
+% S.Foot.PF_slack_length = 0.146; % (m) slack length
 
+% Plantar Intrinsic Muscles represented by and ideal force actuator
+% S.Foot.PIM = 0;             % include PIM actuator
+% S.W.PIM = 5e4;              % weight on the excitations for cost function
+% S.W.P_PIM = 1e4;            % weight on the net Work for cost function
 
 
 
@@ -58,7 +89,8 @@ S.Foot.Scaling = 'custom';
 % S.IGmodeID      = 3;    % initial guess mode identifier (1 walk, 2 run, 3prev.solution, 4 solution from /IG/Data folder)
 
 
-
+% Plantar Intrinsic Muscles represented by Flexor Digitorum Brevis
+S.Foot.FDB = 1;             % include Flexor Digitorum Brevis
 
 
 
@@ -68,12 +100,16 @@ S.Foot.Scaling = 'custom';
 % results = {
 % %     '\debug\Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_PIM_w1e+03_w1e+04_ig21'
 % %     '\debug\Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_PIM_w1e+03_w1e+05_ig21'
-%     '\debug\Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_PIM_w1e+04_w1e+05_ig21'
+% %     '\debug\Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_PIM_w1e+04_w1e+05_ig21'
 %     '\debug\Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_PIM_w1e+05_w1e+05_ig21'
-% %     '\debug\Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_PIM_w2e+04_w1e+05_ig21'
+%     '\debug\Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_PIM_w2e+04_w1e+05_ig21'
 %     '\debug\Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_PIM2_w1e+05_w1e+05_ig21'
 %     };
 
+% results = {
+%     '\debug\Fal_s1_mtj_sc_cspx10_oy_ATx70_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_PIM2_w5e+04_w1e+04_ig21'
+%     '\debug\Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d01_MTJm_nl_MG_exp_table_d01_PF_Gefen2002_ls146_FDB_ig21'
+%     };
 
 if exist('results','var') && ~isempty(results)
     filteredResults = {length(results)};
@@ -92,9 +128,8 @@ else
     % get filter criteria
     [~,~,criteria] = getSavename(S);
     
-    criteria{end+1} = 'cspx10_oy';
     criteria{end+1} = 'not_PIM';
-    
+%     criteria{end+1} = 'not_o1x25';
     
     % filter filenames
     [filteredResults] = filterResultfolderByParameters(pathResult,criteria);
@@ -108,14 +143,14 @@ else
 end
 ref = {};
 
-% ref{end+1} = fullfile([pathRepo '/Results/debug\Fal_s1_mtp_sd_MTPp_k17_d05_ig21_pp.mat']);
-% ref{end+1} = fullfile([pathRepo '/Results/debug\Fal_s1_mtp_sc_MTPp_k17_d05_ig21_pp.mat']);
+ref{end+1} = fullfile([pathRepo '/Results/debug\Fal_s1_mtp_sd_MTPp_k17_d05_ig21_pp.mat']);
+ref{end+1} = fullfile([pathRepo '/Results/debug\Fal_s1_mtp_sc_MTPp_k17_d05_ig21_pp.mat']);
 % ref{end+1} = fullfile([pathRepo '/Results/debug\Fal_s1_mtp_sd_MTPm_k1_d05_ig21_pp.mat']);
 
 
-% filteredResultsWithRef = filteredResults';
+filteredResultsWithRef = filteredResults';
 % filteredResultsWithRef = [ref, filteredResults]';
-filteredResultsWithRef = [filteredResults, ref]';
+% filteredResultsWithRef = [filteredResults, ref]';
 
 
 ResultsFile = filteredResultsWithRef;
@@ -129,7 +164,7 @@ figNamePrefix = 'none';
 makeplot.kinematics                     = 1; % selected joint angles
 makeplot.kinetics                       = 0; % selected joint torques
 makeplot.ankle_musc                     = 1; % ankle muscles
-makeplot.GRF                            = 0; % ground interaction
+makeplot.GRF                            = 1; % ground interaction
 makeplot.compareLiterature              = 0; % mtj and mtp Caravaggi 2018
 makeplot.compareTakahashi17             = 0; % "distal to segment" power analysis
 makeplot.compareTakahashi17_separate    = 0; % "distal to segment" power analysis
@@ -137,23 +172,25 @@ makeplot.compareTakahashi17_mtj_only    = 0; % plot mtj power over experimental 
 makeplot.compareTakahashi17_W_bar       = 0; % "distal to segment" work analysis
 makeplot.allQsTs                        = 0; % all joint angles and torques
 makeplot.windlass                       = 1; % plantar fascia and foot arch info
-makeplot.power                          = 0; % datailed power decomposition
+makeplot.power                          = 1; % datailed power decomposition
 makeplot.work                           = 0; % same as power, but work over GC
 makeplot.work_bar                       = 0; % positive, negative and net work bar plot
 makeplot.work_bar_small                 = 0; % positive, negative and net work bar plot
-makeplot.power_main                     = 0; % main power components of foot
+makeplot.power_main                     = 1; % main power components of foot
 makeplot.spatiotemp                     = 0; % stridelength etc.
 makeplot.ankle_correlation              = 0; % correlation of ankle 
 makeplot.E_muscle_bar                   = 0; % muscle metabolic energy totals
+makeplot.W_muscle_bar                   = 0; % muscle fibre work totals   
 makeplot.E_muscle_bar_small             = 0; % metabolic energy and work by selected muscle groups
 makeplot.toes                           = 0; % toe flexor and extensor muscle info
 makeplot.Edot_all                       = 0; % summed metabolic energy rate
 makeplot.Energy_cost                    = 0; % decompose metabolic cost components
 makeplot.muscle_act                     = 0; % muscle activity
+makeplot.muscle_act_exc                 = 0; % muscle activity and excitation   
 makeplot.muscle_joint_moment            = 1; % moments of muscles around ankle-foot joints
-makeplot.muscle_joint_power             = 0; % powers of muscles around ankle-foot joints
+makeplot.muscle_joint_power             = 1; % powers of muscles around ankle-foot joints
 makeplot.Objective_cost                 = 0; % cost function decomposition
 
-PlotResults_3DSim_Report(ResultsFile,LegNames,'Fal_s1',mtj,makeplot,figNamePrefix);
+PlotResults_3DSim_Report(ResultsFile,LegNames,'Fal_s1_mtj_custom',mtj,makeplot,figNamePrefix);
 
 

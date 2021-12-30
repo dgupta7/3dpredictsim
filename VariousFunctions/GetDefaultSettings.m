@@ -277,6 +277,13 @@ if ~isfield(S.Foot,'dMT') || isempty(S.Foot.dMT)
     S.Foot.dMT = 0.1;
 end
 
+if ~isfield(S.Foot,'FDB') || isempty(S.Foot.FDB)
+    S.Foot.FDB = 0;
+end
+if S.Foot.FDB
+    S.Foot.PIM = 0;
+end
+
 % Print the settings to the screen
 disp(S);
 
