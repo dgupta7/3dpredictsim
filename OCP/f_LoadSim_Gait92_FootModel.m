@@ -217,10 +217,11 @@ toesOrall.r   = double(IO.origin.toes_r);
 toesOrall.l   = double(IO.origin.toes_l);
 toesOrall.all = [toesOrall.r,toesOrall.l];
 % midfoot
-midfootOrall.r   = double(IO.origin.midfoot_r);
-midfootOrall.l   = double(IO.origin.midfoot_l);
-midfootOrall.all = [midfootOrall.r,midfootOrall.l];
-
+if mtj
+    midfootOrall.r   = double(IO.origin.midfoot_r);
+    midfootOrall.l   = double(IO.origin.midfoot_l);
+    midfootOrall.all = [midfootOrall.r,midfootOrall.l];
+end 
 % Ground Reaction Forces
 GRFi.r = IO.GRFs.right_foot;
 GRFi.l = IO.GRFs.left_foot;
@@ -274,6 +275,34 @@ else
         'elbow_flex_l','elbow_flex_r'};
 end
 
+%% Get tracking information
+if isfield(S,'TrackSim') && S.TrackSim
+    load([pathRepo '\Data\Fal_s1.mat'],'Data');
+    Qref = Data.(['IK_' S.Track.Q_ref]);
+    if S.Track.Q_ankle
+        Qref_ankle = Qref.Qall_mean(:,strcmp(Qref.colheaders,'ankle_angle'))*pi/180;
+        Qref_ankle = interp1(linspace(1,2*N,length(Qref_ankle))',Qref_ankle,...
+             (1:1:2*N)','spline','extrap');
+        Qref_ankle_lr = [Qref_ankle(N+1:end),Qref_ankle(1:N)]';
+    end
+    if S.Track.Q_subt
+        Qref_subt = Qref.Qall_mean(:,strcmp(Qref.colheaders,'subtalar_angle'))*pi/180;
+        Qref_subt = interp1(linspace(1,2*N,length(Qref_subt))',Qref_subt,...
+             (1:1:2*N)','spline','extrap');
+        Qref_subt_lr = [Qref_subt(N+1:end),Qref_subt(1:N)]';
+    end
+
+    if S.Track.Q_ankle
+        if S.Track.Q_subt
+            Qref_lr = [Qref_ankle_lr;Qref_subt_lr];
+        else
+            Qref_lr = Qref_ankle_lr;
+        end
+    elseif S.Track.Q_subt
+        Qref_lr = Qref_subt_lr;
+    end
+
+end
 
 %% get scaling
 scaling = setup.scaling;
@@ -581,6 +610,7 @@ GRF_cost        = 0;
 vA_cost         = 0;
 dFTtilde_cost   = 0;
 QdotdotArm_cost = 0;
+Track_cost      = 0;
 count           = 1;
 h_opt           = tf_opt/N;
 for k=1:N
@@ -690,6 +720,22 @@ for k=1:N
             (f_J8(qdotdot_col_opt(count,armsi)))*h_opt;
         count = count + 1;
     end
+    if S.TrackSim
+        if S.Track.Q_ankle
+            track_err = q_opt_unsc.rad(k,[jointi.ankle.l, jointi.ankle.r]) - Qref_lr(1:2,k)';
+            J_opt = J_opt + W.Q_track * f_J2(track_err)*h_opt;
+            Track_cost = Track_cost + W.Q_track * f_J2(track_err)*h_opt;
+            if S.Track.Q_subt
+                track_err = q_opt_unsc.rad(k,[jointi.subt.l, jointi.subt.r]) - Qref_lr(3:4,k)';
+                J_opt = J_opt + W.Q_track * f_J2(track_err)*h_opt;
+                Track_cost = Track_cost + W.Q_track * f_J2(track_err)*h_opt;
+            end
+        elseif S.Track.Q_subt
+            track_err = q_opt_unsc.rad(k,[jointi.subt.l, jointi.subt.r]) - Qref_lr(1:2,k)';
+            J_opt = J_opt + W.Q_track * f_J2(track_err)*h_opt;
+            Track_cost = Track_cost + W.Q_track * f_J2(track_err)*h_opt;
+        end
+    end
 end
 J_opt = J_opt/dist_trav_opt;
 
@@ -711,11 +757,12 @@ Pass_costf = full(Pass_cost);   Obj.Pass = Pass_costf;
 vA_costf = full(vA_cost);       Obj.vA = vA_costf;
 dFTtilde_costf = full(dFTtilde_cost); Obj.dFTtilde = dFTtilde_costf;
 QdotdotArm_costf = full(QdotdotArm_cost); Obj.qdd_arm = QdotdotArm_costf;
-P_PIM_costf = full(P_PIM_cost);     Obj.P_PIM = P_PIM_costf;
+P_PIM_costf = full(P_PIM_cost); Obj.P_PIM = P_PIM_costf;
+Track_costf = full(Track_cost); Obj.Track = Track_costf;
 % assertCost should be 0
 assertCost = abs(J_optf - 1/(dist_trav_opt)*(E_costf+A_costf+Arm_costf+...
     Mtp_costf+PIM_costf+Qdotdot_costf+Pass_costf+vA_costf+dFTtilde_costf+...
-    QdotdotArm_costf+P_PIM_costf));
+    QdotdotArm_costf+P_PIM_costf+Track_costf));
 assertCost2 = abs(stats.iterations.obj(end) - J_optf);
 if assertCost > 1*10^(-tol_ipopt)
     disp('Issue when reconstructing optimal cost wrt sum of terms')
@@ -1166,21 +1213,22 @@ if isfield(IO,'GRMs') || isfield(IO,'P_contact_deformation_y')
             P_HC_t_l(ind) = sum(res(P_HCi.toes.l));
         end
 
-        toes_or = res(toesOrall.r);
-        calcn_or = res(calcOrall.r);
-        midfoot_or = res(midfootOrall.r);
-
-        % calculate arch length
-        l_fa_ext(ind) = norm(squeeze(toes_or-calcn_or));
-
-        % calculate arch height (orthogonal decomposition)
-        vec_a = squeeze(midfoot_or - toes_or); % mtpj to tmtj/mtj
-        vec_b = squeeze(calcn_or - toes_or); % mtpj to heel
-        vec_ap = dot(vec_a,vec_b)/dot(vec_b,vec_b)*vec_b; % orthogonal projection of a onto b
-        vec_an = vec_a - vec_ap; % component of a that is normal to b 
-
-        h_fa_ext(ind) = abs(norm(vec_an));
-        
+        if mtj
+            toes_or = res(toesOrall.r);
+            calcn_or = res(calcOrall.r);
+            midfoot_or = res(midfootOrall.r);
+    
+            % calculate arch length
+            l_fa_ext(ind) = norm(squeeze(toes_or-calcn_or));
+    
+            % calculate arch height (orthogonal decomposition)
+            vec_a = squeeze(midfoot_or - toes_or); % mtpj to tmtj/mtj
+            vec_b = squeeze(calcn_or - toes_or); % mtpj to heel
+            vec_ap = dot(vec_a,vec_b)/dot(vec_b,vec_b)*vec_b; % orthogonal projection of a onto b
+            vec_an = vec_a - vec_ap; % component of a that is normal to b 
+    
+            h_fa_ext(ind) = abs(norm(vec_an));
+        end
     end
     
 

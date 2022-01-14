@@ -7,19 +7,7 @@ if strcmp(RefData,'none')
     md = 0;
 else
     md = 1;
-    if strcmp(RefData,'act')
-        type = 'Active';
-        refName = 'Powered exoskeleton';
-    elseif strcmp(RefData,'pas')
-        type = 'Passive';
-        refName = 'Unpowered exoskeleton';
-    elseif strcmp(RefData,'norm')
-        type = 'Normal';
-        refName = 'Shoes';
-    elseif contains(RefData,'Fal_s1')
-        type = 'Normal';
-        refName = 'Barefoot';
-    end
+    refName = 'Barefoot';
 end
 
 set(0,'defaultTextInterpreter','tex');
@@ -34,10 +22,10 @@ else
 end
 
 joints_ref = {'pelvis_tilt','pelvis_list','pelvis_rotation',...
-    'hip_flexion','hip_adduction','hip_rotation',...
-    'knee_angle','ankle_angle','subtalar_angle','mtj_angle','tmt_angle','mtp_angle',...
-    'lumbar_extension','lumbar_bending','lumbar_rotation',...
-    'arm_flex','arm_add','arm_rot','elbow_flex'};
+        'hip_flexion','hip_adduction','hip_rotation',...
+        'knee_angle','ankle_angle','subtalar_angle','mtj_angle','tmt_angle','mtp_angle',...
+        'lumbar_extension','lumbar_bending','lumbar_rotation',...
+        'arm_flex','arm_add','arm_rot','elbow_flex'};
 
 joints_tit = {'Pelvis tilt','Pelvis list','Pelvis rotation','Pelvis tx',...
         'Pelvis ty','Pelvis tz','Hip flexion L','Hip adduction L',...
@@ -57,7 +45,7 @@ fsq = [scs(3)/2, scs(4)*0.6];
 fhigh = [scs(3)/2, scs(4)-120];
 flong = [scs(3)/2, scs(4)/4];
 fhigh1 = [scs(3)*0.4, scs(4)-120];
-ffull = [scs(3),scs(4)*0.88];
+ffull = [scs(3),scs(4)-120];
 
 fpos = [1,scs(4)/2+20;
         1,40;
@@ -68,7 +56,7 @@ label_fontsize  = 12;
 line_linewidth  = 0.5;
 NumTicks = 6;
 CsV = hsv(nr);
-
+mrk = {'-','--',':','-.'}; % 'LineStyle',mrk{rem(inr,length(mrk))+1}
         
 for inr=1:nr
     load(ResultsFile{inr},'R');
@@ -79,7 +67,11 @@ for inr=1:nr
     end
     
     has_no_tmt = 1;
-    has_no_mtj = ~strcmp(R.S.Foot.Model,'mtj');
+    if isfield(R.S,'Foot')
+        has_no_mtj = ~strcmp(R.S.Foot.Model,'mtj');
+    else
+        has_no_mtj = sum( contains(R.colheaders.joints,'mtj_angle_r') >0);
+    end
     
 %% get indices
     imtj = find(strcmp(R.colheaders.joints,'mtj_angle_r'));
@@ -125,17 +117,6 @@ for inr=1:nr
     igluteus_minimus(1) = find(strcmp(R.colheaders.muscles,'glut_min1_r'));
     igluteus_minimus(2) = find(strcmp(R.colheaders.muscles,'glut_min2_r'));
     igluteus_minimus(3) = find(strcmp(R.colheaders.muscles,'glut_min3_r'));
-    
-    % get GRFs
-    GRF1 = R.GRFs_separate(:,2);
-    GRF2 = R.GRFs_separate(:,5);
-    GRF3 = R.GRFs_separate(:,8);
-    % total
-    GRFt = GRF1 + GRF2 + GRF3;
-    % relative
-    grf1 = abs(GRF1./GRFt*100);
-    grf2 = abs(GRF2./GRFt*100);
-    iarch_stance = find( grf1>5 & grf2>5 & GRFt>1);
 
     dist_trav = R.Qs(end,strcmp(R.colheaders.joints,'pelvis_tx')) - ...
                 R.Qs(1,strcmp(R.colheaders.joints,'pelvis_tx'));
@@ -214,6 +195,7 @@ for inr=1:nr
 
     else
         P_PF = zeros(size(P_mtp));
+        P_PIM = zeros(size(P_mtp));
         P_mtj = zeros(size(P_mtp));
         P_mtj_li = P_mtj;
         P_mtj_PF = zeros(size(P_mtp));
@@ -308,7 +290,8 @@ for inr=1:nr
             Qref = Data.IK_original;
         end
 
-        data_field = ['ID_' R.S.Foot.Model '_' R.S.Foot.Scaling];
+%         data_field = ['ID_' R.S.Foot.Model '_' R.S.Foot.Scaling];
+        data_field = ['ID_' RefData(8:end)];
         if isfield(Data,data_field)
             Tref = Data.(data_field);
         else
@@ -350,26 +333,7 @@ for inr=1:nr
     
     COT_all(inr) = R.COT;
     
-    idx_js = [4,5,7,8,9,10,12]; % colheaders mocap
-    idx_sp = [1,2,3,5,6,7,8]; % subplots to use
     
-    if has_no_tmt && has_no_mtj
-        idx_Qs = [10,11,14,16,18,20]; % Qs in result file
-    else
-        idx_Qs = [10,11,14,16,18,20,22];
-    end
-    
-    if mtj==1
-        idx_title = [10,11,14,16,18,20,24]; % names for title
-    elseif mtj==0
-        idx_title = [10,11,14,16,18,22,24];
-    else
-        idx_title = [10,11,14,16,18,24];
-        idx_js = [4,5,7,8,9,12]; % colheaders mocap
-        idx_sp = [1,2,3,5,6,7]; % subplots to use
-    end
-    
-    x = 1:(100-1)/(size(R.Qs,1)-1):100;
     
     %% kinematics
     if makeplot.kinematics
@@ -379,6 +343,28 @@ for inr=1:nr
         else
             figure(h1);
         end
+
+        idx_js = [4,5,7,8,9,10,12]; % colheaders mocap
+        idx_sp = [1,2,3,5,6,7,8]; % subplots to use
+        
+        if has_no_tmt && has_no_mtj
+            idx_Qs = [10,11,14,16,18,20]; % Qs in result file
+        else
+            idx_Qs = [10,11,14,16,18,20,22];
+        end
+        
+        if mtj==1
+            idx_title = [10,11,14,16,18,20,24]; % names for title
+        elseif mtj==0
+            idx_title = [10,11,14,16,18,22,24];
+        else
+            idx_title = [10,11,14,16,18,24];
+            idx_js = [4,5,7,8,9,12]; % colheaders mocap
+            idx_sp = [1,2,3,5,6,7]; % subplots to use
+        end
+        
+        x = 1:(100-1)/(size(R.Qs,1)-1):100;
+
         j = 0;
         label_fontsize  = 12;
         line_linewidth  = 0.5;
@@ -413,7 +399,7 @@ for inr=1:nr
                 % skip this plot
             else
                 j=j+1;
-                plot(x,R.Qs(:,idx_Qs(j)),'linewidth',line_linewidth,'Color',CsV(inr,:),'DisplayName',LegName);
+                plot(x,R.Qs(:,idx_Qs(j)),'linewidth',line_linewidth,'Color',CsV(inr,:),'DisplayName',LegName); % ,'LineStyle',mrk{rem(inr,length(mrk))+1}
 
             end
 
@@ -438,13 +424,12 @@ for inr=1:nr
                 xlim([0,100])
             end
             if i == 3
-%                 lh1=legend('-DynamicLegend','location','northwest');
-%                 lh1.Interpreter = 'tex';
-%                 lhPos = lh1.Position;
-%                 lhPos(1) = lhPos(1)+0.17;
-% %                 lhPos(2) = lhPos(2)+0.1;
-% %                 lh1.Box='off';
-%                 set(lh1,'position',lhPos);
+                lh1=legend('location','northwest','Interpreter',lgInt);
+                lhPos = lh1.Position;
+                lhPos(1) = lhPos(1)+0.17;
+%                 lhPos(2) = lhPos(2)+0.1;
+%                 lh1.Box='off';
+                set(lh1,'position',lhPos);
             end
         end
         
@@ -546,6 +531,28 @@ for inr=1:nr
         else
             figure(h2);
         end
+
+        idx_js = [4,5,7,8,9,10,12]; % colheaders mocap
+        idx_sp = [1,2,3,5,6,7,8]; % subplots to use
+        
+        if has_no_tmt && has_no_mtj
+            idx_Qs = [10,11,14,16,18,20]; % Qs in result file
+        else
+            idx_Qs = [10,11,14,16,18,20,22];
+        end
+        
+        if mtj==1
+            idx_title = [10,11,14,16,18,20,24]; % names for title
+        elseif mtj==0
+            idx_title = [10,11,14,16,18,22,24];
+        else
+            idx_title = [10,11,14,16,18,24];
+            idx_js = [4,5,7,8,9,12]; % colheaders mocap
+            idx_sp = [1,2,3,5,6,7]; % subplots to use
+        end
+        
+        x = 1:(100-1)/(size(R.Qs,1)-1):100;
+
         j = 0;
         label_fontsize  = 12;
         line_linewidth  = 0.5;
@@ -851,7 +858,7 @@ for inr=1:nr
     if makeplot.GRF
         GRF_title = {'Fore-aft','Vertical','Lateral'};
         if inr==1
-            h4 = figure('Position',[fpos(4,:),fwide]);
+            h4 = figure('Position',[fpos(4,:),fsq]);
         else
             figure(h4);
         end
@@ -860,7 +867,7 @@ for inr=1:nr
         istance_COPR = find(R.GRFs(:,2)>20);
         COPz = R.COPR(istance_COPR,3)*1e3;
         COPx = (R.COPR(istance_COPR,1)-R.COPR(istance_COPR(1),1))*1e3;
-        subplot(2,5,[5;10])
+        subplot(3,5,[5;10])
         hold on
         grid on
         if max(abs(COPz))<1e2
@@ -881,7 +888,7 @@ for inr=1:nr
         
         if inr==1 && md
             for i=1:3
-                subplot(2,4,i)
+                subplot(3,4,i)
                 hold on
 
                 meanPlusSTD = Data.GRF.Fmean(:,i) + 2*Data.GRF.Fstd(:,i);
@@ -899,7 +906,7 @@ for inr=1:nr
 
         end
         for i=1:3
-            subplot(2,4,i)
+            subplot(3,4,i)
             hold on
             grid on
             l = plot(R.GRFs(:,i),'-','Color',CsV(inr,:));
@@ -925,7 +932,7 @@ for inr=1:nr
         end
 
         if isfield(R,'GRFs_separate') && ~isempty(R.GRFs_separate)
-            subplot(2,4,5)
+            subplot(3,4,5)
             hold on
             grid on
             plot(sum(R.GRFs_separate(:,[2,5]),2),'Color',Cs);
@@ -937,7 +944,7 @@ for inr=1:nr
             ylim([yl(1)-0.1*abs(sum(yl)),yl(2)+0.1*abs(sum(yl))])
             xlim([0,100])
 
-            subplot(2,4,6)
+            subplot(3,4,6)
             hold on
             grid on
             plot(sum(R.GRFs_separate(:,[8,11,14]),2),'Color',Cs);
@@ -948,7 +955,7 @@ for inr=1:nr
             ylim([yl(1)-0.1*abs(sum(yl)),yl(2)+0.1*abs(sum(yl))])
             xlim([0,100])
             
-            subplot(2,4,7)
+            subplot(3,4,7)
             hold on
             grid on
             plot(R.GRFs_separate(:,17),'Color',Cs);
@@ -958,6 +965,22 @@ for inr=1:nr
             yl = get(gca, 'ylim');
             ylim([yl(1)-0.1*abs(sum(yl)),yl(2)+0.1*abs(sum(yl))])
             xlim([0,100])
+
+            for iGRF=1:6
+                subplot(3,6,2*6+iGRF)
+                hold on
+                grid on
+                plot(R.GRFs_separate(:,2+3*(iGRF-1)),'Color',Cs);
+                if iGRF == 1
+                    ylabel({'Ground reaction force','(% body weight)'})
+                end
+                xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+                title({'Vertical GRF',['sphere ' num2str(iGRF)]})
+                axis tight
+                yl = get(gca, 'ylim');
+                ylim([yl(1)-0.1*abs(sum(yl)),yl(2)+0.1*abs(sum(yl))])
+                xlim([0,100])
+            end
         end
          
         
@@ -1505,7 +1528,7 @@ for inr=1:nr
         end
         %
         
-        h6e = figure('Position',[fpos(4,:),flong(1)*2,flong(2)*1.8*2]);
+        h6e = figure('Position',[fpos(4,:),ffull]);
         
         subplot(121)
         hold on
@@ -2145,26 +2168,26 @@ for inr=1:nr
                 
                 
 
-                F_GRF = R.GRFs(iarch_stance,2)*R.body_mass*9.81/100;
-                A_tmp = [F_GRF, F_At(iarch_stance)]\F_PF(iarch_stance);
-                F_PF_est_1 = A_tmp(1)*F_GRF + A_tmp(2)*F_At(iarch_stance);
-                F_PF_err_1 = norm(F_PF(iarch_stance)-F_PF_est_1);
-                
-                poly_PF_1 = ['F_P_F = ' num2str(A_tmp(1),3) ' GRF_y + ' num2str(A_tmp(2),3) ' F_A_t'];
-                
-                F_GRF = R.GRFs(istance0,2)*R.body_mass*9.81/100;
-                A_tmp = [F_GRF, F_At(istance0)]\F_PF(istance0);
-                F_PF_est_2 = A_tmp(1)*F_GRF + A_tmp(2)*F_At(istance0);
-                F_PF_err_2 = norm(F_PF(istance0)-F_PF_est_2);
-                
-                poly_PF_2 = ['F_P_F = ' num2str(A_tmp(1),3) ' GRF_y + ' num2str(A_tmp(2),3) ' F_A_t'];
-                
-                F_GRF = R.GRFs(:,2)*R.body_mass*9.81/100;
-                A_tmp = [F_GRF, F_At(:)]\F_PF(:);
-                F_PF_est_3 = A_tmp(1)*F_GRF + A_tmp(2)*F_At(:);
-                F_PF_err_3 = norm(F_PF-F_PF_est_3);
-                
-                poly_PF_3 = ['F_P_F = ' num2str(A_tmp(1),3) ' GRF_y + ' num2str(A_tmp(2),3) ' F_A_t'];
+%                 F_GRF = R.GRFs(iarch_stance,2)*R.body_mass*9.81/100;
+%                 A_tmp = [F_GRF, F_At(iarch_stance)]\F_PF(iarch_stance);
+%                 F_PF_est_1 = A_tmp(1)*F_GRF + A_tmp(2)*F_At(iarch_stance);
+%                 F_PF_err_1 = norm(F_PF(iarch_stance)-F_PF_est_1);
+%                 
+%                 poly_PF_1 = ['F_P_F = ' num2str(A_tmp(1),3) ' GRF_y + ' num2str(A_tmp(2),3) ' F_A_t'];
+%                 
+%                 F_GRF = R.GRFs(istance0,2)*R.body_mass*9.81/100;
+%                 A_tmp = [F_GRF, F_At(istance0)]\F_PF(istance0);
+%                 F_PF_est_2 = A_tmp(1)*F_GRF + A_tmp(2)*F_At(istance0);
+%                 F_PF_err_2 = norm(F_PF(istance0)-F_PF_est_2);
+%                 
+%                 poly_PF_2 = ['F_P_F = ' num2str(A_tmp(1),3) ' GRF_y + ' num2str(A_tmp(2),3) ' F_A_t'];
+%                 
+%                 F_GRF = R.GRFs(:,2)*R.body_mass*9.81/100;
+%                 A_tmp = [F_GRF, F_At(:)]\F_PF(:);
+%                 F_PF_est_3 = A_tmp(1)*F_GRF + A_tmp(2)*F_At(:);
+%                 F_PF_err_3 = norm(F_PF-F_PF_est_3);
+%                 
+%                 poly_PF_3 = ['F_P_F = ' num2str(A_tmp(1),3) ' GRF_y + ' num2str(A_tmp(2),3) ' F_A_t'];
                 
 %                 disp(LegName)
 %                 disp(poly_PF_1)
@@ -2614,7 +2637,8 @@ for inr=1:nr
             subplot(nh,nw,4)
             hold on
             grid on
-            plot(xst_10,R.GRFs_separate(istance,2),'Color',Cs);
+            plot(xst_10,sum(R.GRFs_separate(istance,[2,5]),2),'Color',Cs);
+%             plot(xst_10,R.GRFs_separate(istance,2),'Color',Cs);
             ylabel('% body weight','Fontsize',label_fontsize);
             title('Vertical GRF Heel')
             axis tight
@@ -2625,7 +2649,8 @@ for inr=1:nr
             subplot(nh,nw,8)
             hold on
             grid on
-            plot(xst_10,R.GRFs_separate(istance,2+3),'Color',Cs);
+            plot(xst_10,sum(R.GRFs_separate(istance,[8,11,14]),2),'Color',Cs);
+%             plot(xst_10,R.GRFs_separate(istance,2+3),'Color',Cs);
             ylabel('% body weight','Fontsize',label_fontsize);
             title('Vertical GRF Forefoot')
             axis tight
@@ -2636,7 +2661,8 @@ for inr=1:nr
             subplot(nh,nw,12)
             hold on
             grid on
-            plot(xst_10,R.GRFs_separate(istance,2+6),'Color',Cs);
+            plot(xst_10,R.GRFs_separate(istance,17),'Color',Cs);
+%             plot(xst_10,R.GRFs_separate(istance,2+6),'Color',Cs);
             xlabel('Stance phase (%)','Fontsize',label_fontsize);
             ylabel('% body weight','Fontsize',label_fontsize);
             title('Vertical GRF Toes')
@@ -2645,6 +2671,7 @@ for inr=1:nr
             ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
             xlim([0,110])
         end
+        
         
         if inr==nr && ~strcmp(figNamePrefix,'none')
             set(h19,'PaperPositionMode','auto')
@@ -3239,12 +3266,12 @@ for inr=1:nr
         end
         
 
-        if inr>1
-            Etot_mus_i = 2*sum(Emus(:,inr));
-            Etot_mus_1 = 2*sum(Emus(:,1));
+%         if inr>1
+%             Etot_mus_i = 2*sum(Emus(:,inr));
+%             Etot_mus_1 = 2*sum(Emus(:,1));
 %             disp(num2str( Etot_mus_i-Etot_mus_1 ))
 %             disp(num2str( COT_all(inr)-COT_all(1) )) 
-        end
+%         end
         
         legMus{inr} = LegName;
         
@@ -3434,101 +3461,149 @@ for inr=1:nr
         ifh = find(strcmp(R.colheaders.muscles,'flex_hal_r'));
         ied = find(strcmp(R.colheaders.muscles,'ext_dig_r'));
         ieh = find(strcmp(R.colheaders.muscles,'ext_hal_r'));
+        iFDB = find(strcmp(R.colheaders.muscles,'FDB_r'));
 
-        mVect = {'Flex-dig','Flex-hal','Ext-dig','Ext-hal'};
+        mVect = {'Flex-dig','Flex-hal','Ext-dig','Ext-hal','FDB'};
 
         imus = [ifd ifh ied ieh];
 
-            if inr==1
-                h25 = figure('Position',[fpos(3,:),fwide]);
-            end
+        if ~isempty(iFDB)
+            imus(5) = iFDB;
+        end
 
-             figure(h25);
+        if inr==1
+            h25 = figure('Position',[fpos(3,:),fhigh]);
+        end
+
+         figure(h25);
 
 
-            for imu=1:4
+        for imu=1:length(imus)
 
-                subplot(4,4,imu); hold on;
-                plot(R.a(:,imus(imu)),'-','Color',CsV(inr,:),'DisplayName',LegName);
-                title(mVect{imu});
-                ylabel('Activity (-)','Interpreter','latex');
-                grid on
-                L = get(gca,'XLim');
-                set(gca,'XTick',linspace(L(1),L(2),NumTicks))
-                axis tight
-                yl = get(gca, 'ylim');
-                ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
-                xlim([0,100])
+            subplot(7,5,imu); hold on;
+            plot(R.a(:,imus(imu)),'-','Color',CsV(inr,:),'DisplayName',LegName);
+            title(mVect{imu});
+            ylabel('Activity (-)','Interpreter','latex');
+            grid on
+            L = get(gca,'XLim');
+            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
+            axis tight
+            yl = get(gca, 'ylim');
+            ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+            xlim([0,100])
 
-%                 if inr==1 && imu==1
-%                     lh3=legend('-DynamicLegend','location','northwest');
-%                     lh3.Interpreter = 'tex';
+%             if inr==1 && imu==1
+%                 lh3=legend('-DynamicLegend','location','northwest');
+%                 lh3.Interpreter = 'tex';
 % %                     lh3.Orientation = 'horizontal';
-%                 end
-
-                subplot(4,4,4+imu)
-                plot(R.FT(:,imus(imu)),'-','Color',CsV(inr,:),'DisplayName',LegName);
-                hold on
-                grid on
-
-                L = get(gca,'XLim');
-                set(gca,'XTick',linspace(L(1),L(2),NumTicks))
-                if imu==1
-                    ylabel('$F^T$ (N)','Interpreter','latex');
-                end
-                axis tight
-                yl = get(gca, 'ylim');
-                ylim([0,yl(2)+0.15*norm(yl)])
-                xlim([0,100])
-
-                subplot(4,4,8+imu)
-                plot(R.MetabB.Etot(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
-                hold on
-                grid on
-
-                L = get(gca,'XLim');
-                set(gca,'XTick',linspace(L(1),L(2),NumTicks))
-                if imu==1
-                    ylabel('$\dot{E}$ (W)','Interpreter','latex');
-                end
-                axis tight
-                yl = get(gca, 'ylim');
-                ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
-                xlim([0,100])
-
-                subplot(4,4,12+imu)
-                plot(R.MetabB.Wdot(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
-                hold on
-                grid on
-                L = get(gca,'XLim');
-                set(gca,'XTick',linspace(L(1),L(2),NumTicks))
-                if imu==1
-                    ylabel('$\dot{W}$ (W)','Interpreter','latex');
-                end
-                axis tight
-                yl = get(gca, 'ylim');
-                ylim([yl(1)-0.15*norm(yl),yl(2)+0.15*norm(yl)])
-                xlim([0,100])
-
-                xlabel('Gait cycle (%)','Fontsize',label_fontsize);
-            end
-
-
-%             if inr==nr
-%                 lhPos = lh3.Position;
-%     %             lhPos(1) = lhPos(1)-0.12;
-%                 if makeplot.sol_all
-%                     lhPos(2) = lhPos(2)+0.08;
-%                 else
-%                     lhPos(2) = lhPos(2)+0.1;
-%                 end
-%                 set(lh3,'position',lhPos);
 %             end
-            if inr==nr && ~strcmp(figNamePrefix,'none')
-                set(h25,'PaperPositionMode','auto')
-                print(h25,[figNamePrefix '_toes'],'-dpng','-r0')
-                print(h25,[figNamePrefix '_toes'],'-depsc')
+
+            subplot(7,5,5+imu)
+            plot(R.FT(:,imus(imu)),'-','Color',CsV(inr,:),'DisplayName',LegName);
+            hold on
+            grid on
+
+            L = get(gca,'XLim');
+            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
+            if imu==1
+                ylabel('$F^T$ (N)','Interpreter','latex');
             end
+            axis tight
+            yl = get(gca, 'ylim');
+            ylim([0,yl(2)+0.15*norm(yl)])
+            xlim([0,100])
+
+            subplot(7,5,10+imu)
+            plot(R.MetabB.Etot(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
+            hold on
+            grid on
+
+            L = get(gca,'XLim');
+            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
+            if imu==1
+                ylabel('$\dot{E}$ (W)','Interpreter','latex');
+            end
+            axis tight
+            yl = get(gca, 'ylim');
+            ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+            xlim([0,100])
+
+            subplot(7,5,15+imu)
+            plot(R.MetabB.Wdot(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
+            hold on
+            grid on
+            L = get(gca,'XLim');
+            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
+            if imu==1
+                ylabel('$\dot{W}$ (W)','Interpreter','latex');
+            end
+            axis tight
+            yl = get(gca, 'ylim');
+            ylim([yl(1)-0.15*norm(yl),yl(2)+0.15*norm(yl)])
+            xlim([0,100])
+
+            subplot(7,5,20+imu)
+            plot(-R.FT(:,imus(imu)).*R.vT(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
+            hold on
+            grid on
+            L = get(gca,'XLim');
+            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
+            if imu==1
+                ylabel('$P^T$ (W)','Interpreter','latex');
+            end
+            axis tight
+            yl = get(gca, 'ylim');
+            ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+            xlim([0,100])
+
+            subplot(7,5,25+imu)
+            plot(R.lMtilde(:,imus(imu)),'-','Color',CsV(inr,:)); hold on;
+            hold on
+            grid on
+            L = get(gca,'XLim');
+            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
+            if imu==1
+                ylabel('$\tilde{l}^M$ (-)','Interpreter','latex');
+            end
+            axis tight
+            yl = get(gca, 'ylim');
+            ylim([yl(1)-0.05*norm(yl),yl(2)+0.02*norm(yl)])
+            xlim([0,100])
+
+            subplot(7,5,30+imu)
+            plot(R.vMtilde(:,imus(imu)),'Color',CsV(inr,:),'DisplayName',LegName);
+            hold on
+            grid on
+            L = get(gca,'XLim');
+            set(gca,'XTick',linspace(L(1),L(2),NumTicks))
+            if imu==1
+                ylabel('$\dot{\tilde{l}^M}$ (-)','Interpreter','latex');
+            end
+            axis tight
+            yl = get(gca, 'ylim');
+            ylim([yl(1)-0.1*norm(yl),yl(2)+0.1*norm(yl)])
+            xlim([0,100])
+
+
+            xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+        end
+
+
+%         if inr==nr
+%             lhPos = lh3.Position;
+% %             lhPos(1) = lhPos(1)-0.12;
+%             if makeplot.sol_all
+%                 lhPos(2) = lhPos(2)+0.08;
+%             else
+%                 lhPos(2) = lhPos(2)+0.1;
+%             end
+%             set(lh3,'position',lhPos);
+%         end
+        if inr==nr && ~strcmp(figNamePrefix,'none')
+            set(h25,'PaperPositionMode','auto')
+            print(h25,[figNamePrefix '_toes'],'-dpng','-r0')
+            print(h25,[figNamePrefix '_toes'],'-depsc')
+        end
 
     end
 
@@ -3790,7 +3865,7 @@ for inr=1:nr
             imus_i = find(strcmp(R.colheaders.muscles,musc_sim{i}));
             hold on
             plot(R.a(:,imus_i),'-','Color',CsV(inr,:),'DisplayName',LegName);
-            ylabel('Activity (-) and Excitation (--)');
+            ylabel('Activity (-)');
             axis tight
             yl = get(gca, 'ylim');
             ylim([0,yl(2)+0.1*norm(yl)])
@@ -3892,11 +3967,17 @@ for inr=1:nr
            if i==1
                ylabel('T mtj (Nm)')
            end
-           if R.S.Foot.mtj_muscles
+           if ~has_no_mtj && R.S.Foot.mtj_muscles
                T_mus = R.FT(:,musi_ankle(i)) .* R.dM(:,musi_ankle(i),idx_dM);
                idx_dM = idx_dM + 1;
                if norm(T_mus)>0
                    plot(x,T_mus,'Color',CsV(inr,:),'DisplayName',LegName);
+               end
+           elseif ~has_no_mtj
+               T_mus = R.FT(:,musi_ankle(i)) .* R.dM(:,musi_ankle(i),idx_dM);
+               idx_dM = idx_dM + 1;
+               if norm(T_mus)>0
+%                    plot(x,T_mus,':','Color',CsV(inr,:),'DisplayName',LegName);
                end
            end
 
@@ -3913,7 +3994,7 @@ for inr=1:nr
            else
                T_mus = R.FT(:,musi_ankle(i)) .* R.dM(:,musi_ankle(i),idx_dM);
                if norm(T_mus)>0
-                   plot(x,T_mus,':','Color',CsV(inr,:),'DisplayName',LegName);
+%                    plot(x,T_mus,':','Color',CsV(inr,:),'DisplayName',LegName);
                end
            end
            
@@ -4043,66 +4124,157 @@ for inr=1:nr
         end
         
         figure(h32)
-        subplot(2,5,1)
+        subplot(2,6,1)
         plot(inr,R.Obj.J,'o','Color',CsV(inr,:),'MarkerFaceColor',CsV(inr,:))
         hold on
         title('Objective')
 
-        subplot(2,5,2)
+        subplot(2,6,2)
         plot(inr,R.Obj.E,'o','Color',CsV(inr,:),'MarkerFaceColor',CsV(inr,:))
         hold on
         title('E_{metabolic}')
 
-        subplot(2,5,3)
+        subplot(2,6,3)
         plot(inr,R.Obj.A,'o','Color',CsV(inr,:),'MarkerFaceColor',CsV(inr,:))
         hold on
         title('activity')
 
-        subplot(2,5,4)
+        subplot(2,6,4)
         plot(inr,R.Obj.Arm,'o','Color',CsV(inr,:),'MarkerFaceColor',CsV(inr,:))
         hold on
         title('arms e')
 
-        subplot(2,5,5)
+        subplot(2,6,5)
         plot(inr,R.Obj.Mtp,'o','Color',CsV(inr,:),'MarkerFaceColor',CsV(inr,:))
         hold on
         title('mtp e')
 
         if isfield(R.Obj,'PIM') && R.Obj.PIM >0
-            subplot(2,5,6)
+            subplot(2,6,6)
             plot(inr,R.Obj.PIM,'o','Color',CsV(inr,:),'MarkerFaceColor',CsV(inr,:))
             hold on
             title('PIM e')
         end
 
         if isfield(R.Obj,'P_PIM')  && R.Obj.P_PIM >0
-            subplot(2,5,7)
+            subplot(2,6,7)
             plot(inr,R.Obj.P_PIM,'o','Color',CsV(inr,:),'MarkerFaceColor',CsV(inr,:))
             hold on
             title('PIM Work')
         end
 
-        subplot(2,5,8)
+        subplot(2,6,8)
         plot(inr,R.Obj.qdd,'o','Color',CsV(inr,:),'MarkerFaceColor',CsV(inr,:))
         hold on
         title('accelerations')
 
-        subplot(2,5,9)
+        subplot(2,6,9)
         plot(inr,R.Obj.Pass,'o','Color',CsV(inr,:),'MarkerFaceColor',CsV(inr,:))
         hold on
         title('passive torques')
 
-        subplot(2,5,10)
+        subplot(2,6,10)
         plot(inr,R.Obj.vA,'o','Color',CsV(inr,:),'MarkerFaceColor',CsV(inr,:),'DisplayName',LegName)
         hold on
         title('da/dt')
 
-       lh32=legend('location','northeast','Interpreter',lgInt);
+        lh32=legend('location','northeast','Interpreter',lgInt);
+
+        if isfield(R.Obj,'Track')  && R.Obj.Track >0
+            subplot(2,6,11)
+            plot(inr,R.Obj.Track,'o','Color',CsV(inr,:),'MarkerFaceColor',CsV(inr,:),'DisplayName',LegName)
+            hold on
+            title('Tracking')
+        end
+
+       
 
     end
 
     %%
 
+    %% kinetics
+    if makeplot.tau_pass
+        
+        if inr==1
+            h33 = figure('Position',[fpos(2,:),fwide]);
+        else
+            figure(h33);
+        end
+
+        if has_no_tmt && has_no_mtj
+            idx_Qs = [10,11,12,14,16,18,20,21,22,23,27,28,29,31]-6;
+        else
+            idx_Qs = [10,11,12,14,16,18,20,22,23,24,25,29,30,31,33]-6;
+        end
+        idx_title = [10,11,12,14,16,18,20,24,25,26,27,31,32,33,35]-6;
+        
+        joints_tit_1 = {'Hip flexion L','Hip adduction L',...
+                'Hip rotation L','Hip flexion R','Hip adduction R','Hip rotation R',...
+                'Knee L','Knee R','Ankle L','Ankle R','Subtalar L','Subtalar R',...
+                'Midtarsal L','Midtarsal R','Tmt L','Tmt R',...
+                'Mtp L','Mtp R',...
+                'Lumbar extension','Lumbar bending','Lumbar rotation',...
+                'Arm flexion L','Arm adduction L','Arm rotation L',...
+                'Arm flexion R','Arm adduction R','Arm rotation R',...
+                'Elbow flexion L','Elbow flexion R'};
+
+        figure(h33)
+        j = 0;
+        label_fontsize  = 12;
+        line_linewidth  = 0.5;
+        x = 1:(100-1)/(size(R.Qs,1)-1):100;
+        for i = 1:length(idx_title)
+            subplot(5,3,i)
+            
+            hold on;
+            axis tight
+            xlim([0,100]);
+            if (has_no_tmt && strcmp(joints_tit_1{idx_title(i)},'Tarsometatarsal R')) || ...
+                    (has_no_mtj && strcmp(joints_tit_1{idx_title(i)},'Midtarsal R'))
+                % skip this plot
+            else
+                j=j+1;
+                plot(x,R.TPass(:,idx_Qs(j)),'color',Cs,'linewidth',line_linewidth,'DisplayName',LegName);
+            end
+            % Plot settings
+            if inr==1
+                % Plot settings
+                set(gca,'Fontsize',label_fontsize);
+                title(joints_tit_1{idx_title(i)},'Fontsize',label_fontsize);
+                % Y-axis
+                if i == 1 || i == 4 || i == 7 || i == 10 || i == 13 || i == 16
+                    ylabel('Passive torque (Nm)','Fontsize',label_fontsize);
+                end
+                % X-axis
+                L = get(gca,'XLim');
+                NumTicks = 3;
+                set(gca,'XTick',linspace(L(1),L(2),NumTicks))
+                if i > 15
+                    xlabel('Gait cycle (%)','Fontsize',label_fontsize);
+                end
+            end
+            if inr==1 && i==1
+                lhT=legend('-DynamicLegend','location','northwest');
+                lhT.Interpreter = lgInt;
+                lhT.Orientation = 'horizontal';
+            end
+            if inr==nr && i==1
+                lhPos = lhT.Position;
+                lhPos(1) = lhPos(1)-0.1;
+                lhPos(2) = lhPos(2)+0.08;
+                set(lhT,'position',lhPos);
+            end
+        end 
+        
+        if inr==nr && ~strcmp(figNamePrefix,'none')
+            set(h33,'PaperPositionMode','auto')
+            print(h33,[figNamePrefix '_Tpass_all'],'-dpng','-r0')
+            print(h33,[figNamePrefix '_Tpass_all'],'-depsc')
+        end
+    end
+
+    %%
 
 end
 

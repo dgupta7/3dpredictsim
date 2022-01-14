@@ -16,8 +16,7 @@ addpath([pwd,'/Debug']);
 addpath([pwd '/VariousFunctions']);
 addpath([pwd '/FootModel']);
 AddCasadiPaths();
-% DataFolders = {'Final'};
-DataFolders = {'MidTarsalJoint'};
+DataFolders = {'debug'};
 
 
 S.OverWrite = 0;
@@ -40,22 +39,12 @@ for f = 1:nF
             FolderIndex(ct) = f;
             ct= ct+1;
             if (~exist(OutName,'file') || S.OverWrite == 1)
-%                 try
-                    disp(filename)
-%                     f_LoadSim_Gait92_tmt_ia(DataFolders{f},filename);
-                    f_LoadSim_Gait92_tmt(DataFolders{f},filename);
-%                 catch
-%                     try
-%                         f_LoadSim_Gait92_tmt_v2(DataFolders{f},filename);
-%                     catch
-%                         try
-%                             f_LoadSim_Gait92(DataFolders{f},filename);
-%                         catch
-%                             disp(['Postprocess of ' filename ' failed.']);
-%                         end
-%                     end
-%                 end
-%                 disp(ct);
+                try
+                    disp(filename);
+                    f_LoadSim_Gait92_FootModel(DataFolders{f},filename);
+                catch
+                    disp([filename ' failed']);
+                end
             end
         end
     end

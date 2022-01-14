@@ -42,7 +42,7 @@ pathCollocationScheme = [pathRepo,'/CollocationScheme'];
 addpath(genpath(pathCollocationScheme));
 d = 3; % degree of interpolating polynomial
 method = 'radau'; % collocation method
-[~,C,D,B] = CollocationScheme(d,method);
+[tau_root,C,D,B] = CollocationScheme(d,method);
 
 %% Muscle information
 % Muscles from one leg and from the back
@@ -186,6 +186,35 @@ tibiaOr.all = [tibiaOr.r,tibiaOr.l];
 toesOr.r   = double(IO.origin.toes_r([1,3])); % x and z coordinate
 toesOr.l   = double(IO.origin.toes_l([1,3])); % x and z coordinate
 toesOr.all = [toesOr.r,toesOr.l];
+
+%% Get tracking information
+if S.TrackSim
+    load([pathRepo '\Data\Fal_s1.mat'],'Data');
+    Qref = Data.(['IK_' S.Track.Q_ref]);
+    if S.Track.Q_ankle
+        Qref_ankle = Qref.Qall_mean(:,strcmp(Qref.colheaders,'ankle_angle'))*pi/180;
+        Qref_ankle = interp1(linspace(1,2*N,length(Qref_ankle))',Qref_ankle,...
+             (1:1:2*N)','spline','extrap');
+        Qref_ankle_lr = [Qref_ankle(N+1:end),Qref_ankle(1:N)]';
+    end
+    if S.Track.Q_subt
+        Qref_subt = Qref.Qall_mean(:,strcmp(Qref.colheaders,'subtalar_angle'))*pi/180;
+        Qref_subt = interp1(linspace(1,2*N,length(Qref_subt))',Qref_subt,...
+             (1:1:2*N)','spline','extrap');
+        Qref_subt_lr = [Qref_subt(N+1:end),Qref_subt(1:N)]';
+    end
+
+    if S.Track.Q_ankle
+        if S.Track.Q_subt
+            Qref_lr = [Qref_ankle_lr;Qref_subt_lr];
+        else
+            Qref_lr = Qref_ankle_lr;
+        end
+    elseif S.Track.Q_subt
+        Qref_lr = Qref_subt_lr;
+    end
+
+end
 
 %% Get bounds and initial guess
 
@@ -433,7 +462,9 @@ if S.Foot.PIM
     a_PIMkj     = [a_PIMk a_PIMj];
     e_PIMk      = MX.sym('e_PIMk',2);
 end
-
+if S.TrackSim
+    Qsk_track   =MX.sym('Qsk_track',2*(S.Track.Q_ankle+S.Track.Q_subt));
+end
 % Define CasADi variables for "slack" controls
 dFTtildej   = MX.sym('dFTtildej',NMuscle,d);
 Aj          = MX.sym('Aj',nq.all,d);
@@ -873,6 +904,22 @@ for j=1:d
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end % End loop over collocation points
+
+if S.TrackSim
+    Qsk_nsc = Qsk.*scaling.Qs';
+    if S.Track.Q_ankle
+        track_err = Qsk_nsc([jointi.ankle.l, jointi.ankle.r]) - Qsk_track(1:2);
+        J = J + W.Q_track * f_J2(track_err)*h;
+        if S.Track.Q_subt
+            track_err2 = Qsk_nsc([jointi.subt.l, jointi.subt.r]) - Qsk_track(3:4);
+            J = J + W.Q_track * f_J2(track_err2)*h;
+        end
+    elseif S.Track.Q_subt
+        track_err = Qsk_nsc([jointi.subt.l, jointi.subt.r]) - Qsk_track(1:2);
+        J = J + W.Q_track * f_J2(track_err)*h;
+    end
+end
+
 eq_constr = vertcat(eq_constr{:});
 ineq_constr1 = vertcat(ineq_constr1{:});
 ineq_constr2 = vertcat(ineq_constr2{:});
@@ -925,18 +972,34 @@ else
             Qs_col, Qdots(:,1:end-1), Qdots_col, a_a(:,1:end-1), a_a_col, ...
             a_PIM(:,1:end-1), a_PIM_col, vA, e_a, e_PIM, dFTtilde_col, A_col);
     else
-        % Casadi function to get constraints and objective
-        f_coll = Function('f_coll',{tfk,ak,aj,FTtildek,FTtildej,Qsk,Qsj,Qdotsk,...
-            Qdotsj,a_ak,a_aj,vAk,e_ak,dFTtildej,Aj},...
-            {eq_constr,ineq_constr1,ineq_constr2,ineq_constr3,ineq_constr4,...
-            ineq_constr5,ineq_constr6,J});
-        % assign NLP problem to multiple cores
-        f_coll_map = f_coll.map(N,S.parallelMode,S.NThreads);
-        [coll_eq_constr, coll_ineq_constr1, coll_ineq_constr2, coll_ineq_constr3,...
-            coll_ineq_constr4, coll_ineq_constr5, coll_ineq_constr6, Jall] = f_coll_map(tf,...
-            a(:,1:end-1), a_col, FTtilde(:,1:end-1), FTtilde_col, Qs(:,1:end-1), ...
-            Qs_col, Qdots(:,1:end-1), Qdots_col, a_a(:,1:end-1), a_a_col, ...
-            vA, e_a, dFTtilde_col, A_col);
+        if S.TrackSim
+            % Casadi function to get constraints and objective
+            f_coll = Function('f_coll',{tfk,ak,aj,FTtildek,FTtildej,Qsk,Qsj,Qdotsk,...
+                Qdotsj,a_ak,a_aj,vAk,e_ak,dFTtildej,Aj,Qsk_track},...
+                {eq_constr,ineq_constr1,ineq_constr2,ineq_constr3,ineq_constr4,...
+                ineq_constr5,ineq_constr6,J});
+            % assign NLP problem to multiple cores
+            f_coll_map = f_coll.map(N,S.parallelMode,S.NThreads);
+            [coll_eq_constr, coll_ineq_constr1, coll_ineq_constr2, coll_ineq_constr3,...
+                coll_ineq_constr4, coll_ineq_constr5, coll_ineq_constr6, Jall] = f_coll_map(tf,...
+                a(:,1:end-1), a_col, FTtilde(:,1:end-1), FTtilde_col, Qs(:,1:end-1), ...
+                Qs_col, Qdots(:,1:end-1), Qdots_col, a_a(:,1:end-1), a_a_col, ...
+                vA, e_a, dFTtilde_col, A_col, Qref_lr);
+
+        else
+            % Casadi function to get constraints and objective
+            f_coll = Function('f_coll',{tfk,ak,aj,FTtildek,FTtildej,Qsk,Qsj,Qdotsk,...
+                Qdotsj,a_ak,a_aj,vAk,e_ak,dFTtildej,Aj},...
+                {eq_constr,ineq_constr1,ineq_constr2,ineq_constr3,ineq_constr4,...
+                ineq_constr5,ineq_constr6,J});
+            % assign NLP problem to multiple cores
+            f_coll_map = f_coll.map(N,S.parallelMode,S.NThreads);
+            [coll_eq_constr, coll_ineq_constr1, coll_ineq_constr2, coll_ineq_constr3,...
+                coll_ineq_constr4, coll_ineq_constr5, coll_ineq_constr6, Jall] = f_coll_map(tf,...
+                a(:,1:end-1), a_col, FTtilde(:,1:end-1), FTtilde_col, Qs(:,1:end-1), ...
+                Qs_col, Qdots(:,1:end-1), Qdots_col, a_a(:,1:end-1), a_a_col, ...
+                vA, e_a, dFTtilde_col, A_col);
+        end
     end
 end
 

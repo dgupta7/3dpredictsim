@@ -22,19 +22,34 @@ if ~isfield(S,'OsimFileName')
     if S.tib_ant_Rajagopal2015
         OsimFileName = [OsimFileName '_TAR'];
     end
+    if S.useMtpPinPoly
+        OsimFileName = [OsimFileName '_old'];
+    end
+    if isfield(S,'MTparams')
+        OsimFileName = [OsimFileName '_' S.MTparams];
+    end
     S.OsimFileName = OsimFileName;
 end
 
 %% construct external function file name
 if S.Foot.contactStiffnessFactor == 10
     ExternalFunc = [ExternalFunc '_cspx10'];
+elseif S.Foot.contactStiffnessFactor == 5
+    ExternalFunc = [ExternalFunc '_cspx5'];
 end
 if S.Foot.contactSphereOffsetY
     ExternalFunc = [ExternalFunc '_oy'];
 end
+if S.Foot.contactSphereOffset45Z
+    ExternalFunc = [ExternalFunc '_o45z' num2str(S.Foot.contactSphereOffset45Z*1e3)];
+end
 if S.Foot.contactSphereOffset1X
     ExternalFunc = [ExternalFunc '_o1x' num2str(S.Foot.contactSphereOffset1X*1e3)];
 end
+if S.useMtpPinExtF
+    ExternalFunc = [ExternalFunc '_old'];
+end
+
 S.ExternalFunc = ExternalFunc;
 
 
@@ -47,7 +62,9 @@ S.savename = savename;
 % Casadi functions are made when
 if batchQueue
     % Store the settings
-    fieldname = S.savename(max(1,end-63):end);
+    fieldname = S.savename;
+    fieldname = fieldname((fieldname(:)~='_'));
+    
     if (exist([pathRepo '/Results/batchQ.mat'],'file')==2) 
         load([pathRepo '/Results/batchQ.mat'],'batchQ');
     else

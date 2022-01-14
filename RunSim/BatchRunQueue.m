@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script runs the batch of simulations created in another script. See
-% main_thesis_Lars.m of more.
+% main.m for more.
 %
 % Author: Lars D'Hondt (May 2021)
 %
@@ -21,7 +21,9 @@ addpath([pathRepo '/Musclemodel']);
 addpath([pathRepo '/Polynomials']);
 addpath([pathRepo '/FootModel']);
 
-StartPath = pwd;
+% StartPath = pwd;
+StartPath = pathRepo;
+cd(pathRepo)
 pathExternalFunctions = fullfile(pathRepo,'ExternalFunctions');
 
 %% Load queue
@@ -75,7 +77,7 @@ for i=1:imax
             disp('...casadifunctions created');
         end
 
-        PathPolynomials = fullfile(pathRepo,'Polynomials',batchQ.(fields{i}).S.subject);
+        PathPolynomials = fullfile(pathRepo,'Polynomials');
         pathResults = fullfile([pathRepo '/Results'],batchQ.(fields{i}).S.ResultsFolder);
         CasadiFiles = fullfile(pathRepo,'CasADiFunctions',batchQ.(fields{i}).S.CasadiFunc_Folders);
         batchQ.(fields{i}).S.NThreads  = 2;

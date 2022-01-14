@@ -15,7 +15,8 @@ Subject = 'Fal_s1'; % (= subject1 from Falisse et al.) fixed for now
 FootModel = 'mtj'; % mtp or mtj
 FootScaling = 'custom'; % default, custom, personalised
 FDB = 1;
-tib_ant_Rajagopal2015 = 1;
+tib_ant_Rajagopal2015 = 0;
+MTcustom = 2;
 % Boolean to select if we have to run the muscle analysis
 Bool_RunMA = 1; 
 
@@ -43,12 +44,18 @@ end
 if tib_ant_Rajagopal2015
     OsimFileName = [OsimFileName '_TAR'];
 end
+if MTcustom == 1
+    OsimFileName = [OsimFileName '_MTc'];
+elseif MTcustom == 2
+    OsimFileName = [OsimFileName '_MTc2'];
+end
 % Manually overwrite OpenSim file name if wanted
 % OsimFileName = 'CP3_T0_scaled_MRI_v7_scaledMT_right';
 
 
 % Modelpath
 ModelPath = fullfile(pathRepo,'OpenSimModel/subject1',[OsimFileName '.osim']);
+disp(OsimFileName)
 
 % Path to save the polynomials
 PolyFolder = OsimFileName;
@@ -99,7 +106,9 @@ end
 FitPolynomials(pathRepo,ModelName,ModelPath,PolyFolder,Bool_RunMA,muscleNames)
 
 % fit polynomials to plantar fascia geometry
-getPlantarFasciaGeometry(pathRepo,ModelPath,PolyFolder)
+if contains(OsimFileName,'_mtj')
+    getPlantarFasciaGeometry(pathRepo,ModelPath,PolyFolder)
+end
 
 %% Get muscle parameters
 

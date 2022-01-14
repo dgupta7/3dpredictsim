@@ -34,7 +34,7 @@ n_tib = 1;
 if S.Foot.MT_li_nonl
     mtj_stiffness = S.Foot.mtj_stiffness;
 else
-    mtj_stiffness = ['k' num2str(S.kMT_li)];
+    mtj_stiffness = ['k' num2str(S.Foot.kMT_li)];
 end
     
 
@@ -51,6 +51,7 @@ if strcmp(S.Foot.Scaling,'custom')
         'Fal_s1_mtj_sc_cspx10_oy_MTPm_k1_d05_MTJm_nl_Gefen2002_PF_Gefen2002_ls150');
     PolyFolder = [pathRepo '\Polynomials\Fal_s1_mtj_sc'];
     ext_name = 'Foot_Fal_s1_mtj_sc_cspx10_oy';
+    pathMusc = fullfile(pathRepo,'MuscleModel','Fal_s1_mtj_sc');
 
 elseif strcmp(S.Foot.Scaling,'default')
     PathDefaultFunc = fullfile(pathCasADiFunctions,...
@@ -96,6 +97,8 @@ elseif strcmp(S.Foot.mtj_stiffness,'MG_exp_e_table')
     f_getMtjLigamentMoment = Function.load((fullfile(PolyFolder,'f_getMtjLigamentMoment_exp_e')));
 elseif strcmp(S.Foot.mtj_stiffness,'MG_exp_f_table')
     f_getMtjLigamentMoment = Function.load((fullfile(PolyFolder,'f_getMtjLigamentMoment_exp_f')));
+elseif strcmp(S.Foot.mtj_stiffness,'MG_exp_table_v2')
+    f_getMtjLigamentMoment = Function.load((fullfile(PolyFolder,'f_getMtjLigamentMoment_exp_v2')));
 end
 
 %% Define specific casadi functions
@@ -104,19 +107,19 @@ f_PF_stiffness = f_getPlantarFasciaStiffnessModelCasADiFunction(S.Foot.PF_stiffn
 qin1     = MX.sym('qin_pass1',1);
 
 % M_mtj = getMidtarsalJointPassiveMoment(qin1,qdotin1,S);
-M_mtj_MX = f_getMtjLigamentMoment(qin1)*S.Foot.mtj_sf;
+M_mtj_MX = f_getMtjLigamentMoment(qin1)*S.Foot.mtj_sf - S.Foot.kMT_li*qin1;
 
 f_passiveMoment_mtj = Function('f_passiveMoment_mtj',{qin1},{M_mtj_MX},{'qin1'},{'M_mtj'});
 
 K_pass = [-50 15 60 -30]';
 theta_pass = [-0.4 0.5]';
 
-qin1     = SX.sym('qin_pass1',1);
+qin1     = MX.sym('qin_pass1',1);
 
 Tau_pass_1 = K_pass(1,1)*exp(K_pass(2,1)*(qin1-theta_pass(2,1)));
 Tau_pass_2 = K_pass(3,1)*exp(K_pass(4,1)*(qin1-theta_pass(1,1)));
-Tau_pass_SX = Tau_pass_1 + Tau_pass_2;
-f_passiveTorque_mtj = Function('f_passiveTorque_mtj',{qin1},{Tau_pass_SX},{'qin1'},{'Tau_pass_mtj'});
+Tau_pass_MX = Tau_pass_1 + Tau_pass_2;
+f_passiveTorque_mtj = Function('f_passiveTorque_mtj',{qin1},{Tau_pass_MX},{'qin1'},{'Tau_pass_mtj'});
 
 %% Indices external function
 % External function: F
@@ -186,7 +189,8 @@ bounds_qs = [[-20,20]*pi/180; % tibia rx
              [-30,30]*pi/180; % tibia rz
              [-50, 50]*pi/180; % ankle
              [-50, 50]*pi/180; % subt
-             [-30,30]*pi/180]; % mtj
+             [-30,30]*pi/180; % mtj
+             [-30,50]*pi/180]; % mtp
 
 bounds_qs(4,:) = bounds_qs(4,:)/subtR;
 
@@ -245,11 +249,11 @@ Q_tib_rz = MX.sym('Q_tib_rz',1);
 Q_ankle = MX.sym('Q_ankle',1);
 Q_subt = MX.sym('Q_subt',1);
 Q_mtj = MX.sym('Q_mtj',1);
+Q_mtp = MX.sym('Q_mtp',1);
 FT_tilde = MX.sym('FT_tilde',NMf,1);
 
-
 % parameters
-Q_mtp = MX.sym('Q_mtp',1);
+Q_mtp_tr = MX.sym('Q_mtp',1);
 
 % unscale
 Q_tib_rx_nsc = Q_tib_rx*scale_qs(1);
@@ -261,7 +265,7 @@ Q_tib_tz_nsc = 0;
 Q_ankle_nsc = Q_ankle*scale_qs(3);
 Q_subt_nsc = Q_subt*scale_qs(4);
 Q_mtj_nsc = Q_mtj*scale_qs(5);
-Q_mtp_nsc = Q_mtp;
+Q_mtp_nsc = Q_mtp*scale_qs(6);
 
 % Get muscle-tendon information
 qin_r = MX.zeros(nq.leg,1); % adapt vector size to match full model
@@ -387,20 +391,20 @@ fh = Hilldiff;
 ff = [f1;f2;f3;f4;fh;];
 
 % Objective
-fo1 = Tj(jointfi.tibia.rx,1).^2 + Tj(jointfi.tibia.rx,1).^2;
-fo2 = sum(FT);
+fo1 = Tj(jointfi.tibia.rx,1).^2 + Tj(jointfi.tibia.rz,1).^2;
+fo2 = norm(Q_mtp_tr-Q_mtp_nsc);
 
 % fo = fo1 + fo2;
 fo = fo1;
 
 
 % Define function to return constraints and objective
-f_foot = Function('f_foot',{[Q_tib_rx;Q_tib_rz;Q_ankle;Q_subt;Q_mtj;FT_tilde],...
-    Q_mtp},{fo,ff});
+f_foot = Function('f_foot',{[Q_tib_rx;Q_tib_rz;Q_ankle;Q_subt;Q_mtj;Q_mtp;FT_tilde],...
+    Q_mtp_tr},{fo,ff});
 
 % Define function to return forces and torques for post-processing
-f_foot_pp = Function('f_foot_pp',{[Q_tib_rx;Q_tib_rz;Q_ankle;Q_subt;Q_mtj;FT_tilde],...
-    Q_mtp},...
+f_foot_pp = Function('f_foot_pp',{[Q_tib_rx;Q_tib_rz;Q_ankle;Q_subt;Q_mtj;Q_mtp;FT_tilde],...
+    Q_mtp_tr},...
     {FT,T_ankle_r,Tau_pass_ankle,T_subt_r,Tau_pass_subt,T_mtj_r,Tau_pass_mtj,T_pass_mtj,T_mtp_r,Q_mtp_nsc,...
     MA_PFj.mtj.r,l_PFj_r,F_PF_PIMj.r,T_mtpPF_r});
 
@@ -445,7 +449,7 @@ end
 %% make solver
 opti = casadi.Opti();
 % positions
-qs_opti = opti.variable(5,1);
+qs_opti = opti.variable(6,1);
 opti.subject_to(bounds_qs(:,1) <= qs_opti(:,1));
 opti.subject_to(qs_opti(:,1) <= bounds_qs(:,2));
 % muscle-tendon forces
@@ -458,7 +462,7 @@ qmtp = opti.parameter();
 [obj,constr] = f_foot([qs_opti;FTtilde_opti],qmtp);
 opti.subject_to(constr == 0);
 
-% opti.minimize(obj);
+opti.minimize(obj);
 
 % solver options
 options.ipopt.hessian_approximation = 'limited-memory';
@@ -473,7 +477,7 @@ temp = [];
 %% run solver        
 for i=1:n_mtp
     % get initial guess
-    qs_init = [0;0;-20;0;-10]*pi/180./scale_qs;
+    qs_init = [0;0;-20;0;-10;Qs_mtp(i)+5]*pi/180./scale_qs;
     FTs_init = zeros(NMf,1);
 
     for j=1:n_tib
@@ -489,7 +493,6 @@ for i=1:n_mtp
             sol = opti.solve();
             qs_sol = sol.value(qs_opti).*scale_qs;
             FTs_sol = sol.value(FTtilde_opti).*scale_FTs;
-            T_mtp_sol = sol.value(T_mtp_opti);
 
 %             % retrieve residuals
 %             [~,f_res] = f_foot([qs_sol./scale_qs;FTs_sol./scale_FTs;T_mtp_sol],Qs_mtp(i),Fs_tib(j));
@@ -506,7 +509,9 @@ for i=1:n_mtp
             Qs(i,j,jointfi.ankle.r) = qs_sol(3);
             Qs(i,j,jointfi.subt.r) = qs_sol(4);
             Qs(i,j,jointfi.mtj.r) = qs_sol(5);
-            T_mtp_ext(i,j) = T_mtp_sol;
+            Qs(i,j,jointfi.mtp.r) = qs_sol(6);
+            
+            disp(qs_sol*180/pi)
 
             QsQdots(i,j,1:2:end) = Qs(i,j,:);
             QsQdots(i,j,2:2:end) = Qdots(i,j,:);

@@ -24,9 +24,28 @@ else
                 savenameparts{end+1} = 'sp';
             end
         end
+        if isfield(S.Foot,'contactStiffnessFactor')
+            if S.Foot.contactStiffnessFactor == 10
+                savenameparts{end+1} = 'cspx10';
+            elseif S.Foot.contactStiffnessFactor == 5
+                savenameparts{end+1} = 'cspx5';
+            elseif S.Foot.contactStiffnessFactor == 1
+                not{end+1} = 'not_cspx';
+            end
+        end
     end
+
 end
 
+if isfield(S,'TrackSim') && S.TrackSim 
+    savenameparts{end+1} = 'Track';
+    if isfield(S,'Track') && S.Track.Q_ankle
+        savenameparts{end} = [savenameparts{end} 'AnkleQ'];
+    end
+    if isfield(S,'Track') && S.Track.Q_subt
+        savenameparts{end} = [savenameparts{end} 'SubtQ'];
+    end
+end
 if isfield(S,'AchillesTendonScaleFactor') && S.AchillesTendonScaleFactor~=1
     savenameparts{end+1} = ['ATx' num2str(S.AchillesTendonScaleFactor*100)];
     casfuncfolparts{end+1} = ['ATx' num2str(S.AchillesTendonScaleFactor*100)];
@@ -39,6 +58,18 @@ if isfield(S,'tib_ant_Rajagopal2015') && S.tib_ant_Rajagopal2015
     casfuncfolparts{end+1} = 'TAR';
 elseif isfield(S,'tib_ant_Rajagopal2015') && ~S.tib_ant_Rajagopal2015
     not{end+1} = 'not_TAR';
+end
+
+if isfield(S,'useMtpPinPoly') && S.useMtpPinPoly
+    savenameparts{end+1} = 'oldPoly';
+    casfuncfolparts{end+1} = 'oldPoly';
+elseif isfield(S,'useMtpPinPoly') && ~S.useMtpPinPoly
+    not{end+1} = 'not_oldPoly';
+end
+
+if isfield(S,'MTparams')
+    savenameparts{end+1} = S.MTparams;
+    casfuncfolparts{end+1} = S.MTparams;
 end
 
 if isfield(S,'Foot')
@@ -83,6 +114,11 @@ if isfield(S,'Foot')
                 else
                     savenameparts{end+1} = ['nl_' S.Foot.mtj_stiffness];
                     casfuncfolparts{end+1} = ['nl_' S.Foot.mtj_stiffness];
+
+                    if isfield(S.Foot,'mtj_sf') && S.Foot.mtj_sf~=1
+                        savenameparts{end} = [savenameparts{end} '_x' num2str(S.Foot.mtj_sf)];
+                        casfuncfolparts{end} = [casfuncfolparts{end} '_x' num2str(S.Foot.mtj_sf)];
+                    end
                 end
             else
                 savenameparts{end+1} = ['nl'];

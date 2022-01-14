@@ -98,6 +98,8 @@ elseif strcmp(S.Foot.mtj_stiffness,'MG_exp_e_table')
     f_getMtjLigamentMoment = Function.load((fullfile(PolyFolder,'f_getMtjLigamentMoment_exp_e')));
 elseif strcmp(S.Foot.mtj_stiffness,'MG_exp_f_table')
     f_getMtjLigamentMoment = Function.load((fullfile(PolyFolder,'f_getMtjLigamentMoment_exp_f')));
+elseif strcmp(S.Foot.mtj_stiffness,'MG_exp5_table')
+    f_getMtjLigamentMoment = Function.load((fullfile(PolyFolder,'f_getMtjLigamentMoment_exp5')));
 end
 
 %% Define specific casadi functions

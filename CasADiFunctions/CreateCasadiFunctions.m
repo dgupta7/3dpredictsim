@@ -432,6 +432,12 @@ if mtj
     if strcmp(S.Foot.mtj_stiffness,'MG_exp_table')
         f_getMtjLigamentMoment = Function.load((fullfile(pathpolynomial,'f_getMtjLigamentMoment_exp')));
         M_mtj = f_getMtjLigamentMoment(qin1)*S.Foot.mtj_sf - (S.Foot.dMT-0.1)*qdotin1; % compensate damping from passive torques
+    elseif strcmp(S.Foot.mtj_stiffness,'MG_exp5_table')
+        f_getMtjLigamentMoment = Function.load((fullfile(pathpolynomial,'f_getMtjLigamentMoment_exp5')));
+        M_mtj = f_getMtjLigamentMoment(qin1)*S.Foot.mtj_sf - (S.Foot.dMT-0.1)*qdotin1; % compensate damping from passive torques
+    elseif strcmp(S.Foot.mtj_stiffness,'MG_exp_v2_table')
+        f_getMtjLigamentMoment = Function.load((fullfile(pathpolynomial,'f_getMtjLigamentMoment_exp_v2')));
+        M_mtj = f_getMtjLigamentMoment(qin1)*S.Foot.mtj_sf - (S.Foot.dMT-0.1)*qdotin1; % compensate damping from passive torques
     else
         M_mtj = getMidtarsalJointPassiveMoment(qin1,qdotin1,S);
     end

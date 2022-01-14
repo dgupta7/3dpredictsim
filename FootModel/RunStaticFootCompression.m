@@ -19,7 +19,7 @@ S.Foot.MT_li_nonl = 1;
 S.Foot.mtj_stiffness = 'MG_exp_table';
 S.Foot.mtj_sf = 1; 
 
-S.Foot.FDB = 1;
+S.Foot.FDB = 0;
 
 %%
 Qs_mtp = [0]*pi/180;
@@ -30,7 +30,7 @@ Fs_tib = [0];
 % Qs_mtp = [-30:30:30]*pi/180;
 % Qs_mtp = [-30:30:30]*pi/180;
 % Qs_mtp = [0:5:30]*pi/180;
-% Qs_mtp = [-30:10:30]*pi/180;
+Qs_mtp = [-30:10:30]*pi/180;
 
 
 % vertical forces on knee
@@ -41,7 +41,7 @@ Fs_tib = [0];
 % Fs_tib = [0:50:1000,1100:100:6000];
 
 % Fs_tib = [0:50:500];
-Fs_tib = [0:50:300,400,500:250:3000];
+% Fs_tib = [0:50:300,400,500:250:3000];
 
 subtR = 1; % reduce subtalar mobility
 
@@ -97,12 +97,19 @@ Results = {};
 % Results{end+1} = R;
 
 
-
-
 % S.Foot.PF_stiffness = 'Gefen2002';
 % S.Foot.PF_sf = 1; 
 % S.Foot.PF_slack_length = 0.146;
 % S.Foot.mtj_stiffness = 'MG_exp_table';
+% Fs_tib = [0:100:1000];
+% Qs_mtp = [-30:10:30]*pi/180;
+% R = f_staticFootCompression_v6(S,Qs_mtp,Fs_tib,subtR);
+% Results{end+1} = R;
+
+% S.Foot.PF_stiffness = 'Gefen2002';
+% S.Foot.PF_sf = 1; 
+% S.Foot.PF_slack_length = 0.146;
+% S.Foot.mtj_stiffness = 'MG_exp5_table';
 % Fs_tib = [0:100:1000];
 % Qs_mtp = [-30:10:30]*pi/180;
 % R = f_staticFootCompression_v6(S,Qs_mtp,Fs_tib,subtR);
@@ -117,12 +124,24 @@ Results = {};
 % R = f_staticFootHanging(S,Qs_mtp,subtR);
 % Results{end+1} = R;
 
-S.Foot.FDB = 0;
-R = f_staticFootCompression_v6(S,Qs_mtp,Fs_tib,subtR);
+% S.Foot.FDB = 0;
+% R = f_staticFootCompression_v6(S,Qs_mtp,Fs_tib,subtR);
+% Results{end+1} = R;
+
+% S.Foot.FDB = 1;
+% R = f_staticFootCompression_v6(S,Qs_mtp,Fs_tib,subtR);
+% Results{end+1} = R;
+
+Qs_mtp = [0]*pi/180;
+S.Foot.kMT_li = 0;
+S.Foot.mtj_stiffness = 'MG_exp_table';
+R = f_staticFootHanging(S,Qs_mtp,subtR);
 Results{end+1} = R;
 
-S.Foot.FDB = 1;
-R = f_staticFootCompression_v6(S,Qs_mtp,Fs_tib,subtR);
+Qs_mtp = [0]*pi/180;
+S.Foot.kMT_li = 0;
+S.Foot.mtj_stiffness = 'MG_exp_table_v2';
+R = f_staticFootHanging(S,Qs_mtp,subtR);
 Results{end+1} = R;
 
 %%

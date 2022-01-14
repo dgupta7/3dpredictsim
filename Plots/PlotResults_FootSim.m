@@ -74,7 +74,7 @@ if numFig <1 || numFig==1
     hold on
     idx_20 = find((R.Qs_mtp)*180/pi==-20);
     if length(R.Qs_mtp)>1 && ~isempty(idx_20)
-        l0 = max(R.l_fa_ext(:,idx_20));
+        l0 = max(R.l_fa_ext(idx_20,1));
         plot(R.Qs_mtp*180/pi,R.l_fa_ext(:,1)./l0,'.','color',CsV,'MarkerSize',15)
         c = polyfit(R.Qs_mtp'*180/pi,R.l_fa_ext(:,1)./l0,1);
         lm = polyval(c,R.Qs_mtp*180/pi);
